@@ -54,13 +54,14 @@ const UpdatePdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
         }));
     };
 
-    console.log(pdlForm?.visitor)
+    console.log("Visitor: ", pdlForm?.visitor)
 
     // Create table data source directly from pdlForm.visitor
     const pdlToVisitDataSource = pdlForm?.visitor?.map((visitorEntry, index) => {
         // Find the visitor from the visitors data
-        const visitor = pdlVisitors?.find(v => v?.visitor_reg_no
-            === visitorEntry?.visitor_reg_no);
+        const visitor = pdlVisitors?.find(
+            v => v?.id === (visitorEntry?.visitor ?? visitorEntry?.id)
+        );
 
         // Find the relationship name
         const relationship = visitorToPdlRelationship?.find(

@@ -1097,7 +1097,10 @@ const UpdatePDL = () => {
                 person_id: persons?.find(person => `${person?.first_name ?? ""} ${person?.last_name ?? ""}` === relationship?.person)?.id ?? null,
             })) ?? [],
             person_id: pdlData?.person?.id ?? null,
-            visitor: pdlData?.visitor ?? [],
+            visitor: pdlData?.visitor?.map(pdlVisitor => ({
+                ...pdlVisitor,
+                visitor: pdlVisitor?.id,
+            })) ?? [],
             precinct_id:
                 precincts?.find(
                     (precinct) =>
@@ -1130,7 +1133,7 @@ const UpdatePDL = () => {
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
 
     console.log("PDL Form:", pdlForm)
-    // console.log("Person Form:", personForm)
+    console.log("Person Form:", personForm)
 
     return (
         <div className="bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5">
