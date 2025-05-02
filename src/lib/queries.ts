@@ -59,7 +59,6 @@ import {
 import {
   Gender,
   PDLs,
-  Visitors,
   JailArea,
   Personnel,
   Affiliation,
@@ -139,11 +138,15 @@ import {
   RiskProps,
   VisitorApplicationPayload,
 } from "./definitions";
-import { Religion, Person as NewPerson } from "./pdl-definitions";
+import {
+  Religion,
+  Person as NewPerson,
+  Visitor as NewVisitor,
+} from "./pdl-definitions";
 import { EducationalAttainment } from "./visitorFormDefinition";
 import { ReportingCategory, SeverityLevel } from "./issues-difinitions";
 
-export async function getVisitors(token: string): Promise<Visitors[]> {
+export async function getVisitors(token: string): Promise<NewVisitor[]> {
   const res = await fetch(`${BASE_URL}/api/visitors/visitor/`, {
     headers: {
       "Content-Type": "application/json",
@@ -1364,17 +1367,14 @@ export const updateDevice = async (
   id: number,
   updatedData: any
 ) => {
-  const response = await fetch(
-    `${BASE_URL}/api/codes/devices/${id}/`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Token ${token}`,
-      },
-      body: JSON.stringify(updatedData),
-    }
-  );
+  const response = await fetch(`${BASE_URL}/api/codes/devices/${id}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(updatedData),
+  });
 
   if (!response.ok) {
     throw new Error("Failed to update Devices");
@@ -2431,7 +2431,7 @@ export async function deleteVisitors(token: string, id: number) {
   return true;
 }
 
-export const patchVisitor= async (
+export const patchVisitor = async (
   token: string,
   id: number,
   data: Partial<VisitorApplicationPayload>
@@ -3376,7 +3376,6 @@ export async function getBackup(token: string): Promise<BackupResponse[]> {
   return res.json();
 }
 
-
 export async function getIssueType(token: string): Promise<IssueType[]> {
   const res = await fetch(ISSUE_TYPE.getISSUE_TYPE, {
     headers: {
@@ -3392,7 +3391,9 @@ export async function getIssueType(token: string): Promise<IssueType[]> {
   return res.json();
 }
 
-export async function getIssueCategory(token: string): Promise<IssueCategory[]> {
+export async function getIssueCategory(
+  token: string
+): Promise<IssueCategory[]> {
   const res = await fetch(ISSUE_CATEGORIES.getISSUE_CATEGORIES, {
     headers: {
       "Content-Type": "application/json",
@@ -3505,7 +3506,10 @@ export const patchIssue_Category = async (
   id: number,
   data: Partial<IssueCategory>
 ): Promise<IssueCategory> => {
-  const url = ISSUE_CATEGORIES.patchISSUE_CATEGORIES.replace("{id}", String(id));
+  const url = ISSUE_CATEGORIES.patchISSUE_CATEGORIES.replace(
+    "{id}",
+    String(id)
+  );
   const res = await fetch(url, {
     method: "PATCH",
     headers: {
@@ -3533,15 +3537,12 @@ export async function getRiskLevel(token: string): Promise<RiskLevel[]> {
 }
 
 export const deleteRiskLevels = async (token: string, id: number) => {
-  const response = await fetch(
-    `${BASE_URL}/api/issues/risk-levels/${id}/`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization: `Token ${token}`,
-      },
-    }
-  );
+  const response = await fetch(`${BASE_URL}/api/issues/risk-levels/${id}/`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  });
 
   if (!response.ok) {
     throw new Error("Failed to delete Risk Level");
@@ -3570,15 +3571,12 @@ export const patchRisk_level = async (
 };
 
 export const deleteImpact = async (token: string, id: number) => {
-  const response = await fetch(
-    `${BASE_URL}/api/issues_v2/impact/${id}/`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization: `Token ${token}`,
-      },
-    }
-  );
+  const response = await fetch(`${BASE_URL}/api/issues_v2/impact/${id}/`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  });
 
   if (!response.ok) {
     throw new Error("Failed to delete Impact");
@@ -3681,15 +3679,12 @@ export const patchRecommendedAction = async (
 };
 
 export const deleteIssues = async (token: string, id: number) => {
-  const response = await fetch(
-    `${BASE_URL}/api/issues_v2/issues/${id}/`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization: `Token ${token}`,
-      },
-    }
-  );
+  const response = await fetch(`${BASE_URL}/api/issues_v2/issues/${id}/`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  });
 
   if (!response.ok) {
     throw new Error("Failed to delete Issues");
@@ -3717,7 +3712,9 @@ export const patchIssues = async (
   return res.json();
 };
 
-export async function getReportingCategory(token: string): Promise<ReportingCategory[]> {
+export async function getReportingCategory(
+  token: string
+): Promise<ReportingCategory[]> {
   const res = await fetch(`${BASE_URL}/api/issues/reporting-categories/`, {
     headers: {
       "Content-Type": "application/json",
@@ -3732,7 +3729,9 @@ export async function getReportingCategory(token: string): Promise<ReportingCate
   return res.json();
 }
 
-export async function getSeverityLevel(token: string): Promise<SeverityLevel[]> {
+export async function getSeverityLevel(
+  token: string
+): Promise<SeverityLevel[]> {
   const res = await fetch(`${BASE_URL}/api/issues/incident-severity-levels/`, {
     headers: {
       "Content-Type": "application/json",

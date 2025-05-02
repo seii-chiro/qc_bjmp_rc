@@ -24,7 +24,6 @@ import {
     getMultipleBirthClassTypes,
     getNationalities,
     getOccupations,
-    getOffenses,
     getPrecincts,
     getPrefixes,
     getRealPerson,
@@ -56,9 +55,10 @@ import { AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
 import { useLocation } from "react-router-dom";
 import dayjs from "dayjs";
 import { ColumnsType } from "antd/es/table";
-import ExistingVisitor from "./ExistingVisitor";
+// import ExistingVisitor from "./ExistingVisitor";
 import Spinner from "@/components/loaders/Spinner";
 import UpdateMultipleBirthSiblings from "./UpdateMultiBirthSibling";
+import UpdatePdlVisitor from "./UpdatePdlVisitor";
 
 const patchPerson = async (payload: PersonForm, token: string, id: string) => {
     const res = await fetch(`${PERSON.postPERSON}${id}/`, {
@@ -579,11 +579,6 @@ const UpdatePDL = () => {
         queryFn: () => getCourtBranches(token ?? "")
     })
 
-    const { data: offenses } = useQuery({
-        queryKey: ['offenses'],
-        queryFn: () => getOffenses(token ?? "")
-    })
-
     const { data: crimeCategories } = useQuery({
         queryKey: ['crime-categories'],
         queryFn: () => getCrimeCategories(token ?? "")
@@ -1062,16 +1057,18 @@ const UpdatePDL = () => {
 
         setPdlForm({
             date_of_admission: pdlData?.date_of_admission ?? "2001-01-01",
-            case_data: pdlData?.cases?.map((pdlCases: { case_number: string; offense: { id: number; crime_category: string; }; name: string; bail_recommended: number; law: string; }) => ({
-                ...pdlCases,
+            case_data: pdlData?.cases?.map((pdlCases: {
+                court_branch: any; case_number: string; offense: { id: number; crime_category: string; }; name: string; bail_recommended: number; law: string;
+            }) => ({
+                judge: pdlCases?.court_branch?.judge ?? "",
+                court_branch_id: courtBranches?.find(court => court?.branch === pdlCases?.court_branch?.branch)?.id ?? null,
                 case_number: pdlCases?.case_number ?? "",
                 offense_id: pdlCases?.offense?.id ?? null,
                 crime_category_id: crimeCategories?.find(categories => categories?.crime_category_name === pdlCases?.offense?.crime_category)?.id ?? null,
-                court_name: pdlCases?.name,
+                court_name: pdlCases?.court_branch?.court ?? "",
                 bail_recommended: pdlCases?.bail_recommended ?? "",
                 law_id: laws?.find(law => law?.name === pdlCases?.law)?.id ?? null,
             })) ?? [],
-            // case_data: [],
             gang_affiliation_id:
                 gangAffiliation?.find(
                     (affiliation) => affiliation?.name === pdlData?.gang_affiliation
@@ -1121,7 +1118,7 @@ const UpdatePDL = () => {
                     (status) => status?.name === pdlData?.visitation_status
                 )?.id ?? 1,
         });
-    }, [pdlData, regions, provinces, municipalities, barangays, countries, annex, attainments, civilStatuses, crimeCategories, gangAffiliation, laws, levels, looks, nationalities, occupations, pdlVisitStatuses, precincts, users, persons, relationships]);
+    }, [pdlData, courtBranches, regions, provinces, municipalities, barangays, countries, annex, attainments, civilStatuses, crimeCategories, gangAffiliation, laws, levels, looks, nationalities, occupations, pdlVisitStatuses, precincts, users, persons, relationships]);
 
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""
@@ -1132,8 +1129,8 @@ const UpdatePDL = () => {
     if (isLoading) return <div><Spinner /></div>;
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
 
-    // console.log("PDL Form:", pdlForm)
-    console.log("Person Form:", personForm)
+    console.log("PDL Form:", pdlForm)
+    // console.log("Person Form:", personForm)
 
     return (
         <div className="bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5">
@@ -1831,7 +1828,9 @@ const UpdatePDL = () => {
 
             <CaseDetails pdlForm={pdlForm} setPdlForm={setPdlForm} />
 
-            <ExistingVisitor visitors={pdlData?.visitor} />
+            {/* <ExistingVisitor visitors={pdlData?.visitor} /> */}
+
+            <UpdatePdlVisitor pdlForm={pdlForm} setPdlForm={setPdlForm} />
 
             <PdlVisitor pdlForm={pdlForm} setPdlForm={setPdlForm} />
 

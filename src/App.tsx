@@ -99,6 +99,9 @@ import OTP from "./pages/User_Management/OTP/OTP.tsx";
 import LoginOTP from "./pages/LoginOTP.tsx";
 import UpdatePDL from "./pages/pdl_management/pdl-information/UpdatePDL.tsx";
 import PersonnelUpdate from "./pages/personnel_management/personnel/PersonnelUpdate.tsx";
+import NonPDL from "./pages/Non-PDL/NonPDL.tsx";
+import ServiceProvider from "./pages/Service/ServiceProvider.tsx";
+import EditVisitor from "./pages/visitor_management/EditVisitor.tsx/EditVisitor.tsx";
 
 // Lazy-loaded components
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -382,6 +385,10 @@ function App() {
                     element: <Visitor />
                 },
                 {
+                    path: "visitors/visitor/update-visitor",
+                    element: <EditVisitor />
+                },
+                {
                     path: "visitors/visitor-type",
                     element: <VisitorType />
                 },
@@ -537,6 +544,14 @@ function App() {
                     path: "log-monitoring/visitor_check-in-out_profiles",
                     element: <VisitorProfileSlider />
                 },
+                {
+                    path: "non-pdl-visitors",
+                    element: <NonPDL />
+                },
+                {
+                    path: "service-providers",
+                    element: <ServiceProvider />
+                }
             ],
         },
     ],
