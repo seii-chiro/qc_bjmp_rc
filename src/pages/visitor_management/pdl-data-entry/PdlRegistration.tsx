@@ -612,8 +612,12 @@ const PdlRegistration = () => {
         },
     });
 
+    const toExclude = ["Female", "LGBTQ + LESBIAN / BISEXUAL"]
+
     const dorms = dropdownOptions?.[0]?.data
-    const genders = dropdownOptions?.[1]?.data
+    const genders = dropdownOptions?.[1]?.data?.filter(
+        gender => !toExclude.includes(gender?.gender_option)
+    );
     const nationalities = dropdownOptions?.[2]?.data
     const nationalitiesLoading = dropdownOptions?.[2]?.isLoading
     const civilStatuses = dropdownOptions?.[3]?.data
@@ -827,7 +831,7 @@ const PdlRegistration = () => {
 
 
     // console.log("PDL Form: ", pdlForm)
-    // console.log("Person Form: ", personForm)
+    console.log("Person Form: ", personForm)
 
     return (
         <div className='bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5'>

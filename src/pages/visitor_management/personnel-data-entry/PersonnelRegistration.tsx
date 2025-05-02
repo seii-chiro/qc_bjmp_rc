@@ -114,6 +114,7 @@ const PersonnelRegistration = () => {
         religion_id: 1,
         media_data: [],
         multiple_birth_sibling_data: [],
+        ethnicity_province: null,
     })
     const [personnelForm, setPersonnelForm] = useState<PersonnelForm>({
         jail_id: 1,
@@ -130,7 +131,6 @@ const PersonnelRegistration = () => {
         shortname: "",
         approved_by: null,
         verified_by: null,
-        region_origin_id: null,
         person_relationship_data: [],
     })
 
@@ -847,6 +847,7 @@ const PersonnelRegistration = () => {
                             <div className='flex flex-col mt-2 flex-1'>
                                 <div className='flex gap-1 font-semibold'>Region of Origin <span className="text-red-600">*</span></div>
                                 <Select
+                                    value={personForm?.ethnicity_province}
                                     loading={ethnicitiesLoading}
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={ethnicities?.map(ethnicity => ({
@@ -854,9 +855,9 @@ const PersonnelRegistration = () => {
                                         label: ethnicity?.region
                                     }))}
                                     onChange={value => {
-                                        setPersonnelForm(prev => ({
+                                        setPersonForm(prev => ({
                                             ...prev,
-                                            region_origin_id: value
+                                            ethnicity_province: value
                                         }))
                                     }}
                                 />

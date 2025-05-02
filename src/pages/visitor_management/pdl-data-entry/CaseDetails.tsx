@@ -56,6 +56,7 @@ const CaseDetails = ({ pdlForm, setPdlForm }: Props) => {
 
     const handleDelete = (index: number) => {
         Modal.confirm({
+            centered: true,
             title: "Are you sure you want to delete this case?",
             content: "This action cannot be undone.",
             okText: "Delete",

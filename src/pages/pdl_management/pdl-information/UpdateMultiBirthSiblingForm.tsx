@@ -3,10 +3,8 @@ import { Gender, Person } from "@/lib/pdl-definitions"
 import { MultiBirthSiblingForm as MultiBirthSiblingFormType, PersonForm } from "@/lib/visitorFormDefinition"
 import { Input, Select } from "antd"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
-import { MultiBirthSibling } from "./MultipleBirthSiblings"
 
 type Props = {
-    setTableInfo: Dispatch<SetStateAction<MultiBirthSibling>>;
     persons: Person[]
     genders: Gender[]
     setPersonForm: Dispatch<SetStateAction<PersonForm>>;
@@ -20,20 +18,21 @@ type Props = {
     isEditing: boolean;
     editIndex: number | null;
     handleEditMultipleBirthSibling: (index: number, updatedData: MultiBirthSiblingFormType) => void
+    currentPersonId: number | null;
 }
 
-const MultiBirthSiblingForm = ({
+const UpdateMultiBirthSiblingForm = ({
     birthClassTypes,
     persons,
     setPersonForm,
     handleIdsModalCancel,
     prefixes,
     personLoading,
-    setTableInfo,
     suffixes,
     personForm,
     isEditing = false,
     editIndex = null,
+    currentPersonId,
     handleEditMultipleBirthSibling
 }: Props) => {
     const [chosenSibling, setChosenSibling] = useState<Person | null>(null)
@@ -43,10 +42,9 @@ const MultiBirthSiblingForm = ({
         is_verified: false,
         multiple_birth_class_id: null,
         remarks: "",
+        person_id_display: null,
         sibling_person_id: null,
     })
-
-    console.log(multiBirthSiblingForm)
 
     // Load data when editing
     useEffect(() => {
@@ -55,8 +53,8 @@ const MultiBirthSiblingForm = ({
             if (siblingToEdit) {
                 setMultiBirthSiblingForm(siblingToEdit);
 
-                // Find the chosen sibling
-                const sibling = persons?.find(person => person?.id === siblingToEdit.sibling_person_id);
+                // Find the chosen sibling, using person_id_display if available, otherwise use person_id
+                const sibling = persons?.find(person => person?.id === (siblingToEdit.sibling_person_id_display || siblingToEdit.sibling_person_id));
                 if (sibling) {
                     setChosenSibling(sibling);
                 }
@@ -104,18 +102,6 @@ const MultiBirthSiblingForm = ({
                     multiBirthSiblingForm
                 ]
             }));
-
-            // Add to tableInfo
-            setTableInfo(prev => [
-                ...(prev || []),
-                {
-                    sibling_group: chosenSibling?.multiple_birth_siblings?.[0]?.multiple_birth_class || "",
-                    short_name: chosenSibling?.shortname || "",
-                    gender: chosenSibling?.gender?.gender_option || "",
-                    identical: multiBirthSiblingForm?.is_identical ? "Yes" : "No",
-                    verified: multiBirthSiblingForm?.is_verified ? "Yes" : "No",
-                }
-            ]);
         }
 
         // Reset form
@@ -148,16 +134,19 @@ const MultiBirthSiblingForm = ({
         if (multiBirthSiblingForm?.sibling_person_id) {
             setMultiBirthSiblingForm(prev => ({
                 ...prev,
+                person_id: currentPersonId,
                 multiple_birth_class_id: birthClassTypes?.find(type => type?.term_for_sibling_group === chosenSibling?.multiple_birth_siblings?.[0]?.multiple_birth_class)?.id ?? 1
             }))
 
-            setChosenSibling(persons?.find(person => person?.id === multiBirthSiblingForm?.sibling_person_id) ?? null)
+            // Use person_id_display if available, otherwise fall back to person_id
+            const personIdToUse = multiBirthSiblingForm.sibling_person_id_display || multiBirthSiblingForm.sibling_person_id;
+            setChosenSibling(persons?.find(person => person?.id === personIdToUse) ?? null)
 
             // Clear any previous error when a person is selected
             setError(null)
         }
 
-    }, [multiBirthSiblingForm?.sibling_person_id, persons, chosenSibling?.multiple_birth_siblings, birthClassTypes])
+    }, [multiBirthSiblingForm?.sibling_person_id, multiBirthSiblingForm?.sibling_person_id_display, persons, chosenSibling?.multiple_birth_siblings, birthClassTypes, currentPersonId])
 
     return (
         <div className="p-5">
@@ -318,4 +307,4 @@ const MultiBirthSiblingForm = ({
     )
 }
 
-export default MultiBirthSiblingForm
+export default UpdateMultiBirthSiblingForm

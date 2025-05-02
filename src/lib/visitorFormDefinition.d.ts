@@ -25,7 +25,7 @@ export type PersonForm = {
   media_data?: MediaForm[];
   multiple_birth_class?: number;
   multiple_birth_sibling_data?: MultiBirthSiblingForm[];
-  ethnicity_province?: number;
+  ethnicity_province?: number | null;
   family_contact_relatives_data?: FamilyRelativesContactsForm[];
   affiliation_id?: number[];
 };
@@ -40,11 +40,14 @@ export type EducationalAttainmentForm = {
 };
 
 export type MultiBirthSiblingForm = {
-  person_id: number | null;
+  person_id?: number | null;
+  sibling_person_id: number | null;
   is_identical: boolean;
   is_verified: boolean;
   remarks: string;
   multiple_birth_class_id: number | null;
+  person_id_display?: number | null;
+  sibling_person_id_display?: number | null;
 };
 
 export type DiagnosisForm = {

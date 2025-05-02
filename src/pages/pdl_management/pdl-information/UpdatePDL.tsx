@@ -33,6 +33,7 @@ import {
     getSuffixes,
     getTalents,
     getUsers,
+    getVisitor_to_PDL_Relationship,
 } from "@/lib/queries";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
 import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
@@ -44,7 +45,6 @@ import PdlVisitor from "@/pages/visitor_management/pdl-data-entry/PdlVisitor";
 import AddAddress from "@/pages/visitor_management/visitor-data-entry/AddAddress";
 import ContactForm from "@/pages/visitor_management/visitor-data-entry/ContactForm";
 import Issue from "@/pages/visitor_management/visitor-data-entry/Issue";
-import MultipleBirthSiblings from "@/pages/visitor_management/visitor-data-entry/MultipleBirthSiblings";
 import Remarks from "@/pages/visitor_management/visitor-data-entry/Remarks";
 import VisitorProfile from "@/pages/visitor_management/visitor-data-entry/visitorprofile";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -58,6 +58,7 @@ import dayjs from "dayjs";
 import { ColumnsType } from "antd/es/table";
 import ExistingVisitor from "./ExistingVisitor";
 import Spinner from "@/components/loaders/Spinner";
+import UpdateMultipleBirthSiblings from "./UpdateMultiBirthSibling";
 
 const patchPerson = async (payload: PersonForm, token: string, id: string) => {
     const res = await fetch(`${PERSON.postPERSON}${id}/`, {
@@ -71,7 +72,7 @@ const patchPerson = async (payload: PersonForm, token: string, id: string) => {
 
     if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData?.email?.[0] || "Error patching person");
+        throw new Error(JSON.stringify(errorData) || "Error patching person");
     }
 
     return res.json();
@@ -493,8 +494,12 @@ const UpdatePDL = () => {
         ],
     });
 
-    const dorms = dropdownOptions?.[0]?.data;
-    const genders = dropdownOptions?.[1]?.data;
+    const toExclude = ["Female", "LGBTQ + LESBIAN / BISEXUAL"]
+
+    const dorms = dropdownOptions?.[0]?.data
+    const genders = dropdownOptions?.[1]?.data?.filter(
+        gender => !toExclude.includes(gender?.gender_option)
+    );
     const nationalities = dropdownOptions?.[2]?.data;
     const nationalitiesLoading = dropdownOptions?.[2]?.isLoading;
     const civilStatuses = dropdownOptions?.[3]?.data;
@@ -592,6 +597,11 @@ const UpdatePDL = () => {
     const { data: users } = useQuery({
         queryKey: ['users'],
         queryFn: () => getUsers(token ?? "")
+    })
+
+    const { data: relationships } = useQuery({
+        queryKey: ['relationships'],
+        queryFn: () => getVisitor_to_PDL_Relationship(token ?? "")
     })
 
     const enrollFaceMutation = useMutation({
@@ -1042,7 +1052,11 @@ const UpdatePDL = () => {
             religion_id: pdlData?.person.religion?.id ?? 1,
             media_data: [],
             multiple_birth_sibling_data:
-                pdlData?.person?.multiple_birth_siblings ?? [],
+                pdlData?.person?.multiple_birth_siblings?.map((sibling: any) => ({
+                    ...sibling,
+                    sibling_person_id: +sibling?.sibling_person_id_display,
+                    person_id: pdlData?.person?.id ?? null,
+                })) ?? [],
             ethnicity_province: pdlData?.person?.ethnicity_province,
         });
 
@@ -1073,17 +1087,18 @@ const UpdatePDL = () => {
             pdl_alias: pdlData?.shortname ?? "",
             time_arrested: "",
             remarks_data: pdlData?.remarks?.map((remark: any) => ({
-                ...remark,
-                remark: remark?.remarks ?? "",
+                remarks: remark?.remarks ?? "N/A",
                 created_by: `${users?.find(user => user?.id === remark?.personnel)?.first_name ?? ""} ${users?.find(user => user?.id === remark?.personnel)?.last_name ?? ""}`,
                 created_at: pdlData?.updated_at ?? "",
             })) ?? [],
             look_id: looks?.find((look) => look?.name === pdlData?.look)?.id ?? 5,
-            // person_relationship_data: pdlData?.person_relationships?.map(person_relationship => ({
-            //     ...person_relationship,
-            //     relationship_id: relationships?.find(relation => relation?.relationship_name === person_relationship?.relationship)?.id ?? null,
-
-            // })) ?? [],
+            person_relationship_data: pdlData?.person_relationships?.map((relationship: { relationship: string; is_contact_person: boolean; remarks: string; person: string; }) => ({
+                ...relationship,
+                relationship_id: relationships?.find(relType => relType?.relationship_name === relationship?.relationship)?.id ?? null,
+                is_contact_person: relationship?.is_contact_person,
+                remarks: relationship?.remarks ?? "",
+                person_id: persons?.find(person => `${person?.first_name ?? ""} ${person?.last_name ?? ""}` === relationship?.person)?.id ?? null,
+            })) ?? [],
             person_id: pdlData?.person?.id ?? null,
             visitor: pdlData?.visitor ?? [],
             precinct_id:
@@ -1106,7 +1121,7 @@ const UpdatePDL = () => {
                     (status) => status?.name === pdlData?.visitation_status
                 )?.id ?? 1,
         });
-    }, [pdlData, regions, provinces, municipalities, barangays, countries, annex, attainments, civilStatuses, crimeCategories, gangAffiliation, laws, levels, looks, nationalities, occupations, pdlVisitStatuses, precincts, users]);
+    }, [pdlData, regions, provinces, municipalities, barangays, countries, annex, attainments, civilStatuses, crimeCategories, gangAffiliation, laws, levels, looks, nationalities, occupations, pdlVisitStatuses, precincts, users, persons, relationships]);
 
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""
@@ -1117,7 +1132,8 @@ const UpdatePDL = () => {
     if (isLoading) return <div><Spinner /></div>;
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
 
-    console.log(pdlForm)
+    // console.log("PDL Form:", pdlForm)
+    console.log("Person Form:", personForm)
 
     return (
         <div className="bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5">
@@ -1678,7 +1694,7 @@ const UpdatePDL = () => {
                             </div>
                         </div>
 
-                        <MultipleBirthSiblings
+                        <UpdateMultipleBirthSiblings
                             handleDeleteMultipleBirthSibling={
                                 handleDeleteMultipleBirthSibling
                             }
@@ -1691,6 +1707,7 @@ const UpdatePDL = () => {
                             birthClassTypesLoading={birthClassTypesLoading}
                             persons={persons || []}
                             personsLoading={personsLoading}
+                            currentPersonId={pdlData?.person?.id}
                         />
 
                         <div className="flex flex-col gap-5 mt-10">

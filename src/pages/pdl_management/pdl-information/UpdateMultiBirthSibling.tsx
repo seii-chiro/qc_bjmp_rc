@@ -4,7 +4,7 @@ import { ColumnsType } from "antd/es/table"
 import { Plus } from "lucide-react"
 import { Dispatch, SetStateAction, useState } from "react"
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai"
-import MultiBirthSiblingForm from "./MultiBirthSiblingForm"
+import UpdateMultiBirthSiblingForm from "./UpdateMultiBirthSiblingForm"
 import { Gender, Person } from "@/lib/pdl-definitions"
 import { MultipleBirthClassType, Prefix, Suffix } from "@/lib/definitions"
 
@@ -19,19 +19,10 @@ type Props = {
     birthClassTypesLoading: boolean;
     prefixes: Prefix[];
     suffixes: Suffix[];
+    currentPersonId: number | null;
 }
 
-export type TableInfo = {
-    sibling_group: string;
-    short_name: string;
-    gender: string;
-    identical: string;
-    verified: string;
-}
-
-export type MultiBirthSibling = TableInfo[] | null;
-
-const MultipleBirthSiblings = ({
+const UpdateMultipleBirthSiblings = ({
     handleDeleteMultipleBirthSibling,
     setPersonForm,
     persons,
@@ -41,7 +32,8 @@ const MultipleBirthSiblings = ({
     personsLoading,
     prefixes,
     suffixes,
-    personForm
+    personForm,
+    currentPersonId
 }: Props) => {
     const [idsModalOpen, setIdsModalOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
@@ -64,8 +56,6 @@ const MultipleBirthSiblings = ({
         setEditIndex(null)
     }
 
-    const [tableInfo, setTableInfo] = useState<MultiBirthSibling>([])
-
     const handleEditMultipleBirthSibling = (index: number, updatedData: MultiBirthSiblingFormType) => {
         // Update the personForm
         setPersonForm(prev => {
@@ -76,30 +66,19 @@ const MultipleBirthSiblings = ({
                 multiple_birth_sibling_data: updatedSiblings
             };
         });
-
-        // Update the table info
-        setTableInfo(prev => {
-            const updatedTableInfo = [...(prev || [])];
-            const chosenSibling = persons?.find(person => person?.id === updatedData?.sibling_person_id);
-            updatedTableInfo[index] = {
-                sibling_group: chosenSibling?.multiple_birth_siblings?.[0]?.multiple_birth_class || "",
-                short_name: chosenSibling?.shortname || "",
-                gender: chosenSibling?.gender?.gender_option || "",
-                identical: updatedData?.is_identical ? "Yes" : "No",
-                verified: updatedData?.is_verified ? "Yes" : "No",
-            };
-            return updatedTableInfo;
-        });
     };
 
-    const IdentifierDataSource = tableInfo?.map((info, index) => {
-        return ({
+    // Generate data source directly from personForm.multiple_birth_sibling_data
+    const IdentifierDataSource = personForm.multiple_birth_sibling_data?.map((siblingData, index) => {
+        const chosenSibling = persons?.find(person => person?.id === (siblingData.sibling_person_id_display || siblingData.sibling_person_id));
+
+        return {
             key: index,
-            siblingGroup: info?.sibling_group ?? "N/A",
-            shortName: info?.short_name ?? "N/A",
-            gender: info?.gender ?? "N/A",
-            identical: info?.identical ?? "N/A",
-            verified: info?.verified ?? "N/A",
+            siblingGroup: chosenSibling?.multiple_birth_siblings?.[0]?.multiple_birth_class || "N/A",
+            shortName: chosenSibling?.shortname || "N/A",
+            gender: chosenSibling?.gender?.gender_option || "N/A",
+            identical: siblingData?.is_identical ? "Yes" : "No",
+            verified: siblingData?.is_verified ? "Yes" : "No",
             actions: (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center items-center">
                     <button
@@ -110,10 +89,7 @@ const MultipleBirthSiblings = ({
                         <AiOutlineEdit />
                     </button>
                     <button
-                        onClick={() => {
-                            setTableInfo(prev => (prev ? prev.filter((_, i) => i !== index) : []));
-                            handleDeleteMultipleBirthSibling(index)
-                        }}
+                        onClick={() => handleDeleteMultipleBirthSibling(index)}
                         type="button"
                         className="border border-red-500 text-red-500 hover:bg-red-600 hover:text-white py-1 rounded w-10 h-10 flex items-center justify-center"
                     >
@@ -121,8 +97,8 @@ const MultipleBirthSiblings = ({
                     </button>
                 </div>
             )
-        })
-    })
+        };
+    }) || [];
 
     const identifierColumn: ColumnsType<{
         siblingGroup: string;
@@ -176,14 +152,14 @@ const MultipleBirthSiblings = ({
                 footer={null}
                 width="50%"
             >
-                <MultiBirthSiblingForm
+                <UpdateMultiBirthSiblingForm
+                    currentPersonId={currentPersonId}
                     personForm={personForm}
                     personLoading={personsLoading}
                     prefixes={prefixes}
                     suffixes={suffixes}
-                    setTableInfo={setTableInfo}
-                    birthClassTypesLoading={birthClassTypesLoading}
                     genders={genders}
+                    birthClassTypesLoading={birthClassTypesLoading}
                     birthClassTypes={birthClassTypes}
                     persons={persons}
                     setPersonForm={setPersonForm}
@@ -206,6 +182,7 @@ const MultipleBirthSiblings = ({
                 </button>
             </div>
             <Table
+                loading={personsLoading}
                 className="border text-gray-200 rounded-md"
                 dataSource={IdentifierDataSource}
                 columns={identifierColumn}
@@ -215,4 +192,4 @@ const MultipleBirthSiblings = ({
     )
 }
 
-export default MultipleBirthSiblings
+export default UpdateMultipleBirthSiblings
