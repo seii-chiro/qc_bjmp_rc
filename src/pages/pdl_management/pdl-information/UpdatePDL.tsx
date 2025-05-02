@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { calculateAge } from "@/functions/calculateAge";
 import { getPDLVisitStatuses } from "@/lib/additionalQueries";
 import {
@@ -31,13 +32,14 @@ import {
     getSkills,
     getSuffixes,
     getTalents,
+    getUsers,
 } from "@/lib/queries";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
 import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
 import { PDLForm, PersonForm } from "@/lib/visitorFormDefinition";
 import CaseDetails from "@/pages/visitor_management/pdl-data-entry/CaseDetails";
 import EducAttainment from "@/pages/visitor_management/pdl-data-entry/EducAttainment";
-// import FMC from "@/pages/visitor_management/pdl-data-entry/FMC";
+import FMC from "@/pages/visitor_management/pdl-data-entry/FMC";
 import PdlVisitor from "@/pages/visitor_management/pdl-data-entry/PdlVisitor";
 import AddAddress from "@/pages/visitor_management/visitor-data-entry/AddAddress";
 import ContactForm from "@/pages/visitor_management/visitor-data-entry/ContactForm";
@@ -95,7 +97,6 @@ const patchPdl = async (pdl: PDLForm, token: string, id: string) => {
 
 const enrollBiometrics = async (
     enrollForm: BiometricRecordFace
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> => {
     const response = await fetch(BIOMETRIC.ENROLL, {
         method: "POST",
@@ -588,6 +589,11 @@ const UpdatePDL = () => {
         queryFn: () => getLaws(token ?? "")
     })
 
+    const { data: users } = useQuery({
+        queryKey: ['users'],
+        queryFn: () => getUsers(token ?? "")
+    })
+
     const enrollFaceMutation = useMutation({
         mutationKey: ["enroll-face-mutation"],
         mutationFn: (id: number) =>
@@ -1066,7 +1072,12 @@ const UpdatePDL = () => {
             visitor_ids: [],
             pdl_alias: pdlData?.shortname ?? "",
             time_arrested: "",
-            remarks_data: [],
+            remarks_data: pdlData?.remarks?.map((remark: any) => ({
+                ...remark,
+                remark: remark?.remarks ?? "",
+                created_by: `${users?.find(user => user?.id === remark?.personnel)?.first_name ?? ""} ${users?.find(user => user?.id === remark?.personnel)?.last_name ?? ""}`,
+                created_at: pdlData?.updated_at ?? "",
+            })) ?? [],
             look_id: looks?.find((look) => look?.name === pdlData?.look)?.id ?? 5,
             // person_relationship_data: pdlData?.person_relationships?.map(person_relationship => ({
             //     ...person_relationship,
@@ -1095,7 +1106,7 @@ const UpdatePDL = () => {
                     (status) => status?.name === pdlData?.visitation_status
                 )?.id ?? 1,
         });
-    }, [pdlData]);
+    }, [pdlData, regions, provinces, municipalities, barangays, countries, annex, attainments, civilStatuses, crimeCategories, gangAffiliation, laws, levels, looks, nationalities, occupations, pdlVisitStatuses, precincts, users]);
 
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""
@@ -1105,6 +1116,8 @@ const UpdatePDL = () => {
 
     if (isLoading) return <div><Spinner /></div>;
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
+
+    console.log(pdlForm)
 
     return (
         <div className="bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5">
@@ -1729,14 +1742,14 @@ const UpdatePDL = () => {
 
             <EducAttainment setPersonForm={setPersonForm} personForm={personForm} />
 
-            {/* <FMC
+            <FMC
                 prefixes={prefixes || []}
                 suffixes={suffixes || []}
                 persons={persons || []}
                 personsLoading={personsLoading}
                 pdlForm={pdlForm}
                 setPdlForm={setPdlForm}
-            /> */}
+            />
 
             <Modal
                 className="overflow-y-auto rounded-lg scrollbar-hide"
@@ -1808,7 +1821,7 @@ const UpdatePDL = () => {
             <Issue />
 
             <Remarks
-                visitorForm={pdl}
+                visitorForm={pdlForm}
                 deleteRemarksByIndex={deleteRemarksByIndex}
                 currentUser={currentUser ?? null}
                 setVisitorForm={setPdlForm}

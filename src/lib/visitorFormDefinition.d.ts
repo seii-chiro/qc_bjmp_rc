@@ -287,7 +287,6 @@ export type PersonnelForm = {
   organization_id: number | null;
   jail_id: number | null;
   person_id: number | null;
-  region_origin_id: number | null;
   rank_id: number | null;
   status_id?: number | null;
   personnel_app_status_id: number | null;

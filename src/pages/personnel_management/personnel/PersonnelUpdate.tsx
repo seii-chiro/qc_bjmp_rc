@@ -42,7 +42,7 @@ const patchPerson = async (payload: Partial<PersonForm>, token: string, id: stri
 
 const patchPersonnel = async (pdl: Partial<PersonnelForm>, token: string, id: string) => {
     const res = await fetch(`${BASE_URL}/api/codes/personnel/${id}/`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Token ${token}`,
@@ -151,7 +151,6 @@ const PersonnelUpdate = () => {
         remarks_data: [],
         approved_by: null,
         verified_by: null,
-        region_origin_id: null,
         person_relationship_data: [],
         organization_id: 1,
         jail_id: 1,
@@ -932,7 +931,6 @@ const PersonnelUpdate = () => {
             })) ?? [],
             verified_by: personnelData?.verified_by ?? null,
             approved_by: personnelData?.approved_by ?? null,
-            region_origin_id: null,
             shortname: personnelData?.person?.shortname ?? "",
         })
 
@@ -954,6 +952,7 @@ const PersonnelUpdate = () => {
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
 
     console.log("Personnel Form", personnelForm)
+    console.log("Person Form", personForm)
 
     return (
         <div className='bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5'>
@@ -1025,6 +1024,7 @@ const PersonnelUpdate = () => {
                             <div className='flex flex-col mt-2 flex-1'>
                                 <div className='flex gap-1 font-semibold'>Region of Origin <span className="text-red-600">*</span></div>
                                 <Select
+                                    value={personForm?.ethnicity_province}
                                     loading={ethnicitiesLoading}
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={ethnicities?.map(ethnicity => ({
@@ -1032,9 +1032,9 @@ const PersonnelUpdate = () => {
                                         label: ethnicity?.region
                                     }))}
                                     onChange={value => {
-                                        setPersonnelForm(prev => ({
+                                        setPersonForm(prev => ({
                                             ...prev,
-                                            region_origin_id: value
+                                            ethnicity_province: value
                                         }))
                                     }}
                                 />
