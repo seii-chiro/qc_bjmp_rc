@@ -915,6 +915,7 @@ const PersonnelUpdate = () => {
                 )?.id ?? null,
             position_id: positions?.find(position => position?.position_title === personnelData?.position)?.id ?? null,
             rank_id: ranks?.find(rank => rank?.rank_name === personnelData?.rank?.replace(/\s*\(.*?\)\s*$/, ''))?.id ?? null,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             remarks_data: personnelData?.remarks?.map((remark: any) => ({
                 ...remark,
                 remark: remark?.remarks ?? "",
@@ -922,7 +923,7 @@ const PersonnelUpdate = () => {
                 created_at: personnelData?.updated_at ?? "",
             })) ?? [],
             jail_id: 1,
-            person_relationship_data: personnelData?.person_relationships?.map(relationship => ({
+            person_relationship_data: personnelData?.person_relationships?.map((relationship: { relationship: string; is_contact_person: boolean; remarks: string; person: string; }) => ({
                 ...relationship,
                 relationship_id: relationships?.find(relType => relType?.relationship_name === relationship?.relationship)?.id ?? null,
                 is_contact_person: relationship?.is_contact_person,

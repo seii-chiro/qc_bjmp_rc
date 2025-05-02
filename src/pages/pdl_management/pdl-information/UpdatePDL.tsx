@@ -56,7 +56,6 @@ import dayjs from "dayjs";
 import { ColumnsType } from "antd/es/table";
 import ExistingVisitor from "./ExistingVisitor";
 import Spinner from "@/components/loaders/Spinner";
-import EditRemarks from "./EditRemarks";
 
 const patchPerson = async (payload: PersonForm, token: string, id: string) => {
     const res = await fetch(`${PERSON.postPERSON}${id}/`, {
