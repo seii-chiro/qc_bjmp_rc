@@ -22,6 +22,7 @@ import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
 import EducAttainment from "../pdl-data-entry/EducAttainment";
 import FMC from "../pdl-data-entry/FMC";
 import { getPersonnelTypes } from "@/lib/additionalQueries";
+import { downloadBase64Image } from "@/functions/dowloadBase64Image";
 
 const addPerson = async (payload: PersonForm, token: string) => {
 
@@ -527,8 +528,30 @@ const PersonnelRegistration = () => {
             const id = data?.id;
 
             try {
+                // First, run personnel mutation
+                const personnelRes = await addPersonnelMutation.mutateAsync(id);
+
+                // Get personnel QR from returned ID
+                const qrRes = await fetch(`${BASE_URL}/api/codes/personnel/${personnelRes.id}/`, {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                    },
+                });
+
+                if (!qrRes.ok) {
+                    throw new Error("Failed to fetch QR code");
+                }
+
+                const qrData = await qrRes.json();
+                const base64Image = qrData?.encrypted_id_number_qr;
+
+                // Create a download link
+                if (base64Image) {
+                    downloadBase64Image(base64Image, `personnel-${personnelRes.id_number}-qr.png`);
+                }
+
+                // Run biometric mutations
                 await Promise.all([
-                    addPersonnelMutation.mutateAsync(id),
                     ...(enrollFormFace?.upload_data ? [enrollFaceMutation.mutateAsync(id)] : []),
                     ...(enrollFormLeftIris?.upload_data ? [enrollLeftMutation.mutateAsync(id)] : []),
                     ...(enrollFormRightIris?.upload_data ? [enrollRightMutation.mutateAsync(id)] : []),

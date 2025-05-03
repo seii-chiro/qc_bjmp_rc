@@ -1097,7 +1097,7 @@ const UpdatePDL = () => {
                 person_id: persons?.find(person => `${person?.first_name ?? ""} ${person?.last_name ?? ""}` === relationship?.person)?.id ?? null,
             })) ?? [],
             person_id: pdlData?.person?.id ?? null,
-            visitor: pdlData?.visitor?.map(pdlVisitor => ({
+            visitor: pdlData?.visitor?.map((pdlVisitor: { id: any; }) => ({
                 ...pdlVisitor,
                 visitor: pdlVisitor?.id,
             })) ?? [],
