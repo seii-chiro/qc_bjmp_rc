@@ -148,7 +148,7 @@ const UpdatePdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
     return (
         <div className="flex flex-col gap-5 mt-10">
             <div className="flex justify-between">
-                <h1 className='font-bold text-xl'>Update Visitors</h1>
+                <h1 className='font-bold text-xl'>Visitors</h1>
                 <button
                     type="button"
                     onClick={handleModalOpen}

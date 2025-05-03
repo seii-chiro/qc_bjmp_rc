@@ -40,7 +40,7 @@ import { PDLForm, PersonForm } from "@/lib/visitorFormDefinition";
 import CaseDetails from "@/pages/visitor_management/pdl-data-entry/CaseDetails";
 import EducAttainment from "@/pages/visitor_management/pdl-data-entry/EducAttainment";
 import FMC from "@/pages/visitor_management/pdl-data-entry/FMC";
-import PdlVisitor from "@/pages/visitor_management/pdl-data-entry/PdlVisitor";
+// import PdlVisitor from "@/pages/visitor_management/pdl-data-entry/PdlVisitor";
 import AddAddress from "@/pages/visitor_management/visitor-data-entry/AddAddress";
 import ContactForm from "@/pages/visitor_management/visitor-data-entry/ContactForm";
 import Issue from "@/pages/visitor_management/visitor-data-entry/Issue";
@@ -1835,7 +1835,7 @@ const UpdatePDL = () => {
 
             <UpdatePdlVisitor pdlForm={pdlForm} setPdlForm={setPdlForm} />
 
-            <PdlVisitor pdlForm={pdlForm} setPdlForm={setPdlForm} />
+            {/* <PdlVisitor pdlForm={pdlForm} setPdlForm={setPdlForm} /> */}
 
             <Issue />
 
