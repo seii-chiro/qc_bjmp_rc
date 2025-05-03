@@ -951,8 +951,8 @@ const PersonnelUpdate = () => {
     if (isLoading) return <div><Spinner /></div>;
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
 
-    console.log("Personnel Form", personnelForm)
-    console.log("Person Form", personForm)
+    // console.log("Personnel Form", personnelForm)
+    // console.log("Person Form", personForm)
 
     return (
         <div className='bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5'>

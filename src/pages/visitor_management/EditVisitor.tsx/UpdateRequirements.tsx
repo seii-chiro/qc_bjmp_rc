@@ -95,10 +95,10 @@ const UpdateRequirements = ({
             requirement: requirement?.name,
             description: requirement?.media_data?.media_description,
             image: (
-                requirement?.media_data?.media_base64 ? (
+                requirement?.direct_image ? (
                     <FullScreen handle={requirementFullscreenHandle} className="flex items-center justify-center">
                         <img
-                            src={`data:image/bmp;base64,${requirement?.media_data?.media_base64}`}
+                            src={`data:image/bmp;base64,${requirement?.direct_image}`}
                             alt="requirement"
                             style={{
                                 width: requirementFullscreenHandle?.active ? '50%' : '50px',
@@ -187,13 +187,13 @@ const UpdateRequirements = ({
     const IdentifierDataSource = personForm?.media_identifier_data?.map((identififier, index) => {
         return ({
             key: index,
-            requirement: idTypes?.find(id => id?.id === identififier?.id_type_id)?.id_type || '',
-            description: idTypes?.find(id => id?.id === identififier?.id_type_id)?.description || '',
+            requirement: idTypes?.find(id => id?.id === identififier?.idtype)?.id_type || '',
+            description: idTypes?.find(id => id?.id === identififier?.idtype)?.description || '',
             image: (
-                identififier?.media_data?.media_base64 ? (
+                identififier?.direct_image ? (
                     <FullScreen handle={idFullscreenHandle} className="flex items-center justify-center">
                         <img
-                            src={`data:image/bmp;base64,${identififier?.media_data?.media_base64}`}
+                            src={`data:image/bmp;base64,${identififier?.direct_image}`}
                             alt="Identifier"
                             style={{
                                 width: idFullscreenHandle?.active ? '50%' : '50px',
@@ -236,6 +236,7 @@ const UpdateRequirements = ({
         })
     })
 
+    // console.log(personForm);
     const identifierColumn: ColumnsType<{
         key: number;
         requirement: string | undefined;

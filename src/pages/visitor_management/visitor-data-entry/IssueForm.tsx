@@ -176,7 +176,7 @@ const IssueForm: React.FC<IssueFormProps> = ({
     useEffect(() => {
         if (formValues?.issueType) {
             const issueType = issueTypes?.find(type => type?.id === formValues?.issueType);
-            console.log("This issue:", issueType)
+            // console.log("This issue:", issueType)
 
             if (issueType) {
                 setFormValues(prev => ({

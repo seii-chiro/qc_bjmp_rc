@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { DatePicker, Input, message, Modal, Select, Table } from "antd";
 import { Plus } from "lucide-react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
@@ -9,7 +10,7 @@ import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import {
     getAffiliationTypes, getCivilStatus, getCountries, getCurrentUser, getGenders, getJail_Barangay,
     getJail_Municipality, getJail_Province, getJailRegion, getMultipleBirthClassTypes, getNationalities,
-    getPrefixes, getRealPerson, getSuffixes, getUsers, getVisitor_Type, getVisitorAppStatus,
+    getPrefixes, getRealPerson, getSuffixes, getUsers, getVisitor_to_PDL_Relationship, getVisitor_Type, getVisitorAppStatus,
 } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { PersonForm, VisitorForm } from "@/lib/visitorFormDefinition";
@@ -18,14 +19,13 @@ import { ColumnsType } from "antd/es/table";
 import ContactForm from "../visitor-data-entry/ContactForm";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
 import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import dayjs from "dayjs";
-import { RxDoubleArrowLeft } from "react-icons/rx";
 import Spinner from "@/components/loaders/Spinner";
 import UpdateRequirements from "./UpdateRequirements";
 import UpdatePDLtoVisit from "./UpdatePDLtoVisit";
-import UpdateRemarks from "./UpdateRemarks";
 import UpdateMultipleBirthSiblings from "@/pages/pdl_management/pdl-information/UpdateMultiBirthSibling";
+import Remarks from "../visitor-data-entry/Remarks";
 
 const patchPerson = async (payload: PersonForm, token: string, id: string) => {
     const res = await fetch(`${PERSON.postPERSON}${id}/`, {
@@ -127,7 +127,6 @@ const VisitorRegistration = () => {
         jail_id: 1,
         org_id: 1,
         pdl_data: [],
-        person_id: null,
         record_status_id: 1,
         remarks: "",
         remarks_data: [],
@@ -433,6 +432,11 @@ const VisitorRegistration = () => {
                 staleTime: 10 * 60 * 1000
             },
         ]
+    })
+
+    const { data: relationships } = useQuery({
+        queryKey: ['editVisitor', 'relationships'],
+        queryFn: () => getVisitor_to_PDL_Relationship(token ?? "")
     })
 
     const enrollFaceMutation = useMutation({
@@ -805,18 +809,19 @@ const VisitorRegistration = () => {
 
     useEffect(() => {
         setPersonForm({
+            // affiliation_id: affiliations?.find(type => type?.id === visitorData?.person?.affiliation) ?? null,
             first_name: visitorData?.person?.first_name ?? "",
-            middle_name: visitorData?.person.middle_name ?? "",
-            last_name: visitorData?.person.last_name ?? "",
-            suffix: visitorData?.person.suffix ?? null,
-            prefix: visitorData?.person.prefix ?? null,
-            shortname: visitorData?.person.shortname ?? "",
-            gender_id: visitorData?.person.gender?.id ?? null,
-            date_of_birth: visitorData?.person.date_of_birth ?? "",
-            place_of_birth: visitorData?.person.place_of_birth ?? "",
+            middle_name: visitorData?.person?.middle_name ?? "",
+            last_name: visitorData?.person?.last_name ?? "",
+            suffix: visitorData?.person?.suffix ?? null,
+            prefix: visitorData?.person?.prefix ?? null,
+            shortname: visitorData?.person?.shortname ?? "",
+            gender_id: visitorData?.person?.gender?.id ?? null,
+            date_of_birth: visitorData?.person?.date_of_birth ?? "",
+            place_of_birth: visitorData?.person?.place_of_birth ?? "",
             nationality_id: nationalities?.find(nationality => nationality?.nationality === visitorData?.person?.nationality)?.id ?? null,
             civil_status_id: civilStatuses?.find(civilStatus => civilStatus?.status === visitorData?.person?.civil_status)?.id ?? null,
-            address_data: visitorData?.person.addresses?.map((existingAddress: { region: string; province: string; municipality: string; barangay: string; country: string; postal_code: string; is_current: boolean; }) => ({
+            address_data: visitorData?.person?.addresses?.map((existingAddress: { region: string; province: string; municipality: string; barangay: string; country: string; postal_code: string; is_current: boolean; }) => ({
                 ...existingAddress,
                 region_id: regions?.find(region => region?.desc === existingAddress?.region)?.id ?? null,
                 province_id: provinces?.find(province => province?.desc === existingAddress?.province)?.id ?? null,
@@ -826,52 +831,57 @@ const VisitorRegistration = () => {
                 postal_code: existingAddress?.postal_code ?? null,
                 is_current: existingAddress?.is_current ?? false,
             })) ?? [],
-            contact_data: visitorData?.person.contacts ?? [],
-            employment_history_data: visitorData?.person.employment_histories ?? [],
-            social_media_account_data: visitorData?.person.social_media_accounts ?? [],
-            skill_id: visitorData?.person.skill ?? [],
-            talent_id: visitorData?.person.talent ?? [],
-            interest_id: visitorData?.person.interest ?? [],
+            contact_data: visitorData?.person?.contacts ?? [],
+            employment_history_data: visitorData?.person?.employment_histories ?? [],
+            social_media_account_data: visitorData?.person?.social_media_accounts ?? [],
+            skill_id: visitorData?.person?.skill ?? [],
+            talent_id: visitorData?.person?.talent ?? [],
+            interest_id: visitorData?.person?.interest ?? [],
             media_identifier_data: visitorData?.person?.media_identifiers ?? [],
             media_requirement_data: visitorData?.person?.media_requirements ?? [],
-            diagnosis_data: visitorData?.person.diagnoses ?? [],
-            religion_id: visitorData?.person.religion?.id ?? 1,
-            multiple_birth_sibling_data: visitorData?.person?.multiple_birth_siblings ?? [],
+            diagnosis_data: visitorData?.person?.diagnoses ?? [],
+            religion_id: visitorData?.person?.religion?.id ?? 1,
+            multiple_birth_sibling_data:
+                visitorData?.person?.multiple_birth_siblings?.map((sibling: any) => ({
+                    ...sibling,
+                    sibling_person_id: +sibling?.sibling_person_id_display,
+                    person_id: visitorData?.person?.id ?? null,
+                })) ?? [],
             ethnicity_province: visitorData?.person?.ethnicity_province
         });
 
         setVisitorForm(prev => ({
             ...prev,
             visitor_reg_no: visitorData?.visitor_reg_no ?? prev.visitor_reg_no,
-            visitor_type_id: visitor?.visitor_type_id ?? prev.visitor_type_id ?? 1,
-            person_id: visitorData?.person?.id,
-            org_id: visitor?.org_id ?? prev.org_id,
-            jail_id: visitor?.jail_id ?? prev.jail_id,
-            shortname: visitor?.shortname ?? "",
-            visitor_have_twins: visitor?.visitor_have_twins ?? false,
-            visitor_twin_name: visitor?.visitor_twin_name ?? "",
-            visited_pdl_have_twins: visitor?.visited_pdl_have_twins ?? false,
-            visited_pdl_twin_name: visitor?.visited_pdl_twin_name ?? "",
+            visitor_type_id: visitorData?.visitor_type_id ?? prev.visitor_type_id ?? 1,
+            org_id: visitorData?.org_id ?? prev.org_id,
+            jail_id: visitorData?.jail_id ?? prev.jail_id,
+            shortname: visitorData?.shortname ?? "",
+            visitor_have_twins: visitorData?.visitor_have_twins ?? false,
+            visitor_twin_name: visitorData?.visitor_twin_name ?? "",
+            visited_pdl_have_twins: visitorData?.visited_pdl_have_twins ?? false,
+            visited_pdl_twin_name: visitorData?.visited_pdl_twin_name ?? "",
             remarks_data: visitorData?.remarks?.map((remark: any) => ({
-                ...remark,
-                remark: remark?.remarks ?? "",
+                remarks: remark?.remarks ?? "N/A",
                 created_by: `${users?.find(user => user?.id === remark?.visitor)?.first_name ?? ""} ${users?.find(user => user?.id === remark?.visitor)?.last_name ?? ""}`,
                 created_at: visitorData?.updated_at ?? "",
             })) ?? [],
-            visitor_app_status_id: visitor?.visitor_app_status_id ?? prev.visitor_app_status_id ?? 1,
-            record_status_id: visitor?.record_status_id ?? prev.record_status_id ?? 1,
-            verified_by_id: visitor?.verified_by_id ?? currentUser?.id ?? null,
-            approved_by_id: visitor?.approved_by_id ?? prev.approved_by ?? currentUser?.id ?? null,
-            pdl_data: visitorData?.pdl_data ?? [],
-            id_number: visitor?.id_number ?? null,
-            verified_at: visitor?.verified_at ?? null,
-            approved_at: visitor?.approved_at
-                ? new Date(visitor.approved_at).toISOString()
+            visitor_app_status_id: visitorData?.visitor_app_status_id ?? prev.visitor_app_status_id ?? 1,
+            record_status_id: visitorData?.record_status_id ?? prev.record_status_id ?? 1,
+            verified_by_id: visitorData?.verified_by_id ?? currentUser?.id ?? null,
+            approved_by_id: visitorData?.approved_by_id ?? prev.approved_by ?? currentUser?.id ?? null,
+            pdl_data: visitorData?.pdls?.map((pdl: { pdl: { id: any; }; relationship_to_pdl: string; }) => ({
+                ...pdl,
+                pdl_id: pdl?.pdl?.id,
+                relationship_to_pdl_id: relationships?.find(rel => rel?.relationship_name === pdl?.relationship_to_pdl)?.id
+            })) ?? [],
+            id_number: visitorData?.id_number ?? null,
+            verified_at: visitorData?.verified_at ?? null,
+            approved_at: visitorData?.approved_at
+                ? new Date(visitorData.approved_at).toISOString()
                 : null,
         }));
-    }, [visitorData]);
-
-    console.log(visitorForm?.pdl_data);
+    }, [visitorData, barangays, civilStatuses, countries, currentUser?.id, municipalities, nationalities, provinces, regions, relationships, users]);
 
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""}`;
@@ -1120,10 +1130,19 @@ const VisitorRegistration = () => {
                                     }}
                                 />
                             </div>
-                            <div className='flex flex-col mt-2 flex-[2]'>
+                            {/* <div className='flex flex-col mt-2 flex-[2]'>
                                 <div className='flex gap-1'>Affiliation</div>
-                                <Input disabled className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100' />
-                            </div>
+                                <Select
+                                    showSearch
+                                    optionFilterProp="label"
+                                    options={affiliations?.map(affiliation => ({
+                                        value: affiliation?.id,
+                                        label: affiliation?.affiliation_type
+                                    }))}
+                                    className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
+                                    value={personForm?.affiliation_id}
+                                />
+                            </div> */}
                         </div>
 
                         <UpdateMultipleBirthSiblings
@@ -1137,8 +1156,7 @@ const VisitorRegistration = () => {
                             birthClassTypesLoading={birthClassTypesLoading}
                             persons={persons || []}
                             personsLoading={personsLoading}
-                        />
-
+                            currentPersonId={visitorData?.person?.id} />
                         <div className="flex flex-col gap-5 mt-10">
                             <div className="flex justify-between">
                                 <h1 className='font-bold text-xl'>Addresses</h1>
@@ -1262,11 +1280,11 @@ const VisitorRegistration = () => {
                 setVisitorForm={setVisitorForm}
             />
             <Issue />
-            <UpdateRemarks
+            <Remarks
+                visitorForm={visitorForm}
                 deleteRemarksByIndex={deleteRemarksByIndex}
                 currentUser={currentUser ?? null}
                 setVisitorForm={setVisitorForm}
-                visitorForm={visitorForm}
             />
             <form>
                 <div className="flex gap-2 mt-5">

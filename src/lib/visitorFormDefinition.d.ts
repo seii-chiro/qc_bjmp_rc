@@ -27,7 +27,7 @@ export type PersonForm = {
   multiple_birth_sibling_data?: MultiBirthSiblingForm[];
   ethnicity_province?: number | null;
   family_contact_relatives_data?: FamilyRelativesContactsForm[];
-  affiliation_id?: number[];
+  affiliation_id?: number[] | null;
 };
 
 export type EducationalAttainmentForm = {

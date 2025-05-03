@@ -84,20 +84,18 @@ const RequirementsForm = ({ handleRequirementsModalCancel, setPersonForm, editRe
     useEffect(() => {
         if (editRequirement) {
             setRequirementForm(editRequirement);
-            if (editRequirement.media_data.media_base64) {
+            if (editRequirement?.media_data?.media_base64) {
                 setFileList([
                     {
                         uid: '-1',
                         name: 'uploaded.png',
                         status: 'done',
-                        url: `data:image/png;base64,${editRequirement.media_data.media_base64}`,
+                        url: `data:image/png;base64,${editRequirement?.media_data?.media_base64}`,
                     },
                 ]);
             }
         }
     }, [editRequirement]);
-
-    console.log(requirementForm)
 
     return (
         <div className='w-full mt-5'>

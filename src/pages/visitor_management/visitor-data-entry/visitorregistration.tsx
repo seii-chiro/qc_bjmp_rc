@@ -115,6 +115,7 @@ const VisitorRegistration = () => {
         religion_id: 1,
         media_data: [],
         multiple_birth_sibling_data: [],
+        // affiliation_id: null,
     })
     const [visitorForm, setVisitorForm] = useState<VisitorForm>({
         visitor_reg_no: 0,
@@ -1066,11 +1067,19 @@ const VisitorRegistration = () => {
                             <div className='flex flex-col mt-2 flex-[2]'>
                                 <div className='flex gap-1'>Affiliation</div>
                                 <Select
+                                    value={personForm?.affiliation_id}
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={affiliations?.map(affiliation => ({
                                         value: affiliation?.id,
                                         label: affiliation?.affiliation_type
                                     }))}
+                                // onChange={value => {
+                                //     const singleValue = Array.isArray(value) ? value[0] : value;
+                                //     setPersonForm(prev => ({
+                                //         ...prev,
+                                //         affiliation_id: [singleValue],
+                                //     }));
+                                // }}
                                 />
                             </div>
                         </div>
