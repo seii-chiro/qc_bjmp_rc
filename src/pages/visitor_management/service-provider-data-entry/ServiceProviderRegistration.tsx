@@ -21,6 +21,7 @@ import { BiometricRecordFace } from "@/lib/scanner-definitions";
 import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
 import Identifiers from "../personnel-data-entry/Identifiers";
 import { getGroupAffiliations, getProvidedServices, getServiceProviderTypes } from "@/lib/additionalQueries";
+import { downloadBase64Image } from "@/functions/dowloadBase64Image";
 
 const addPerson = async (payload: PersonForm, token: string) => {
 
@@ -493,7 +494,7 @@ const ServiceProviderRegistration = () => {
     })
 
     const addVisitorMutation = useMutation({
-        mutationKey: ['add-visitor'],
+        mutationKey: ['add-visitor-service-provider'],
         mutationFn: (id: number) => registerServiceProvider({ ...serviceProviderForm, person: id }, token ?? ""),
         onSuccess: () => message.success('Successfully registered service provider.'),
         onError: (err) => message.error(err.message)
@@ -501,7 +502,7 @@ const ServiceProviderRegistration = () => {
 
 
     const addPersonMutation = useMutation({
-        mutationKey: ['add-person-visitor'],
+        mutationKey: ['add-person-visitor-service-provider'],
         mutationFn: async () => {
             if (!personForm.first_name ||
                 !personForm.last_name ||
@@ -519,8 +520,30 @@ const ServiceProviderRegistration = () => {
             const id = data?.id;
 
             try {
+                // First, run visitor mutation
+                const visitorRes = await addVisitorMutation.mutateAsync(id);
+
+                // Get visitor QR from returned ID
+                const qrRes = await fetch(`${BASE_URL}/api/service-providers/service-providers/${visitorRes.id}/`, {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                    },
+                });
+
+                if (!qrRes.ok) {
+                    throw new Error("Failed to fetch QR code");
+                }
+
+                const qrData = await qrRes.json();
+                const base64Image = qrData?.encrypted_id_number_qr;
+
+                // Create a download link
+                if (base64Image) {
+                    downloadBase64Image(base64Image, `visitor-${visitorRes.id_number}-qr.png`);
+                }
+
+                // Run biometric mutations
                 await Promise.all([
-                    addVisitorMutation.mutateAsync(id),
                     ...(enrollFormFace?.upload_data ? [enrollFaceMutation.mutateAsync(id)] : []),
                     ...(enrollFormLeftIris?.upload_data ? [enrollLeftMutation.mutateAsync(id)] : []),
                     ...(enrollFormRightIris?.upload_data ? [enrollRightMutation.mutateAsync(id)] : []),

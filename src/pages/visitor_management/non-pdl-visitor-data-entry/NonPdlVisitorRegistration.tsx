@@ -22,6 +22,7 @@ import { BiometricRecordFace } from "@/lib/scanner-definitions";
 import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
 import Identifiers from "../personnel-data-entry/Identifiers";
 import { getNonPdlVisitorReasons, getRelationships } from "@/lib/additionalQueries";
+import { downloadBase64Image } from "@/functions/dowloadBase64Image";
 
 const addPerson = async (payload: PersonForm, token: string) => {
 
@@ -515,8 +516,30 @@ const NonPdlVisitorRegistration = () => {
             const id = data?.id;
 
             try {
+                // First, run non-PDL visitor mutation
+                const nonPdlVisitorRes = await addNonPdlVisitorMutation.mutateAsync(id);
+
+                // Get non-PDL visitor QR from returned ID
+                const qrRes = await fetch(`${BASE_URL}/api/non-pdl-visitor/non-pdl-visitors/${nonPdlVisitorRes.id}/`, {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                    },
+                });
+
+                if (!qrRes.ok) {
+                    throw new Error("Failed to fetch QR code");
+                }
+
+                const qrData = await qrRes.json();
+                const base64Image = qrData?.encrypted_id_number_qr;
+
+                // Create a download link
+                if (base64Image) {
+                    downloadBase64Image(base64Image, `non-pdl-visitor-${nonPdlVisitorRes.id_number}-qr.png`);
+                }
+
+                // Run biometric mutations
                 await Promise.all([
-                    addNonPdlVisitorMutation.mutateAsync(id),
                     ...(enrollFormFace?.upload_data ? [enrollFaceMutation.mutateAsync(id)] : []),
                     ...(enrollFormLeftIris?.upload_data ? [enrollLeftMutation.mutateAsync(id)] : []),
                     ...(enrollFormRightIris?.upload_data ? [enrollRightMutation.mutateAsync(id)] : []),
@@ -542,8 +565,6 @@ const NonPdlVisitorRegistration = () => {
             message?.error(err.message || "Something went wrong!");
         },
     });
-
-
 
     const visitorTypes = dropdownOptions?.[0]?.data
     const genders = dropdownOptions?.[1]?.data
