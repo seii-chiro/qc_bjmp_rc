@@ -244,7 +244,14 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
                   <div className="w-[60%] rounded-md overflow-hidden object-cover">
                     {
                       verificationResult ? (
-                        <img src={`data:image/jpeg;base64,${verificationResult?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data}`} alt="Image of a person" className="w-full" />
+                        <img
+                          src={`data:image/jpeg;base64,${verificationResult?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data}`}
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = "https://i2.wp.com/vdostavka.ru/wp-content/uploads/2019/05/no-avatar.png?fit=512%2C512&ssl=1";
+                          }}
+                          alt="Image of a person"
+                          className="w-full"
+                        />
                       ) : (
                         <img src={noImg} alt="Image of a person" className="w-full" />
                       )
