@@ -103,6 +103,7 @@ import NonPDL from "./pages/Non-PDL/NonPDL.tsx";
 import ServiceProvider from "./pages/Service/ServiceProvider.tsx";
 import EditVisitor from "./pages/visitor_management/EditVisitor.tsx/EditVisitor.tsx";
 import Person from "./pages/visitor_management/person/actual-person/ActualPersonTable.tsx";
+import Error from "./pages/Error.tsx";
 
 // Lazy-loaded components
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -132,6 +133,7 @@ function App() {
         {
             path: "/jvms",
             element: isAuthenticated ? <RootLayout /> : <Navigate to="/login" />,
+            errorElement: <Error />,
             children: [
                 {/*
                     index: true,
