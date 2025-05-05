@@ -724,7 +724,7 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                                             </div>
                                         ) : (
                                             <div>
-                                                <p className="text-2xl font-semibold">Please Scan Your QR Code.</p>
+                                                <p className="text-2xl font-semibold">Please Scan Your Fingerprint.</p>
                                             </div>
                                         )
                                     }

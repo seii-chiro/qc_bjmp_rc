@@ -289,32 +289,39 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
                   </div>
                   <h1 className="text-4xl">{`${lastScanned?.person?.first_name ?? ""} ${lastScanned?.person?.last_name ?? ""}`}</h1>
                 </div>
-                {
-                  lastScanned && (
-                    <div className="w-full flex items-center justify-center">
-                      <div className="w-[80%] text-4xl flex">
+                <div className="w-full flex items-center justify-center">
+                  {
+                    lastScanned ? (
+                      <div className="w-[60%] text-3xl flex">
                         <div className="flex items-center justify-between w-full">
-                          <div className="flex-[4] flex gap-8">
+                          <div className="flex-[4] flex gap-12">
 
                             <>
-                              <span>STATUS:</span>
-                              <span>ALLOWED VISIT</span>
+                              <span>PDL Status:</span>
+                              <span className={`font-semibold ${lastScanned?.pdls?.[0]?.pdl?.visitation_status === "Available" ? "text-green-700" : "text-red-600"}`}>
+                                {lastScanned?.pdls?.[0]?.pdl?.visitation_status}
+                              </span>
                             </>
 
                           </div>
                           <div className="flex justify-end flex-1 gap-4">
-                            <div className="w-16">
-                              <img src={check} alt="check icon" />
-                            </div>
-                            <div className="w-16">
-                              <img src={ex} alt="close icon" />
-                            </div>
+                            {
+                              lastScanned?.pdls?.[0]?.pdl?.visitation_status === "Available" ? (
+                                <img src={check} alt="Check Mark" className="w-10 h-10" />
+                              ) : (
+                                <img src={ex} alt="X Mark" className="w-10 h-10" />
+                              )
+                            }
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )
-                }
+                    ) : (
+                      <div>
+                        <p className="text-2xl font-semibold">Please Scan Your Face.</p>
+                      </div>
+                    )
+                  }
+                </div>
               </div>
             </div>
           )
