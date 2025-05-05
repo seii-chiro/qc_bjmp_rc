@@ -970,7 +970,7 @@ const VisitorProfile = ({
                                         handle={leftFingersHandle}
                                     >
                                         <div className="w-32 h-32 border rounded-md relative">
-                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">2L</p>
+                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LL</p>
                                             {
                                                 fingerprintVerificationResult2 && (
                                                     fingerprintVerificationResult2?.message === "Match found." ?
@@ -989,7 +989,7 @@ const VisitorProfile = ({
                                             }
                                         </div>
                                         <div className="w-32 h-32 border rounded-md relative">
-                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">3L</p>
+                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LR</p>
                                             {
                                                 fingerprintVerificationResult3 && (
                                                     fingerprintVerificationResult3?.message === "Match found." ?
@@ -1008,7 +1008,7 @@ const VisitorProfile = ({
                                             }
                                         </div>
                                         <div className="w-32 h-32 border rounded-md relative">
-                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">4L</p>
+                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LM</p>
                                             {
                                                 fingerprintVerificationResult4 && (
                                                     fingerprintVerificationResult4?.message === "Match found." ?
@@ -1027,7 +1027,7 @@ const VisitorProfile = ({
                                             }
                                         </div>
                                         <div className="w-32 h-32 border rounded-md relative">
-                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">5L</p>
+                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LI</p>
                                             {
                                                 fingerprintVerificationResult5 && (
                                                     fingerprintVerificationResult5?.message === "Match found." ?
@@ -1068,7 +1068,7 @@ const VisitorProfile = ({
                                         handle={rightFingersHandle}
                                     >
                                         <div className="w-32 h-32 border rounded-md relative">
-                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">7R</p>
+                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RI</p>
                                             {
                                                 fingerprintVerificationResult7 && (
                                                     fingerprintVerificationResult7?.message === "Match found." ?
@@ -1087,7 +1087,7 @@ const VisitorProfile = ({
                                             }
                                         </div>
                                         <div className="w-32 h-32 border rounded-md relative">
-                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">8R</p>
+                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RM</p>
                                             {
                                                 fingerprintVerificationResult8 && (
                                                     fingerprintVerificationResult8?.message === "Match found." ?
@@ -1106,7 +1106,7 @@ const VisitorProfile = ({
                                             }
                                         </div>
                                         <div className="w-32 h-32 border rounded-md relative">
-                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">9R</p>
+                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RI</p>
                                             {
                                                 fingerprintVerificationResult9 && (
                                                     fingerprintVerificationResult9?.message === "Match found." ?
@@ -1125,7 +1125,7 @@ const VisitorProfile = ({
                                             }
                                         </div>
                                         <div className="w-32 h-32 border rounded-md relative">
-                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">10R</p>
+                                            <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RL</p>
                                             {
                                                 fingerprintVerificationResult10 && (
                                                     fingerprintVerificationResult10?.message === "Match found." ?
@@ -1167,7 +1167,7 @@ const VisitorProfile = ({
                                             handle={thumbFingersHandle}
                                         >
                                             <div className="w-32 h-32 border rounded-md relative">
-                                                <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">1T</p>
+                                                <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LT</p>
                                                 {
                                                     fingerprintVerificationResult1 && (
                                                         fingerprintVerificationResult1?.message === "Match found." ?
@@ -1186,7 +1186,7 @@ const VisitorProfile = ({
                                                 }
                                             </div>
                                             <div className="w-32 h-32 border rounded-md relative">
-                                                <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">6T</p>
+                                                <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RT</p>
                                                 {
                                                     fingerprintVerificationResult6 && (
                                                         fingerprintVerificationResult6?.message === "Match found." ?
