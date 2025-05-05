@@ -1,11 +1,11 @@
-export const BASE_URL_BIOMETRIC: string = "";
-export const BASE_URL: string = "";
+// export const BASE_URL_BIOMETRIC: string = "";
+// export const BASE_URL: string = "";
 
 // export const BASE_URL_BIOMETRIC: string = "http://localhost:8004";
 // export const BASE_URL: string = "http://localhost:8001";
 
-// export const BASE_URL_BIOMETRIC: string = "http://192.168.50.204:8004";
-// export const BASE_URL: string = "http://192.168.50.204:8001";
+export const BASE_URL_BIOMETRIC: string = "http://192.168.50.206:8004";
+export const BASE_URL: string = "http://192.168.50.206:8001";
 
 export const PDL = {
   getPDL: `${BASE_URL}/api/pdls/pdl/`,
@@ -157,7 +157,7 @@ export const PERSON = {
   postPERSON: `${BASE_URL}/api/standards/persons/`,
   putPERSON: `${BASE_URL}/api/standards/persons/{id}/`,
   patchPERSON: `${BASE_URL}/api/standards/persons/{id}/`,
-  deletePERSON: `${BASE_URL}/api/standards/persons/{id}/`,
+  deletePERSON: `${BASE_URL}/api/standards/persons/`,
 };
 
 export const BIOMETRIC = {

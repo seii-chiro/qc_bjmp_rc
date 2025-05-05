@@ -588,7 +588,7 @@ const VisitorRegistration = () => {
 
                 // Create a download link
                 if (base64Image) {
-                    downloadBase64Image(base64Image, `visitor-${visitorRes.id_number}-qr.png`);
+                    downloadBase64Image(base64Image, `visitor-${visitorRes?.person?.first_name}-${visitorRes?.person?.last_name}-qr.png`);
                 }
 
                 // Run biometric mutations

@@ -102,6 +102,7 @@ import PersonnelUpdate from "./pages/personnel_management/personnel/PersonnelUpd
 import NonPDL from "./pages/Non-PDL/NonPDL.tsx";
 import ServiceProvider from "./pages/Service/ServiceProvider.tsx";
 import EditVisitor from "./pages/visitor_management/EditVisitor.tsx/EditVisitor.tsx";
+import Person from "./pages/visitor_management/person/actual-person/ActualPersonTable.tsx";
 
 // Lazy-loaded components
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -551,7 +552,11 @@ function App() {
                 {
                     path: "service-providers",
                     element: <ServiceProvider />
-                }
+                },
+                {
+                    path: "person",
+                    element: <Person />
+                },
             ],
         },
     ],

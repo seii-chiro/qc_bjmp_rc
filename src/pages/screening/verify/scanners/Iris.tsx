@@ -257,8 +257,6 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
     irisScannerUninitThenInitMutation.mutate();
   }, []);
 
-  console.log(irisVerificationResponse)
-
   return (
     <div className="w-full h-full flex flex-col gap-4 justify-center items-center mt-5">
       <div className="w-full flex gap-10">

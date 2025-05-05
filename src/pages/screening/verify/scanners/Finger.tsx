@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CustomFingerResponse, FingerprintData } from '@/lib/scanner-definitions'
 import { captureFingerprints, getScannerInfo, uninitScanner, verifyFingerprint } from '@/lib/scanner-queries'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Checkbox, message, Select } from 'antd'
 import { useEffect, useState } from 'react'
 import no_img from "@/assets/no-img.png"
@@ -12,6 +12,7 @@ import { useVisitorLogStore } from '@/store/useVisitorLogStore'
 import { useTokenStore } from '@/store/useTokenStore'
 import { BASE_URL } from '@/lib/urls'
 import { Device } from '@/lib/definitions'
+import { getPDLVisitStatuses } from '@/lib/additionalQueries'
 
 type Props = {
     devices: Device[];
@@ -58,6 +59,11 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
     ]
 
     const NFIQ_Quality_Options = [10, 20, 30, 40, 50]
+
+    const { data: visitation_status } = useQuery({
+        queryKey: ['get-visitation-status', 'qr-reader'],
+        queryFn: () => getPDLVisitStatuses(token ?? ""),
+    })
 
     const fingerScannerUninitThenInitMutation = useMutation({
         mutationKey: ['finger-scanner-uninit'],
@@ -641,16 +647,24 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                             <div className="flex flex-col items-center justify-center">
                                 <div className="w-full flex items-center justify-center flex-col gap-10">
                                     <div className="w-[60%] rounded-md overflow-hidden object-cover">
-                                        <img src={`data:image/jpeg;base64,${fingerprintVerificationResult?.[0]?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data}`} alt="Image of a person" className="w-full" />
+                                        {
+                                            fingerprintVerificationResult?.[0]?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data ? (
+                                                <img src={`data:image/jpeg;base64,${fingerprintVerificationResult?.[0]?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data}`} alt="Image of a person" className="w-full" />
+                                            ) : (
+                                                <img src={noImg} alt="Image of a person" className="w-full" />
+                                            )
+                                        }
                                     </div>
-                                    <h1 className="text-4xl">{`${fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.first_name ?? ""} ${fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.middle_name ?? ""} ${fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.last_name ?? ""}`}</h1>
+                                    <h1 className="text-4xl font-semibold">
+                                        {`${fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.first_name ?? ""} ${fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.middle_name ?? ""} ${fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.last_name ?? ""}`}
+                                    </h1>
                                 </div>
                                 {
                                     lastScanned && (
                                         <div className="w-full flex items-center justify-center">
-                                            <div className="w-[80%] text-4xl flex">
+                                            <div className="w-[50%] text-3xl flex">
                                                 <div className="flex items-center justify-between w-full">
-                                                    <div className="flex-[4] flex gap-8">
+                                                    <div className="flex-[2] flex gap-12">
 
                                                         <>
                                                             <span>STATUS:</span>
@@ -659,10 +673,10 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
 
                                                     </div>
                                                     <div className="flex justify-end flex-1 gap-4">
-                                                        <div className="w-16">
+                                                        <div className="w-10">
                                                             <img src={check} alt="check icon" />
                                                         </div>
-                                                        <div className="w-16">
+                                                        <div className="w-10">
                                                             <img src={ex} alt="close icon" />
                                                         </div>
                                                     </div>
@@ -675,39 +689,51 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                         </div>
                     ) : (
                         <div className='flex-1'>
-                            <div className="flex flex-col items-center justify-center">
+                            <div className="flex flex-col items-center justify-center gap-4">
                                 <div className="w-full flex items-center justify-center flex-col gap-10">
                                     <div className="w-[60%] rounded-md overflow-hidden object-cover">
                                         <img src={imageSrc || noImg} alt="Image of a person" className="w-full" />
                                     </div>
-                                    <h1 className="text-4xl">{`${lastScanned?.person?.first_name ?? ""} ${lastScanned?.person?.last_name ?? ""}`}</h1>
+                                    <h1 className="text-4xl font-semibold">{`${lastScanned?.person?.first_name ?? ""} ${lastScanned?.person?.last_name ?? ""}`}</h1>
                                 </div>
-                                {
-                                    lastScanned && (
-                                        <div className="w-full flex items-center justify-center">
-                                            <div className="w-[80%] text-4xl flex">
+                                <div className="w-full flex items-center justify-center">
+                                    {
+                                        lastScanned ? (
+                                            <div className="w-[60%] text-3xl flex">
                                                 <div className="flex items-center justify-between w-full">
-                                                    <div className="flex-[4] flex gap-8">
+                                                    <div className="flex-[4] flex gap-12">
 
                                                         <>
-                                                            <span>STATUS:</span>
-                                                            <span>ALLOWED VISIT</span>
+                                                            <span>PDL Status:</span>
+                                                            <span className={`font-semibold ${lastScanned?.pdls?.[0]?.pdl?.visitation_status === "Available" ? "text-green-700" : "text-red-600"}`}>
+                                                                {lastScanned?.pdls?.[0]?.pdl?.visitation_status}
+                                                            </span>
                                                         </>
 
                                                     </div>
                                                     <div className="flex justify-end flex-1 gap-4">
-                                                        <div className="w-16">
-                                                            <img src={check} alt="check icon" />
-                                                        </div>
-                                                        <div className="w-16">
-                                                            <img src={ex} alt="close icon" />
-                                                        </div>
+                                                        {
+                                                            lastScanned?.pdls?.[0]?.pdl?.visitation_status === "Available" ? (
+                                                                <img src={check} alt="Check Mark" className="w-10 h-10" />
+                                                            ) : (
+                                                                <img src={ex} alt="X Mark" className="w-10 h-10" />
+                                                            )
+                                                        }
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )
-                                }
+                                        ) : (
+                                            <div>
+                                                <p className="text-2xl font-semibold">Please Scan Your QR Code.</p>
+                                            </div>
+                                        )
+                                    }
+                                </div>
+                            </div>
+                            <div className='mt-4'>
+                                <p className="text-lg text-center">
+                                    {visitation_status?.find(status => status?.name === lastScanned?.pdls?.[0]?.pdl?.visitation_status)?.description}
+                                </p>
                             </div>
                         </div>
                     )
