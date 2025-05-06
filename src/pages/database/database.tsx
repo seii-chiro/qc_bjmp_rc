@@ -5,7 +5,7 @@ const Database = () => {
         <div>
             <div className="flex flex-wrap justify-center gap-2 md:gap-5">
                 <div className="min-w-60 max-w-auto flex-1 basis-[calc(25%-1.25rem)] border shadow-sm border-gray-200 rounded-md p-4 gap-2">
-                    <Header title="Datebase"/>
+                    <Header title="Database"/>
                     <div className="mt-2">
                         <GodotLink
                         link="/jvms/personnels"

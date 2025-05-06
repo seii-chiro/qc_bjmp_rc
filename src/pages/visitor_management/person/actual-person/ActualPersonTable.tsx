@@ -1,17 +1,14 @@
 import { getRealPerson } from '@/lib/queries'
 import { useTokenStore } from "@/store/useTokenStore"
-import { useQuery, useQueries, useMutation } from "@tanstack/react-query"
+import { useQuery, useMutation } from "@tanstack/react-query"
 import { useState } from "react"
 import type { ColumnsType } from "antd/es/table";
-import { Button, Modal, Table, message } from "antd"
-import { GoCheck, GoPlus } from 'react-icons/go'
+import { Table, message } from "antd"
+import { GoPlus } from 'react-icons/go'
 import { AiOutlineEdit } from 'react-icons/ai'
 import { AiOutlineDelete } from 'react-icons/ai'
 import { LuSearch } from "react-icons/lu";
-import { Person as PersonType } from '@/lib/definitions';
-import Verify from '../Verify';
 import { NavLink } from 'react-router-dom';
-import { getGenders, getNationalities, getCivilStatus } from "@/lib/queries";
 import { PERSON, BASE_URL_BIOMETRIC } from "@/lib/urls"
 
 const deletePerson = async (id: string | number, token: string) => {
@@ -59,33 +56,8 @@ const syncBiometricDB = async () => {
 
 const Person = () => {
     const [searchText, setSearchText] = useState("")
-    const [isModalForVerificationOpen, setModalForVerificationOpen] = useState(false)
     const token = useTokenStore().token
     const [messageApi, contextHolder] = message.useMessage()
-    const [isAddAdditionalPersonInfoModalOpen, setIsAddAdditionalPersonInfoModalOpen] = useState(false)
-    const [selectedPerson, setSelectedPerson] = useState<PersonType | null>(null)
-
-    const handleVerificationModalOk = () => {
-        setModalForVerificationOpen(false)
-    }
-
-    const handleVerificationModalCancel = () => {
-        setModalForVerificationOpen(false)
-    }
-
-    const showVerificationModal = () => {
-        setModalForVerificationOpen(true)
-    }
-
-    const showAdditionalPersonInfoModal = (person: PersonType) => {
-        setIsAddAdditionalPersonInfoModalOpen(true)
-        setSelectedPerson(person)
-    }
-
-    const handleAdditionalPersonInfoModalCancel = () => {
-        setIsAddAdditionalPersonInfoModalOpen(false)
-        setSelectedPerson(null)
-    }
 
     const { data: persons, refetch, isLoading: personIsLoading } = useQuery({
         queryKey: ['actual-person'],
@@ -125,9 +97,6 @@ const Person = () => {
             actions: (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
                     <button
-                        onClick={() => {
-                            showAdditionalPersonInfoModal(person)
-                        }}
                         className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white py-1 rounded-full w-10 h-10 flex items-center justify-center"
                     >
                         <AiOutlineEdit />
@@ -167,34 +136,6 @@ const Person = () => {
         )
     )?.reverse();
 
-    const results = useQueries({
-        queries: [
-            {
-                queryKey: ['person-gender'],
-                queryFn: () => getGenders(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['person-nationality'],
-                queryFn: () => getNationalities(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['person-civil-status'],
-                queryFn: () => getCivilStatus(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            }
-        ]
-    });
-
-    const genderData = results[0]?.data;
-    const genderLoading = results[0]?.isLoading;
-
-    const nationalityData = results[1]?.data;
-    const nationalityLoading = results[1]?.isLoading;
-
-    const civilStatusData = results[2]?.data;
-    const civilStatusLoading = results[2]?.isLoading;
 
     const columns: ColumnsType<{
         key: number;
@@ -275,14 +216,7 @@ const Person = () => {
                 dataIndex: 'actions',
                 key: 'actions',
                 align: 'center'
-            },
-            {
-                title: 'Enroll',
-                dataIndex: 'profile',
-                key: 'profile',
-                align: 'center',
-                width: 20
-            },
+            }
         ];
 
     return (
@@ -305,72 +239,13 @@ const Person = () => {
                     >
                         Sync
                     </button>
-                    <button
-                        onClick={showVerificationModal}
-                        className="bg-green-500 text-white px-8 py-2 rounded-md flex gap-1 items-center justify-center"
-                    >
-                        <GoCheck />
-                        Verify
-                    </button>
                 </div>
                 <Table
                     loading={personIsLoading}
                     dataSource={filteredData}
                     columns={columns}
-                    rowClassName={(record) => record?.recordStatus === "Deleted" ? "opacity-20  pointer-events-none" : ""}
                 />
             </div>
-
-            <Modal
-                className="overflow-y-auto rounded-lg scrollbar-hide"
-                title="Verify"
-                open={isModalForVerificationOpen}
-                onOk={handleVerificationModalOk}
-                onCancel={handleVerificationModalCancel}
-                footer={[
-                    <Button key="cancel" onClick={handleVerificationModalCancel}>
-                        Cancel
-                    </Button>,
-                ]}
-                width={{
-                    xs: '90%',
-                    sm: '80%',
-                    md: '70%',
-                    lg: '70%',
-                    xl: '70%',
-                    xxl: '70%',
-                }}
-                height={"80%"}
-            >
-                <Verify />
-            </Modal>
-
-            {/* <Modal
-                className="overflow-y-auto rounded-lg scrollbar-hide"
-                title="Verify"
-                open={isAddAdditionalPersonInfoModalOpen}
-                onCancel={handleAdditionalPersonInfoModalCancel}
-                footer={[]}
-                width={{
-                    xs: '90%',
-                    sm: '80%',
-                    md: '70%',
-                    lg: '70%',
-                    xl: '70%',
-                    xxl: '70%',
-                }}
-                height={"80%"}
-            >
-                <AddAdditionalPersonInfoForm
-                    person={selectedPerson}
-                    gender={genderData || []}
-                    genderLoading={genderLoading}
-                    nationality={nationalityData || []}
-                    nationalityLoading={nationalityLoading}
-                    civilStatus={civilStatusData || []}
-                    civilStatusLoading={civilStatusLoading}
-                />
-            </Modal> */}
 
         </>
     )
