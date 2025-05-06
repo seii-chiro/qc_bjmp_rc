@@ -60,7 +60,7 @@ const Personnel = () => {
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
-    const { data } = useQuery({
+    const { data, isLoading: personnelLoading } = useQuery({
         queryKey: ['personnel'],
         queryFn: () => getPersonnel(token ?? ""),
     });
@@ -394,7 +394,7 @@ const Personnel = () => {
                     <Input placeholder="Search Personnel..." value={searchText} className="py-2 md:w-64 w-full" onChange={(e) => setSearchText(e.target.value)} />
                 </div>
             </div>
-            <Table dataSource={filteredData} columns={columns} />
+            <Table dataSource={filteredData} columns={columns} loading={personnelLoading} />
             <Modal
                 title="Position Report"
                 open={isPdfModalOpen}

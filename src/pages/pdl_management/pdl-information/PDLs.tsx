@@ -13,9 +13,12 @@ import { useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 
 const PDLtable = () => {
+    const location = useLocation();
+    const filterOption = location?.state?.filterOption || "all";
+    console.log(filterOption)
     const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
     const [form] = Form.useForm();
@@ -27,7 +30,7 @@ const PDLtable = () => {
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
-    const { data } = useQuery({
+    const { data: pdlData } = useQuery({
         queryKey: ['pdl'],
         queryFn: () => getPDLs(token ?? ""),
     })
@@ -87,7 +90,9 @@ const PDLtable = () => {
         }
     };
 
-    const dataSource = data?.map((pdl, index) => ({
+    const filteredPDLs = filterOption === "all" ? pdlData : pdlData?.filter((pdl) => pdl?.person?.gender?.gender_option === filterOption);
+
+    const dataSource = filteredPDLs?.map((pdl, index) => ({
         key: index + 1,
         id: pdl?.id ?? 'N/A',
         pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',

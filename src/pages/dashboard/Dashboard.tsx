@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useTokenStore } from "@/store/useTokenStore";
 import { getSummary_Card, getJail } from '@/lib/queries';
@@ -32,7 +33,7 @@ import { IoMdRefresh } from 'react-icons/io';
 import { RiShareBoxLine } from 'react-icons/ri';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler);
 
@@ -42,6 +43,7 @@ const Dashboard = () => {
     const currentDate = new Date().toLocaleDateString('en-us', { year: "numeric", month: "long", day: "numeric" });
     const [time, setTime] = useState(new Date().toLocaleTimeString());
     const isFullscreen = handle.active;
+    const navigate = useNavigate();
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
@@ -81,9 +83,9 @@ const Dashboard = () => {
         }
     };
 
-    const Card = ({ title, image, count }: { title: string, image: string, count: number | string }) => {
+    const Card = ({ title, image, count, linkto }: { title: string, image: string, count: number | string, linkto?: string }) => {
         return (
-            <div className='rounded-lg flex items-center gap-2 p-2 w-full bg-[#F6F7FB]'>
+            <div className='rounded-lg flex items-center gap-2 p-2 w-full bg-[#F6F7FB] hover:cursor-pointer' onClick={() => linkto && navigate(linkto)}>
                 <div className='bg-[#D3DFF0] p-1 rounded-full'>
                     <img src={image} className='w-10' alt={title} />
                 </div>
@@ -137,9 +139,27 @@ const Dashboard = () => {
         )
     }
 
-    const Card5 = ({ title, image, count }: { title: string, image: string, count: number | string }) => {
+    const Card5 = (props: {
+        title: string;
+        image: string;
+        count: number | string;
+        linkto?: string;
+        state?: any;
+    }) => {
+        const navigate = useNavigate();
+        const { title, image, count, linkto, state } = props;
+
+        const handleClick = () => {
+            if (linkto) {
+                navigate(linkto, { state });
+            }
+        };
+
         return (
-            <div className='rounded-lg flex items-center gap-2 p-2 w-full bg-[#F6F7FB]'>
+            <div
+                className='rounded-lg flex flex-grow items-center gap-2 p-2 w-full bg-[#F6F7FB] hover:cursor-pointer'
+                onClick={handleClick}
+            >
                 <div className='bg-[#D3DFF0] p-1 rounded-full'>
                     <img src={image} className='w-10' alt={title} />
                 </div>
@@ -148,8 +168,8 @@ const Dashboard = () => {
                     <p className='text-[#121D26] text-lg font-semibold'>{title}</p>
                 </div>
             </div>
-        )
-    }
+        );
+    };
 
     const genderData = {
         labels: ['Male', 'Gay', 'Transgender'],
@@ -379,9 +399,22 @@ const Dashboard = () => {
                         {/* 1ST ROW */}
                         <div className={`w-full flex flex-wrap lg:flex-row gap-2 ${handle.active ? "flex gap-2" : ""}`}>
                             <div className="bg-white border shadow-[#1e7cbf]/25 flex-1 flex flex-col gap-2 justify-center border-[#1E7CBF]/25 shadow-md rounded-lg w-full p-4">
-                                <Card image={population} title='Jail Population' count={summarydata?.success.current_pdl_population.Active ?? 0} />
-                                <Card image={rate} title='Jail Capacity' count={jail?.jail_capacity ?? 0} />
-                                <Card image={release} title='Congestion Rate' count={summarydata?.success.jail_congestion_rates.total_congestion_rate === "Total capacity not set or zero" ? '0' : `${(parseFloat(summarydata?.success.jail_congestion_rates.total_congestion_rate) || 0).toFixed(2)}%`} />
+                                <Card
+                                    image={population}
+                                    title='Jail Population'
+                                    count={summarydata?.success.current_pdl_population.Active ?? 0}
+                                    linkto='/jvms/pdls/pdl'
+                                />
+                                <Card
+                                    image={rate}
+                                    title='Jail Capacity'
+                                    count={jail?.jail_capacity ?? 0}
+                                />
+                                <Card
+                                    image={release}
+                                    title='Congestion Rate'
+                                    count={summarydata?.success.jail_congestion_rates.total_congestion_rate === "Total capacity not set or zero" ? '0' : `${(parseFloat(summarydata?.success.jail_congestion_rates.total_congestion_rate) || 0).toFixed(2)}%`}
+                                />
                             </div>
 
                             {/* Gender Distribution */}
@@ -391,10 +424,28 @@ const Dashboard = () => {
                                     <div className='flex-1 bg-[#F6F7FB] w-full  lg:w-[260px] lg:h-[209px] rounded-lg'>
                                         <Pie data={genderData} options={Option} />
                                     </div>
-                                    <div className='flex-1 w-full space-y-2'>
-                                        <Card5 image={male} title='Male' count={summarydata?.success.pdls_based_on_gender.Active.Male || 0} />
-                                        <Card5 image={gay} title='Gay' count={summarydata?.success.pdls_based_on_gender.Active["LGBTQ + GAY / BISEXUAL"] ?? 0} />
-                                        <Card5 image={trans} title='Transgender' count={summarydata?.success.pdls_based_on_gender.Active["LGBTQ + TRANSGENDER"] || 0} />
+                                    <div className='flex-1 w-full flex flex-col justify-center gap-2'>
+                                        <Card5
+                                            image={male}
+                                            title='Male'
+                                            count={summarydata?.success.pdls_based_on_gender.Active.Male || 0}
+                                            linkto='/jvms/pdls/pdl'
+                                            state={{ filterOption: "Male" }}
+                                        />
+                                        <Card5
+                                            image={gay}
+                                            title='Gay'
+                                            count={summarydata?.success.pdls_based_on_gender.Active["LGBTQ + GAY / BISEXUAL"] ?? 0}
+                                            linkto='/jvms/pdls/pdl'
+                                            state={{ filterOption: "LGBTQ + GAY / BISEXUAL" }}
+                                        />
+                                        <Card5
+                                            image={trans}
+                                            title='Transgender'
+                                            count={summarydata?.success.pdls_based_on_gender.Active["LGBTQ + TRANSGENDER"] || 0}
+                                            linkto='/jvms/pdls/pdl'
+                                            state={{ filterOption: "LGBTQ + TRANSGENDER" }}
+                                        />
                                     </div>
                                 </div>
                             </div>
