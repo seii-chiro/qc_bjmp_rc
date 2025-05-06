@@ -41,6 +41,7 @@ const Dashboard = () => {
     const token = useTokenStore().token;
     const currentDate = new Date().toLocaleDateString('en-us', { year: "numeric", month: "long", day: "numeric" });
     const [time, setTime] = useState(new Date().toLocaleTimeString());
+    const isFullscreen = handle.active;
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
@@ -425,10 +426,10 @@ const Dashboard = () => {
                             <div className="bg-white border flex-1 w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
                                 <Title title="Entry/Exits to Jail Premises of Visitors" />
                                 <div className='flex h-full flex-wrap lg:flex-row gap-2'>
-                                    <div className='flex-1 bg-[#F6F7FB] rounded-lg w-full lg:w-[200px] lg:h-[210px]'>
+                                    <div className={`flex-1 bg-[#F6F7FB] rounded-lg w-full lg:w-[200px] ${isFullscreen ? "lg:h-[205px]" : "lg:h-[227px]"}`}>
                                         <Pie data={visitorEnteredExitData} options={Options} />
                                     </div>
-                                    <div className='flex-1 w-full h-[80%] flex flex-col justify-center gap-2'>
+                                    <div className='flex-1 w-full h-[82%] flex flex-col justify-center gap-2'>
                                         <Card4 image={pdl_enter} title='Entered' count={summarydata?.success.premises_logs.visitor_logs_today.Enter || 0} />
                                         <Card4 image={exited} title='Exited' count={summarydata?.success.premises_logs.visitor_logs_today.Exit ?? 0} />
                                     </div>
@@ -438,10 +439,10 @@ const Dashboard = () => {
                             <div className="bg-white border flex-1 w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
                                 <Title title="Entry/Exits to Jail Premises of BJMP Personnel" />
                                 <div className='flex h-full flex-wrap lg:flex-row gap-2'>
-                                    <div className='flex-1 bg-[#F6F7FB] rounded-lg w-full lg:w-[200px] lg:h-[190px]'>
+                                    <div className={`flex-1 bg-[#F6F7FB] rounded-lg w-full lg:w-[200px] lg:h-[205px]`}>
                                         <Pie data={PersonelEnteredExitData} options={Options} />
                                     </div>
-                                    <div className='flex-1 w-full h-[73%] flex flex-col justify-center gap-2'>
+                                    <div className={`flex-1 w-full flex flex-col justify-center gap-2 ${isFullscreen ? "h-[82%]" : "h-[73%]"}`}>
                                         <Card4 image={pdl_enter} title='Entered' count={summarydata?.success.premises_logs.personnel_logs_today.Enter || 0} />
                                         <Card4 image={exited} title='Exited' count={summarydata?.success.premises_logs.personnel_logs_today.Exit ?? 0} />
                                     </div>
@@ -452,11 +453,11 @@ const Dashboard = () => {
                             <div className="bg-white border flex-1 w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
                                 <Title title="Entry/Exits to Jail Premises of Service Provider" />
                                 <div className='flex h-full flex-wrap lg:flex-row gap-2'>
-                                    <div className='flex-1 bg-[#F6F7FB] rounded-lg w-full xl:w-[200px] xl:h-[190px]'>
+                                    <div className='flex-1 bg-[#F6F7FB] rounded-lg w-full xl:w-[200px] xl:h-[205px]'>
                                         <Pie data={ServiceEnteredExitData} options={Options} />
                                     </div>
                                     {/*No service Provider */}
-                                    <div className='flex-1 w-full h-[73%] flex flex-col justify-center gap-2'>
+                                    <div className={`flex-1 w-full flex flex-col justify-center gap-2 ${isFullscreen ? "h-[82%]" : "h-[73%]"}`}>
                                         <Card4 image={pdl_enter} title='Entered' count={summarydata?.success.premises_logs.pdl_logs_today.Enter || 0} />
                                         <Card4 image={exited} title='Exited' count={summarydata?.success.premises_logs.pdl_logs_today.Exit ?? 0} />
                                     </div>
@@ -465,12 +466,12 @@ const Dashboard = () => {
 
                             {/*Entry/Exits to Jail Premises of Non Register Visitor  */}
                             <div className="bg-white border flex-1 w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
-                                <Title title="Entry/Exits to Jail Premises of Non Register Visitor"/>
+                                <Title title="Entry/Exits to Jail Premises of Non Register Visitor" />
                                 <div className='flex h-full flex-wrap lg:flex-row gap-2'>
                                     <div className='flex-1 bg-[#F6F7FB] rounded-lg w-full xl:w-[200px] xl:h-[205px]'>
                                         <Pie data={NonRegisterEnteredExitData} options={Options} />
                                     </div>
-                                    <div className='flex-1 w-full h-[73%] flex flex-col justify-center gap-2'>
+                                    <div className={`flex-1 w-full flex flex-col justify-center gap-2 ${isFullscreen ? "h-[82%]" : "h-[73%]"}`}>
                                         <Card4 image={pdl_enter} title='Entered' count={summarydata?.success.premises_logs.pdl_logs_today.Enter || 0} />
                                         <Card4 image={exited} title='Exited' count={summarydata?.success.premises_logs.pdl_logs_today.Exit ?? 0} />
                                     </div>
