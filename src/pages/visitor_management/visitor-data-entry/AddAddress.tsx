@@ -50,6 +50,11 @@ const AddAddress = ({ setPersonForm, handleAddressCancel, countries, provinces, 
     const [position, setPosition] = useState<[number, number] | null>(null);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
+    // Filtered lists based on selections
+    const [filteredProvinces, setFilteredProvinces] = useState<JailProvince[]>([]);
+    const [filteredMunicipalities, setFilteredMunicipalities] = useState<JailMunicipality[]>([]);
+    const [filteredBarangays, setFilteredBarangays] = useState<JailBarangay[]>([]);
+
     const [addressForm, setAddressForm] = useState<AddressForm>(() => {
         if (editAddressIndex !== null && personForm?.address_data?.[editAddressIndex]) {
             // We're editing, use the existing data
@@ -76,6 +81,7 @@ const AddAddress = ({ setPersonForm, handleAddressCancel, countries, provinces, 
         };
     });
 
+    // Reset form when editing status changes
     useEffect(() => {
         if (editAddressIndex !== null && personForm.address_data && personForm.address_data[editAddressIndex]) {
             setAddressForm({ ...personForm.address_data[editAddressIndex] });
@@ -102,6 +108,79 @@ const AddAddress = ({ setPersonForm, handleAddressCancel, countries, provinces, 
         }
     }, [editAddressIndex, personForm.address_data]);
 
+    // Update filtered provinces when region changes
+    useEffect(() => {
+        if (addressForm.region_id) {
+            const filtered = provinces.filter(province => province.region === addressForm.region_id);
+            setFilteredProvinces(filtered);
+
+            // If selected province is not in the filtered list, reset it
+            if (addressForm.province_id && !filtered.some(p => p.id === addressForm.province_id)) {
+                setAddressForm(prev => ({
+                    ...prev,
+                    province_id: null,
+                    municipality_id: null,
+                    barangay_id: null
+                }));
+            }
+        } else {
+            setFilteredProvinces([]);
+        }
+    }, [addressForm?.region_id, provinces, addressForm?.province_id]);
+
+    // Update filtered municipalities when province changes
+    useEffect(() => {
+        if (addressForm.province_id) {
+            const filtered = municipality.filter(muni => muni.province === addressForm.province_id);
+            setFilteredMunicipalities(filtered);
+
+            // If selected municipality is not in the filtered list, reset it
+            if (addressForm.municipality_id && !filtered.some(m => m.id === addressForm.municipality_id)) {
+                setAddressForm(prev => ({
+                    ...prev,
+                    municipality_id: null,
+                    barangay_id: null
+                }));
+            }
+        } else {
+            setFilteredMunicipalities([]);
+        }
+    }, [addressForm?.province_id, municipality, addressForm?.municipality_id]);
+
+    // Update filtered barangays when municipality changes
+    useEffect(() => {
+        if (addressForm.municipality_id) {
+            const filtered = barangay.filter(brgy => brgy.municipality === addressForm.municipality_id);
+            setFilteredBarangays(filtered);
+
+            // If selected barangay is not in the filtered list, reset it
+            if (addressForm.barangay_id && !filtered.some(b => b.id === addressForm.barangay_id)) {
+                setAddressForm(prev => ({
+                    ...prev,
+                    barangay_id: null
+                }));
+            }
+        } else {
+            setFilteredBarangays([]);
+        }
+    }, [addressForm?.municipality_id, barangay, addressForm?.barangay_id]);
+
+    // Initialize filtered lists on form load
+    useEffect(() => {
+        // If we're editing and have initial values, set the filtered lists accordingly
+        if (addressForm.region_id) {
+            setFilteredProvinces(provinces.filter(province => province.region === addressForm.region_id));
+
+            if (addressForm.province_id) {
+                setFilteredMunicipalities(municipality.filter(muni => muni.province === addressForm.province_id));
+
+                if (addressForm.municipality_id) {
+                    setFilteredBarangays(barangay.filter(brgy => brgy.municipality === addressForm.municipality_id));
+                }
+            }
+        }
+    }, []);
+
     useEffect(() => {
         if (addressForm?.latitude && addressForm?.longitude) {
             const lat = parseFloat(addressForm.latitude as string);
@@ -112,14 +191,13 @@ const AddAddress = ({ setPersonForm, handleAddressCancel, countries, provinces, 
         }
     }, [addressForm?.latitude, addressForm?.longitude]);
 
-
     const address = [
         addressForm?.building_subdivision,
         addressForm?.street,
-        barangay?.find(brgy => brgy?.id === addressForm?.barangay_id)?.desc,
-        municipality?.find(municipality => municipality?.id === addressForm?.municipality_id)?.desc,
-        provinces?.find(province => province?.id === addressForm?.province_id)?.desc,
-        regions?.find(region => region?.id === addressForm?.region_id)?.desc,
+        filteredBarangays.find(brgy => brgy?.id === addressForm?.barangay_id)?.desc,
+        filteredMunicipalities.find(municipality => municipality?.id === addressForm?.municipality_id)?.desc,
+        filteredProvinces.find(province => province?.id === addressForm?.province_id)?.desc,
+        regions.find(region => region?.id === addressForm?.region_id)?.desc,
         "Philippines",
     ]
         .filter(Boolean)
@@ -307,7 +385,10 @@ const AddAddress = ({ setPersonForm, handleAddressCancel, countries, provinces, 
                                     setAddressForm(prev => (
                                         {
                                             ...prev,
-                                            region_id: value
+                                            region_id: value,
+                                            province_id: null,
+                                            municipality_id: null,
+                                            barangay_id: null
                                         }
                                     ));
                                     if (errors.region_id) {
@@ -329,8 +410,9 @@ const AddAddress = ({ setPersonForm, handleAddressCancel, countries, provinces, 
                                 status={errors.province_id ? "error" : ""}
                                 showSearch
                                 optionFilterProp="label"
+                                disabled={!addressForm.region_id}
                                 className='mt-2 h-10 rounded-md outline-gray-300 w-full'
-                                options={provinces?.map((province) => ({
+                                options={filteredProvinces?.map((province) => ({
                                     value: province?.id,
                                     label: province?.desc,
                                 }))}
@@ -338,7 +420,9 @@ const AddAddress = ({ setPersonForm, handleAddressCancel, countries, provinces, 
                                     setAddressForm(prev => (
                                         {
                                             ...prev,
-                                            province_id: value
+                                            province_id: value,
+                                            municipality_id: null,
+                                            barangay_id: null
                                         }
                                     ));
                                     if (errors.province_id) {
@@ -370,8 +454,9 @@ const AddAddress = ({ setPersonForm, handleAddressCancel, countries, provinces, 
                                 status={errors.municipality_id ? "error" : ""}
                                 showSearch
                                 optionFilterProp="label"
+                                disabled={!addressForm.province_id}
                                 className='mt-2 h-10 rounded-md outline-gray-300 w-full'
-                                options={municipality?.map((municipality) => ({
+                                options={filteredMunicipalities?.map((municipality) => ({
                                     value: municipality?.id,
                                     label: municipality?.desc,
                                 }))}
@@ -379,7 +464,8 @@ const AddAddress = ({ setPersonForm, handleAddressCancel, countries, provinces, 
                                     setAddressForm(prev => (
                                         {
                                             ...prev,
-                                            municipality_id: value
+                                            municipality_id: value,
+                                            barangay_id: null
                                         }
                                     ));
                                     if (errors.municipality_id) {
@@ -398,7 +484,8 @@ const AddAddress = ({ setPersonForm, handleAddressCancel, countries, provinces, 
                             <div className='flex gap-1 font-semibold'> District<p className="text-red-600">*</p></div>
                             <Input
                                 className='mt-2 w-full px-3 py-2 rounded-md outline-gray-300'
-                                value={municipality?.find(municipality => municipality?.id === addressForm?.municipality_id)?.legist_dist}
+                                value={filteredMunicipalities.find(municipality => municipality?.id === addressForm?.municipality_id)?.legist_dist || ""}
+                                readOnly
                             />
                         </div>
 
@@ -410,8 +497,9 @@ const AddAddress = ({ setPersonForm, handleAddressCancel, countries, provinces, 
                                 status={errors.barangay_id ? "error" : ""}
                                 showSearch
                                 optionFilterProp="label"
+                                disabled={!addressForm.municipality_id}
                                 className='mt-2 h-10 rounded-md outline-gray-300 w-full'
-                                options={barangay?.map((brgy) => ({
+                                options={filteredBarangays?.map((brgy) => ({
                                     value: brgy?.id,
                                     label: brgy?.desc,
                                 }))}

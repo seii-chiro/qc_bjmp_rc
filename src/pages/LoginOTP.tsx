@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import tambuli_alert_logo from "@/assets/tambuli_alert_logo.png"
+import bjmp_logo from "@/assets/Logo/bjmp.png"
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { message, Modal, Input } from 'antd';
 import { BASE_URL } from "@/lib/urls";
@@ -135,11 +135,11 @@ const LoginOTP = () => {
             <div className="bg-[url('/login.png')] bg-blue-500 bg-cover bg-center flex flex-col items-center justify-center gap-4 min-h-screen w-screen">
                 <div className="bg-white p-14 rounded-xl flex flex-col gap-10 items-center justify-center w-[32rem] shadow-lg">
                     <div className="flex flex-col gap-3 items-center">
-                        <div>
-                            <img src={tambuli_alert_logo} alt="tambuli alert logo" />
+                        <div className="w-32 h-32">
+                            <img src={bjmp_logo} alt="tambuli alert logo" />
                         </div>
-                        <h2 className="font-semibold text-xl">Login Page</h2>
-                        <p className="text-sm">Registered users can login to access the system.</p>
+                        <h2 className="font-semibold text-xl">Login</h2>
+                        <p className="text-base ">Registered users can login to access the system.</p>
                     </div>
                     <div className="flex flex-col items-center w-full">
                         <form
