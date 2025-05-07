@@ -9,33 +9,43 @@ const VisitLog = () => {
   const [view, setView] = useState<'Main Gate' | 'Visitor' | 'PDL'>('Main Gate');
   const token = useTokenStore().token;
 
-  const { data: mainGateData } = useQuery({
+  const { data: mainGateData, isLoading: mainGateLogsLoading } = useQuery({
     queryKey: ['main-gate'],
     queryFn: () => getMainGate(token ?? ''),
     refetchInterval: 10000,
     enabled: view === 'Main Gate',
   });
 
-  const { data: receptionData } = useQuery({
+  const { data: receptionData, isLoading: visitorStationLogsLoading } = useQuery({
     queryKey: ['reception-log'],
     queryFn: () => getVisitorStation(token ?? ''),
     refetchInterval: 10000,
     enabled: view === 'Visitor',
   });
 
-  const { data: pdlData } = useQuery({
+  const { data: pdlData, isLoading: pdlStationLogsLoading } = useQuery({
     queryKey: ['pdl-log'],
     queryFn: () => getPDLStation(token ?? ''),
     refetchInterval: 10000,
     enabled: view === 'PDL',
   });
 
+  let tableIsLoading = true;
+
+  if (view === 'Main Gate') {
+    tableIsLoading = mainGateLogsLoading;
+  } else if (view === 'Visitor') {
+    tableIsLoading = visitorStationLogsLoading;
+  } else if (view === 'PDL') {
+    tableIsLoading = pdlStationLogsLoading;
+  }
+
   const activeData =
     view === 'Main Gate'
       ? mainGateData
       : view === 'Visitor'
-      ? receptionData
-      : pdlData;
+        ? receptionData
+        : pdlData;
 
   const dataSource =
     activeData?.map((entry, index) => ({
@@ -69,59 +79,60 @@ const VisitLog = () => {
   ];
 
   return (
-  <div className="p-4 h-full flex flex-col">
-    {/* Header & Buttons */}
-    <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
-      <div>
-        <h1 className="text-3xl font-bold text-[#1E365D]">
-          {view === 'Main Gate'
-            ? 'Main Gate Visitor Logs'
-            : view === 'Visitor'
-            ? 'Visitor Logs'
-            : 'PDL Visitor Logs'}
-        </h1>
-        <div className="flex gap-2 mt-2">
-          <Button
-            type={view === 'Main Gate' ? 'primary' : 'default'}
-            onClick={() => setView('Main Gate')}
-          >
-            Main Gate Logs
-          </Button>
-          <Button
-            type={view === 'Visitor' ? 'primary' : 'default'}
-            onClick={() => setView('Visitor')}
-          >
-            Visitor Logs
-          </Button>
-          <Button
-            type={view === 'PDL' ? 'primary' : 'default'}
-            onClick={() => setView('PDL')}
-          >
-            PDL Visitor Logs
-          </Button>
+    <div className="p-4 h-full flex flex-col">
+      {/* Header & Buttons */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
+        <div>
+          <h1 className="text-3xl font-bold text-[#1E365D]">
+            {view === 'Main Gate'
+              ? 'Main Gate Visitor Logs'
+              : view === 'Visitor'
+                ? 'Visitor Logs'
+                : 'PDL Visitor Logs'}
+          </h1>
+          <div className="flex gap-2 mt-2">
+            <Button
+              type={view === 'Main Gate' ? 'primary' : 'default'}
+              onClick={() => setView('Main Gate')}
+            >
+              Main Gate Logs
+            </Button>
+            <Button
+              type={view === 'Visitor' ? 'primary' : 'default'}
+              onClick={() => setView('Visitor')}
+            >
+              Visitor Logs
+            </Button>
+            <Button
+              type={view === 'PDL' ? 'primary' : 'default'}
+              onClick={() => setView('PDL')}
+            >
+              PDL Visitor Logs
+            </Button>
+          </div>
         </div>
+
+        {/* Search Input */}
+        <Input
+          placeholder="Search logs..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="py-2 w-full md:w-64"
+        />
       </div>
 
-      {/* Search Input */}
-      <Input
-        placeholder="Search logs..."
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-        className="py-2 w-full md:w-64"
-      />
+      {/* Scrollable Table Container */}
+      <div className="overflow-y-auto" style={{ maxHeight: '90vh' }}>
+        <Table
+          loading={tableIsLoading}
+          dataSource={filteredData}
+          columns={columns}
+          rowKey="id"
+          pagination={false}
+          scroll={{ y: '72vh' }}
+        />
+      </div>
     </div>
-
-    {/* Scrollable Table Container */}
-    <div className="overflow-y-auto" style={{ maxHeight: '90vh' }}>
-      <Table
-        dataSource={filteredData}
-        columns={columns}
-        rowKey="id"
-        pagination={false}
-        scroll={{ y: '72vh' }}
-      />
-    </div>
-  </div>
 
   );
 };
