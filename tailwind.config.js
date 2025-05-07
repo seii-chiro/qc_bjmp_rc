@@ -24,6 +24,17 @@ export default {
       boxShadow: {
         allSide: "0px 0px 2px 2px rgba(0, 0, 0, 0.1)",
       },
+      keyframes: {
+        bounceDot: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-0.25rem)" },
+        },
+      },
+      animation: {
+        bounceDot1: "bounceDot 1s infinite ease-in-out",
+        bounceDot2: "bounceDot 1s infinite ease-in-out 0.2s",
+        bounceDot3: "bounceDot 1s infinite ease-in-out 0.4s",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
