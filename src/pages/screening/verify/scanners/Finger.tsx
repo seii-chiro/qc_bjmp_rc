@@ -496,12 +496,23 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                                         }
                                         {
                                             LeftFingerResponse?.CapturedFingers || RightFingerResponse?.CapturedFingers || ThumbFingerResponse?.CapturedFingers ? (
-                                                <button
-                                                    onClick={handleVerifyFingerprints}
-                                                    type="button"
-                                                    className="bg-[#1976D2] text-white px-10 py-2 rounded-md">
-                                                    Verify Fingerprints
-                                                </button>
+                                                verifyFingerprintMutation?.isPending ? (
+                                                    <button
+                                                        type="button"
+                                                        className="bg-[#1976D2] text-white px-10 py-2 rounded-md">
+                                                        Verifying Fingerprints
+                                                        <span className="animate-bounceDot1">.</span>
+                                                        <span className="animate-bounceDot2">.</span>
+                                                        <span className="animate-bounceDot3">.</span>
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={handleVerifyFingerprints}
+                                                        type="button"
+                                                        className="bg-[#1976D2] text-white px-10 py-2 rounded-md">
+                                                        Verify Fingerprints
+                                                    </button>
+                                                )
                                             ) : (
                                                 <button
                                                     // onClick={() => {

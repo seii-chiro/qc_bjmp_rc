@@ -327,13 +327,25 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
                 </button>
                 {
                   irsCaptureResponse?.ImgDataLeft || irsCaptureResponse?.ImgDataRight ? (
-                    <button
-                      onClick={handleVerifyIris}
-                      type="button"
-                      disabled={processingRef.current || isFetching} // Disable while processing
-                      className={`bg-[#1976D2] text-white px-10 py-2 rounded-md w-52 ${(irisScannerReady && !processingRef.current && !isFetching) ? "opacity-100" : "opacity-20"}`}>
-                      Verify Iris
-                    </button>
+                    verifyIrisMutation?.isPending ? (
+                      <button
+                        type="button"
+                        disabled={processingRef.current || isFetching} // Disable while processing
+                        className={`bg-[#1976D2] text-white px-10 py-2 rounded-md w-52 ${(irisScannerReady && !processingRef.current && !isFetching) ? "opacity-100" : "opacity-20"}`}>
+                        Verifying Iris
+                        <span className="animate-bounceDot1">.</span>
+                        <span className="animate-bounceDot2">.</span>
+                        <span className="animate-bounceDot3">.</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleVerifyIris}
+                        type="button"
+                        disabled={processingRef.current || isFetching} // Disable while processing
+                        className={`bg-[#1976D2] text-white px-10 py-2 rounded-md w-52 ${(irisScannerReady && !processingRef.current && !isFetching) ? "opacity-100" : "opacity-20"}`}>
+                        Verify Iris
+                      </button>
+                    )
                   ) : (
                     <button
                       type="button"
