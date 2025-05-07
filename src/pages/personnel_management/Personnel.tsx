@@ -16,19 +16,14 @@ const Personnels = () => {
                             <p className="ml-5 text-basee font-medium">Personnel Profile</p>
                             </NavLink>
                         </div>
-                        <div className="h-fit w-full border shadow-sm hover:shadow-md border-gray-200 p-5 rounded-md">
-                            <NavLink to={""}>
-                            <p className="ml-5 text-basee font-medium">Dashboard</p>
-                            </NavLink>
-                        </div>
                         <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
                             <GodotLink link="ranks" title="Ranks" />
                             <GodotLink link="positions" title="Positions" />
                             <GodotLink link="employment-type" title="Employment Type" />
                         </div>
-                        <div className="w-full border shadow-sm hover:shadow-md border-gray-200 p-5 rounded-md">
-                            <GodotLink link="" title="Ins / Outs" />
-                        </div>
+                         {/* <div className="w-full border shadow-sm hover:shadow-md border-gray-200 p-5 rounded-md"> */}
+                            {/* <GodotLink link="" title="Ins / Outs" /> */}
+                        {/* </div> */}
                        
                     </div>
                     <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">

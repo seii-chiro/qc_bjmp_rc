@@ -676,9 +676,9 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                                                         <div className="w-10">
                                                             <img src={check} alt="check icon" />
                                                         </div>
-                                                        <div className="w-10">
+                                                        {/* <div className="w-10">
                                                             <img src={ex} alt="close icon" />
-                                                        </div>
+                                                        </div> */}
                                                     </div>
                                                 </div>
                                             </div>

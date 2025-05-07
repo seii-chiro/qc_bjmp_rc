@@ -346,7 +346,6 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
             </div>
           </div>
         </div>
-
         {
           selectedArea?.toLowerCase() === "pdl station" ? (
             <div className='flex-1'>
@@ -380,9 +379,9 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
                             <div className="w-16">
                               <img src={check} alt="check icon" />
                             </div>
-                            <div className="w-16">
+                            {/* <div className="w-16">
                               <img src={ex} alt="close icon" />
-                            </div>
+                            </div> */}
                           </div>
                         </div>
                       </div>
@@ -442,7 +441,6 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
             </div>
           )
         }
-
       </div>
       <div className="w-full flex gap-3 items-center">
         <span className="font-semibold">DEVICE ID:</span>

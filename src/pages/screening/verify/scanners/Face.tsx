@@ -276,9 +276,9 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
                             <div className="w-16">
                               <img src={check} alt="check icon" />
                             </div>
-                            <div className="w-16">
+                            {/* <div className="w-16">
                               <img src={ex} alt="close icon" />
-                            </div>
+                            </div> */}
                           </div>
                         </div>
                       </div>
