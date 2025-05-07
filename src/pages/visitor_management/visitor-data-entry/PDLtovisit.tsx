@@ -10,7 +10,7 @@ import RequirementsForm from "./RequirementsForm";
 import IdForm from "./IdForm";
 import { PersonForm, VisitorForm } from "@/lib/visitorFormDefinition";
 import { ColumnsType } from "antd/es/table";
-import { AiOutlineFullscreen } from "react-icons/ai";
+// import { AiOutlineFullscreen } from "react-icons/ai";
 import { Sibling } from "@/lib/pdl-definitions";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import 'react-medium-image-zoom/dist/styles.css'
@@ -267,13 +267,13 @@ const PDLtovisit = ({
                     >
                         <AiOutlineEdit />
                     </button>
-                    <button
+                    {/* <button
                         type="button"
                         onClick={requirementFullscreenHandle?.enter}
                         className="border border-blue-500 text-blue-500 hover:bg-blue-600 hover:text-white py-1 rounded w-10 h-10 flex items-center justify-center"
                     >
                         <AiOutlineFullscreen />
-                    </button>
+                    </button> */}
                     <button
                         type="button"
                         onClick={() => deleteMediaRequirementByIndex(index)}
@@ -362,13 +362,13 @@ const PDLtovisit = ({
                     >
                         <AiOutlineEdit />
                     </button>
-                    <button
+                    {/* <button
                         type="button"
                         onClick={idFullscreenHandle?.enter}
                         className="border border-blue-500 text-blue-500 hover:bg-blue-600 hover:text-white py-1 rounded w-10 h-10 flex items-center justify-center"
                     >
                         <AiOutlineFullscreen />
-                    </button>
+                    </button> */}
                     <button
                         type="button"
                         onClick={() => deleteMediaIdentifierByIndex(index)}

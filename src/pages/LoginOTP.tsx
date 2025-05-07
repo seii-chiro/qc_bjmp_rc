@@ -4,6 +4,10 @@ import { useMutation } from "@tanstack/react-query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import bjmp_logo from "@/assets/Logo/bjmp.png"
+import bjmpro_logo from "@/assets/Logo/BJMPRO.png"
+import bp_logo from "@/assets/Logo/Bagong_Pilipinas_logo.png"
+import lqp_logo from "@/assets/Logo/LQP.png"
+import qcjmd_logo from "@/assets/Logo/QCJMD.png"
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { message, Modal, Input } from 'antd';
 import { BASE_URL } from "@/lib/urls";
@@ -133,13 +137,32 @@ const LoginOTP = () => {
     return (
         <>
             <div className="bg-[url('/login.png')] bg-blue-500 bg-cover bg-center flex flex-col items-center justify-center gap-4 min-h-screen w-screen">
-                <div className="bg-white p-14 rounded-xl flex flex-col gap-10 items-center justify-center w-[32rem] shadow-lg">
-                    <div className="flex flex-col gap-3 items-center">
-                        <div className="w-32 h-32">
-                            <img src={bjmp_logo} alt="tambuli alert logo" />
+                {/* <div className="bg-white/50 filter backdrop-blur-sm p-14 rounded-xl flex flex-col gap-8 items-center justify-center w-[32rem] shadow-lg"></div> */}
+                <div className="bg-white/50 filter backdrop-blur-sm p-14 rounded-xl flex flex-col gap-8 items-center justify-center w-[32rem] shadow-lg">
+                    <div className="flex flex-col gap-6 items-center">
+                        <div >
+                            <div className="flex gap-2 items-center justify-center">
+                                <div className="w-24 h-2w-24">
+                                    <img src={bjmp_logo} alt="tambuli alert logo" />
+                                </div>
+
+                                <div className="w-24 h-2w-24">
+                                    <img src={bp_logo} alt="tambuli alert logo" />
+                                </div>
+                                <div className="w-24 h-2w-24">
+                                    <img src={qcjmd_logo} alt="tambuli alert logo" />
+                                </div>
+                            </div>
+                            <div className="flex gap-2 items-center justify-center">
+                                <div className="w-24 h-2w-24">
+                                    <img src={bjmpro_logo} alt="tambuli alert logo" />
+                                </div>
+                                <div className="w-24 h-2w-24">
+                                    <img src={lqp_logo} alt="tambuli alert logo" />
+                                </div>
+                            </div>
                         </div>
-                        <h2 className="font-semibold text-xl">Login</h2>
-                        <p className="text-base ">Registered users can login to access the system.</p>
+                        <p className="text-base font-semibold">Please login to continue.</p>
                     </div>
                     <div className="flex flex-col items-center w-full">
                         <form
@@ -153,7 +176,7 @@ const LoginOTP = () => {
                                 placeholder="Username"
                                 type="email"
                                 id="username"
-                                className="border rounded-md px-1.5 py-0.5 w-full mb-4 h-12 bg-[#EAEAEC]"
+                                className="border-2 border-gray-400 rounded-md px-1.5 py-0.5 w-full mb-4 h-12 bg-[#EAEAEC]"
                                 ref={emailRef}
                                 required
                             />
@@ -162,7 +185,7 @@ const LoginOTP = () => {
                                     placeholder="Password"
                                     type={showPassword ? "text" : "password"}
                                     id="password"
-                                    className="border rounded-md px-1.5 py-0.5 w-full mb-7 h-12 bg-[#EAEAEC]"
+                                    className="border-2 border-gray-400 rounded-md px-1.5 py-0.5 w-full mb-7 h-12 bg-[#EAEAEC]"
                                     required
                                     minLength={5}
                                     ref={passwordRef}
