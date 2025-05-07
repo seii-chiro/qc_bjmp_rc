@@ -142,23 +142,22 @@ const LoginOTP = () => {
                     <div className="flex flex-col gap-6 items-center">
                         <div >
                             <div className="flex gap-2 items-center justify-center">
-                                <div className="w-24 h-2w-24">
+                                <div className="w-24 h-24">
                                     <img src={bjmp_logo} alt="tambuli alert logo" />
                                 </div>
-
-                                <div className="w-24 h-2w-24">
-                                    <img src={bp_logo} alt="tambuli alert logo" />
+                                <div className="w-24 h-24">
+                                    <img src={bjmpro_logo} alt="tambuli alert logo" />
                                 </div>
-                                <div className="w-24 h-2w-24">
+                                <div className="w-[6.5rem] h-[6.5rem]">
                                     <img src={qcjmd_logo} alt="tambuli alert logo" />
                                 </div>
                             </div>
                             <div className="flex gap-2 items-center justify-center">
-                                <div className="w-24 h-2w-24">
-                                    <img src={bjmpro_logo} alt="tambuli alert logo" />
-                                </div>
-                                <div className="w-24 h-2w-24">
+                                <div className="w-24">
                                     <img src={lqp_logo} alt="tambuli alert logo" />
+                                </div>
+                                <div className="w-24">
+                                    <img src={bp_logo} alt="tambuli alert logo" />
                                 </div>
                             </div>
                         </div>
