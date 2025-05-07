@@ -1,7 +1,7 @@
 import { getIdTypes, getPDLs, getVisitor_to_PDL_Relationship } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQueries } from "@tanstack/react-query";
-import { Table, Modal } from "antd";
+import { Table, Modal, Image } from "antd";
 import { Plus } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
@@ -13,6 +13,7 @@ import { ColumnsType } from "antd/es/table";
 import { AiOutlineFullscreen } from "react-icons/ai";
 import { Sibling } from "@/lib/pdl-definitions";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
+import 'react-medium-image-zoom/dist/styles.css'
 
 type Props = {
     deleteMediaRequirementByIndex: (index: number) => void;
@@ -155,12 +156,6 @@ const PDLtovisit = ({
                     >
                         <AiOutlineEdit />
                     </button>
-                    {/* <button
-                        type="button"
-                        className="border  border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white py-1 rounded flex w-10 h-10 items-center justify-center"
-                    >
-                        <AiOutlineFileSearch />
-                    </button> */}
                     <button
                         type="button"
                         className="border border-red-500 text-red-500 hover:bg-red-500 hover:text-white py-1 rounded flex w-10 h-10 items-center justify-center"
@@ -247,7 +242,7 @@ const PDLtovisit = ({
             image: (
                 requirement?.media_data?.media_base64 ? (
                     <FullScreen handle={requirementFullscreenHandle} className="flex items-center justify-center">
-                        <img
+                        <Image
                             src={`data:image/bmp;base64,${requirement?.media_data?.media_base64}`}
                             alt="requirement"
                             style={{
@@ -342,12 +337,12 @@ const PDLtovisit = ({
             image: (
                 identififier?.media_data?.media_base64 ? (
                     <FullScreen handle={idFullscreenHandle} className="flex items-center justify-center">
-                        <img
+                        <Image
                             src={`data:image/bmp;base64,${identififier?.media_data?.media_base64}`}
                             alt="Identifier"
                             style={{
-                                width: idFullscreenHandle?.active ? '50%' : '50px',
-                                height: idFullscreenHandle?.active ? '50%' : '50px',
+                                width: requirementFullscreenHandle?.active ? '50%' : '50px',
+                                height: requirementFullscreenHandle?.active ? '50%' : '50px',
                                 objectFit: 'cover'
                             }}
                         />

@@ -189,31 +189,31 @@ const Dashboard = () => {
         ],
     };
 
-    const Option = {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'right' as const,
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: 'circle',
-                    padding: 30,
-                    boxWidth: 12,
-                },
-            },
-            tooltip: {
-                callbacks: {
-                    label: function (context: any) {
-                        const label = context.label || '';
-                        const value = context.parsed;
-                        return `${label}: ${value}`;
-                    },
-                },
-            },
-            padding: 5,
-        },
-        cutout: '60%',
-    };
+    // const Option = {
+    //     responsive: true,
+    //     plugins: {
+    //         legend: {
+    //             position: 'right' as const,
+    //             labels: {
+    //                 usePointStyle: true,
+    //                 pointStyle: 'circle',
+    //                 padding: 12,
+    //                 boxWidth: 12,
+    //             },
+    //         },
+    //         tooltip: {
+    //             callbacks: {
+    //                 label: function (context: any) {
+    //                     const label = context.label || '';
+    //                     const value = context.parsed;
+    //                     return `${label}: ${value}`;
+    //                 },
+    //             },
+    //         },
+    //         padding: 5,
+    //     },
+    //     cutout: '60%',
+    // };
 
     const pdlEnteredExitData = {
         labels: ['Entered', 'Exited'],
@@ -300,6 +300,64 @@ const Dashboard = () => {
         plugins: {
             legend: {
                 position: 'bottom' as const,
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    padding: 10,
+                    boxWidth: 12,
+                },
+            },
+            tooltip: {
+                callbacks: {
+                    label: function (context: any) {
+                        const label = context.label || '';
+                        const value = context.parsed;
+                        return `${label}: ${value}`;
+                    },
+                },
+            },
+            padding: 10,
+        },
+        cutout: '60%',
+    };
+
+    const EntryExitVisitorOptions = {
+        responsive: true,
+        layout: {
+            padding: {
+                top: 30,
+            },
+        },
+        plugins: {
+            legend: {
+                position: 'bottom' as const,
+                labels: {
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    padding: 20,
+                    boxWidth: 12,
+                },
+            },
+            tooltip: {
+                callbacks: {
+                    label: function (context: any) {
+                        const label = context.label || '';
+                        const value = context.parsed;
+                        return `${label}: ${value}`;
+                    },
+                },
+            },
+        },
+        cutout: '60%',
+    };
+
+
+    const OptionsWith3Labels = {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom' as const,
+                align: 'start' as const,
                 labels: {
                     usePointStyle: true,
                     pointStyle: 'circle',
@@ -421,8 +479,8 @@ const Dashboard = () => {
                             <div className="bg-white border flex-[2] w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
                                 <Title title="PDL Based on their Gender" />
                                 <div className='flex flex-col lg:flex-row gap-2'>
-                                    <div className='flex-1 bg-[#F6F7FB] w-full  lg:w-[260px] lg:h-[209px] rounded-lg'>
-                                        <Pie data={genderData} options={Option} />
+                                    <div className='flex-1 flex items-center justify-center bg-[#F6F7FB] w-full  lg:w-[260px] lg:h-[209px] rounded-lg'>
+                                        <Pie data={genderData} options={Options} />
                                     </div>
                                     <div className='flex-1 w-full flex flex-col justify-center gap-2'>
                                         <Card5
@@ -478,7 +536,7 @@ const Dashboard = () => {
                                 <Title title="Entry/Exits to Jail Premises of Visitors" />
                                 <div className='flex h-full flex-wrap lg:flex-row gap-2'>
                                     <div className={`flex-1 bg-[#F6F7FB] rounded-lg w-full lg:w-[200px] ${isFullscreen ? "lg:h-[205px]" : "lg:h-[227px]"}`}>
-                                        <Pie data={visitorEnteredExitData} options={Options} />
+                                        <Pie data={visitorEnteredExitData} options={EntryExitVisitorOptions} />
                                     </div>
                                     <div className='flex-1 w-full h-[82%] flex flex-col justify-center gap-2'>
                                         <Card4 image={pdl_enter} title='Entered' count={summarydata?.success.premises_logs.visitor_logs_today.Enter || 0} />
@@ -537,7 +595,7 @@ const Dashboard = () => {
                                 <Title title="Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
                                 <div className='flex flex-wrap lg:flex-row gap-2'>
                                     <div className='flex-1 lg:w-1/2 px-2 bg-[#F6F7FB] rounded-lg w-full'>
-                                        <Pie data={EmergencyMalfunctionData} options={Options} />
+                                        <Pie data={EmergencyMalfunctionData} options={OptionsWith3Labels} />
                                     </div>
                                     <div className='flex-1 lg:w-1/2 w-full flex flex-col justify-center gap-2'>
                                         <Card2 image={emergency} title='Emergency' count={0} />
@@ -552,7 +610,7 @@ const Dashboard = () => {
                                 <Title title="Action Taken Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
                                 <div className='flex flex-wrap lg:flex-row gap-2'>
                                     <div className='flex-1 lg:w-1/2 px-2 bg-[#F6F7FB] rounded-lg w-full'>
-                                        <Pie data={ActionTakenData} options={Options} />
+                                        <Pie data={ActionTakenData} options={OptionsWith3Labels} />
                                     </div>
                                     <div className='flex-1 lg:w-1/2 w-full flex flex-col justify-center gap-2'>
                                         <Card2 image={emergency} title='Action Taken Emergency' count={0} />
