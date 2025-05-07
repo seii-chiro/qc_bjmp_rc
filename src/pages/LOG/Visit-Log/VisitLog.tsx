@@ -88,7 +88,7 @@ const VisitLog = () => {
               ? 'Main Gate Visitor Logs'
               : view === 'Visitor'
                 ? 'Visitor Logs'
-                : 'PDL Visitor Logs'}
+                : 'PDL Logs'}
           </h1>
           <div className="flex gap-2 mt-2">
             <Button
@@ -107,7 +107,7 @@ const VisitLog = () => {
               type={view === 'PDL' ? 'primary' : 'default'}
               onClick={() => setView('PDL')}
             >
-              PDL Visitor Logs
+              PDL Logs
             </Button>
           </div>
         </div>
