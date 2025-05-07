@@ -11,10 +11,10 @@ const PDLVisitors = () => {
     const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
 
-    const { data: visitLogData } = useQuery({
+    const { data: visitLogData, isLoading: logsLoading } = useQuery({
         queryKey: ["pdl-station"],
         queryFn: () => getPDLStation(token ?? ""),
-        refetchInterval: 60000, 
+        refetchInterval: 60000,
     });
 
 
@@ -34,21 +34,21 @@ const PDLVisitors = () => {
             timestamp: pdlstation?.tracking_logs?.[0]?.created_at ?? '',
             visitor: pdlstation?.person,
             visitorPhoto: profileImage
-                    ? {
-                        media_binary: profileImage.media_binary,
-                        media_filepath: profileImage.media_filepath,
-                    }
-                    : null,
+                ? {
+                    media_binary: profileImage.media_binary,
+                    media_filepath: profileImage.media_filepath,
+                }
+                : null,
             pdlPhoto: pdlImage
-                    ? {
-                        media_binary: pdlImage.media_binary,
-                        media_filepath: pdlImage.media_filepath,
-                    }
-                    : null,
+                ? {
+                    media_binary: pdlImage.media_binary,
+                    media_filepath: pdlImage.media_filepath,
+                }
+                : null,
             visitorType: pdlstation?.visitor?.visitor_type ?? "",
             pdlName: pdlstation
-                    ? `${pdlstation.visitor?.pdls[0]?.pdl.person?.first_name || ''} ${pdlstation.visitor?.pdls[0]?.pdl.person.last_name || ''}`
-                    : "",
+                ? `${pdlstation.visitor?.pdls[0]?.pdl.person?.first_name || ''} ${pdlstation.visitor?.pdls[0]?.pdl.person.last_name || ''}`
+                : "",
             relationshipToPDL: pdlstation?.visitor?.pdls[0]?.relationship_to_pdl || "No PDL relationship",
             level: pdlstation?.visitor?.pdls?.[0]?.pdl.cell.cell_name,
             annex: pdlstation?.visitor?.pdls?.[0]?.pdl?.cell?.floor?.split("(")[1]?.replace(")", ""),
@@ -178,8 +178,9 @@ const PDLVisitors = () => {
                     className="mb-4 py-2 w-full md:w-64"
                 />
             </div>
-            
+
             <Table
+                loading={logsLoading}
                 dataSource={filteredData}
                 columns={columns}
                 pagination={{ pageSize: 10 }}
