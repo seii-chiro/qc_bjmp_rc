@@ -81,6 +81,7 @@ export type Jail = {
 };
 
 export type Personnel = {
+  personnel_reg_no: string;
   id: number;
   organization: number;
   jail: number;

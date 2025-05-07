@@ -1,14 +1,14 @@
-import { getPersonnelTypes } from "@/lib/additionalQueries";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { PersonnelForm } from "@/lib/issues-difinitions";
-import { getPersonnel, getPositions, getRank, getUser } from "@/lib/queries";
-import { deletePersonnel, patchPersonnel } from "@/lib/query";
+import { getPersonnel, getUser } from "@/lib/queries";
+import { deletePersonnel } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Dropdown, Form, Input, Menu, message, Modal, Select, Table } from "antd";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button, Dropdown, Input, Menu, message, Modal,Table } from "antd";
 import { ColumnType } from "antd/es/table";
 import { useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
@@ -16,47 +16,11 @@ import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
 import { NavLink } from "react-router-dom";
 
-type PersonnelFormValue = {
-    id: number;
-    organization_id: number;
-    jail_id: number;
-    person_id: number;
-    rank_id: number;
-    personnel_type_id: number;
-    status_id: number;
-    position_id: number;
-    record_status_id: number;
-    personnel_app_status_id: number;
-    remarks_data: [
-        {
-            record_status_id: number;
-            personnel: number;
-            remarks: string;
-        }
-    ];
-    person_relationship_data: [
-        {
-            record_status_id: number;
-            person_id: number;
-            relationship_id: number;
-            is_contact_person: string;
-            remarks: string;
-        }
-    ];
-    id_number: string;
-    shortname: string;
-    date_joined: string;
-};
-
 const Personnel = () => {
     const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
-    const [form] = Form.useForm();
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectPersonnel, setSelctedPersonnel] = useState<PersonnelForm | null>(null);
-    const [selectEditPersonnel, setEditSelectedPersonnel] = useState<PersonnelFormValue | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
@@ -81,42 +45,6 @@ const Personnel = () => {
         },
     });
 
-    const { mutate: editPersonnel, isLoading: isUpdating } = useMutation({
-        mutationFn: (updated: PersonnelFormValue) =>
-            patchPersonnel(token ?? "", updated.id, updated),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["personnel"] });
-            messageApi.success("Personnel updated successfully");
-            setIsEditModalOpen(false);
-        },
-        onError: () => {
-            messageApi.error("Failed to update Personnel");
-        },
-    });
-
-    const handleEdit = (record: any, original: PersonnelFormValue) => {
-        setSelctedPersonnel(original);
-        setEditSelectedPersonnel(original);
-        form.setFieldsValue({
-            personnel_reg_no: original.personnel_reg_no,
-            personnel_type_id: original.personnel_type_id,
-        });
-        setIsEditModalOpen(true);
-    };
-
-    const handleUpdate = (values: any) => {
-        if (selectEditPersonnel?.id) {
-            const updatedPersonnel: PersonnelFormValue = {
-                ...selectEditPersonnel,
-                ...values,
-            };
-            console.log("Updating personnel with:", updatedPersonnel);
-            editPersonnel(updatedPersonnel);
-        } else {
-            messageApi.error("Selected personnel is invalid");
-        }
-    };
-
     const dataSource = data?.map((personnel, index) => (
         {
             key: index + 1,
@@ -124,10 +52,10 @@ const Personnel = () => {
             personnel_reg_no: personnel?.personnel_reg_no ?? '',
             person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
             shortname: personnel?.person?.shortname ?? '',
-            personnel_type: personnel?.personnel_type ?? '',
+            // personnel_type: personnel?.personnel_type ?? '',
             rank: personnel?.rank ?? '',
             gender: personnel?.person?.gender?.gender_option ?? '',
-            position: personnel?.position ?? '',
+            // position: personnel?.position ?? '',
             date_joined: personnel?.date_joined ?? '',
             record_status: personnel?.record_status ?? '',
             updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
@@ -166,21 +94,21 @@ const Personnel = () => {
             dataIndex: 'gender',
             key: 'gender',
         },
-        {
-            title: 'Personnel Type',
-            dataIndex: 'personnel_type',
-            key: 'personnel_type',
-        },
+        // {
+        //     title: 'Personnel Type',
+        //     dataIndex: 'personnel_type',
+        //     key: 'personnel_type',
+        // },
         {
             title: 'Rank',
             dataIndex: 'rank',
             key: 'rank',
         },
-        {
-            title: 'Position',
-            dataIndex: 'position',
-            key: 'position',
-        },
+        // {
+        //     title: 'Position',
+        //     dataIndex: 'position',
+        //     key: 'position',
+        // },
         {
             title: 'Date Joined',
             dataIndex: 'date_joined',
@@ -189,7 +117,7 @@ const Personnel = () => {
         {
             title: "Action",
             key: "action",
-            render: (_: any, record: any, index) => (
+            render: (_: any, record: any, index: string | number) => (
                 <div className="flex gap-2">
                     {/* <Button
                         type="link"
@@ -214,48 +142,6 @@ const Personnel = () => {
             ),
         },
     ];
-
-    const results = useQueries({
-        queries: [
-            {
-                queryKey: ["rank"],
-                queryFn: () => getRank(token ?? ""),
-            },
-            {
-                queryKey: ["position"],
-                queryFn: () => getPositions(token ?? ""),
-            },
-            {
-                queryKey: ["personnel-type"],
-                queryFn: () => getPersonnelTypes(token ?? ""),
-            },
-        ],
-    });
-
-    const RankData = results[0].data;
-    const PositionData = results[1].data;
-    const PersonnelTypeData = results[2].data;
-
-    const onRankChange = (value: number) => {
-        setEditSelectedPersonnel(prevForm => ({
-            ...prevForm,
-            rank_id: value,
-        }));
-    };
-
-    const onPositionChange = (value: number) => {
-        setEditSelectedPersonnel(prevForm => ({
-            ...prevForm,
-            position_id: value,
-        }));
-    };
-
-    const onPersonnelTypeChange = (value: number) => {
-        setEditSelectedPersonnel(prevForm => ({
-            ...prevForm,
-            personnel_type_id: value,
-        }));
-    };
 
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(dataSource);
@@ -310,7 +196,6 @@ const Personnel = () => {
             item.personnel_reg_no,
             item.person,
             item.rank,
-            item.position,
             item.date_joined,
         ]);
 
@@ -318,7 +203,7 @@ const Personnel = () => {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
 
             autoTable(doc, {
-                head: [['No.', 'Personnel Reg. No.', 'Personnel', 'Rank', 'Position', 'Date Joined']],
+                head: [['No.', 'Personnel Reg. No.', 'Personnel', 'Rank', 'Date Joined']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
@@ -409,62 +294,6 @@ const Personnel = () => {
                         style={{ width: '100%', height: '80vh', border: 'none' }}
                     />
                 )}
-            </Modal>
-
-            <Modal open={isEditModalOpen} onCancel={() => setIsEditModalOpen(false)} onOk={() => form.submit()} width="40%" confirmLoading={isUpdating} style={{ overflowY: "auto" }}>
-                <Form form={form} layout="vertical" onFinish={handleUpdate}>
-                    <h1 className="text-xl font-bold">Personnel Information</h1>
-                    <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <Form.Item name="personnel_reg_no" label="Registration No.">
-                            <Input disabled className="h-12 w-full border border-gray-300 rounded-lg px-2" />
-                        </Form.Item>
-                        <Form.Item label="Personnel Type" name="personnel_type_id">
-                            <Select
-                                className="h-[3rem] w-full"
-                                showSearch
-                                placeholder="Personnel Type"
-                                optionFilterProp="label"
-                                onChange={onPersonnelTypeChange}
-                                options={PersonnelTypeData?.map(personnel_type => (
-                                    {
-                                        value: personnel_type.id,
-                                        label: personnel_type?.name,
-                                    }
-                                ))}
-                            />
-                        </Form.Item>
-                        <Form.Item label="Rank" name="rank_id">
-                            <Select
-                                className="h-[3rem] w-full"
-                                showSearch
-                                placeholder="Rank"
-                                optionFilterProp="label"
-                                onChange={onRankChange}
-                                options={RankData?.map(rank => (
-                                    {
-                                        value: rank.id,
-                                        label: rank?.rank_name,
-                                    }
-                                ))}
-                            />
-                        </Form.Item>
-                        <Form.Item label="Position" name="position_id">
-                            <Select
-                                className="h-[3rem] w-full"
-                                showSearch
-                                placeholder="Position"
-                                optionFilterProp="label"
-                                onChange={onPositionChange}
-                                options={PositionData?.map(position => (
-                                    {
-                                        value: position.id,
-                                        label: position?.position_title,
-                                    }
-                                ))}
-                            />
-                        </Form.Item>
-                    </div>
-                </Form>
             </Modal>
         </div>
     );
