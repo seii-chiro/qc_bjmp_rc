@@ -30,7 +30,7 @@ const PDLtable = () => {
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
-    const { data: pdlData } = useQuery({
+    const { data: pdlData, isLoading: pdlLoading } = useQuery({
         queryKey: ['pdl'],
         queryFn: () => getPDLs(token ?? ""),
     })
@@ -310,7 +310,7 @@ const PDLtable = () => {
                     <Input placeholder="Search Personnel..." value={searchText} className="py-2 md:w-64 w-full" onChange={(e) => setSearchText(e.target.value)} />
                 </div>
             </div>
-            <Table dataSource={filteredData} columns={columns} />
+            <Table dataSource={filteredData} columns={columns} loading={pdlLoading} />
             <Modal open={isEditModalOpen} onCancel={() => setIsEditModalOpen(false)} onOk={() => form.submit()} width="40%" confirmLoading={isUpdating} style={{ overflowY: "auto" }} >
                 <Form form={form} layout="vertical" onFinish={handleUpdate}>
                     <h1 className="text-xl font-bold">PDL Information</h1>
