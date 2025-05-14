@@ -51,7 +51,7 @@ a.active div {
   height: 3rem;
   width: 100%;
   padding-left: 1rem;
-  padding-right: 0.40rem;
+  padding-right: 0.4rem;
 }
 
 .register-visitor-form input:focus {
@@ -63,51 +63,63 @@ a.active div {
   height: 200px !important;
   line-height: 200px !important;
 }
- 
+
 .custom-upload-card .ant-upload-list-picture-card-container {
   width: 200px !important;
   height: 200px !important;
 }
- 
+
 .custom-upload-card .ant-upload-list-item-container {
   width: 200px !important;
   height: 200px !important;
 }
- 
+
 .custom-upload-card .ant-upload-list-item-thumbnail {
   width: 100% !important;
   height: 100% !important;
 }
- 
+
 .custom-upload-card .ant-upload-list-item-thumbnail img {
   object-fit: cover;
   width: 100% !important;
   height: 100% !important;
 }
- 
- 
+
 .custom-upload-card-big .ant-upload {
   width: 400px !important;
   height: 400px !important;
 }
- 
+
 .custom-upload-card-big .ant-upload-list-picture-card-container {
   width: 400px !important;
   height: 400px !important;
 }
- 
+
 .custom-upload-card-big .ant-upload-list-item-container {
   width: 400px !important;
   height: 400px !important;
 }
- 
+
 .custom-upload-card-big .ant-upload-list-item-thumbnail {
   width: 100% !important;
   height: 100% !important;
 }
- 
+
 .custom-upload-card-big .ant-upload-list-item-thumbnail img {
   object-fit: cover;
   width: 100% !important;
   height: 100% !important;
 }
+
+.custom-shape1 {
+  clip-path: polygon(0 0, 100% 0%, 100% 100%, 12% 100%);
+}
+
+.custom-shape2 {
+  clip-path: polygon(0 0, 82% 0, 100% 100%, 0 100%);
+}
+
+.custom-shape4 {
+  clip-path: polygon(0 0, 84% 0, 100% 100%, 0 100%);
+}
+

@@ -104,6 +104,8 @@ import ServiceProvider from "./pages/Service/ServiceProvider.tsx";
 import EditVisitor from "./pages/visitor_management/EditVisitor.tsx/EditVisitor.tsx";
 import Person from "./pages/visitor_management/person/actual-person/ActualPersonTable.tsx";
 import Error from "./pages/Error.tsx";
+import VisitorID from "./pages/visitor_management/VisitorID.tsx";
+import ReportAnIncident from "@/pages/Incidents/Report.tsx"
 
 // Lazy-loaded components
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -320,6 +322,10 @@ function App() {
                     element: <Incidents />
                 },
                 {
+                    path: "incidents/report",
+                    element: <ReportAnIncident />
+                },
+                {
                     path: "threats",
                     element: <Threat />
                 },
@@ -410,6 +416,10 @@ function App() {
                 {
                     path: "visitors/visitor-identification",
                     element: <VisitorCodeIdentification />
+                },
+                {
+                    path: "visitors/visitor-id",
+                    element: <VisitorID />
                 },
                 {
                     path: "issues",

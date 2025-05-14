@@ -8,6 +8,7 @@ const Visitors = () => {
                     <GodotLink link="visitor" title="Visitors" />
                     <GodotLink link="" title="Visitor Identification" />
                     <GodotLink link="visitor-registration" title="Visitor Registration" />
+                    <GodotLink link="visitor-id" title="Visitor ID" />
                 </div>
                 <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
                     <Header title="VISITOR REGISTRATION" />
