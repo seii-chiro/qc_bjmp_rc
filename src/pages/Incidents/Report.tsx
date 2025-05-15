@@ -6,8 +6,8 @@ import L from "leaflet";
 import { useEffect, useState } from "react";
 import { IncidentFormType } from "@/lib/incidents";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useQuery } from "@tanstack/react-query";
-import { getIncidentTypes, getSeverityLevels } from "@/lib/incidentQueries";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { addIncidentReport, getIncidentTypes, getSeverityLevels } from "@/lib/incidentQueries";
 import img_placeholder from "@/assets/img_placeholder.jpg"
 
 const customMarkerIcon = new L.Icon({
@@ -36,7 +36,6 @@ const Report = () => {
     const [incidentForm, setIncidentForm] = useState<IncidentFormType>({
         type_id: null,
         severity_id: null,
-        status_id: null,
         incident_code: "",
         name: "",
         incident_details: "",
@@ -46,7 +45,6 @@ const Report = () => {
         longitude_reported: null,
         latitude_reported: null,
         incident_image_base64: "",
-        incident_image: "",
         address_reported: "",
     })
     const [position, setPosition] = useState<[number, number] | null>(null);
@@ -63,6 +61,15 @@ const Report = () => {
     const { data: severityLevels, isLoading: severityLevelsLoading } = useQuery({
         queryKey: ['indident-severity-levels'],
         queryFn: () => getSeverityLevels(token ?? ""),
+    })
+
+    const addIncidentReportMutation = useMutation({
+        mutationKey: ['add-incident-report'],
+        mutationFn: () => addIncidentReport(token ?? "", incidentForm),
+        onSuccess: () => message.success("Incident report submitted successfully!"),
+        onError: (error) => {
+            message.error(`Failed to submit incident report: ${error}`);
+        },
     })
 
     useEffect(() => {
@@ -226,7 +233,24 @@ const Report = () => {
         setUseCurrentLocation(false);
     };
 
-    console.log(incidentForm)
+    const handleSubmitReport = () => {
+        if (!incidentForm?.incident_details) {
+            message.warning("Please enter incident description.");
+            return;
+        }
+
+        if (!incidentForm?.type_id || !incidentForm?.severity_id) {
+            message.warning("Please select incident type and severity level.");
+            return;
+        }
+
+        if (!incidentForm?.address_reported) {
+            message.warning("Please enter or select an address for the incident.");
+            return;
+        }
+
+        addIncidentReportMutation.mutate();
+    }
 
     return (
         <div className="pt-1 pb-3">
@@ -265,7 +289,7 @@ const Report = () => {
                     <div className="w-full flex flex-col gap-2">
                         <span className="font-semibold">Severity Level</span>
                         <Select
-                            loading={incidentLoading}
+                            loading={severityLevelsLoading}
                             options={severityLevels?.map(type => ({
                                 label: type?.name,
                                 value: type?.id,
@@ -359,6 +383,8 @@ const Report = () => {
                         variant="solid"
                         color="primary"
                         className="w-full h-10 font-semibold"
+                        onClick={handleSubmitReport}
+                        loading={addIncidentReportMutation.isPending}
                     >
                         Submit Report
                     </Button>

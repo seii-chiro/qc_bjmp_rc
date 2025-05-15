@@ -106,6 +106,7 @@ import Person from "./pages/visitor_management/person/actual-person/ActualPerson
 import Error from "./pages/Error.tsx";
 import VisitorID from "./pages/visitor_management/VisitorID.tsx";
 import ReportAnIncident from "@/pages/Incidents/Report.tsx"
+import IncidentTable from "./pages/Incidents/IncidentTable.tsx";
 
 // Lazy-loaded components
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -320,6 +321,10 @@ function App() {
                 {
                     path: "incidents",
                     element: <Incidents />
+                },
+                {
+                    path: "incidents/incidents_list",
+                    element: <IncidentTable />
                 },
                 {
                     path: "incidents/report",
