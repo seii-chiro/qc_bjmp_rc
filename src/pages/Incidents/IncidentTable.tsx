@@ -237,12 +237,12 @@ const IncidentTable = () => {
     return (
         <>
             <div className="w-full flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold mb-4">+ Incident Reports</h1>
+                <h1 className="text-2xl font-bold mb-4">Incident Reports</h1>
                 <NavLink
                     to="/jvms/incidents/report"
                     className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200"
                 >
-                    Report an Incident
+                    + Report an Incident
                 </NavLink>
             </div>
             <Table
