@@ -1,16 +1,16 @@
 import { NavLink } from "react-router-dom";
 
 export const Breadcrumb = ({ url }: { url: string }) => {
-    const parts = url
-        .split("/")
-        .filter(Boolean)
-        .filter((part) => part !== "jvms");
+    const parts = url.split("/").filter(Boolean);
 
     return (
         <nav className="flex items-center gap-2">
             {parts.map((part, index) => {
-                // Rebuild the path excluding the 'jvms' segment
+                // Always include the part in the path
                 const path = "/" + parts.slice(0, index + 1).join("/");
+
+                // Don't render the 'jvms' part visually
+                if (part === "jvms") return null;
 
                 return (
                     <span key={index} className="flex items-center">

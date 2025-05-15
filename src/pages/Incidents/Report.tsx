@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { IncidentFormType } from "@/lib/incidents";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
-import { getIncidentTypes } from "@/lib/incidentQueries";
+import { getIncidentTypes, getSeverityLevels } from "@/lib/incidentQueries";
 import img_placeholder from "@/assets/img_placeholder.jpg"
 
 const customMarkerIcon = new L.Icon({
@@ -58,6 +58,11 @@ const Report = () => {
     const { data: incidentTypes, isLoading: incidentLoading } = useQuery({
         queryKey: ['indident-types'],
         queryFn: () => getIncidentTypes(token ?? ""),
+    })
+
+    const { data: severityLevels, isLoading: severityLevelsLoading } = useQuery({
+        queryKey: ['indident-severity-levels'],
+        queryFn: () => getSeverityLevels(token ?? ""),
     })
 
     useEffect(() => {
@@ -230,7 +235,7 @@ const Report = () => {
                     <div>
                         <span className="font-semibold">Incident Description</span>
                         <Input.TextArea
-                            className="w-full !h-40"
+                            className="w-full !h-28"
                             value={incidentForm?.incident_details}
                             onChange={(e) => {
                                 setIncidentForm((prev) => ({
@@ -258,6 +263,23 @@ const Report = () => {
                         />
                     </div>
                     <div className="w-full flex flex-col gap-2">
+                        <span className="font-semibold">Severity Level</span>
+                        <Select
+                            loading={incidentLoading}
+                            options={severityLevels?.map(type => ({
+                                label: type?.name,
+                                value: type?.id,
+                            }))}
+                            className="h-10 w-full"
+                            onChange={(value) => {
+                                setIncidentForm(prev => ({
+                                    ...prev,
+                                    severity_id: value,
+                                }))
+                            }}
+                        />
+                    </div>
+                    <div className="w-full flex flex-col gap-2">
                         <span className="font-semibold">Upload Image</span>
                         <input type="file" accept="image/*" onChange={handleImageUpload} />
                     </div>
@@ -269,13 +291,6 @@ const Report = () => {
                             style={{ height: 400, width: '100%', objectFit: "cover" }}
                         />
                     </div>
-                    <Button
-                        variant="solid"
-                        color="primary"
-                        className="w-full h-10 font-semibold"
-                    >
-                        Submit Report
-                    </Button>
                 </div>
                 <div className="flex-1 flex flex-col gap-4">
                     <div className="w-full flex flex-col gap-2">
@@ -340,6 +355,13 @@ const Report = () => {
                             </Button>
                         </div>
                     </div>
+                    <Button
+                        variant="solid"
+                        color="primary"
+                        className="w-full h-10 font-semibold"
+                    >
+                        Submit Report
+                    </Button>
                 </div>
             </div>
         </div>
