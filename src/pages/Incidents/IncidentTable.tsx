@@ -124,10 +124,10 @@ const IncidentTable = () => {
                     <Select
                         className={
                             status.toLowerCase() === "pending"
-                                ? "bg-orange-50"
+                                ? "!bg-orange-50"
                                 : status.toLowerCase() === "closed"
-                                    ? "bg-green-50"
-                                    : "bg-blue-50"
+                                    ? "!bg-green-50"
+                                    : "!bg-blue-50"
                         }
                         value={incidentStatus?.find(s => s.name === status)?.id}
                         style={{
@@ -209,23 +209,25 @@ const IncidentTable = () => {
             key: "actions",
             align: "center" as const,
             render: (_: any, record: any) => (
-                <div style={{ display: "flex", gap: 8 }}>
-                    <Button
-                        type="primary"
+                <div style={{ display: "flex", gap: 10 }}>
+                    <button
+                        type="button"
+                        className="text-blue-500 hover:text-blue-700"
                         onClick={() => navigate("/jvms/incidents/report", { state: record })}
-                        size="small"
                     >
                         <AiOutlineEdit />
-                    </Button>
+                    </button>
                     <Popconfirm
                         title="Are you sure to delete this incident?"
                         onConfirm={() => deleteMutation.mutate(record.id)}
                         okText="Yes"
                         cancelText="No"
                     >
-                        <Button danger size="small">
+                        <button
+                            className="text-red-500 hover:text-red-700"
+                        >
                             <AiOutlineDelete />
-                        </Button>
+                        </button>
                     </Popconfirm>
                 </div>
             ),
