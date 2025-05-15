@@ -81,21 +81,57 @@ const IncidentTable = () => {
             title: "Incident Status",
             dataIndex: "status",
             key: "status",
-            render: (status: string, record: any) => (
-                <Select
-                    value={
-                        incidentStatus?.find(s => s.name === status)?.id
-                    }
-                    style={{ width: 150 }}
-                    options={incidentStatus?.map(status => ({
-                        label: status.name,
-                        value: status.id,
-                    }))}
-                    onChange={value => {
-                        patchMutation.mutate({ id: record.id, payload: { status_id: value } });
-                    }}
-                />
-            ),
+            render: (status: string, record: any) => {
+                // Set color and font style based on status
+                let color = "#1890ff"; // default blue for "Open"
+                let background = "#e6f4ff"; // light blue for open
+                const fontWeight = "bold";
+                if (status.toLowerCase() === "pending") {
+                    color = "orange";
+                    background = "#fff7e6"; // light orange
+                } else if (status.toLowerCase() === "closed") {
+                    color = "green";
+                    background = "#f6ffed"; // light green
+                } else if (status.toLowerCase() === "open") {
+                    color = "#1890ff";
+                    background = "#e6f4ff";
+                }
+
+                return (
+                    <Select
+                        value={incidentStatus?.find(s => s.name === status)?.id}
+                        style={{
+                            width: 150,
+                            color,
+                            fontWeight,
+                            background,
+                            border: `1px solid ${color}`,
+                            borderRadius: 4,
+                        }}
+                        options={incidentStatus?.map(status => ({
+                            label: (
+                                <span
+                                    style={{
+                                        color:
+                                            status.name.toLowerCase() === "pending"
+                                                ? "orange"
+                                                : status.name.toLowerCase() === "closed"
+                                                    ? "green"
+                                                    : "#1890ff",
+                                        fontWeight: "bold",
+                                    }}
+                                >
+                                    {status.name}
+                                </span>
+                            ),
+                            value: status.id,
+                        }))}
+                        onChange={value => {
+                            patchMutation.mutate({ id: record.id, payload: { status_id: value } });
+                        }}
+                    />
+                );
+            },
         },
         {
             title: "Assigned Responder",
