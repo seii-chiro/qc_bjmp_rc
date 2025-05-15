@@ -6,7 +6,7 @@ import { getUsers } from "@/lib/queries"
 import { BASE_URL } from "@/lib/urls"
 import { useTokenStore } from "@/store/useTokenStore"
 import { useQuery, useMutation } from "@tanstack/react-query"
-import { message, Select, Table, Popconfirm, Button } from "antd"
+import { message, Select, Table, Popconfirm } from "antd"
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai"
 import { NavLink } from "react-router-dom"
 import { useNavigate } from "react-router-dom";
@@ -136,7 +136,7 @@ const IncidentTable = () => {
                             fontWeight,
                             background,
                             border: `1px solid ${color}`,
-                            borderRadius: 4,
+                            borderRadius: 8,
                         }}
                         options={incidentStatus?.map(status => ({
                             label: (
@@ -237,7 +237,7 @@ const IncidentTable = () => {
     return (
         <>
             <div className="w-full flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold mb-4">Incident Reports</h1>
+                <h1 className="text-2xl font-bold mb-4">+ Incident Reports</h1>
                 <NavLink
                     to="/jvms/incidents/report"
                     className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200"
