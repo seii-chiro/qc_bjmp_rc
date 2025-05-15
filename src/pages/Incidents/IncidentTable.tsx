@@ -3,13 +3,17 @@ import { UserAccounts } from "@/lib/definitions"
 import { getIncidents, getIncidentStatus, getIncidentTypes, getSeverityLevels, patchIncident } from "@/lib/incidentQueries"
 import { IncidentStatus, IncidentType, SeverityLevel } from "@/lib/incidents"
 import { getUsers } from "@/lib/queries"
+import { BASE_URL } from "@/lib/urls"
 import { useTokenStore } from "@/store/useTokenStore"
 import { useQuery, useMutation } from "@tanstack/react-query"
-import { message, Select, Table } from "antd"
+import { message, Select, Table, Popconfirm, Button } from "antd"
+import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai"
 import { NavLink } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
 
 const IncidentTable = () => {
     const token = useTokenStore()?.token
+    const navigate = useNavigate();
 
     const { data: incidents, isLoading: incidentsLoading, refetch } = useQuery({
         queryKey: ['incidents', 'incidentID'],
@@ -35,6 +39,25 @@ const IncidentTable = () => {
         queryKey: ['users', 'incident-table'],
         queryFn: () => getUsers(token ?? ""),
     })
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => fetch(
+            `${BASE_URL}/api/incidents/incidents/${id}/`,
+            {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Token ${token}`,
+                },
+            }
+        ),
+        onSuccess: () => {
+            message.success("Incident deleted!");
+            refetch();
+        },
+        onError: () => message.error("Failed to delete incident."),
+    });
+
 
     const patchMutation = useMutation({
         mutationFn: ({ id, payload }: { id: number; payload: any }) =>
@@ -99,6 +122,13 @@ const IncidentTable = () => {
 
                 return (
                     <Select
+                        className={
+                            status.toLowerCase() === "pending"
+                                ? "bg-orange-50"
+                                : status.toLowerCase() === "closed"
+                                    ? "bg-green-50"
+                                    : "bg-blue-50"
+                        }
                         value={incidentStatus?.find(s => s.name === status)?.id}
                         style={{
                             width: 150,
@@ -173,6 +203,32 @@ const IncidentTable = () => {
             title: "Reporter Address",
             dataIndex: "address_reported",
             key: "address_reported",
+        },
+        {
+            title: "Actions",
+            key: "actions",
+            align: "center" as const,
+            render: (_: any, record: any) => (
+                <div style={{ display: "flex", gap: 8 }}>
+                    <Button
+                        type="primary"
+                        onClick={() => navigate("/jvms/incidents/report", { state: record })}
+                        size="small"
+                    >
+                        <AiOutlineEdit />
+                    </Button>
+                    <Popconfirm
+                        title="Are you sure to delete this incident?"
+                        onConfirm={() => deleteMutation.mutate(record.id)}
+                        okText="Yes"
+                        cancelText="No"
+                    >
+                        <Button danger size="small">
+                            <AiOutlineDelete />
+                        </Button>
+                    </Popconfirm>
+                </div>
+            ),
         },
     ];
 

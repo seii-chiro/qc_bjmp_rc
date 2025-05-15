@@ -104,3 +104,4 @@ export async function patchIncident(token: string, id: number, payload: any) {
   if (!res.ok) throw new Error("Failed to update incident.");
   return res.json();
 }
+

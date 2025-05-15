@@ -4,11 +4,12 @@ import "leaflet/dist/leaflet.css";
 import markerIcon from "@/assets/location_marker.png"
 import L from "leaflet";
 import { useEffect, useState } from "react";
-import { IncidentFormType } from "@/lib/incidents";
+import { Incident, IncidentFormType, IncidentStatus } from "@/lib/incidents";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { addIncidentReport, getIncidentTypes, getSeverityLevels } from "@/lib/incidentQueries";
+import { addIncidentReport, getIncidentStatus, getIncidentTypes, getSeverityLevels, patchIncident } from "@/lib/incidentQueries";
 import img_placeholder from "@/assets/img_placeholder.jpg"
+import { useLocation } from "react-router-dom";
 
 const customMarkerIcon = new L.Icon({
     iconUrl: markerIcon,
@@ -33,6 +34,8 @@ const FlyToLocation = ({ position }: { position: [number, number] | null }) => {
 
 const Report = () => {
     const token = useTokenStore()?.token
+    const location = useLocation();
+    const editState = location.state as Partial<Incident> | undefined;
     const [incidentForm, setIncidentForm] = useState<IncidentFormType>({
         type_id: null,
         severity_id: null,
@@ -48,11 +51,21 @@ const Report = () => {
         incident_image_base64: "",
         address_reported: "",
     })
-    const [position, setPosition] = useState<[number, number] | null>(null);
+    const [position, setPosition] = useState<[number, number] | null>(
+        editState?.latitude_incident && editState?.longitude_incident
+            ? [editState.latitude_incident, editState.longitude_incident]
+            : null
+    );
     const [useCurrentLocation, setUseCurrentLocation] = useState(false);
     const [selectOnMap, setSelectOnMap] = useState(false);
-    const [uploadedImg, setUploadedImg] = useState<string | null>(null);
-    const [reportedAddressInput, setReportedAddressInput] = useState("");
+    const [uploadedImg, setUploadedImg] = useState<string | null>(
+        editState?.incident_image_base64
+            ? `data:image/png;base64,${editState.incident_image_base64}`
+            : null
+    );
+    const [reportedAddressInput, setReportedAddressInput] = useState(
+        editState?.address_reported ?? ""
+    );
 
     const { data: incidentTypes, isLoading: incidentLoading } = useQuery({
         queryKey: ['indident-types'],
@@ -62,6 +75,11 @@ const Report = () => {
     const { data: severityLevels, isLoading: severityLevelsLoading } = useQuery({
         queryKey: ['indident-severity-levels'],
         queryFn: () => getSeverityLevels(token ?? ""),
+    })
+
+    const { data: incidentStatus } = useQuery<IncidentStatus[]>({
+        queryKey: ['indident-status', 'table'],
+        queryFn: () => getIncidentStatus(token ?? ""),
     })
 
     const addIncidentReportMutation = useMutation({
@@ -81,6 +99,29 @@ const Report = () => {
             }))
         }
     }, [incidentForm?.type_id, incidentTypes])
+
+    console.log(incidentForm)
+
+    useEffect(() => {
+        if (editState) {
+            setIncidentForm(prev => ({
+                ...prev,
+                type_id: incidentTypes?.find(type => type?.name === editState?.type)?.id ?? null,
+                severity_id: severityLevels?.find(lvl => lvl?.name === editState?.severity)?.id ?? null,
+                status_id: incidentStatus?.find(status => status?.name === editState?.status)?.id ?? 1,
+                incident_code: editState?.incident_code ?? "",
+                name: editState?.name ?? "",
+                incident_details: editState?.incident_details ?? "",
+                longitude_incident: editState?.longitude_incident ?? null,
+                latitude_incident: editState?.latitude_incident ?? null,
+                address_incident: editState?.address_incident ?? "",
+                longitude_reported: editState?.longitude_reported ?? null,
+                latitude_reported: editState?.latitude_reported ?? null,
+                incident_image_base64: editState?.incident_image_base64 ?? "",
+                address_reported: editState?.address_reported ?? "",
+            }))
+        }
+    }, [editState, incidentStatus, incidentTypes, severityLevels])
 
     const handleIncidentAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setIncidentForm((prev) => ({
@@ -249,8 +290,16 @@ const Report = () => {
             return;
         }
 
-        addIncidentReportMutation.mutate();
-    }
+        if (editState?.id) {
+            // PATCH if editing
+            patchIncident(token ?? "", editState.id, incidentForm)
+                .then(() => message.success("Incident updated successfully!"))
+                .catch((error) => message.error(`Failed to update incident: ${error}`));
+        } else {
+            // POST if creating
+            addIncidentReportMutation.mutate();
+        }
+    };
 
     return (
         <div className="pt-1 pb-3">
@@ -272,6 +321,7 @@ const Report = () => {
                     <div className="w-full flex flex-col gap-2">
                         <span className="font-semibold">Incident Type</span>
                         <Select
+                            value={incidentForm?.type_id}
                             loading={incidentLoading}
                             options={incidentTypes?.map(type => ({
                                 label: type?.name,
@@ -289,6 +339,7 @@ const Report = () => {
                     <div className="w-full flex flex-col gap-2">
                         <span className="font-semibold">Severity Level</span>
                         <Select
+                            value={incidentForm?.severity_id}
                             loading={severityLevelsLoading}
                             options={severityLevels?.map(type => ({
                                 label: type?.name,
