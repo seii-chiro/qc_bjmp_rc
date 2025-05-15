@@ -36,6 +36,7 @@ const Report = () => {
     const [incidentForm, setIncidentForm] = useState<IncidentFormType>({
         type_id: null,
         severity_id: null,
+        status_id: 1, //set to pending by default
         incident_code: "",
         name: "",
         incident_details: "",
@@ -186,7 +187,6 @@ const Report = () => {
                 const result = ev.target?.result as string;
                 setUploadedImg(result);
 
-                // Remove data:image/*;base64, prefix if present
                 const base64 = result.replace(/^data:image\/[a-zA-Z]+;base64,/, "");
 
                 setIncidentForm((prev) => ({
