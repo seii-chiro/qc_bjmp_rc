@@ -35,15 +35,15 @@ const Visitor: React.FC<VisitorProps> = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectEditVisitor, setEditSelectedVisitor] = useState<Visitor | null>(null);
-    const [visitorVisits, setVisitorVisits] = useState(selectedVisitor?.visits || []);
+    const [visitorVisits, setVisitorVisits] = useState(selectedVisitor?.main_gate_visits || []);
     const [showAllVisits, setShowAllVisits] = useState(false);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (selectedVisitor?.visits) {
-            setVisitorVisits(selectedVisitor.visits);
+        if (selectedVisitor?.main_gate_visits) {
+            setVisitorVisits(selectedVisitor.main_gate_visits);
         }
     }, [selectedVisitor]);
 
@@ -456,51 +456,47 @@ const Visitor: React.FC<VisitorProps> = () => {
                                         <div className="border h-fit border-[#EAEAEC] rounded-xl py-2 px-3 overflow-hidden">
                                             <p className="text-[#404958] text-sm">Visitor History</p>
                                             <div className="overflow-y-auto h-full">
-
                                                 <div>
                                                     <table className="w-full border-collapse">
                                                         <thead>
                                                             <tr>
-                                                                <th className="rounded-l-lg bg-[#2F3237] text-white py-1 px-2 font-semibold text-xs">Date</th>
-                                                                <th className="bg-[#2F3237] text-white py-1 px-2 font-semibold text-xs">Duration</th>
-                                                                <th className="bg-[#2F3237] text-white py-1 px-2 font-semibold text-xs">Login</th>
-                                                                <th className="rounded-r-lg bg-[#2F3237] text-white py-1 px-2 font-semibold text-xs">Logout</th>
+                                                                <th className="rounded-l-lg bg-[#2F3237] text-white py-1 px-2 font-semibold">Date</th>
+                                                                <th className="bg-[#2F3237] text-white py-1 px-2 font-semibold">Duration</th>
+                                                                <th className="bg-[#2F3237] text-white py-1 px-2 font-semibold">Login</th>
+                                                                <th className="rounded-r-lg bg-[#2F3237] text-white py-1 px-2 font-semibold">Logout</th>
                                                             </tr>
                                                         </thead>
-                                                        {selectedVisitor?.visits?.length > 0 && (
+                                                        {visitorVisits.length > 0 && (
                                                             <tbody>
                                                                 {(showAllVisits
                                                                     ? [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-                                                                    : [...visitorVisits]
-                                                                        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-                                                                        .slice(0, 3)
-                                                                ).map((visit, index, arr) => {
+                                                                    : [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(0, 3
+                                                                )).map((visit, index, arr) => {
                                                                     const login = new Date(visit.created_at);
                                                                     const logout = arr[index + 1] ? new Date(arr[index + 1].created_at) : new Date(visit.updated_at);
                                                                     const durationMs = logout.getTime() - login.getTime();
                                                                     const durationMins = Math.floor(durationMs / 60000);
                                                                     const hours = Math.floor(durationMins / 60);
                                                                     const minutes = durationMins % 60;
+
                                                                     return (
                                                                         <tr key={index}>
-                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                            <td className="border-b border-[#DCDCDC] p-1 text-center">
                                                                                 {login.toLocaleDateString()}
                                                                             </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                            <td className="border-b border-[#DCDCDC] p-1 text-center">
                                                                                 {`${hours}h ${minutes}m`}
                                                                             </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                            <td className="border-b border-[#DCDCDC] p-1 text-center">
                                                                                 {login.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                                                             </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                                                {logout
-                                                                                    ? logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                                                                                    : "-"}
+                                                                            <td className="border-b border-[#DCDCDC] p-1 text-center">
+                                                                                {logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                                                             </td>
                                                                         </tr>
                                                                     );
                                                                 })}
-                                                                {selectedVisitor.visits?.length > 4 && (
+                                                                {visitorVisits.length > 3 && (
                                                                     <div className="text-center mt-2">
                                                                         <button
                                                                             onClick={() => setShowAllVisits(!showAllVisits)}
@@ -510,13 +506,10 @@ const Visitor: React.FC<VisitorProps> = () => {
                                                                         </button>
                                                                     </div>
                                                                 )}
-
                                                             </tbody>
                                                         )}
                                                     </table>
-
                                                 </div>
-
                                             </div>
                                         </div>
                                     </div>

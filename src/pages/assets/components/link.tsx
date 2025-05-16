@@ -30,16 +30,34 @@ export const Title = ({ title, icon: Icon }: IconProps) => {
     )
 }
 
-export const GodotLink = ({ link, title, openModalClick }: { link: string, title: string, openModalClick?: () => void }) => {
+export const GodotLink = ({ link, title, openModalClick }: { link?: string, title: string, openModalClick?: () => void }) => {
+    const isLinkDisabled = !link;
+
+    return (
+        <div onClick={openModalClick}>
+            <div className="flex gap-2 hover:bg-gray-50 p-1.5">
+                <div className="text-[#52688D] bg-[#BFC8D7] text-xs rounded-sm p-1.5 h-fit">
+                    <GoDotFill />
+                </div>
+                {isLinkDisabled ? (
+                    <span className="text-base font-medium text-gray-400">{title}</span>
+                ) : (
+                    <NavLink to={link}>
+                        <p className="text-base font-medium">{title}</p>
+                    </NavLink>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export const GodotModal = ({ title, openModalClick }: { title: string, openModalClick?: () => void }) => {
     return (
         <div onClick={openModalClick}>
             <div className="flex gap-2 hover:bg-gray-50 p-1.5">
                 <div className="text-[#52688D] bg-[#BFC8D7] text-xs rounded-sm p-1.5 h-fit"><GoDotFill /></div>
-                <NavLink to={link}>
-                    <p className="text-base font-medium">{title}</p>
-                </NavLink>
+                <p className="text-base font-medium">{title}</p>
             </div>
         </div>
     )
 }
-

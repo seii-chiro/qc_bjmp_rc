@@ -861,3 +861,19 @@ export interface NonPDLVisitorPayload {
   approved_by: string;
   approved_at: string; // ISO date string
 }
+
+type DeviceSettingPayload = {
+    id: number;
+    device: string;
+    key: string;
+    value: string;
+    description: string;
+}
+
+type EditDeviceSettingRecord = {
+  device_id: number;
+  key: string;
+  value: string;
+  description: string;
+  record_status_id: number;
+};

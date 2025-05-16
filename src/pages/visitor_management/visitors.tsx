@@ -6,9 +6,8 @@ const Visitors = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-5 text-gray-700">
                 <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
                     <GodotLink link="visitor" title="Visitors" />
-                    <GodotLink link="" title="Visitor Identification" />
+                    <GodotLink link="visitor-id" title="Visitor Identification" />
                     <GodotLink link="visitor-registration" title="Visitor Registration" />
-                    <GodotLink link="visitor-id" title="Visitor ID" />
                 </div>
                 <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
                     <Header title="VISITOR REGISTRATION" />

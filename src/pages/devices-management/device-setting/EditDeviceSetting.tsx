@@ -1,0 +1,156 @@
+import { getDevice, getRecord_Status } from "@/lib/queries";
+import { patchDeviceSetting } from "@/lib/query";
+import { useTokenStore } from "@/store/useTokenStore";
+import { useMutation, useQueries } from "@tanstack/react-query";
+import { Button, Form, Input, message, Select } from "antd";
+import { useEffect, useState } from "react";
+
+type DeviceSettingEdit = {
+    device_id: number | null;
+    key: string;
+    value: string;
+    description: string;
+    record_status_id: number | null;
+}
+
+const EditDeviceSetting = ({ devicesSetting, onClose }: { devicesSetting: any; onClose: () => void }) => {
+    const token = useTokenStore().token;
+    const [form] = Form.useForm();
+    const [messageApi, contextHolder] = message.useMessage();
+    const [isLoading, setIsLoading] = useState(false); 
+
+    const updateMutation = useMutation({
+        mutationFn: (updatedData: any) =>
+            patchDeviceSetting(token ?? "", devicesSetting.id, updatedData),
+        onSuccess: () => {
+            setIsLoading(false); 
+            messageApi.success("Devices Setting updated successfully");
+            onClose();
+        },
+        onError: (error: any) => {
+            setIsLoading(false); 
+            messageApi.error(error.message || "Failed to update Devices Setting");
+        },
+    });
+
+    const results = useQueries({
+        queries: [
+            {
+                queryKey: ['device'],
+                queryFn: () => getDevice(token ?? "")
+            },
+            {
+                queryKey: ['record-status'],
+                queryFn: () => getRecord_Status(token ?? "")
+            },
+        ]
+    });
+
+    const deviceData = results[0].data;
+    const recordStatusData = results[1].data;
+
+    useEffect(() => {
+        if (devicesSetting) {
+            const initialValues = {
+                device_id: devicesSetting.device_id,
+                key: devicesSetting.key,
+                value: devicesSetting.value,
+                description: devicesSetting.description,
+                record_status_id: devicesSetting.record_status_id,
+            };
+            
+            form.setFieldsValue(initialValues);
+        }
+    }, [devicesSetting, form]);
+
+
+    const handledevicesSubmit = (values: DeviceSettingEdit) => {
+        setIsLoading(true);
+        updateMutation.mutate(values);
+    };
+
+    const onDeviceChange = (value: number) => {
+        form.setFieldsValue({ device_id: value });
+    };
+
+    const onRecordStatusChange = (value: number) => {
+        form.setFieldsValue({ record_status_id: value });
+    };
+
+    return (
+        <div>
+        {contextHolder}
+            <Form
+                form={form}
+                layout="vertical"
+                onFinish={handledevicesSubmit}
+                initialValues={{
+                    device_id: devicesSetting?.device_id ?? null,
+                    key: devicesSetting?.key ?? null,
+                    value: devicesSetting?.value ?? null,
+                    description: devicesSetting?.description ?? null,
+                    record_status_id: devicesSetting?.record_status_id ?? null,
+                }}
+            >
+                <Form.Item
+                    label="Device"
+                    name="device_id"
+                >
+                    <Select
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Device"
+                        optionFilterProp="label"
+                        onChange={onDeviceChange}
+                        options={deviceData?.map(device => ({
+                            value: device.id,
+                            label: device.device_name
+                        }))}/>
+                </Form.Item>
+                <Form.Item
+                    label="Key"
+                    name="key"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Value"
+                    name="value"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Description"
+                    name="description"
+                >
+                    <Input />
+                </Form.Item>
+                                <Form.Item
+                    label="Record Status"
+                    name="record_status_id"
+                >
+                    <Select
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Record Status"
+                        optionFilterProp="label"
+                        onChange={onRecordStatusChange}
+                        options={recordStatusData?.map(status => ({
+                            value: status.id,
+                            label: status.status
+                        }))}/>
+                </Form.Item>
+                <Form.Item>
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                    >
+                        Submit
+                    </Button>
+                </Form.Item>
+            </Form>
+        </div>
+    )
+}
+
+export default EditDeviceSetting

@@ -1,5 +1,5 @@
 import { CourtBranch, CourtRecord, CrimeCategory, Ethnicities, GangAffiliation, Law, Offense, PDLtoVisit, Precinct, User, VisitorRecord } from "./definitions";
-import { MainGateLog, NonPDLVisitorPayload, OTPAccount, PersonFormPayload, PersonnelForm, Relationship, Role, ServiceProviderPayload, VisitLogForm, VisitorUpdatePayload } from "./issues-difinitions";
+import { DeviceSettingPayload, EditDeviceSettingRecord, MainGateLog, NonPDLVisitorPayload, OTPAccount, PersonFormPayload, PersonnelForm, Relationship, Role, ServiceProviderPayload, VisitLogForm, VisitorUpdatePayload } from "./issues-difinitions";
 import { PDLs } from "./pdl-definitions";
 import { BASE_URL } from "./urls";
 
@@ -663,3 +663,55 @@ export async function getNonPDL_Visitor(
     }
     return res.json();
 }
+
+export async function getDeviceSetting(
+    token: string
+    ): Promise<DeviceSettingPayload[]> {
+    const res = await fetch(`${BASE_URL}/api/codes/device-settings/`, {
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+        },
+    });
+    if (!res.ok) {
+        throw new Error("Failed to fetch Device Setting data.");
+    }
+    return res.json();
+}
+
+export const deleteDeviceSetting = async (token: string, id: number) => {
+    const response = await fetch(
+        `${BASE_URL}/api/codes/device-settings/${id}/`,
+        {
+        method: "DELETE",
+        headers: {
+            Authorization: `Token ${token}`,
+        },
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to delete Device Setting");
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : {};
+};
+
+export const patchDeviceSetting = async (
+    token: string,
+    id: number,
+    data: Partial<EditDeviceSettingRecord>
+    ): Promise<EditDeviceSettingRecord> => {
+    const url = `${BASE_URL}/api/codes/device-settings/${id}/`;
+    const res = await fetch(url, {
+        method: "PATCH",
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Failed to update Device Setting");
+    return res.json();
+};

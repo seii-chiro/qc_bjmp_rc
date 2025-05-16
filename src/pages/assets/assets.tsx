@@ -1,4 +1,3 @@
-import { NavLink } from "react-router-dom";
 import { GodotLink, Header } from "./components/link";
 
 const Assets = () => {
@@ -18,21 +17,19 @@ const Assets = () => {
                             </div>
                         </div>
                     </div>
-                        <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
-                            <Header title="Jail"/>
-                            <div className="mt-2">
-                                <div className="ml-8">
-                                    <GodotLink link="jail-type" title="Jail Type" />
-                                    <GodotLink link="jail-categories" title="Jail Categories" />
-                                    <GodotLink link="jail-security" title="Jail Security" />
-                                </div>
+                    <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
+                        <Header title="Jail"/>
+                        <div className="mt-2">
+                            <div className="ml-8">
+                                <GodotLink link="jail-type" title="Jail Type" />
+                                <GodotLink link="jail-categories" title="Jail Categories" />
+                                <GodotLink link="jail-security" title="Jail Security" />
                             </div>
                         </div>
-                        <div className="w-full border h-fit shadow-sm hover:shadow-md border-gray-200 p-5 rounded-md">
-                            <NavLink to={""}>
-                                <p className="ml-5 text-basee font-medium">Jail Profile</p>
-                            </NavLink>
-                        </div>
+                    </div>
+                    <div className="w-full border h-fit shadow-sm hover:shadow-md border-gray-200 p-5 rounded-md">
+                        <GodotLink link="" title="Jail Profile" />
+                    </div>
                 </div>
                 <div className="border flex flex-col border-gray-200 p-5 w-full md:w-[32.2rem] shadow-sm hover:shadow-md rounded-md">
                     <Header title="Devices"/>
@@ -41,15 +38,14 @@ const Assets = () => {
                             <GodotLink link="devices" title="Devices" />
                             <GodotLink link="devices-type" title="Device Type" />
                             <GodotLink link="devices-usage" title="Device Usage" />
-                            <GodotLink link="" title="Device Settings" />
+                            <GodotLink link="device-setting" title="Device Settings" />
                             <GodotLink link="" title="Device Profile" />
                         </div>
                     </div>
-                    
                 </div>
             </div>
         </div>
-    )
+    );
 }
 
-export default Assets
+export default Assets;
