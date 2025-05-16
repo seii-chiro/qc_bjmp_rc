@@ -3,10 +3,12 @@ import { getVisitors } from '@/lib/queries'
 import { BASE_URL } from '@/lib/urls'
 import { useTokenStore } from '@/store/useTokenStore'
 import { useQuery } from '@tanstack/react-query'
-import { Button, Select } from 'antd'
+import { Select } from 'antd'
 import { useState } from 'react'
 import img_placeholder from "@/assets/img_placeholder.jpg"
 import { toPng } from 'html-to-image';
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 
 const VisitorID = () => {
     const token = useTokenStore()?.token
@@ -18,7 +20,7 @@ const VisitorID = () => {
     })
 
     // Fetch visitor-specific logs when a visitor is chosen
-    const { data: specificVisitor, isLoading: specificVisitorLoading } = useQuery({
+    const { data: specificVisitor } = useQuery({
         queryKey: ['visitor-specific-logs', chosenVisitor],
         queryFn: async () => {
             if (!chosenVisitor) return [];
@@ -37,19 +39,44 @@ const VisitorID = () => {
         enabled: !!chosenVisitor, // Only run when chosenVisitor is set
     });
 
-    const handleDownload = async (id: string, filename: string) => {
-        const element = document.getElementById(id);
-        if (!element) return;
-        const dataUrl = await toPng(element);
-        const link = document.createElement("a");
-        link.download = filename;
-        link.href = dataUrl;
-        link.click();
+    // const handleDownload = async (id: string, filename: string) => {
+    //     const element = document.getElementById(id);
+    //     if (!element) return;
+    //     const dataUrl = await toPng(element);
+    //     const link = document.createElement("a");
+    //     link.download = filename;
+    //     link.href = dataUrl;
+    //     link.click();
+    // };
+
+    const handleDownloadAll = async () => {
+        const zip = new JSZip();
+
+        // Get PNG data URLs
+        const frontElement = document.getElementById("visitor-front");
+        const backElement = document.getElementById("visitor-back");
+        if (!frontElement || !backElement) return;
+
+        const frontDataUrl = await toPng(frontElement);
+        const backDataUrl = await toPng(backElement);
+
+        // Convert data URLs to blobs
+        const frontBlob = await (await fetch(frontDataUrl)).blob();
+        const backBlob = await (await fetch(backDataUrl)).blob();
+
+        // Add to zip
+        zip.file("visitor_front.png", frontBlob);
+        zip.file("visitor_back.png", backBlob);
+
+        // Generate zip and trigger download
+        zip.generateAsync({ type: "blob" }).then((content) => {
+            saveAs(content, `${specificVisitor?.person?.first_name ?? ""}_${specificVisitor?.person?.last_name ?? ""}_visitor_id.zip`);
+        });
     };
 
     return (
         <div>
-            <div className='w-full h-full flex flex-col gap-5'>
+            <div className='w-full h-full flex flex-col gap-10 mt-10'>
                 <div>
                     <Select
                         loading={visitorsLoading}
@@ -63,21 +90,6 @@ const VisitorID = () => {
                         })) ?? []}
                         onChange={value => { setChosenVisitor(value) }}
                     />
-                </div>
-
-                <div className="flex gap-4 mb-4">
-                    <Button
-                        type="primary"
-                        onClick={() => handleDownload("visitor-front", "visitor_front.png")}
-                    >
-                        Download Front
-                    </Button>
-                    <Button
-                        type="primary"
-                        onClick={() => handleDownload("visitor-back", "visitor_back.png")}
-                    >
-                        Download Back
-                    </Button>
                 </div>
 
                 <div className='w-full flex flex-col lg:flex-row lg:gap-12'>
@@ -193,7 +205,7 @@ const VisitorID = () => {
                                     </span>
                                 </div>
                                 <div className='flex-1 flex flex-col border-4 border-black h-[75%] overflow-hidden'>
-                                    <div className='flex-[1.5] flex items-center justify-center overflow-hidden'>
+                                    <div className='flex-[2] flex items-center justify-center overflow-hidden'>
                                         <img
                                             style={{ transform: "rotate(-90deg)" }}
                                             className='w-full h-full max-h-full max-w-full object-contain'
@@ -236,6 +248,14 @@ const VisitorID = () => {
                             </div>
                         </div>
                     </div>
+                </div>
+                <div className='w-full flex justify-center'>
+                    <button
+                        onClick={handleDownloadAll}
+                        className='bg-blue-500 text-white px-4 py-2 rounded w-40'
+                    >
+                        Download ID
+                    </button>
                 </div>
             </div>
         </div>
