@@ -39,16 +39,6 @@ const VisitorID = () => {
         enabled: !!chosenVisitor, // Only run when chosenVisitor is set
     });
 
-    // const handleDownload = async (id: string, filename: string) => {
-    //     const element = document.getElementById(id);
-    //     if (!element) return;
-    //     const dataUrl = await toPng(element);
-    //     const link = document.createElement("a");
-    //     link.download = filename;
-    //     link.href = dataUrl;
-    //     link.click();
-    // };
-
     const handleDownloadAll = async () => {
         const zip = new JSZip();
 
@@ -70,7 +60,7 @@ const VisitorID = () => {
 
         // Generate zip and trigger download
         zip.generateAsync({ type: "blob" }).then((content) => {
-            saveAs(content, `${specificVisitor?.person?.first_name ?? ""}_${specificVisitor?.person?.last_name ?? ""}_visitor_id.zip`);
+            saveAs(content, `${specificVisitor?.person?.first_name ?? ""}_${specificVisitor?.person?.last_name ?? ""}_Visitor_ID.zip`);
         });
     };
 
@@ -206,38 +196,50 @@ const VisitorID = () => {
                                 </div>
                                 <div className='flex-1 flex flex-col border-4 border-black h-[75%] overflow-hidden'>
                                     <div className='flex-[2] flex items-center justify-center overflow-hidden'>
-                                        <img
-                                            style={{ transform: "rotate(-90deg)" }}
-                                            className='w-full h-full max-h-full max-w-full object-contain'
-                                            src={
-                                                specificVisitor?.person?.biometrics?.find(
-                                                    (b: any) => b.position === "finger_left_thumb"
-                                                )?.data
-                                                    ? `data:image/png;base64,${specificVisitor.person.biometrics.find(
-                                                        (b: any) => b.position === "finger_left_thumb"
-                                                    ).data
-                                                    }`
-                                                    : img_placeholder
-                                            }
-                                            alt="visitor left thumb photo"
-                                        />
+                                        {
+                                            specificVisitor?.person?.biometrics?.find(
+                                                (b: any) => b.position === "finger_left_thumb"
+                                            )?.data && (
+                                                < img
+                                                    style={{ transform: "rotate(-90deg)" }}
+                                                    className='w-full h-full max-h-full max-w-full object-contain'
+                                                    src={
+                                                        specificVisitor?.person?.biometrics?.find(
+                                                            (b: any) => b.position === "finger_left_thumb"
+                                                        )?.data
+                                                            ? `data:image/png;base64,${specificVisitor.person.biometrics.find(
+                                                                (b: any) => b.position === "finger_left_thumb"
+                                                            ).data
+                                                            }`
+                                                            : img_placeholder
+                                                    }
+                                                    alt="visitor left thumb photo"
+                                                />
+                                            )
+                                        }
                                     </div>
 
                                     <div className='flex-1 flex flex-col relative items-center justify-center overflow-hidden'>
-                                        <img
-                                            className='w-full h-full object-cover'
-                                            src={
-                                                specificVisitor?.person?.media?.find(
-                                                    (m: any) => m.media_description === "Signature Picture"
-                                                )?.media_binary
-                                                    ? `data:image/png;base64,${specificVisitor.person.media.find(
-                                                        (m: any) => m.media_description === "Signature Picture"
-                                                    ).media_binary
-                                                    }`
-                                                    : img_placeholder
-                                            }
-                                            alt="visitor face photo"
-                                        />
+                                        {
+                                            specificVisitor?.person?.media?.find(
+                                                (m: any) => m.media_description === "Signature Picture"
+                                            )?.media_binary && (
+                                                < img
+                                                    className='w-full h-full object-cover'
+                                                    src={
+                                                        specificVisitor?.person?.media?.find(
+                                                            (m: any) => m.media_description === "Signature Picture"
+                                                        )?.media_binary
+                                                            ? `data:image/png;base64,${specificVisitor.person.media.find(
+                                                                (m: any) => m.media_description === "Signature Picture"
+                                                            ).media_binary
+                                                            }`
+                                                            : img_placeholder
+                                                    }
+                                                    alt="visitor face photo"
+                                                />
+                                            )
+                                        }
                                         <p className='text-right font-semibold text-xl absolute bottom-2 z-10'>
                                             {specificVisitor?.person?.first_name ?? ""} &nbsp;
                                             {specificVisitor?.person?.middle_name ? specificVisitor.person.middle_name.charAt(0) : ""} &nbsp;
