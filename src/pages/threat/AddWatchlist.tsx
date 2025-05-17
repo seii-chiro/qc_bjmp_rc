@@ -6,6 +6,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { enrollBiometrics, getWhiteListedRiskLevels, getWhiteListedThreatLevels, getWhiteListedTypes, postPerson, postWatchlistPerson, verifyFaceInWatchlist } from "@/lib/threatQueries";
 import { getCivilStatus, getGenders, getNationalities } from "@/lib/queries";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
+// import { useLocation } from "react-router-dom";
 
 export type WatchlistForm = {
     person_id: number | null;
@@ -29,6 +30,8 @@ export type PersonForm = {
 
 const AddWatchlist = () => {
     const token = useTokenStore()?.token
+    // const location = useLocation()
+    // const existingRecord = location?.state || null
 
     const [personForm, setPersonForm] = useState<PersonForm>({
         first_name: "",

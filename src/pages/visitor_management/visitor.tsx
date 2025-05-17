@@ -478,31 +478,56 @@ const Visitor = () => {
                                                             {visitorVisits.length > 0 ? (
                                                                 (showAllVisits
                                                                     ? [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-                                                                    : [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(0, 3
-                                                                    )).map((visit, index, arr) => {
-                                                                        const login = new Date(visit.created_at);
-                                                                        const logout = arr[index + 1] ? new Date(arr[index + 1].created_at) : new Date(visit.updated_at);
-                                                                        const durationMs = logout.getTime() - login.getTime();
-                                                                        const durationMins = Math.floor(durationMs / 60000);
-                                                                        const hours = Math.floor(durationMins / 60);
-                                                                        const minutes = durationMins % 60;
-                                                                        return (
-                                                                            <tr key={index}>
-                                                                                <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                    {login.toLocaleDateString()}
-                                                                                </td>
-                                                                                <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                    {`${hours}h ${minutes}m`}
-                                                                                </td>
-                                                                                <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                    {login.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                                                                                </td>
-                                                                                <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                    {logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                                                                                </td>
-                                                                            </tr>
-                                                                        );
-                                                                    })
+                                                                    : [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(0, 3)
+                                                                ).reduce((acc, visit, index, arr) => {
+                                                                    const login = new Date(visit.created_at);
+                                                                    let logout;
+
+                                                                    if (arr[index + 1]) {
+                                                                        const nextVisitDate = new Date(arr[index + 1].created_at);
+                                                                        // Check if the date matches
+                                                                        if (login.toDateString() === nextVisitDate.toDateString()) {
+                                                                            logout = nextVisitDate;
+                                                                        } else {
+                                                                            logout = new Date(visit.updated_at);
+                                                                        }
+                                                                    } else {
+                                                                        logout = new Date(visit.updated_at); // Fallback for the last visit
+                                                                    }
+
+                                                                    // Check if the login time is already a logout time in the accumulated logouts
+                                                                    const lastLogout = acc.length > 0 ? acc[acc.length - 1].logout : null;
+
+                                                                    if (lastLogout && login.getTime() <= lastLogout.getTime()) {
+                                                                        return acc; // Skip this visit as it's not a valid login
+                                                                    }
+
+                                                                    // If valid, push to the accumulator
+                                                                    acc.push({ login, logout });
+                                                                    return acc;
+                                                                }, []).map(({ login, logout }, index) => {
+                                                                    const durationMs = logout.getTime() - login.getTime();
+                                                                    const durationMins = Math.floor(durationMs / 60000);
+                                                                    const hours = Math.floor(durationMins / 60);
+                                                                    const minutes = durationMins % 60;
+
+                                                                    return (
+                                                                        <tr key={index}>
+                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
+                                                                                {login.toLocaleDateString()}
+                                                                            </td>
+                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
+                                                                                {`${hours}h ${minutes}m`}
+                                                                            </td>
+                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
+                                                                                {login.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                                                            </td>
+                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
+                                                                                {logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                                                            </td>
+                                                                        </tr>
+                                                                    );
+                                                                })
                                                             ) : (
                                                                 <tr>
                                                                     <td colSpan={4} className="text-center text-[9px] text-gray-500 py-2">
@@ -532,7 +557,7 @@ const Visitor = () => {
                                                 <div className="flex items-center">
                                                     <label className="w-48 text-[10px] text-[#8E8E8E]">Relationship to PDL:</label>
                                                     <p className="mt-1 block w-full bg-[#F9F9F9] rounded-md text-xs px-2 py-[1px]">
-                                                        {selectedVisitor?.pdls?.[0]?.relationship_to_pdl_str || "No PDL relationship"}
+                                                        { selectedVisitor?.pdls?.[0]?.relationship_to_pdl || "No PDL relationship"}
                                                     </p>
                                                 </div>
                                                 <Info

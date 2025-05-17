@@ -109,6 +109,7 @@ import ReportAnIncident from "@/pages/Incidents/Report.tsx"
 import IncidentTable from "./pages/Incidents/IncidentTable.tsx";
 import DeviceSetting from "./pages/devices-management/device-setting/DeviceSetting.tsx";
 import AddWatchlist from "./pages/threat/AddWatchlist.tsx";
+import Watchlist from "./pages/threat/Watchlist.tsx";
 
 // Lazy-loaded components
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -339,6 +340,10 @@ function App() {
                 {
                     path: "threats",
                     element: <Threat />
+                },
+                {
+                    path: "threats/watch-list",
+                    element: <Watchlist />
                 },
                 {
                     path: "threats/watchlist_registration",

@@ -1,7 +1,7 @@
 import { CourtBranch, CourtRecord, CrimeCategory, Ethnicities, GangAffiliation, Law, Offense, PDLtoVisit, Precinct, User, VisitorRecord } from "./definitions";
-import { DeviceSettingPayload, EditDeviceSettingRecord, MainGateLog, NonPDLVisitorPayload, OTPAccount, PersonFormPayload, PersonnelForm, Relationship, Role, ServiceProviderPayload, VisitLogForm, VisitorUpdatePayload } from "./issues-difinitions";
+import { DeviceSettingPayload, EditDeviceSettingRecord, MainGateLog, NonPDLVisitorPayload, OTPAccount, PersonFormPayload, PersonnelForm, Relationship, Role, ServiceProviderPayload, VisitLogForm, VisitorUpdatePayload, WatchlistPerson } from "./issues-difinitions";
 import { PDLs } from "./pdl-definitions";
-import { BASE_URL } from "./urls";
+import { BASE_URL, BASE_URL_BIOMETRIC } from "./urls";
 
 export const deletePDL = async (token: string, id: number) => {
     const response = await fetch(
@@ -714,4 +714,54 @@ export const patchDeviceSetting = async (
     });
     if (!res.ok) throw new Error("Failed to update Device Setting");
     return res.json();
+};
+
+export async function getWatchlistPerson(
+    token: string
+    ): Promise<WatchlistPerson[]> {
+    const res = await fetch(`${BASE_URL}/api/whitelists/whitelisted-persons/`, {
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+        },
+    });
+    if (!res.ok) {
+        throw new Error("Failed to fetch Watchlist data.");
+    }
+    return res.json();
+}
+
+export const deleteWatchlistPerson = async (token: string, id: number) => {
+    const response = await fetch(
+        `${BASE_URL}/api/whitelists/whitelisted-persons/${id}/`,
+        {
+        method: "DELETE",
+        headers: {
+            Authorization: `Token ${token}`,
+        },
+        }
+    );
+    if (!response.ok) {
+        throw new Error("Failed to delete Watchlist Person");
+    }
+    const text = await response.text();
+    return text ? JSON.parse(text) : {};
+};
+
+export const deleteWatchlistPersonBiometric = async (token: string, id: number) => {
+    const url = `${BASE_URL_BIOMETRIC}/api/whitelist-biometric/delete-person/${id}/`;
+    console.log("Deleting biometric person at:", url); // For debugging
+    
+    const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+            Authorization: `Token ${token}`,
+        },
+    });
+    
+    if (!response.ok) {
+        throw new Error("Failed to delete Watchlist Person Biometric");
+    }
+    const text = await response.text();
+    return text ? JSON.parse(text) : {};
 };

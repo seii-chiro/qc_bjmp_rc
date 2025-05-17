@@ -877,3 +877,21 @@ type EditDeviceSettingRecord = {
   description: string;
   record_status_id: number;
 };
+
+export type WatchlistPerson = {
+  organization: string;
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  person: string;
+  white_listed_type: string;
+  risk_level: string;
+  threat_level: string;
+  created_at: string; 
+  updated_at: string; 
+  risks: string;
+  threats: string;
+  mitigation: string;
+  remarks: string;
+}
