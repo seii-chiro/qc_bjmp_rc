@@ -11,6 +11,7 @@ import CustomWebCam from "@/components/WebcamCapture"
 import WebcamFullBody from "@/components/WebcamFullBody";
 import { PersonForm } from "@/lib/visitorFormDefinition";
 import { CloseOutlined, EditOutlined } from '@ant-design/icons';
+import { verifyFaceInWatchlist } from "@/lib/threatQueries";
 
 type Props = {
     setPersonForm: Dispatch<SetStateAction<PersonForm>>;
@@ -276,6 +277,19 @@ const VisitorProfile = ({
         },
     });
 
+    const verifyFaceInWatchlistMutation = useMutation({
+        mutationKey: ['biometric-verification', 'threat'],
+        mutationFn: verifyFaceInWatchlist,
+        onSuccess: (data) => {
+            messageApi.warning({
+                content: `${data['message']}`,
+                duration: 30
+            });
+        },
+        onError: (error) => {
+            messageApi.info(error?.message);
+        },
+    });
 
     const faceRegistrationMutation = useMutation({
         mutationKey: ['visitor-registration'],
@@ -287,6 +301,7 @@ const VisitorProfile = ({
                 upload_data: data?.images?.icao,
             }));
             verifyFaceMutation.mutate({ template: data?.images?.icao, type: "face" })
+            verifyFaceInWatchlistMutation.mutate({ template: data?.images?.icao, type: "face" })
         },
         onError: (error) => {
             console.error(error);

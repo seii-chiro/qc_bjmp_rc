@@ -3,7 +3,7 @@ import { useState } from "react";
 import image_placeholder from "../../assets/img_placeholder.jpg"
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { enrollBiometrics, getWhiteListedRiskLevels, getWhiteListedThreatLevels, getWhiteListedTypes, postPerson, postWatchlistPerson } from "@/lib/threatQueries";
+import { enrollBiometrics, getWhiteListedRiskLevels, getWhiteListedThreatLevels, getWhiteListedTypes, postPerson, postWatchlistPerson, verifyFaceInWatchlist } from "@/lib/threatQueries";
 import { getCivilStatus, getGenders, getNationalities } from "@/lib/queries";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
 
@@ -91,6 +91,20 @@ const AddWatchlist = () => {
         queryFn: () => getCivilStatus(token ?? "")
     })
 
+    const verifyFaceInWatchlistMutation = useMutation({
+        mutationKey: ['biometric-verification', 'threat'],
+        mutationFn: verifyFaceInWatchlist,
+        onSuccess: (data) => {
+            message.warning({
+                content: `${data['message']}`,
+                duration: 30
+            });
+        },
+        onError: (error) => {
+            message.info(error?.message);
+        },
+    });
+
     const enrollFaceMutation = useMutation({
         mutationKey: ['enroll-face-mutation', 'threats'],
         mutationFn: (id: number) => enrollBiometrics({ ...enrollFormFace, person: id }),
@@ -104,8 +118,11 @@ const AddWatchlist = () => {
         onSuccess: (data) => {
             setWatchlistForm(prev => ({ ...prev, person_id: data.id }));
             message.success("Person added successfully");
-            watchlistPersonMutation.mutate({ ...watchlistForm, person_id: data.id });
-            enrollFaceMutation.mutate(data.id)
+            enrollFaceMutation.mutate(data.id, {
+                onSuccess: () => {
+                    watchlistPersonMutation.mutate({ ...watchlistForm, person_id: data.id });
+                }
+            });
         },
         onError: (error) => {
             message.error(error.message);
@@ -123,20 +140,33 @@ const AddWatchlist = () => {
         }
     })
 
-    const handleSubmit = () => {
-        if (!personForm.first_name ||
+    const handleSubmit = async () => {
+        if (
+            !personForm.first_name ||
             !personForm.last_name ||
             !personForm.gender_id ||
             !personForm.civil_status_id ||
             !personForm.nationality_id ||
             !watchlistForm.white_listed_type_id ||
             !watchlistForm.risk_level_id ||
-            !watchlistForm.threat_level_id) {
-            message.warning("Please fill out all required fields.")
-            return
+            !watchlistForm.threat_level_id
+        ) {
+            message.warning("Please fill out all required fields.");
+            return;
         }
-        personMutation.mutate()
-    }
+
+        const verifyResult = await verifyFaceInWatchlistMutation.mutateAsync({
+            type: "face",
+            template: enrollFormFace?.upload_data
+        });
+
+        if (verifyResult?.message === "Match found.") {
+            message.warning(verifyResult?.message || "Face already exists in watchlist.");
+            return;
+        }
+
+        personMutation.mutate();
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];

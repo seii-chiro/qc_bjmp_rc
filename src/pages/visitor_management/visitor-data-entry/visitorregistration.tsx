@@ -572,25 +572,30 @@ const VisitorRegistration = () => {
                 // First, run visitor mutation
                 const visitorRes = await addVisitorMutation.mutateAsync(id);
 
-                // Get visitor QR from returned ID
-                const qrRes = await fetch(`${BASE_URL}/api/visitors/visitor/${visitorRes.id}/`, {
-                    headers: {
-                        Authorization: `Token ${token}`,
-                    },
-                });
+                // Only generate QR if status is "Verified"
+                if (visitorRes?.visitor_app_status?.toLowerCase() === "verified") {
+                    // Get visitor QR from returned ID
+                    const qrRes = await fetch(`${BASE_URL}/api/visitors/visitor/${visitorRes.id}/`, {
+                        headers: {
+                            Authorization: `Token ${token}`,
+                        },
+                    });
 
-                if (!qrRes.ok) {
-                    throw new Error("Failed to fetch QR code");
+                    if (!qrRes.ok) {
+                        throw new Error("Failed to fetch QR code");
+                    }
+
+                    const qrData = await qrRes.json();
+                    const base64Image = qrData?.encrypted_id_number_qr;
+
+                    // Create a download link
+                    if (base64Image) {
+                        downloadBase64Image(
+                            base64Image,
+                            `visitor-${visitorRes?.person?.first_name}-${visitorRes?.person?.last_name}-qr.png`
+                        );
+                    }
                 }
-
-                const qrData = await qrRes.json();
-                const base64Image = qrData?.encrypted_id_number_qr;
-
-                // Create a download link
-                if (base64Image) {
-                    downloadBase64Image(base64Image, `visitor-${visitorRes?.person?.first_name}-${visitorRes?.person?.last_name}-qr.png`);
-                }
-
                 // Run biometric mutations
                 await Promise.all([
                     ...(enrollFormFace?.upload_data ? [enrollFaceMutation.mutateAsync(id)] : []),

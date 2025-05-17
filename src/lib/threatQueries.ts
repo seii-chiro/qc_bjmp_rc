@@ -169,3 +169,38 @@ export const enrollBiometrics = async (
 
   return response.json();
 };
+
+export const verifyFaceInWatchlist = async (verificationPayload: {
+  template: string;
+  type: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}): Promise<any> => {
+  try {
+    const response = await fetch(
+      `${BASE_URL_BIOMETRIC}/api/whitelist-biometric/identify/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(verificationPayload),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.json();
+      // You can tailor this based on your API
+      if (response.status === 404 || response.status === 200) {
+        throw new Error("No Matches Found");
+      } else {
+        throw new Error(`${errorText?.message}`);
+      }
+    }
+
+    return await response.json();
+  } catch (err) {
+    throw new Error(
+      err instanceof Error ? err.message : "Unknown error occurred"
+    );
+  }
+};
