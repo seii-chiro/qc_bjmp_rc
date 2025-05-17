@@ -329,6 +329,7 @@ const AddWatchlist = () => {
 
                     <div className="w-full flex justify-end">
                         <Button
+                            type="primary"
                             variant="solid"
                             onClick={handleSubmit}
                         >

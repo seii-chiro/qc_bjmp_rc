@@ -1,5 +1,5 @@
 import { PersonForm, WatchlistForm } from "@/pages/threat/AddWatchlist";
-import { BASE_URL, BIOMETRIC } from "./urls";
+import { BASE_URL, BASE_URL_BIOMETRIC } from "./urls";
 import { Person } from "./pdl-definitions";
 import { BiometricRecordFace } from "./scanner-definitions";
 
@@ -151,13 +151,16 @@ export const enrollBiometrics = async (
   enrollForm: BiometricRecordFace
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> => {
-  const response = await fetch(BIOMETRIC.ENROLL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(enrollForm),
-  });
+  const response = await fetch(
+    `${BASE_URL_BIOMETRIC}/api/whitelist-biometric/enroll/`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(enrollForm),
+    }
+  );
 
   if (!response.ok) {
     const error = await response.json();
