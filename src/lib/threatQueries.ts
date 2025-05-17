@@ -189,8 +189,7 @@ export const verifyFaceInWatchlist = async (verificationPayload: {
 
     if (!response.ok) {
       const errorText = await response.json();
-      // You can tailor this based on your API
-      if (response.status === 404 || response.status === 200) {
+      if (response.status === 400 || response.status === 404) {
         throw new Error("No Matches Found");
       } else {
         throw new Error(`${errorText?.message}`);

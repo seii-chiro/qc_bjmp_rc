@@ -10,6 +10,7 @@ import { useVisitorLogStore } from '@/store/useVisitorLogStore'
 import { useTokenStore } from '@/store/useTokenStore'
 import { BASE_URL } from '@/lib/urls'
 import { Device } from '@/lib/definitions'
+import { verifyFaceInWatchlist } from '@/lib/threatQueries'
 
 type Props = {
   devices: Device[];
@@ -178,12 +179,24 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
     },
   });
 
+  const verifyFaceInWatchlistMutation = useMutation({
+    mutationKey: ['face-verification'],
+    mutationFn: verifyFaceInWatchlist,
+    onSuccess: (data) => {
+      message.warning(data['message']);
+    },
+    onError: (error) => {
+      message.info(error.message);
+    },
+  });
+
   const handleVerifyFace = () => {
     if (!selectedDeviceId) {
       message.warning("Please select a device.")
       return
     } else {
       verifyFaceMutation.mutate(verificationPayload)
+      verifyFaceInWatchlistMutation.mutate(verificationPayload)
     }
   };
 
