@@ -9,6 +9,11 @@ const Threat = () => {
                 </NavLink>
             </div>
             <div className="w-96 border shadow-sm hover:shadow-md border-gray-200 p-5 rounded-md">
+                <NavLink to={"watchlist_registration"}>
+                    <p className="ml-5 text-basee font-medium">Watchlist Registration</p>
+                </NavLink>
+            </div>
+            <div className="w-96 border shadow-sm hover:shadow-md border-gray-200 p-5 rounded-md">
                 <NavLink to={"threat-profile"}>
                     <p className="ml-5 text-basee font-medium">Threat Profile</p>
                 </NavLink>

@@ -28,7 +28,7 @@ const Navbar = ({ isSidebarCollapsed }: NavbarProps) => {
         { path: "pdls", icon: CiFileOn, label: "PDLs" },
         { path: "assets", icon: LuFolderCog, label: "Assets" },
         { path: "screening", icon: MdOutlinePersonSearch, label: "Screening" },
-        { path: "", icon: PiWarningLight, label: "Threats" },//threats
+        { path: "threats", icon: PiWarningLight, label: "Threats" },//threats
         { path: "incidents", icon: PiWarningOctagon, label: "Incidents" },
         { path: "", icon: FaRegFileAlt, label: "Reports" },//reports
         { path: "", icon: FaWrench, label: "Supports" },//supports
