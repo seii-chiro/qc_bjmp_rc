@@ -19,6 +19,7 @@ import { GoDownload } from "react-icons/go";
 import bjmp from '../../assets/Logo/QCJMD.png'
 import EditVisitor from "./EditVisitor.tsx/EditVisitor";
 import { useNavigate } from "react-router-dom";
+import { PiFolderUserDuotone } from "react-icons/pi";
 
 type Visitor = VisitorRecord;
 
@@ -139,13 +140,13 @@ const Visitor: React.FC<VisitorProps> = () => {
             title: 'Visitor Name',
             key: 'name',
             render: (_, visitor) => (
-                `${visitor?.person?.first_name ?? 'N/A'} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? 'N/A'}`.trim()
+                `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim()
             ),
         },
         {
             title: 'Gender',
             key: 'gender',
-            render: (_, visitor) => visitor?.person?.gender?.gender_option ?? 'N/A',
+            render: (_, visitor) => visitor?.person?.gender?.gender_option ?? '',
         },
         {
             title: 'Visitor Type',
@@ -162,6 +163,7 @@ const Visitor: React.FC<VisitorProps> = () => {
             key: "action",
             render: (_, record) => (
                 <div className="flex gap-2">
+                    
                     <Button
                         type="link"
                         onClick={(e) => {
@@ -182,6 +184,15 @@ const Visitor: React.FC<VisitorProps> = () => {
                         }}
                     >
                         <AiOutlineDelete />
+                    </Button>
+                    <Button
+                        type="link"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleRowClick(record); 
+                        }}
+                    >
+                        <PiFolderUserDuotone />
                     </Button>
                 </div>
             ),
@@ -207,7 +218,7 @@ const Visitor: React.FC<VisitorProps> = () => {
     const Info = ({ title, info }: { title: string; info: string | null }) => (
         <div className="flex items-center">
             <label className="w-28 text-[10px] text-[#8E8E8E]">{title}</label>
-            <p className="mt-1 w-full bg-[#F9F9F9] rounded-md px-2 py-[1px] text-sm">{info || ""}</p>
+            <p className="mt-1 w-full bg-[#F9F9F9] rounded-md px-2 py-[1px] text-[13px] h-5">{info || ""}</p>
         </div>
     );
 
@@ -252,7 +263,7 @@ const Visitor: React.FC<VisitorProps> = () => {
         addHeader();
 
         const tableData = dataSource.map((item, index) => {
-            const fullName = `${item?.person?.first_name ?? 'N/A'} ${item?.person?.middle_name ?? ''} ${item?.person?.last_name ?? 'N/A'}`.trim();
+            const fullName = `${item?.person?.first_name ?? ''} ${item?.person?.middle_name ?? ''} ${item?.person?.last_name ?? ''}`.trim();
             return [
                 index + 1,
                 item.visitor_reg_no,
@@ -398,9 +409,6 @@ const Visitor: React.FC<VisitorProps> = () => {
                         columns={columns}
                         dataSource={filteredData}
                         scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
-                        onRow={(record) => ({
-                            onClick: () => handleRowClick(record),
-                        })}
                     />
                 </div>
             </div>
@@ -424,7 +432,7 @@ const Visitor: React.FC<VisitorProps> = () => {
                 onCancel={closeModal}
                 footer={null}
                 className="top-0 pt-5"
-                width={'45%'}
+                width={'43%'}
             >
                 {selectedVisitor && (
                     <div className="flex flex-col items-center justify-center min-h-screen">
@@ -457,18 +465,18 @@ const Visitor: React.FC<VisitorProps> = () => {
                                             <p className="text-[#404958] text-sm">Visitor History</p>
                                             <div className="overflow-y-auto h-full">
                                                 <div>
-                                                    <table className="w-full border-collapse">
+                                                    <table className="w-full border-collapse overflow-x-auto">
                                                         <thead>
                                                             <tr>
-                                                                <th className="rounded-l-lg bg-[#2F3237] text-white py-1 px-2 font-semibold">Date</th>
-                                                                <th className="bg-[#2F3237] text-white py-1 px-2 font-semibold">Duration</th>
-                                                                <th className="bg-[#2F3237] text-white py-1 px-2 font-semibold">Login</th>
-                                                                <th className="rounded-r-lg bg-[#2F3237] text-white py-1 px-2 font-semibold">Logout</th>
+                                                                <th className="rounded-l-lg bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Date</th>
+                                                                <th className="bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Duration</th>
+                                                                <th className="bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Login</th>
+                                                                <th className="rounded-r-lg bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Logout</th>
                                                             </tr>
                                                         </thead>
-                                                        {visitorVisits.length > 0 && (
-                                                            <tbody>
-                                                                {(showAllVisits
+                                                        <tbody>
+                                                            {visitorVisits.length > 0 ? (
+                                                                (showAllVisits
                                                                     ? [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
                                                                     : [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(0, 3
                                                                 )).map((visit, index, arr) => {
@@ -478,36 +486,31 @@ const Visitor: React.FC<VisitorProps> = () => {
                                                                     const durationMins = Math.floor(durationMs / 60000);
                                                                     const hours = Math.floor(durationMins / 60);
                                                                     const minutes = durationMins % 60;
-
                                                                     return (
                                                                         <tr key={index}>
-                                                                            <td className="border-b border-[#DCDCDC] p-1 text-center">
+                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
                                                                                 {login.toLocaleDateString()}
                                                                             </td>
-                                                                            <td className="border-b border-[#DCDCDC] p-1 text-center">
+                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
                                                                                 {`${hours}h ${minutes}m`}
                                                                             </td>
-                                                                            <td className="border-b border-[#DCDCDC] p-1 text-center">
+                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
                                                                                 {login.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                                                             </td>
-                                                                            <td className="border-b border-[#DCDCDC] p-1 text-center">
+                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
                                                                                 {logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                                                             </td>
                                                                         </tr>
                                                                     );
-                                                                })}
-                                                                {visitorVisits.length > 3 && (
-                                                                    <div className="text-center mt-2">
-                                                                        <button
-                                                                            onClick={() => setShowAllVisits(!showAllVisits)}
-                                                                            className="text-xs text-blue-600 hover:underline"
-                                                                        >
-                                                                            {showAllVisits ? "Show Less" : "Show More"}
-                                                                        </button>
-                                                                    </div>
-                                                                )}
-                                                            </tbody>
-                                                        )}
+                                                                })
+                                                            ) : (
+                                                                <tr>
+                                                                    <td colSpan={4} className="text-center text-[9px] text-gray-500 py-2">
+                                                                        No visitor history found
+                                                                    </td>
+                                                                </tr>
+                                                            )}
+                                                        </tbody>
                                                     </table>
                                                 </div>
                                             </div>
@@ -517,17 +520,15 @@ const Visitor: React.FC<VisitorProps> = () => {
                                         <div className="border border-[#EAEAEC] rounded-xl p-2 pb-2 w-full">
                                             <p className="text-[#404958] text-sm">Visitors/Dalaw Basic Info</p>
                                             <div className="grid grid-cols-1 gap-2 py-2">
-                                                <Info title="Type of Visitor:" info={selectedVisitor?.visitor_type ?? "N/A"} />
-                                                <Info title="Surname:" info={selectedVisitor?.person?.last_name || "N/A"} />
-                                                <Info title="First Name:" info={selectedVisitor?.person?.first_name || "N/A"} />
-                                                <Info title="Middle Name:" info={selectedVisitor?.person?.middle_name || "N/A"} />
-                                                <Info title="Address:" info={selectedVisitor?.person?.addresses?.[0]
-                                                    ? `${selectedVisitor?.person.addresses[0].street}, ${selectedVisitor?.person.addresses[0].barangay}, ${selectedVisitor?.person.addresses[0].municipality}, ${selectedVisitor?.person.addresses[0].province}, ${selectedVisitor?.person.addresses[0].region}, ${selectedVisitor?.person.addresses[0].postal_code}`
-                                                    : "N/A"
-                                                } />
-                                                <Info title="Gender:" info={selectedVisitor?.person?.gender?.gender_option || "N/A"} />
+                                                <Info title="Visitor No:" info={selectedVisitor?.visitor_reg_no ?? ""} />
+                                                <Info title="Type of Visitor:" info={selectedVisitor?.visitor_type ?? ""} />
+                                                <Info title="Surname:" info={selectedVisitor?.person?.last_name || ""} />
+                                                <Info title="First Name:" info={selectedVisitor?.person?.first_name || ""} />
+                                                <Info title="Middle Name:" info={selectedVisitor?.person?.middle_name || ""} />
+                                                <Info title="Address:" info={selectedVisitor?.person?.addresses?.[0]?.full_address || ''} />
+                                                <Info title="Gender:" info={selectedVisitor?.person?.gender?.gender_option || ""} />
                                                 <Info title="Age:" info={selectedVisitor?.person?.date_of_birth ? String(calculateAge(selectedVisitor?.person.date_of_birth)) : null} />
-                                                <Info title="Birthday:" info={selectedVisitor?.person?.date_of_birth || "N/A"} />
+                                                <Info title="Birthday:" info={selectedVisitor?.person?.date_of_birth || ""} />
                                                 <div className="flex items-center">
                                                     <label className="w-48 text-[10px] text-[#8E8E8E]">Relationship to PDL:</label>
                                                     <p className="mt-1 block w-full bg-[#F9F9F9] rounded-md text-xs px-2 py-[1px]">
@@ -539,7 +540,7 @@ const Visitor: React.FC<VisitorProps> = () => {
                                                     info={
                                                         selectedVisitor?.person?.media_requirements
                                                             ?.map((req: any) => req.name)
-                                                            .join(", ") || "N/A"
+                                                            .join(", ") || "No Requirements"
                                                     }
                                                 />
                                             </div>
@@ -571,28 +572,28 @@ const Visitor: React.FC<VisitorProps> = () => {
                                                 </thead>
                                                 <tbody>
                                                     {selectedVisitor?.pdls?.length > 0 ? (
-                                                        selectedVisitor.pdls.map((pdlItem: { pdl: { person: { id: any; last_name: any; first_name: any; middle_name: any; }; cell: { cell_name: any; floor: string; }; }; }, index: Key | null | undefined) => (
+                                                        selectedVisitor?.pdls?.map((pdlItem: { pdl: { person: { id: any; last_name: any; first_name: any; middle_name: any; }; cell: { cell_name: any; floor: string; }; }; }, index: Key | null | undefined) => (
                                                             <tr key={index}>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.person.id || "N/A"}
+                                                                    {pdlItem.pdl.person.id || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.person.last_name || "N/A"}
+                                                                    {pdlItem.pdl.person.last_name || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.person.first_name || "N/A"}
+                                                                    {pdlItem.pdl.person.first_name || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.person.middle_name || "N/A"}
+                                                                    {pdlItem.pdl.person.middle_name || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.cell.cell_name || "N/A"}
+                                                                    {pdlItem.pdl.cell.cell_name || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.cell.floor?.split("(")[1]?.replace(")", "") || "N/A"}
+                                                                    {pdlItem.pdl.cell.floor?.split("(")[1]?.replace(")", "") || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.cell.floor || "N/A"}
+                                                                    {pdlItem.pdl.cell.floor || ""}
                                                                 </td>
                                                             </tr>
                                                         ))

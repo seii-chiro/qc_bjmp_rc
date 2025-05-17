@@ -172,7 +172,26 @@ const VisitorID = () => {
                             </div>
                             <div className='flex absolute top-[25%] left-0 w-full h-full p-5'>
                                 <div className='flex-1 border-4 border-black h-[75%]'>
-                                    Terms and Conditions
+                                    <h1>TERMS AND CONDITION</h1>
+                                    <pre>
+                                        This Identfication card is only valid for verified
+                                        visitors for Jail Visitation on Bureau of Jail
+                                        Management and Penology - Quezon City Jail
+                                        Male dorm premises only.
+                                    </pre>
+                                    <pre>
+                                        This card is used for entering/ exiting the jail
+                                        facility and for the identification of the card
+                                        holder.
+                                    </pre>
+                                    <pre>
+                                        This identification card is non-transferrable.
+                                    </pre>
+                                    <pre>
+                                        Report immediately upon the loss of this card
+                                        and if found, please return this ID card to BJMP
+                                        QCJMD Gate Security.
+                                    </pre>
                                 </div>
                                 <div className="flex flex-col justify-between h-[70%] w-10 pt-24">
                                     <span
