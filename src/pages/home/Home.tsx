@@ -78,7 +78,7 @@ const Home1 = () => {
             <Cards link='/jvms/dashboard' title='Statistic Dashboard' image={statistic} />
             <Cards link='' title='Alpha List' image={alpha} />
             <Cards link='/jvms/log-monitoring' title='Log Monitoring' image={log} />
-            <Cards link='/jvms/reports' title='Status Reports' image={status} />
+            <Cards link='' title='Status Reports' image={status} />{/* /jvms/reports */}
             <Cards link='/jvms/screening' title='Scanner' image={scanner} />
             <Cards link='/jvms/database' title='Databases' image={database} />
             <Cards link='' title='CCTV Monitor' image={cctv} />
@@ -87,8 +87,8 @@ const Home1 = () => {
             <Cards link='/jvms/threats' title='Threats' image={threat} />
             <Incidentcard link='/jvms/incidents' title='Incidents' image={incident} />
             <Cards link='/jvms/users' title='Users' image={users} />
-            <Cards link='/jvms/supports' title='Support' image={support} />
-            <Cards link='/jvms/settings' title='Settings' image={setting} />
+            <Cards link='' title='Support' image={support} />{/* /jvms/supports */}
+            <Cards link='' title='Settings' image={setting} /> {/* /jvms/settings */}
         </div>
     )
 }

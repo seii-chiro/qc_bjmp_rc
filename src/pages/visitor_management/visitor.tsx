@@ -17,17 +17,17 @@ import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai"
 import html2canvas from 'html2canvas';
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../assets/Logo/QCJMD.png'
-import EditVisitor from "./EditVisitor.tsx/EditVisitor";
+import EditVisitor from "./edit-visitor/EditVisitor";
 import { useNavigate } from "react-router-dom";
 import { PiFolderUserDuotone } from "react-icons/pi";
 
 type Visitor = VisitorRecord;
 
-interface VisitorProps {
-    handlePrintPDF: () => void;
-}
+// interface VisitorProps {
+//     handlePrintPDF: () => void;
+// }
 
-const Visitor: React.FC<VisitorProps> = () => {
+const Visitor = () => {
     const [searchText, setSearchText] = useState("");
     const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
     const queryClient = useQueryClient();
@@ -163,7 +163,7 @@ const Visitor: React.FC<VisitorProps> = () => {
             key: "action",
             render: (_, record) => (
                 <div className="flex gap-2">
-                    
+
                     <Button
                         type="link"
                         onClick={(e) => {
@@ -189,7 +189,7 @@ const Visitor: React.FC<VisitorProps> = () => {
                         type="link"
                         onClick={(e) => {
                             e.stopPropagation();
-                            handleRowClick(record); 
+                            handleRowClick(record);
                         }}
                     >
                         <PiFolderUserDuotone />
@@ -479,30 +479,30 @@ const Visitor: React.FC<VisitorProps> = () => {
                                                                 (showAllVisits
                                                                     ? [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
                                                                     : [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(0, 3
-                                                                )).map((visit, index, arr) => {
-                                                                    const login = new Date(visit.created_at);
-                                                                    const logout = arr[index + 1] ? new Date(arr[index + 1].created_at) : new Date(visit.updated_at);
-                                                                    const durationMs = logout.getTime() - login.getTime();
-                                                                    const durationMins = Math.floor(durationMs / 60000);
-                                                                    const hours = Math.floor(durationMins / 60);
-                                                                    const minutes = durationMins % 60;
-                                                                    return (
-                                                                        <tr key={index}>
-                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                {login.toLocaleDateString()}
-                                                                            </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                {`${hours}h ${minutes}m`}
-                                                                            </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                {login.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                                                                            </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                {logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                                                                            </td>
-                                                                        </tr>
-                                                                    );
-                                                                })
+                                                                    )).map((visit, index, arr) => {
+                                                                        const login = new Date(visit.created_at);
+                                                                        const logout = arr[index + 1] ? new Date(arr[index + 1].created_at) : new Date(visit.updated_at);
+                                                                        const durationMs = logout.getTime() - login.getTime();
+                                                                        const durationMins = Math.floor(durationMs / 60000);
+                                                                        const hours = Math.floor(durationMins / 60);
+                                                                        const minutes = durationMins % 60;
+                                                                        return (
+                                                                            <tr key={index}>
+                                                                                <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
+                                                                                    {login.toLocaleDateString()}
+                                                                                </td>
+                                                                                <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
+                                                                                    {`${hours}h ${minutes}m`}
+                                                                                </td>
+                                                                                <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
+                                                                                    {login.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                                                                </td>
+                                                                                <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
+                                                                                    {logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                                                                </td>
+                                                                            </tr>
+                                                                        );
+                                                                    })
                                                             ) : (
                                                                 <tr>
                                                                     <td colSpan={4} className="text-center text-[9px] text-gray-500 py-2">

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useTokenStore } from "@/store/useTokenStore";
-import { getSummary_Card, getJail } from '@/lib/queries';
-import { useQuery } from "@tanstack/react-query";
+import { getSummary_Card, getJail, getPersonnel } from '@/lib/queries';
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, BarElement, LinearScale, CategoryScale, PointElement, LineElement, Filler } from 'chart.js';
 import { RxEnterFullScreen } from "react-icons/rx";
@@ -38,6 +38,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler);
 
 const Dashboard = () => {
+    const queryClient = useQueryClient();
     const handle = useFullScreenHandle();
     const token = useTokenStore().token;
     const currentDate = new Date().toLocaleDateString('en-us', { year: "numeric", month: "long", day: "numeric" });
@@ -58,6 +59,11 @@ const Dashboard = () => {
     const { data: jail } = useQuery({
         queryKey: ['jail'],
         queryFn: () => getJail(token ?? "")
+    });
+
+    const { data: personnelData } = useQuery({
+        queryKey: ['personnel'],
+        queryFn: () => getPersonnel(token ?? "")
     });
 
     const exportDashboard = () => {
@@ -111,19 +117,34 @@ const Dashboard = () => {
         )
     }
 
-    const Card3 = ({ title, image, count }: { title: string, image: string, count: number | string }) => {
+    const Card3 = ({ title, image, count, linkto, state }: { title: string; image: string; count: number | string; linkto?: string; state?: any }) => {
+        const navigate = useNavigate();
+
+        const handleClick = () => {
+            if (linkto) {
+                navigate(linkto, { state });
+            }
+        };
+
+        const cardContent = (
+            <div className='p-1 rounded-full'>
+                <img src={image} className='w-10' alt={title} />
+            </div>
+        );
+
         return (
-            <div className={`rounded-lg flex items-center gap-2 p-2 w-full bg-[#F6F7FB] flex-grow`}>
-                <div className='p-1 rounded-full'>
-                    <img src={image} className='w-10' alt={title} />
-                </div>
+            <div 
+                className={`rounded-lg flex items-center gap-2 p-2 w-full bg-[#F6F7FB] flex-grow ${linkto ? 'hover:cursor-pointer' : ''}`} 
+                onClick={linkto ? handleClick : undefined} // Only attach click handler if linkto is provided
+            >
+                {cardContent}
                 <div>
                     <div className='text-[#1E365D] font-extrabold text-3xl'>{count}</div>
                     <p className='text-[#121D26] text-lg font-semibold'>{title}</p>
                 </div>
             </div>
-        )
-    }
+        );
+    };
 
     const Card4 = ({ title, image, count }: { title: string, image: string, count: number | string }) => {
         return (
@@ -177,9 +198,9 @@ const Dashboard = () => {
             {
                 label: 'PDL Gender',
                 data: [
-                    summarydata?.success.pdls_based_on_gender.Active.Male || 0,
-                    summarydata?.success.pdls_based_on_gender.Active["LGBTQ + GAY / BISEXUAL"] || 0,
-                    summarydata?.success.pdls_based_on_gender.Active["LGBTQ + TRANSGENDER"] || 0,
+                    summarydata?.success?.pdls_based_on_gender?.Active.Male || 0,
+                    summarydata?.success?.pdls_based_on_gender?.Active["LGBTQ + GAY / BISEXUAL"] || 0,
+                    summarydata?.success?.pdls_based_on_gender?.Active["LGBTQ + TRANSGENDER"] || 0,
 
                 ],
                 backgroundColor: ['#3471EC', '#7ED26C', '#FE319D'],
@@ -429,6 +450,24 @@ const Dashboard = () => {
             },
         ],
     };
+
+    const onDutyCount = personnelData?.filter(person => person.status === "On Duty").length || 0;
+    const offDutyCount = personnelData?.filter(person => person.status === "Off Duty").length || 0;
+
+    const handleReset = () => {
+        // Example: Reset any local state here (if you have date filters, etc.)
+        setTime(new Date().toLocaleTimeString());
+
+        // Example: Clear all React Query cache (optional)
+        queryClient.clear();
+
+        // Optionally, refetch specific queries
+        queryClient.invalidateQueries({ queryKey: ['summary-card'] });
+        queryClient.invalidateQueries({ queryKey: ['jail'] });
+        queryClient.invalidateQueries({ queryKey: ['personnel'] });
+
+        console.log("Dashboard reset triggered.");
+    };
     return (
         <div>
             <div id="dashboard">
@@ -460,7 +499,11 @@ const Dashboard = () => {
                                 <Card
                                     image={population}
                                     title='Jail Population'
-                                    count={summarydata?.success.current_pdl_population.Active ?? 0}
+                                    count={`${
+                                    (summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0) +
+                                    (summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0) +
+                                    (summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0)
+                                    }`}
                                     linkto='/jvms/pdls/pdl'
                                 />
                                 <Card
@@ -628,8 +671,20 @@ const Dashboard = () => {
                                         <Pie data={onOffDutyPersonnelData} options={Options} />
                                     </div>
                                     <div className='flex-1 lg:w-1/2 w-full flex flex-col justify-center gap-2'>
-                                        <Card3 image={on_duty} title='Entered' count={summarydata?.success.personnel_count_by_status.Active["On Duty"] ?? 0} />
-                                        <Card3 image={off_duty} title='Exited' count={summarydata?.success.personnel_count_by_status.Active["Off Duty"] ?? 0} />
+                                        <Card3
+                                            image={on_duty}
+                                            title='On Duty'
+                                            count={onDutyCount}
+                                            linkto='/jvms/personnels/personnel'
+                                            state={{ filterOption: "On Duty" }}
+                                        />
+                                        <Card3
+                                            image={off_duty}
+                                            title='Off Duty'
+                                            count={offDutyCount}
+                                            linkto='/jvms/personnels/personnel'
+                                            state={{ filterOption: "Off Duty" }}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -643,7 +698,7 @@ const Dashboard = () => {
                 <button className='gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full' onClick={exportDashboard}>
                     <RiShareBoxLine /> Export
                 </button>
-                <button className='gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full'>
+                <button className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full" onClick={handleReset}>
                     <IoMdRefresh /> Reset
                 </button>
                 <button className="gap-2 flex text-white items-center px-4 py-2 bg-[#1E365D] rounded-lg" onClick={handle.enter}>

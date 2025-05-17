@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useLocation } from 'react-router';
 import { PersonnelForm } from "@/lib/issues-difinitions";
 import { getPersonnel, getUser } from "@/lib/queries";
 import { deletePersonnel } from "@/lib/query";
@@ -8,12 +8,12 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Dropdown, Input, Menu, message, Modal,Table } from "antd";
+import { Button, Dropdown, Input, Menu, message, Modal, Table } from "antd";
 import { ColumnType } from "antd/es/table";
 import { useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
-import bjmp from '../../../assets/Logo/QCJMD.png'
+import bjmp from '../../../assets/Logo/QCJMD.png';
 import { NavLink } from "react-router-dom";
 
 const Personnel = () => {
@@ -24,6 +24,9 @@ const Personnel = () => {
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
+    const location = useLocation();
+    const filterOption = location.state?.filterOption; // Get filter option from state
+
     const { data, isLoading: personnelLoading } = useQuery({
         queryKey: ['personnel'],
         queryFn: () => getPersonnel(token ?? ""),
@@ -32,7 +35,7 @@ const Personnel = () => {
     const { data: UserData } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
-    })
+    });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deletePersonnel(token ?? "", id),
@@ -45,28 +48,28 @@ const Personnel = () => {
         },
     });
 
-    const dataSource = data?.map((personnel, index) => (
-        {
-            key: index + 1,
-            organization: personnel?.organization ?? '',
-            personnel_reg_no: personnel?.personnel_reg_no ?? '',
-            person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
-            shortname: personnel?.person?.shortname ?? '',
-            // personnel_type: personnel?.personnel_type ?? '',
-            rank: personnel?.rank ?? '',
-            gender: personnel?.person?.gender?.gender_option ?? '',
-            // position: personnel?.position ?? '',
-            date_joined: personnel?.date_joined ?? '',
-            record_status: personnel?.record_status ?? '',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-        }
-    )) || [];
+    const dataSource = data?.map((personnel, index) => ({
+        key: index + 1,
+        organization: personnel?.organization ?? '',
+        personnel_reg_no: personnel?.personnel_reg_no ?? '',
+        person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
+        shortname: personnel?.person?.shortname ?? '',
+        rank: personnel?.rank ?? '',
+        status: personnel?.status ?? '', // Capture the status
+        gender: personnel?.person?.gender?.gender_option ?? '',
+        date_joined: personnel?.date_joined ?? '',
+        record_status: personnel?.record_status ?? '',
+        updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+    })) || [];
 
-    const filteredData = dataSource?.filter((personnel) =>
-        Object.values(personnel).some((value) =>
+    // Filter data based on search input and filter option
+    const filteredData = dataSource.filter(personnel => {
+        const matchesSearch = Object.values(personnel).some(value =>
             String(value).toLowerCase().includes(searchText.toLowerCase())
-        )
-    );
+        );
+        const matchesStatus = filterOption ? personnel.status === filterOption : true; // Check for status filtering
+        return matchesSearch && matchesStatus;
+    });
 
     const columns: ColumnType<PersonnelForm> = [
         {
@@ -94,21 +97,16 @@ const Personnel = () => {
             dataIndex: 'gender',
             key: 'gender',
         },
-        // {
-        //     title: 'Personnel Type',
-        //     dataIndex: 'personnel_type',
-        //     key: 'personnel_type',
-        // },
         {
             title: 'Rank',
             dataIndex: 'rank',
             key: 'rank',
         },
-        // {
-        //     title: 'Position',
-        //     dataIndex: 'position',
-        //     key: 'position',
-        // },
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'status',
+        },
         {
             title: 'Date Joined',
             dataIndex: 'date_joined',
@@ -119,15 +117,6 @@ const Personnel = () => {
             key: "action",
             render: (_: any, record: any, index: string | number) => (
                 <div className="flex gap-2">
-                    {/* <Button
-                        type="link"
-                        onClick={() => {
-                            const original = data?.[index];
-                            if (original) handleEdit(record, original);
-                        }}
-                    >
-                        <AiOutlineEdit />
-                    </Button> */}
                     <NavLink to={"update"} state={{ personnel: record }} className="text-blue-500 hover:text-blue-700 flex items-center">
                         <AiOutlineEdit />
                     </NavLink>
@@ -175,7 +164,6 @@ const Personnel = () => {
             const imageY = 12;
 
             doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-
             doc.setTextColor(0, 102, 204);
             doc.setFontSize(16);
             doc.text("Personnel Report", 10, 15);
@@ -187,7 +175,6 @@ const Personnel = () => {
             doc.text("Department/ Unit: IT", 10, 40);
             doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
         };
-
 
         addHeader();
 
@@ -207,7 +194,7 @@ const Personnel = () => {
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
-                didDrawPage: function (data) {
+                didDrawPage: function () {
                     if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
                         addHeader();
                     }
@@ -253,7 +240,7 @@ const Personnel = () => {
                 <a onClick={handleExportExcel}>Export Excel</a>
             </Menu.Item>
             <Menu.Item>
-                <CSVLink data={dataSource} filename="GangAffiliation.csv">
+                <CSVLink data={dataSource} filename="Personnel.csv">
                     Export CSV
                 </CSVLink>
             </Menu.Item>
@@ -267,7 +254,7 @@ const Personnel = () => {
             <div className="flex items-center justify-between mb-2">
                 <div className="flex gap-2">
                     <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-                        <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
+                        <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
                             <GoDownload /> Export
                         </a>
                     </Dropdown>
@@ -276,7 +263,12 @@ const Personnel = () => {
                     </button>
                 </div>
                 <div className="flex gap-2 items-center">
-                    <Input placeholder="Search Personnel..." value={searchText} className="py-2 md:w-64 w-full" onChange={(e) => setSearchText(e.target.value)} />
+                    <Input 
+                        placeholder="Search Personnel..." 
+                        value={searchText} 
+                        className="py-2 md:w-64 w-full" 
+                        onChange={(e) => setSearchText(e.target.value)} 
+                    />
                 </div>
             </div>
             <Table dataSource={filteredData} columns={columns} loading={personnelLoading} />

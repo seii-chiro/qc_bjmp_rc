@@ -101,7 +101,7 @@ import UpdatePDL from "./pages/pdl_management/pdl-information/UpdatePDL.tsx";
 import PersonnelUpdate from "./pages/personnel_management/personnel/PersonnelUpdate.tsx";
 import NonPDL from "./pages/Non-PDL/NonPDL.tsx";
 import ServiceProvider from "./pages/Service/ServiceProvider.tsx";
-import EditVisitor from "./pages/visitor_management/EditVisitor.tsx/EditVisitor.tsx";
+import EditVisitor from "./pages/visitor_management/edit-visitor/EditVisitor.tsx";
 import Person from "./pages/visitor_management/person/actual-person/ActualPersonTable.tsx";
 import Error from "./pages/Error.tsx";
 import VisitorID from "./pages/visitor_management/VisitorID.tsx";
