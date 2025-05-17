@@ -134,6 +134,7 @@ const VisitorProfile = ({
     const [imageRightSide, setImageRightSide] = useState<string | null>(null);
     const [webcamKey, setWebcamKey] = useState(0);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [isInWatchlist, setIsInWatchlist] = useState(false);
 
     const props: UploadProps = {
         name: 'file',
@@ -282,9 +283,11 @@ const VisitorProfile = ({
         mutationFn: verifyFaceInWatchlist,
         onSuccess: (data) => {
             messageApi.warning({
-                content: `${data['message']}`,
+                // content: `${data['message']}`,
+                content: `This Person is Found in the Watchlist Database!`,
                 duration: 30
             });
+            setIsInWatchlist(true)
         },
         onError: (error) => {
             messageApi.info(error?.message);
@@ -304,7 +307,7 @@ const VisitorProfile = ({
             verifyFaceInWatchlistMutation.mutate({ template: data?.images?.icao, type: "face" })
         },
         onError: (error) => {
-            console.error(error);
+            console.error(error.message);
         }
     });
 
@@ -949,7 +952,7 @@ const VisitorProfile = ({
                                         <FullScreen handle={faceHandle} className="w-full h-full object-scale-down overflow-hidden">
                                             {
                                                 faceVerificationResponse && (
-                                                    faceVerificationResponse?.message === "No Matches Found." ?
+                                                    faceVerificationResponse?.message === "No Matches Found." && !isInWatchlist ?
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p> :
                                                         <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p>
                                                 )

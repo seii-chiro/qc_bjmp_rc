@@ -158,17 +158,32 @@ const AddWatchlist = () => {
             return;
         }
 
-        const verifyResult = await verifyFaceInWatchlistMutation.mutateAsync({
-            type: "face",
-            template: enrollFormFace?.upload_data
-        });
+        let verifyResult;
+        try {
+            verifyResult = await verifyFaceInWatchlistMutation.mutateAsync({
+                type: "face",
+                template: enrollFormFace?.upload_data
+            });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            // this is all garbage just for catching the promise
+            if (
+                error?.message === "No Matches Found" ||
+                error?.response?.data?.message === "No Matches Found"
+            ) {
+                verifyResult = { message: "No Matches Found" };
+            } else {
+                message.error(error?.message || "Face verification failed.");
+                return;
+            }
+        }
 
         if (verifyResult?.message === "Match found.") {
             message.warning(verifyResult?.message || "Face already exists in watchlist.");
             return;
+        } else {
+            personMutation.mutate();
         }
-
-        personMutation.mutate();
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
