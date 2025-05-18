@@ -58,6 +58,7 @@ const IssueForm: React.FC<IssueFormProps> = ({
     // State to store form values
     const token = useTokenStore()?.token
     const [formValues, setFormValues] = useState<IssueFormData>({
+        issue_type_id: null,
         issueType: null,
         issue_category_id: null,
         risks: null,
@@ -65,7 +66,8 @@ const IssueForm: React.FC<IssueFormProps> = ({
         impact_level_id: null,
         impact_id: null,
         recommendedAction: "",
-        issue_status_id: null
+        issue_status_id: null,
+        status_id: null
     });
 
     // Effect to set initial form values if there's initial data
@@ -81,6 +83,7 @@ const IssueForm: React.FC<IssueFormProps> = ({
             });
         } else {
             setFormValues({
+                issue_type_id: null,
                 issueType: null,
                 issue_category_id: null,
                 risks: null,
@@ -88,7 +91,8 @@ const IssueForm: React.FC<IssueFormProps> = ({
                 impact_level_id: null,
                 impact_id: null,
                 recommendedAction: "",
-                issue_status_id: null
+                issue_status_id: null,
+                status_id: null
             });
         }
     }, [initialData]);
@@ -118,13 +122,15 @@ const IssueForm: React.FC<IssueFormProps> = ({
         // Mapping IDs to names before saving
         const updatedValues = {
             ...formValues,
+            issue_type_id: formValues?.issueType,
             issueType: formValues?.issueType,
             risks: risks.find(risk => risk?.id === formValues?.risks)?.id || null,
             risk_level_id: riskLevels.find(level => level.id === formValues?.risk_level_id)?.id || null,
             impact_level_id: impactLevels.find(level => level.id === formValues?.impact_level_id)?.id || null,
             impact_id: impact.find(impactItem => impactItem.id === formValues?.impact_id)?.id || null,
             recommendedAction: recommendedActions.find(action => action.id === +formValues?.recommendedAction)?.name || 'N/A',
-            issue_status_id: formValues?.issue_status_id
+            issue_status_id: formValues?.issue_status_id,
+            status_id: formValues?.issue_status_id
         };
 
         // Make the API request to submit the issue
@@ -157,6 +163,7 @@ const IssueForm: React.FC<IssueFormProps> = ({
 
             // Reset form and close
             setFormValues({
+                issue_type_id: null,
                 issueType: null,
                 issue_category_id: null,
                 risks: null,
@@ -164,7 +171,8 @@ const IssueForm: React.FC<IssueFormProps> = ({
                 impact_level_id: null,
                 impact_id: null,
                 recommendedAction: "",
-                issue_status_id: null
+                issue_status_id: null,
+                status_id: null
             });
             onCancel();
         } catch (error) {
@@ -186,7 +194,7 @@ const IssueForm: React.FC<IssueFormProps> = ({
                 }));
             }
         }
-    }, [formValues?.issueType, issueTypes, risks]); // Added `risks` as a dependency for the effect
+    }, [formValues?.issueType, issueTypes, risks]);
 
     return (
         <div className="issue-form-container" style={{ padding: "16px 8px" }}>
@@ -202,7 +210,10 @@ const IssueForm: React.FC<IssueFormProps> = ({
                         loading={issueTypesLoading}
                         className="w-full h-12"
                         value={formValues.issueType || undefined}
-                        onChange={(value) => handleInputChange('issueType', value)}
+                        onChange={(value) => {
+                            handleInputChange('issueType', value)
+                            handleInputChange('issue_type_id', value)
+                        }}
                     >
                         {issueTypes.map(option => (
                             <Option key={option?.id} value={option?.id}>{option?.name}</Option>
@@ -297,7 +308,10 @@ const IssueForm: React.FC<IssueFormProps> = ({
                         loading={issueStatusesLoading}
                         className="w-full h-12"
                         value={formValues.issue_status_id || undefined}
-                        onChange={(value) => handleInputChange('issue_status_id', value)}
+                        onChange={(value) => {
+                            handleInputChange('issue_status_id', value)
+                            handleInputChange('status_id', value)
+                        }}
                     >
                         {issueStatuses.map(option => (
                             <Option key={option?.id} value={option?.id}>{option?.description}</Option>

@@ -10,6 +10,7 @@ import { useTokenStore } from "@/store/useTokenStore";
 import { IssueType, Risk } from "@/lib/definitions";
 
 export type IssueFormData = {
+    issue_type_id: number | null;
     issueType: number | null;
     issue_category_id: number | null;
     risks: number | null;
@@ -18,6 +19,7 @@ export type IssueFormData = {
     impact_id: number | null;
     recommendedAction: string;
     issue_status_id: number | null;
+    status_id: number | null;
 };
 
 const Issue = () => {
