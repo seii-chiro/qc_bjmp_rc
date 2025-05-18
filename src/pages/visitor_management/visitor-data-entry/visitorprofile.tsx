@@ -14,6 +14,7 @@ import { CloseOutlined, EditOutlined } from '@ant-design/icons';
 import { verifyFaceInWatchlist } from "@/lib/threatQueries";
 
 type Props = {
+    visitorToEdit?: any;
     setPersonForm: Dispatch<SetStateAction<PersonForm>>;
     icao: string;
     setIcao: Dispatch<SetStateAction<string>>;
@@ -111,8 +112,8 @@ const VisitorProfile = ({
     setEnrollFormLeftIris,
     enrollFormLeftIris,
     enrollFormRightIris,
-    setEnrollFormFace
-
+    setEnrollFormFace,
+    visitorToEdit,
 }: Props) => {
     const faceHandle = useFullScreenHandle();
     const irisHandle = useFullScreenHandle();
@@ -190,6 +191,49 @@ const VisitorProfile = ({
     const [RightFingerResponse, setRightFingerResponse] = useState<CustomFingerResponse | null>(null)
     const [ThumbFingerResponse, setThumbFingerResponse] = useState<CustomFingerResponse | null>(null)
 
+    useEffect(() => {
+        const mediaArray = visitorToEdit?.person?.media ?? [];
+        const closeUpImage = mediaArray.find(
+            (media: { media_description: string; }) => media?.media_description === "Close-Up Front Picture"
+        )?.media_binary;
+
+        const signatureImage = mediaArray.find(
+            (media: { media_description: string; }) => media?.media_description === "Signature Picture"
+        )?.media_binary;
+
+        const fullBodyImage = mediaArray.find(
+            (media: { media_description: string; }) => media?.media_description === "Full-Body Front Picture"
+        )?.media_binary;
+
+        const leftsideImage = mediaArray.find(
+            (media: { media_description: string; }) => media?.media_description === "Left-Side View Picture"
+        )?.media_binary;
+
+        const rightsideImage = mediaArray.find(
+            (media: { media_description: string; }) => media?.media_description === "Right-Side View Picture"
+        )?.media_binary;
+
+        if (closeUpImage) {
+            setImage(`data:image/png;base64,${closeUpImage}`);
+        }
+
+        if (signatureImage) {
+            setPreviewUrl(`data:image/png;base64,${signatureImage}`);
+        }
+
+        if (fullBodyImage) {
+            setImageFullBody(`data:image/png;base64,${fullBodyImage}`);
+        }
+
+        if (leftsideImage) {
+            setImageLeftSide(`data:image/png;base64,${leftsideImage}`);
+        }
+
+        if (rightsideImage) {
+            setImageRightSide(`data:image/png;base64,${rightsideImage}`);
+        }
+
+    }, [visitorToEdit?.person?.media]);
 
     // UseEffect to update the enrollment data when LeftFingerResponse or RightFingerResponse changes
     useEffect(() => {

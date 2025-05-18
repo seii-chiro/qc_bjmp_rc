@@ -883,6 +883,7 @@ const VisitorRegistration = () => {
         console.log("Visitor Form After Update:", visitorForm);
     }, [visitorData, barangays, civilStatuses, countries, currentUser?.id, municipalities, nationalities, provinces, regions, relationships, users]);
 
+
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""}`;
         setPersonForm((prev) => ({ ...prev, shortname: short.toUpperCase() }));
@@ -909,11 +910,11 @@ const VisitorRegistration = () => {
                                 <div className='flex gap-1'>Visitor No. <p className='text-red-600'>*</p></div>
                                 <Input
                                     className='mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100'
-                                    value={visitorForm?.visitor_reg_no} 
+                                    value={visitorForm?.visitor_reg_no}
                                     type="text"
                                     name="visitor_reg_no"
                                     placeholder="YYYY-MM-DD-XXXXXXX"
-                                    readOnly 
+                                    readOnly
                                 />
                             </div>
                             {/*Select Input Field */}
@@ -1243,6 +1244,7 @@ const VisitorRegistration = () => {
             </Modal>
 
             <VisitorProfile
+                visitorToEdit={visitorData}
                 icao={icao}
                 setIcao={setIcao}
                 setPersonForm={setPersonForm}
