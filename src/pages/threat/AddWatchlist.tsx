@@ -377,11 +377,23 @@ const AddWatchlist = () => {
 
                     <div className="w-full flex justify-end">
                         <Button
+                            loading={
+                                verifyFaceInWatchlistMutation.isPending ||
+                                personMutation.isPending ||
+                                enrollFaceMutation.isPending ||
+                                watchlistPersonMutation.isPending
+                            }
                             type="primary"
                             variant="solid"
                             onClick={handleSubmit}
                         >
-                            Submit
+                            {
+                                verifyFaceInWatchlistMutation.isPending ||
+                                    personMutation.isPending ||
+                                    enrollFaceMutation.isPending ||
+                                    watchlistPersonMutation.isPending ?
+                                    "Submitting" : "Submit"
+                            }
                         </Button>
                     </div>
 
