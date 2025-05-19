@@ -49,6 +49,7 @@ const Personnel = () => {
     });
 
     const dataSource = data?.map((personnel, index) => ({
+        id: personnel?.id,
         key: index + 1,
         organization: personnel?.organization ?? '',
         personnel_reg_no: personnel?.personnel_reg_no ?? '',
@@ -263,11 +264,11 @@ const Personnel = () => {
                     </button>
                 </div>
                 <div className="flex gap-2 items-center">
-                    <Input 
-                        placeholder="Search Personnel..." 
-                        value={searchText} 
-                        className="py-2 md:w-64 w-full" 
-                        onChange={(e) => setSearchText(e.target.value)} 
+                    <Input
+                        placeholder="Search Personnel..."
+                        value={searchText}
+                        className="py-2 md:w-64 w-full"
+                        onChange={(e) => setSearchText(e.target.value)}
                     />
                 </div>
             </div>

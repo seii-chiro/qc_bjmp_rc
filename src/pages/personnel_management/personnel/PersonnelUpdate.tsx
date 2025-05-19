@@ -95,7 +95,7 @@ const PersonnelUpdate = () => {
     } = useQuery({
         queryKey: ["specific-personnel", personnel?.key],
         queryFn: async () => {
-            const response = await fetch(`${BASE_URL}/api/codes/personnel/${personnel.key}/`, {
+            const response = await fetch(`${BASE_URL}/api/codes/personnel/${personnel.id}/`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
