@@ -1,6 +1,7 @@
 import Spinner from "@/components/loaders/Spinner";
 import { calculateAge } from "@/functions/calculateAge";
 import { getPersonnelTypes } from "@/lib/additionalQueries";
+import { getPersonnelStatus } from "@/lib/personnelQueries";
 import { getCivilStatus, getCountries, getCurrentUser, getEducationalAttainments, getEthnicityProvinces, getGenders, getJail_Barangay, getJail_Municipality, getJail_Province, getJailRegion, getNationalities, getPersonnelAppStatus, getPositions, getPrefixes, getRanks, getRealPerson, getReligion, getSuffixes, getUsers, getVisitor_to_PDL_Relationship } from "@/lib/queries";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
 import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
@@ -144,6 +145,7 @@ const PersonnelUpdate = () => {
         person_id: null,
         date_joined: "",
         personnel_app_status_id: null,
+        status_id: null,
         personnel_reg_no: "",
         personnel_type_id: null,
         position_id: null,
@@ -428,6 +430,11 @@ const PersonnelUpdate = () => {
                 queryFn: () => getPersonnelTypes(token ?? ""),
                 staleTime: 10 * 60 * 1000
             },
+            {
+                queryKey: ['personnel-status', 'edit'],
+                queryFn: () => getPersonnelStatus(token ?? ""),
+                staleTime: 10 * 60 * 1000
+            }
         ]
     })
 
@@ -636,6 +643,8 @@ const PersonnelUpdate = () => {
     const ethnicitiesLoading = dropdownOptions?.[17]?.isLoading;
     const personnelTypes = dropdownOptions?.[18]?.data?.results;
     const personnelTypesLoading = dropdownOptions?.[18]?.isLoading;
+    const personnelStatus = dropdownOptions?.[19]?.data?.results;
+    const personnelStatusLoading = dropdownOptions?.[19]?.isLoading;
 
 
     const addressDataSource = personForm?.address_data?.map((address, index) => {
@@ -814,6 +823,8 @@ const PersonnelUpdate = () => {
             },
         ];
 
+    console.log(personnelForm)
+
     useEffect(() => {
         setPersonForm({
             first_name: personnelData?.person?.first_name ?? "",
@@ -908,6 +919,7 @@ const PersonnelUpdate = () => {
                     (status) => status?.status === personnelData?.personnel_app_status
                 )?.id ?? null,
             personnel_reg_no: personnelData?.personnel_reg_no ?? "",
+            status_id: personnelStatus?.find(status => status?.name === personnelData?.status)?.id,
             personnel_type_id:
                 personnelTypes?.find(
                     (type) => type?.name === personnelData?.personnel_type
@@ -934,7 +946,7 @@ const PersonnelUpdate = () => {
             shortname: personnelData?.person?.shortname ?? "",
         })
 
-    }, [personnelData, attainments, regions, provinces, municipalities, barangays, countries, civilStatuses, nationalities, personnelAppStatus, personnelTypes, users, positions, ranks, relationships, persons]);
+    }, [personnelData, attainments, regions, provinces, municipalities, barangays, countries, civilStatuses, nationalities, personnelAppStatus, personnelTypes, users, positions, ranks, relationships, persons, personnelStatus]);
 
     useEffect(() => {
         setPersonnelForm(prev => ({
@@ -1174,7 +1186,7 @@ const PersonnelUpdate = () => {
                             </div>
                         </div>
                         <div className="flex flex-col md:flex-row gap-2">
-                            <div className='flex flex-col mt-2 flex-[3]'>
+                            <div className='flex flex-col mt-2 flex-1'>
                                 <div className='flex gap-1 font-semibold'>Short Name</div>
                                 <Input
                                     className='mt-2 px-3 py-2 rounded-md outline-gray-300'
@@ -1215,7 +1227,7 @@ const PersonnelUpdate = () => {
                                     value={calculateAge(personForm?.date_of_birth ?? "")}
                                 />
                             </div>
-                            <div className='flex flex-col mt-2 flex-[3]'>
+                            <div className='flex flex-col mt-2 flex-1'>
                                 <div className='flex gap-1 font-semibold'>Place of Birth<p className='text-red-600'>*</p></div>
                                 <Input
                                     value={personForm?.place_of_birth}
@@ -1261,6 +1273,26 @@ const PersonnelUpdate = () => {
                                             {
                                                 ...prev,
                                                 gender_id: value
+                                            }
+                                        ))
+                                    }}
+                                />
+                            </div>
+                            <div className='flex flex-col mt-2 flex-[2]'>
+                                <div className='flex gap-1 font-semibold'>Personnel Status<span className="text-red-600">*</span></div>
+                                <Select
+                                    value={personnelForm?.status_id}
+                                    loading={personnelStatusLoading}
+                                    className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
+                                    options={personnelStatus?.map(status => ({
+                                        value: status?.id,
+                                        label: status?.name
+                                    }))}
+                                    onChange={(value) => {
+                                        setPersonnelForm(prev => (
+                                            {
+                                                ...prev,
+                                                status_id: value
                                             }
                                         ))
                                     }}

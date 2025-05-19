@@ -12,6 +12,7 @@ import WebcamFullBody from "@/components/WebcamFullBody";
 import { PersonForm } from "@/lib/visitorFormDefinition";
 import { CloseOutlined, EditOutlined } from '@ant-design/icons';
 import { verifyFaceInWatchlist } from "@/lib/threatQueries";
+import { Signature } from "./Signature";
 
 type Props = {
     visitorToEdit?: any;
@@ -136,6 +137,15 @@ const VisitorProfile = ({
     const [webcamKey, setWebcamKey] = useState(0);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isInWatchlist, setIsInWatchlist] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleOpenPad = () => setIsModalOpen(true);
+    const handleClosePad = () => setIsModalOpen(false);
+
+    const handleSaveDrawing = (dataUrl: string) => {
+        setPreviewUrl(dataUrl);
+        setIsModalOpen(false);
+    };
 
     const props: UploadProps = {
         name: 'file',
@@ -1303,43 +1313,47 @@ const VisitorProfile = ({
                                                 {fingerprintVerificationResult10?.message === "Match found." && <li>Found a match for right little fingerprint.</li>}
                                             </ul> */}
 
-                                            {
-                                                previewUrl ? (
-                                                    <div className="relative h-full w-full">
-                                                        <img
-                                                            src={previewUrl}
-                                                            alt="signature preview"
-                                                            className="h-full w-full object-contain"
-                                                        />
-                                                        <div className="absolute top-0 right-0 flex space-x-1">
-                                                            <button
-                                                                onClick={handleClearImage}
-                                                                className="bg-gray-100 hover:bg-gray-200 p-1 rounded-full text-gray-600"
-                                                                title="Remove signature"
-                                                            >
-                                                                <CloseOutlined style={{ fontSize: '12px' }} />
+                                            {previewUrl ? (
+                                                <div className="relative h-full w-full">
+                                                    <img src={previewUrl} alt="signature preview" className="h-full w-full object-contain" />
+                                                    <div className="absolute top-0 right-0 flex space-x-1">
+                                                        <button onClick={handleClearImage} className="bg-gray-100 hover:bg-gray-200 p-1 rounded-full text-gray-600" title="Remove signature">
+                                                            <CloseOutlined style={{ fontSize: '12px' }} />
+                                                        </button>
+                                                        <Upload {...props} className="bg-gray-100 hover:bg-gray-200 p-1 rounded-full text-gray-600">
+                                                            <button title="Replace signature">
+                                                                <EditOutlined style={{ fontSize: '12px' }} />
                                                             </button>
-                                                            <Upload
-                                                                {...props}
-                                                                className="bg-gray-100 hover:bg-gray-200 p-1 rounded-full text-gray-600"
-                                                            >
-                                                                <button title="Replace signature">
-                                                                    <EditOutlined style={{ fontSize: '12px' }} />
-                                                                </button>
-                                                            </Upload>
-                                                        </div>
+                                                        </Upload>
+                                                        <button onClick={handleOpenPad} className="bg-gray-100 hover:bg-gray-200 p-1 rounded-full text-gray-600" title="Draw signature">
+                                                            ✍️
+                                                        </button>
                                                     </div>
-                                                ) : (
-                                                    <Dragger
-                                                        {...props}
-                                                        className="!h-full !w-full !p-0 !m-0 bg-transparent border-0"
-                                                        style={{ background: 'transparent' }}
-                                                    >
-                                                        <p className="text-sm text-gray-500">Click or drag to upload signature</p>
-                                                    </Dragger>
-                                                )
-                                            }
+                                                </div>
+                                            ) : (
+                                                <Dragger {...props} className="!h-full !w-full !p-0 !m-0 bg-transparent border-0" style={{ background: 'transparent' }}>
+                                                    <p className="text-sm text-gray-500">Click or drag to upload signature</p>
+                                                    <button type="button" onClick={handleOpenPad} className="mt-2 underline text-blue-500 hover:text-blue-600">
+                                                        Or draw signature
+                                                    </button>
+                                                </Dragger>
+                                            )}
                                         </div>
+
+                                        <Modal
+                                            open={isModalOpen}
+                                            onCancel={handleClosePad}
+                                            onClose={handleClosePad}
+                                            footer={null}
+                                            centered
+                                            width={650}
+                                        >
+                                            <div className="space-y-4">
+                                                <h2 className="text-lg font-semibold">Draw Your Signature</h2>
+                                                <Signature onSave={handleSaveDrawing} />
+                                            </div>
+                                        </Modal>
+
                                     </div>
                                 </div>
                             </div>
