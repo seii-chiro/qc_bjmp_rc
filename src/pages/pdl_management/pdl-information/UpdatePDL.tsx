@@ -1809,6 +1809,7 @@ const UpdatePDL = () => {
 
             {/**Biometrics */}
             <VisitorProfile
+                visitorToEdit={pdlData}
                 icao={icao}
                 setIcao={setIcao}
                 setPersonForm={setPersonForm}

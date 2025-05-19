@@ -13,11 +13,11 @@ const Threat = () => {
                     <p className="ml-5 text-basee font-medium">Watchlist Registration</p>
                 </NavLink>
             </div>
-            <div className="w-96 border shadow-sm hover:shadow-md border-gray-200 p-5 rounded-md">
+            {/* <div className="w-96 border shadow-sm hover:shadow-md border-gray-200 p-5 rounded-md">
                 <NavLink to={""}>
                     <p className="ml-5 text-basee font-medium">Threat Profile</p>
                 </NavLink>
-            </div>
+            </div> */}
             <h1></h1>
         </div>
     )
