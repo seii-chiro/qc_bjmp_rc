@@ -61,3 +61,28 @@ export const GodotModal = ({ title, openModalClick }: { title: string, openModal
         </div>
     )
 }
+
+export const GoLink = ({ link, title }: { link?: string; title: string }) => {
+    const isLinkDisabled = !link;
+
+    return (
+        <div>
+            <div className="md:w-80 w-full border shadow-sm hover:shadow-lg border-gray-200 p-5 rounded-md transition duration-300 ease-in-out">
+                {isLinkDisabled ? (
+                    <div className="flex gap-2 items-center">
+                        <FiFileText className="text-gray-600" />
+                        <span className="text-base font-medium text-gray-400">{title}</span>
+                    </div>
+                    
+                ) : (
+                    <NavLink to={link} className="block">
+                        <div className="flex items-center">
+                            <FiFileText className="text-gray-600 hover:text-blue-600" />
+                            <p className="ml-5 text-lg font-medium hover:text-gray-700 transition duration-200">{title}</p>
+                        </div>
+                    </NavLink>
+                )}
+            </div>
+        </div>
+    );
+};
