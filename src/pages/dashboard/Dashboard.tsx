@@ -133,8 +133,8 @@ const Dashboard = () => {
         );
 
         return (
-            <div 
-                className={`rounded-lg flex items-center gap-2 p-2 w-full bg-[#F6F7FB] flex-grow ${linkto ? 'hover:cursor-pointer' : ''}`} 
+            <div
+                className={`rounded-lg flex items-center gap-2 p-2 w-full bg-[#F6F7FB] flex-grow ${linkto ? 'hover:cursor-pointer' : ''}`}
                 onClick={linkto ? handleClick : undefined} // Only attach click handler if linkto is provided
             >
                 {cardContent}
@@ -451,8 +451,8 @@ const Dashboard = () => {
         ],
     };
 
-    const onDutyCount = personnelData?.filter(person => person.status === "On Duty").length || 0;
-    const offDutyCount = personnelData?.filter(person => person.status === "Off Duty").length || 0;
+    const onDutyCount = personnelData?.results?.filter(person => person.status === "On Duty").length || 0;
+    const offDutyCount = personnelData?.results?.filter(person => person.status === "Off Duty").length || 0;
 
     const handleReset = () => {
         // Example: Reset any local state here (if you have date filters, etc.)
@@ -499,11 +499,10 @@ const Dashboard = () => {
                                 <Card
                                     image={population}
                                     title='Jail Population'
-                                    count={`${
-                                    (summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0) +
-                                    (summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0) +
-                                    (summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0)
-                                    }`}
+                                    count={`${(summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0) +
+                                        (summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0) +
+                                        (summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0)
+                                        }`}
                                     linkto='/jvms/pdls/pdl'
                                 />
                                 <Card

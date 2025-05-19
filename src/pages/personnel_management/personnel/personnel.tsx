@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useLocation } from 'react-router';
 import { PersonnelForm } from "@/lib/issues-difinitions";
-import { getPersonnel, getUser } from "@/lib/queries";
+import { getUser } from "@/lib/queries";
 import { deletePersonnel } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Input, Menu, message, Modal, Table } from "antd";
 import { ColumnType } from "antd/es/table";
 import { useState } from "react";
@@ -15,6 +16,15 @@ import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png';
 import { NavLink } from "react-router-dom";
+import { Personnel as PersonnelType } from '@/lib/pdl-definitions';
+import { BASE_URL } from '@/lib/urls';
+
+export type PaginatedResponse<T> = {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: T[];
+};
 
 const Personnel = () => {
     const [searchText, setSearchText] = useState("");
@@ -23,13 +33,34 @@ const Personnel = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [page, setPage] = useState(1);
+    const limit = 10;
 
     const location = useLocation();
-    const filterOption = location.state?.filterOption; // Get filter option from state
+    const filterOption = location.state?.filterOption;
 
-    const { data, isLoading: personnelLoading } = useQuery({
-        queryKey: ['personnel'],
-        queryFn: () => getPersonnel(token ?? ""),
+    const { data, isFetching } = useQuery({
+        queryKey: ['personnel', 'personnel-table', page],
+        queryFn: async (): Promise<PaginatedResponse<PersonnelType>> => {
+            // Add offset parameter for Django REST Framework's pagination
+            const offset = (page - 1) * limit;
+            const res = await fetch(
+                `${BASE_URL}/api/codes/personnel/?page=${page}&limit=${limit}&offset=${offset}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch Personnel data.');
+            }
+
+            return res.json();
+        },
+        behavior: keepPreviousData(),
     });
 
     const { data: UserData } = useQuery({
@@ -48,15 +79,15 @@ const Personnel = () => {
         },
     });
 
-    const dataSource = data?.map((personnel, index) => ({
+    const dataSource = data?.results?.map((personnel, index) => ({
         id: personnel?.id,
-        key: index + 1,
+        key: ((page - 1) * limit) + index + 1,
         organization: personnel?.organization ?? '',
         personnel_reg_no: personnel?.personnel_reg_no ?? '',
         person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
         shortname: personnel?.person?.shortname ?? '',
         rank: personnel?.rank ?? '',
-        status: personnel?.status ?? '', // Capture the status
+        status: personnel?.status ?? '',
         gender: personnel?.person?.gender?.gender_option ?? '',
         date_joined: personnel?.date_joined ?? '',
         record_status: personnel?.record_status ?? '',
@@ -68,7 +99,7 @@ const Personnel = () => {
         const matchesSearch = Object.values(personnel).some(value =>
             String(value).toLowerCase().includes(searchText.toLowerCase())
         );
-        const matchesStatus = filterOption ? personnel.status === filterOption : true; // Check for status filtering
+        const matchesStatus = filterOption ? personnel.status === filterOption : true;
         return matchesSearch && matchesStatus;
     });
 
@@ -116,7 +147,7 @@ const Personnel = () => {
         {
             title: "Action",
             key: "action",
-            render: (_: any, record: any, index: string | number) => (
+            render: (_: any, record: any) => (
                 <div className="flex gap-2">
                     <NavLink to={"update"} state={{ personnel: record }} className="text-blue-500 hover:text-blue-700 flex items-center">
                         <AiOutlineEdit />
@@ -124,7 +155,7 @@ const Personnel = () => {
                     <Button
                         type="link"
                         danger
-                        onClick={() => deleteMutation.mutate(data?.[index]?.id)}
+                        onClick={() => deleteMutation.mutate(record.id)}
                     >
                         <AiOutlineDelete />
                     </Button>
@@ -272,7 +303,22 @@ const Personnel = () => {
                     />
                 </div>
             </div>
-            <Table dataSource={filteredData} columns={columns} loading={personnelLoading} />
+            <Table
+                dataSource={filteredData}
+                columns={columns}
+                loading={isFetching}
+                pagination={{
+                    current: page,
+                    pageSize: limit,
+                    total: data?.count || 0,
+                    onChange: (newPage) => {
+                        console.log("Changing to page:", newPage);
+                        setPage(newPage);
+                    },
+                    showSizeChanger: false,
+                }}
+                rowKey="id"
+            />
             <Modal
                 title="Position Report"
                 open={isPdfModalOpen}

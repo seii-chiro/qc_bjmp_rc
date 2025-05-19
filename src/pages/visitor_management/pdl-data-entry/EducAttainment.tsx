@@ -59,7 +59,7 @@ const EducAttainment = ({ setPersonForm, personForm }: Props) => {
         personForm?.education_background_data?.map((educ, index) => ({
             key: index,
             educationalAttainment:
-                attainments?.find(
+                attainments?.results?.find(
                     (attainment) => attainment?.id === educ?.educational_attainment_id
                 )?.name ?? null,
             degree: educ?.degree ?? null,
@@ -161,7 +161,7 @@ const EducAttainment = ({ setPersonForm, personForm }: Props) => {
                 width="70%"
             >
                 <EducAttainmentForm
-                    attainments={attainments || []}
+                    attainments={attainments?.results || []}
                     editIndex={editIndex}
                     setPersonForm={setPersonForm}
                     handleModalClose={handleModalClose}

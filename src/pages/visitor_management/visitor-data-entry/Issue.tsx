@@ -67,29 +67,29 @@ const Issue = () => {
         ]
     })
 
-    const issueTypes = results?.[0]?.data
-    const issueTypesLoading = results?.[0]?.isLoading
+    const issueTypes = results?.[0]?.data?.results;
+    const issueTypesLoading = results?.[0]?.isLoading;
 
-    const issueStatuses = results?.[1]?.data
-    const issueStatusesLoading = results?.[1]?.isLoading
+    const issueStatuses = results?.[1]?.data?.results;
+    const issueStatusesLoading = results?.[1]?.isLoading;
 
-    const risks = results?.[2]?.data
-    const risksLoading = results?.[2]?.isLoading
+    const risks = results?.[2]?.data?.results;
+    const risksLoading = results?.[2]?.isLoading;
 
-    const riskLevels = results?.[3]?.data
-    const riskLevelsLoading = results?.[3]?.isLoading
+    const riskLevels = results?.[3]?.data?.results;
+    const riskLevelsLoading = results?.[3]?.isLoading;
 
-    const impact = results?.[4]?.data
-    const impactLoading = results?.[4]?.isLoading
+    const impact = results?.[4]?.data?.results;
+    const impactLoading = results?.[4]?.isLoading;
 
-    const impactLevels = results?.[5]?.data
-    const impactLevelsLoading = results?.[5]?.isLoading
+    const impactLevels = results?.[5]?.data?.results;
+    const impactLevelsLoading = results?.[5]?.isLoading;
 
-    const recommendedActions = results?.[6]?.data
-    const recommendedActionsLoading = results?.[6]?.isLoading
+    const recommendedActions = results?.[6]?.data?.results;
+    const recommendedActionsLoading = results?.[6]?.isLoading;
 
-    const issueCategories = results?.[7]?.data
-    const issueCategoriesLoading = results?.[7]?.isLoading
+    const issueCategories = results?.[7]?.data?.results;
+    const issueCategoriesLoading = results?.[7]?.isLoading;
 
     const handleOpenModal = (index?: number) => {
         if (index !== undefined) {

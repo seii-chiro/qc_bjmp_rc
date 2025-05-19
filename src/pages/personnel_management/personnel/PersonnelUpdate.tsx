@@ -608,34 +608,34 @@ const PersonnelUpdate = () => {
     };
 
 
-    const genders = dropdownOptions?.[0]?.data
-    const nationalities = dropdownOptions?.[1]?.data
-    const civilStatuses = dropdownOptions?.[2]?.data
-    const religions = dropdownOptions?.[3]?.data
-    const religionsLoading = dropdownOptions?.[3]?.isLoading
-    const regions = dropdownOptions?.[4]?.data
-    const provinces = dropdownOptions?.[5]?.data
-    const municipalities = dropdownOptions?.[6]?.data
-    const barangays = dropdownOptions?.[7]?.data
-    const countries = dropdownOptions?.[8]?.data
-    const users = dropdownOptions?.[9]?.data
-    const userLoading = dropdownOptions?.[9]?.isLoading
-    const personnelAppStatus = dropdownOptions?.[10]?.data
-    const personnelAppStatusLoading = dropdownOptions?.[10]?.isLoading
-    const currentUser = dropdownOptions?.[11]?.data
-    const prefixes = dropdownOptions?.[12]?.data
-    const suffixes = dropdownOptions?.[13]?.data
-    const suffixesLoading = dropdownOptions?.[13]?.isLoading
-    const ranks = dropdownOptions?.[14]?.data
-    const ranksLoading = dropdownOptions?.[14]?.isLoading
-    const positions = dropdownOptions?.[15]?.data
-    const positionsLoading = dropdownOptions?.[15]?.isLoading
-    const persons = dropdownOptions?.[16]?.data
-    const personsLoading = dropdownOptions?.[16]?.isLoading
-    const ethnicities = dropdownOptions?.[17]?.data
-    const ethnicitiesLoading = dropdownOptions?.[17]?.isLoading
-    const personnelTypes = dropdownOptions?.[18]?.data
-    const personnelTypesLoading = dropdownOptions?.[18]?.isLoading
+    const genders = dropdownOptions?.[0]?.data?.results;
+    const nationalities = dropdownOptions?.[1]?.data?.results;
+    const civilStatuses = dropdownOptions?.[2]?.data?.results;
+    const religions = dropdownOptions?.[3]?.data?.results;
+    const religionsLoading = dropdownOptions?.[3]?.isLoading;
+    const regions = dropdownOptions?.[4]?.data?.results;
+    const provinces = dropdownOptions?.[5]?.data?.results;
+    const municipalities = dropdownOptions?.[6]?.data?.results;
+    const barangays = dropdownOptions?.[7]?.data?.results;
+    const countries = dropdownOptions?.[8]?.data?.results;
+    const users = dropdownOptions?.[9]?.data?.results;
+    const userLoading = dropdownOptions?.[9]?.isLoading;
+    const personnelAppStatus = dropdownOptions?.[10]?.data?.results;
+    const personnelAppStatusLoading = dropdownOptions?.[10]?.isLoading;
+    const currentUser = dropdownOptions?.[11]?.data;
+    const prefixes = dropdownOptions?.[12]?.data?.results;
+    const suffixes = dropdownOptions?.[13]?.data?.results;
+    const suffixesLoading = dropdownOptions?.[13]?.isLoading;
+    const ranks = dropdownOptions?.[14]?.data?.results;
+    const ranksLoading = dropdownOptions?.[14]?.isLoading;
+    const positions = dropdownOptions?.[15]?.data?.results;
+    const positionsLoading = dropdownOptions?.[15]?.isLoading;
+    const persons = dropdownOptions?.[16]?.data?.results;
+    const personsLoading = dropdownOptions?.[16]?.isLoading;
+    const ethnicities = dropdownOptions?.[17]?.data?.results;
+    const ethnicitiesLoading = dropdownOptions?.[17]?.isLoading;
+    const personnelTypes = dropdownOptions?.[18]?.data?.results;
+    const personnelTypesLoading = dropdownOptions?.[18]?.isLoading;
 
 
     const addressDataSource = personForm?.address_data?.map((address, index) => {
@@ -966,6 +966,7 @@ const PersonnelUpdate = () => {
                             <div className='flex flex-col mt-2 flex-1'>
                                 <div className='flex gap-1 font-semibold'>Registration No.<span className='text-red-600'>*</span></div>
                                 <Input
+                                    value={personnelForm?.personnel_reg_no}
                                     readOnly
                                     placeholder="xxxx-xxxx-xxxx-xxxx"
                                     className='mt-2 h-10 rounded-md outline-gray-300'
@@ -1426,7 +1427,7 @@ const PersonnelUpdate = () => {
                                 <div className='flex gap-1'>Verified By</div>
                                 <Input
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    value={currentUser?.first_name + " " + currentUser?.last_name}
+                                    value={`${currentUser?.first_name ?? ""} ${currentUser?.last_name ?? ""}`}
                                     readOnly
                                 />
                             </div>

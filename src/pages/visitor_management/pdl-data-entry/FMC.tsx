@@ -78,7 +78,7 @@ const FMC = <T extends HasPersonRelationships>({
 
         return ({
             key: index,
-            relationship: relationships?.find(relationship => relationship?.id === item?.relationship_id)?.relationship_name,
+            relationship: relationships?.results?.find(relationship => relationship?.id === item?.relationship_id)?.relationship_name,
             lastName: specificPerson?.last_name,
             firsName: specificPerson?.first_name,
             middleName: specificPerson?.middle_name,
@@ -206,7 +206,7 @@ const FMC = <T extends HasPersonRelationships>({
                     suffixes={suffixes}
                     persons={persons}
                     personsLoading={personsLoading}
-                    relationships={relationships || []}
+                    relationships={relationships?.results || []}
                     relationshipsLoading={relationshipsLoading}
                     pdlForm={pdlForm}
                     setPdlForm={setPdlForm}

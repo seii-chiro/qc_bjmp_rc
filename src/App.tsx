@@ -121,10 +121,10 @@ function App() {
     const isAuthenticated = useAuthStore().isAuthenticated
 
     const router = createBrowserRouter([
-        {
-            path: "*",
-            element: <GeneralErrorElement />
-        },
+        // {
+        //     path: "*",
+        //     element: <GeneralErrorElement />
+        // },
         {
             path: "/login",
             element: <LoginOTP />,
@@ -140,7 +140,7 @@ function App() {
         {
             path: "/jvms",
             element: isAuthenticated ? <RootLayout /> : <Navigate to="/login" />,
-            errorElement: <Error />,
+            // errorElement: <Error />,
             children: [
                 {/*
                     index: true,

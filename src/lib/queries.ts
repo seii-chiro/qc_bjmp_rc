@@ -146,7 +146,16 @@ import {
 import { EducationalAttainment } from "./visitorFormDefinition";
 import { ReportingCategory, SeverityLevel } from "./issues-difinitions";
 
-export async function getVisitors(token: string): Promise<NewVisitor[]> {
+export type PaginatedResponse<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};
+
+export async function getVisitors(
+  token: string
+): Promise<PaginatedResponse<NewVisitor>> {
   const res = await fetch(`${BASE_URL}/api/visitors/visitor/`, {
     headers: {
       "Content-Type": "application/json",
@@ -191,7 +200,9 @@ export async function getPerson(token: string): Promise<NewPerson[]> {
   return res.json();
 }
 
-export async function getGenders(token: string): Promise<Gender[]> {
+export async function getGenders(
+  token: string
+): Promise<PaginatedResponse<Gender>> {
   const res = await fetch(GENDER_CODE.getGENDER_CODE, {
     headers: {
       "Content-Type": "application/json",
@@ -1208,7 +1219,9 @@ export const updateJailArea = async (
   return response.json();
 };
 
-export async function getPersonnel(token: string): Promise<Personnel[]> {
+export async function getPersonnel(
+  token: string
+): Promise<PaginatedResponse<Personnel>[]> {
   const res = await fetch(PERSONNEL.getPersonnel, {
     headers: {
       "Content-Type": "application/json",
