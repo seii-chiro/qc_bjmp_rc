@@ -100,7 +100,7 @@ import LoginOTP from "./pages/LoginOTP.tsx";
 import UpdatePDL from "./pages/pdl_management/pdl-information/UpdatePDL.tsx";
 import PersonnelUpdate from "./pages/personnel_management/personnel/PersonnelUpdate.tsx";
 import NonPDL from "./pages/Non-PDL/NonPDL.tsx";
-import ServiceProvider from "./pages/Service/ServiceProvider.tsx";
+import ServiceProvider from "./pages/service-provider/ServiceProvider.tsx";
 import EditVisitor from "./pages/visitor_management/edit-visitor/EditVisitor.tsx";
 import Person from "./pages/visitor_management/person/actual-person/ActualPersonTable.tsx";
 import Error from "./pages/Error.tsx";
@@ -110,6 +110,7 @@ import IncidentTable from "./pages/Incidents/IncidentTable.tsx";
 import DeviceSetting from "./pages/devices-management/device-setting/DeviceSetting.tsx";
 import AddWatchlist from "./pages/threat/AddWatchlist.tsx";
 import Watchlist from "./pages/threat/Watchlist.tsx";
+import Alphalist from "./pages/alphalist/Alphalist.tsx";
 
 // Lazy-loaded components
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -168,6 +169,10 @@ function App() {
                 {
                     path: "map",
                     element: <MapContent />
+                },
+                {
+                    path: "alphalist",
+                    element: <Alphalist />
                 },
                 {
                     path: "assets",
@@ -582,7 +587,7 @@ function App() {
                     element: <NonPDL />
                 },
                 {
-                    path: "service-providers",
+                    path: "service-provider",
                     element: <ServiceProvider />
                 },
                 {

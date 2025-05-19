@@ -818,6 +818,7 @@ export type VisitorUpdatePayload = {
 };
 
 export interface ServiceProviderPayload {
+  organization: string;
   id: number;
   created_by: string;
   updated_by: string;

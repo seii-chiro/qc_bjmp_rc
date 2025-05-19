@@ -76,7 +76,7 @@ const Home1 = () => {
             <Cards link='/jvms/registration' title="Registration" image={registration} />
             <Cards link='/jvms/users' title="Administration" image={administration} />
             <Cards link='/jvms/dashboard' title='Statistic Dashboard' image={statistic} />
-            <Cards link='' title='Alpha List' image={alpha} />
+            <Cards link='/jvms/alphalist' title='Alpha List' image={alpha} />
             <Cards link='/jvms/log-monitoring' title='Log Monitoring' image={log} />
             <Cards link='' title='Status Reports' image={status} />{/* /jvms/reports */}
             <Cards link='/jvms/screening' title='Scanner' image={scanner} />
