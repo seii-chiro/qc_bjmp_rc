@@ -36,8 +36,8 @@ const Personnels = () => {
                             <GodotLink link="/jvms/maintenance/suffixes" title="Suffixes" />
                         </div>
                         <div className="w-96">
-                            <GodotLink link="/jvms/maintenance/contact-types" title="Contact Types" />
-                            <GodotLink link="/jvms/maintenance/address-types" title="Address Types" />
+                            {/* <GodotLink link="/jvms/maintenance/contact-types" title="Contact Types" />
+                            <GodotLink link="/jvms/maintenance/address-types" title="Address Types" /> */}
                             <GodotLink link="/jvms/maintenance/nationalities" title="Nationalities" />
                             <GodotLink link="/jvms/maintenance/multi-birth-classification" title="Multi Birth Classication" />
                         </div>

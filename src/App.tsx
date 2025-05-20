@@ -139,7 +139,7 @@ function App() {
         {
             path: "/jvms",
             element: isAuthenticated ? <RootLayout /> : <Navigate to="/login" />,
-            // errorElement: <Error />,
+            errorElement: <Error />,
             children: [
                 {/*
                     index: true,

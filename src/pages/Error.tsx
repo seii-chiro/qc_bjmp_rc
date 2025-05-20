@@ -4,13 +4,13 @@ const Error = () => {
     return (
         <div className="w-full h-screen flex flex-col items-center justify-center bg-white">
             {/* Floating emoji */}
-            <motion.div
+            {/* <motion.div
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 className="text-6xl mb-4"
             >
                 😬
-            </motion.div>
+            </motion.div> */}
 
             {/* Error box */}
             <motion.div

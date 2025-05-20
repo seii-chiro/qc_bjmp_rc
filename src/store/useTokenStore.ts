@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 interface TokenStore {
   token: string | null;
@@ -9,9 +9,12 @@ interface TokenStore {
 export const useTokenStore = create<TokenStore>()(
   persist(
     (set) => ({
-      token: 'fjgfjgjf',
+      token: "",
       setToken: (token) => set(() => ({ token })),
     }),
-    { name: "token-storage" }
+    {
+      name: "token-storage",
+      storage: createJSONStorage(() => sessionStorage),
+    }
   )
 );
