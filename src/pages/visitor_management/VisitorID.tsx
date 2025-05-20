@@ -1,23 +1,60 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getVisitors } from '@/lib/queries'
 import { BASE_URL } from '@/lib/urls'
 import { useTokenStore } from '@/store/useTokenStore'
 import { useQuery } from '@tanstack/react-query'
-import { Select } from 'antd'
+import { Select, Pagination, Input } from 'antd'
 import { useState } from 'react'
 import img_placeholder from "@/assets/img_placeholder.jpg"
 import { toPng } from 'html-to-image';
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import { SearchOutlined } from '@ant-design/icons';
 
 const VisitorID = () => {
     const token = useTokenStore()?.token
     const [chosenVisitor, setChosenVisitor] = useState<string>("")
+    const [currentPage, setCurrentPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+    const [searchQuery, setSearchQuery] = useState("")
+    const [totalVisitors, setTotalVisitors] = useState(0)
 
-    const { data: visitors, isLoading: visitorsLoading } = useQuery({
-        queryKey: ['visitors', 'visitorID'],
-        queryFn: () => getVisitors(token ?? ""),
-    })
+    // Function to fetch paginated visitors with search
+    const fetchVisitors = async ({ pageParam = 1 }) => {
+        const searchParams = new URLSearchParams({
+            page: pageParam.toString(),
+            page_size: pageSize.toString(),
+        });
+
+        // Add search query if available
+        if (searchQuery) {
+            searchParams.append('search', searchQuery);
+        }
+
+        const res = await fetch(
+            `${BASE_URL}/api/visitors/visitor/?${searchParams.toString()}`,
+            {
+                headers: {
+                    Authorization: `Token ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        if (!res.ok) throw new Error("Failed to fetch visitors");
+        const data = await res.json();
+
+        // Update total count for pagination
+        setTotalVisitors(data.count || 0);
+
+        return data;
+    };
+
+    // Query for paginated visitors with search
+    const { data: visitors, isLoading: visitorsLoading, refetch: refetchVisitors } = useQuery({
+        queryKey: ['visitors', 'visitorID', currentPage, pageSize, searchQuery],
+        queryFn: () => fetchVisitors({ pageParam: currentPage }),
+        keepPreviousData: true,
+    });
 
     // Fetch visitor-specific logs when a visitor is chosen
     const { data: specificVisitor } = useQuery({
@@ -38,6 +75,31 @@ const VisitorID = () => {
         },
         enabled: !!chosenVisitor, // Only run when chosenVisitor is set
     });
+
+    // Handle page change
+    const handlePageChange = (page, pageSize) => {
+        setCurrentPage(page);
+        setPageSize(pageSize);
+    };
+
+    // Handle search input
+    const handleSearch = (value) => {
+        setSearchQuery(value);
+        setCurrentPage(1); // Reset to first page on new search
+    };
+
+    // Debounced search to prevent excessive API calls
+    const handleSearchInput = (e) => {
+        const value = e.target.value;
+        // Clear existing timeout
+        if (window.searchTimeout) {
+            clearTimeout(window.searchTimeout);
+        }
+        // Set new timeout
+        window.searchTimeout = setTimeout(() => {
+            handleSearch(value);
+        }, 500); // 500ms debounce
+    };
 
     const handleDownloadAll = async () => {
         const zip = new JSZip();
@@ -67,7 +129,16 @@ const VisitorID = () => {
     return (
         <div>
             <div className='w-full h-full flex flex-col gap-10 mt-10'>
-                <div>
+                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                    <div className="relative w-72">
+                        <Input
+                            placeholder="Search visitors..."
+                            prefix={<SearchOutlined />}
+                            onChange={handleSearchInput}
+                            className="h-10"
+                        />
+                    </div>
+
                     <Select
                         loading={visitorsLoading}
                         showSearch
@@ -79,6 +150,19 @@ const VisitorID = () => {
                             label: `${visitor?.person?.first_name ?? ""} ${visitor?.person?.middle_name ?? ""} ${visitor?.person?.last_name ?? ""}`,
                         })) ?? []}
                         onChange={value => { setChosenVisitor(value) }}
+                        notFoundContent={visitorsLoading ? 'Loading...' : 'No visitors found'}
+                    />
+                </div>
+
+                {/* Pagination component */}
+                <div className="mb-4">
+                    <Pagination
+                        current={currentPage}
+                        pageSize={pageSize}
+                        total={totalVisitors}
+                        onChange={handlePageChange}
+                        showSizeChanger
+                        showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} visitors`}
                     />
                 </div>
 
@@ -277,7 +361,8 @@ const VisitorID = () => {
                 <div className='w-full flex justify-center'>
                     <button
                         onClick={handleDownloadAll}
-                        className='bg-blue-500 text-white px-4 py-2 rounded w-40'
+                        disabled={!chosenVisitor}
+                        className={`${!chosenVisitor ? 'bg-gray-400' : 'bg-blue-500'} text-white px-4 py-2 rounded w-40`}
                     >
                         Download ID
                     </button>
