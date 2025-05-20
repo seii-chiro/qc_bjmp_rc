@@ -49,7 +49,7 @@ const Remarks = ({ setVisitorForm, currentUser, deleteRemarksByIndex }: Props) =
             key: index,
             timestamp: remarks?.timestamp,
             createdBy: remarks?.created_by,
-            remarks: spRemarks?.find(remark => remark?.id === remarks?.remark)?.remark ?? "N/A",
+            remarks: spRemarks?.results?.find(remark => remark?.id === remarks?.remark)?.remark ?? "N/A",
             actions: (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center items-center">
                     <button
@@ -121,7 +121,7 @@ const Remarks = ({ setVisitorForm, currentUser, deleteRemarksByIndex }: Props) =
             >
                 {currentUser && (
                     <RemarksForm
-                        spRemarks={spRemarks || []}
+                        spRemarks={spRemarks?.results || []}
                         spRemarksLoading={spRemarksLoading}
                         setRemarksTableInfo={setRemarksTableInfo}
                         setVisitorForm={setVisitorForm}
