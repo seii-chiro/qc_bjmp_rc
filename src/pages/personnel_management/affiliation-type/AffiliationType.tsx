@@ -34,6 +34,7 @@ const AffiliationType = () => {
     const [affiliationType, setAffiliationType] = useState<AffiliationType | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data, isLoading, error } = useQuery({
         queryKey: ['affiliation-types'],
@@ -65,7 +66,7 @@ const AffiliationType = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((affiliation, index) => (
+    const dataSource = data?.results?.map((affiliation, index) => (
         {
             key: index + 1,
             id: affiliation?.id,
@@ -85,18 +86,37 @@ const AffiliationType = () => {
     const columns: ColumnsType<AffiliationType> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Affiliation Type',
             dataIndex: 'affiliation_type',
             key: 'affiliation_type',
+            sorter: (a, b) => a.affiliation_type.localeCompare(b.affiliation_type),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.affiliation_type))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.affiliation_type === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",
@@ -143,7 +163,7 @@ const AffiliationType = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     
@@ -280,9 +300,15 @@ const AffiliationType = () => {
                 </div>
                 <div className="overflow-x-auto overflow-y-auto h-full">
                     <Table
+                        className="overflow-x-auto"
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{ x: 800 }}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>
