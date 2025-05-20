@@ -183,7 +183,10 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
     mutationKey: ['face-verification'],
     mutationFn: verifyFaceInWatchlist,
     onSuccess: (data) => {
-      message.warning(data['message']);
+      message.warning({
+        content: `Watchlist: ${data['message']}`,
+        duration: 10
+      });
     },
     onError: (error) => {
       message.info(error.message);
