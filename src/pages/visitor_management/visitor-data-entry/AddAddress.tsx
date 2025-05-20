@@ -421,10 +421,17 @@ const AddAddress = ({ setPersonForm, handleAddressCancel, countries, provinces, 
                                 optionFilterProp="label"
                                 disabled={!addressForm.region_id}
                                 className='mt-2 h-10 rounded-md outline-gray-300 w-full'
-                                options={filteredProvinces?.map((province) => ({
-                                    value: province?.id,
-                                    label: province?.desc,
-                                }))}
+                                options={filteredProvinces
+                                    // Filter out "Cotabato" if NCR is selected
+                                    .filter(province =>
+                                        !(regions.find(r => r.id === addressForm.region_id)?.desc === "National Capital Region (NCR)" &&
+                                            province.desc?.toLowerCase().includes("cotabato"))
+                                    )
+                                    .map((province) => ({
+                                        value: province?.id,
+                                        label: province?.desc,
+                                    }))
+                                }
                                 onChange={(value) => {
                                     setAddressForm(prev => (
                                         {
