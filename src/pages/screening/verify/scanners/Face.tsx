@@ -2,7 +2,7 @@
 import { captureFace, verifyFace } from '@/lib/scanner-queries'
 import { useMutation } from '@tanstack/react-query'
 import { message, Select } from 'antd'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import noImg from "@/assets/no-img.webp"
 import check from "@/assets/Icons/check-mark.png"
 import ex from "@/assets/Icons/close.png"
@@ -31,17 +31,33 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  useEffect(() => {
+    if (!deviceLoading && devices && devices.length > 0) {
+      const webcamDevice = devices.find(device =>
+        device?.device_name?.toLowerCase().includes("webcam")
+      );
+      if (webcamDevice) {
+        setSelectedDeviceId(webcamDevice.id);
+      }
+    }
+  }, [devices, deviceLoading]);
+
   const faceRegistrationMutation = useMutation({
     mutationKey: ['capture-face'],
     mutationFn: captureFace,
     onSuccess: (data) => {
-      setIcao(data?.images?.icao)
-      setVerificationPayload(prevState => ({ ...prevState, template: data.images.icao }))
+      setIcao(data?.images?.icao);
+      const payload = { ...verificationPayload, template: data.images.icao };
+      setVerificationPayload(payload);
+
+      // Automatically run verification after capture
+      verifyFaceMutation.mutate(payload);
+      verifyFaceInWatchlistMutation.mutate(payload);
     },
     onError: (error) => {
-      console.error(error)
+      console.error(error);
     }
-  })
+  });
 
   const handleCaptureFace = () => {
     faceRegistrationMutation.mutate()
@@ -193,15 +209,15 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
     },
   });
 
-  const handleVerifyFace = () => {
-    if (!selectedDeviceId) {
-      message.warning("Please select a device.")
-      return
-    } else {
-      verifyFaceMutation.mutate(verificationPayload)
-      verifyFaceInWatchlistMutation.mutate(verificationPayload)
-    }
-  };
+  // const handleVerifyFace = () => {
+  //   if (!selectedDeviceId) {
+  //     message.warning("Please select a device.")
+  //     return
+  //   } else {
+  //     verifyFaceMutation.mutate(verificationPayload)
+  //     verifyFaceInWatchlistMutation.mutate(verificationPayload)
+  //   }
+  // };
 
   let imageSrc = "";
 
@@ -239,26 +255,26 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
               <button onClick={handleCaptureFace}>Capture Face</button>
             </div>
             {
-              icao ? (
-                <div className="w-[50%] bg-green-500 text-white font-semibold px-3 py-1.5 rounded flex justify-center items-center">
-                  {
-                    verifyFaceMutation?.isPending ? (
-                      <button>
-                        Verifying
-                        <span className="animate-bounceDot1">.</span>
-                        <span className="animate-bounceDot2">.</span>
-                        <span className="animate-bounceDot3">.</span>
-                      </button>
-                    ) : (
-                      <button onClick={handleVerifyFace}>Verify Face</button>
-                    )
-                  }
-                </div>
-              ) : (
-                <div className="w-[50%] bg-gray-200 text-white font-semibold px-3 py-1.5 rounded flex justify-center items-center">
-                  <button>Verify Face</button>
-                </div>
-              )
+              // icao ? (
+              //   <div className="w-[50%] bg-green-500 text-white font-semibold px-3 py-1.5 rounded flex justify-center items-center">
+              //     {
+              //       verifyFaceMutation?.isPending ? (
+              //         <button>
+              //           Verifying
+              //           <span className="animate-bounceDot1">.</span>
+              //           <span className="animate-bounceDot2">.</span>
+              //           <span className="animate-bounceDot3">.</span>
+              //         </button>
+              //       ) : (
+              //         <button onClick={handleVerifyFace}>Verify Face</button>
+              //       )
+              //     }
+              //   </div>
+              // ) : (
+              //   <div className="w-[50%] bg-gray-200 text-white font-semibold px-3 py-1.5 rounded flex justify-center items-center">
+              //     <button>Verify Face</button>
+              //   </div>
+              // )
             }
           </div>
         </div>
@@ -369,10 +385,13 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
           showSearch
           optionFilterProp="label"
           className="h-10 w-72"
-          options={devices?.map(device => ({
-            label: device?.device_name,
-            value: device?.id
-          }))}
+          options={devices
+            ?.filter(device => device?.device_name?.toLowerCase().includes("webcam"))
+            .map(device => ({
+              label: device?.device_name,
+              value: device?.id
+            }))
+          }
           value={selectedDeviceId || undefined}
           onChange={value => {
             setSelectedDeviceId(value)

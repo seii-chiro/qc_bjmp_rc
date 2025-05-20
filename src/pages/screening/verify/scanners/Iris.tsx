@@ -3,7 +3,7 @@ import { IrisCapturePayload, IrisCaptureResponse } from "@/lib/scanner-definitio
 import { captureIris, getIrisScannerInfo, uninitIrisScanner, verifyIris } from "@/lib/scanner-queries"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { Checkbox, message, Select } from "antd"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 import noImg from "@/assets/no-img.webp"
 import check from "@/assets/Icons/check-mark.png"
 import ex from "@/assets/Icons/close.png"
@@ -32,6 +32,20 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
   const [irsCaptureResponse, setIrisCaptureResponse] = useState<IrisCaptureResponse | null>(null)
   const [irisScannerReady, setIrisScannerReady] = useState(false)
   const [irisVerificationResponse, setIrisVerificationResponse] = useState<any>(null)
+
+  const irisDevices = useMemo(
+    () =>
+      devices?.results?.filter(device =>
+        device?.device_name?.toLowerCase().includes('iris scanner')
+      ) || [],
+    [devices]
+  );
+
+  useEffect(() => {
+    if (!deviceLoading && irisDevices.length > 0) {
+      setSelectedDeviceId(irisDevices[0].id);
+    }
+  }, [deviceLoading, irisDevices]);
 
   const { data: visitation_status } = useQuery({
     queryKey: ['get-visitation-status', 'qr-reader'],
@@ -229,6 +243,19 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
       setIrisCaptureResponse(data)
       if (data?.ErrorDescription === "Success") {
         message.success(data?.ErrorDescription)
+        // Automatically verify after successful capture
+        if (data?.ImgDataLeft || data?.ImgDataRight) {
+          if (!selectedDeviceId) {
+            message.warning("Please select a device.");
+            return;
+          }
+          // Only verify one iris at a time, prioritizing left
+          if (data?.ImgDataLeft) {
+            verifyIrisMutation.mutate({ template: data?.ImgDataLeft ?? "", type: "iris" });
+          } else if (data?.ImgDataRight) {
+            verifyIrisMutation.mutate({ template: data?.ImgDataRight ?? "", type: "iris" });
+          }
+        }
       } else {
         message.error(data?.ErrorDescription)
       }
@@ -317,7 +344,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
                     <img src={`data:image/bmp;base64,${irsCaptureResponse?.ImgDataLeft}`} className="w-full h-full object-contain" />
                   </div>
                 </div>
-              </div>
+              </div>.
               <div className="flex gap-4">
                 <button
                   onClick={() => irisScannerCaptureMutation.mutate()}
@@ -325,35 +352,17 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
                   className="bg-[#1976D2] text-white px-10 py-2 rounded-md w-52">
                   Capture Iris
                 </button>
-                {
-                  irsCaptureResponse?.ImgDataLeft || irsCaptureResponse?.ImgDataRight ? (
-                    verifyIrisMutation?.isPending ? (
-                      <button
-                        type="button"
-                        disabled={processingRef.current || isFetching} // Disable while processing
-                        className={`bg-[#1976D2] text-white px-10 py-2 rounded-md w-52 ${(irisScannerReady && !processingRef.current && !isFetching) ? "opacity-100" : "opacity-20"}`}>
-                        Verifying Iris
-                        <span className="animate-bounceDot1">.</span>
-                        <span className="animate-bounceDot2">.</span>
-                        <span className="animate-bounceDot3">.</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleVerifyIris}
-                        type="button"
-                        disabled={processingRef.current || isFetching} // Disable while processing
-                        className={`bg-[#1976D2] text-white px-10 py-2 rounded-md w-52 ${(irisScannerReady && !processingRef.current && !isFetching) ? "opacity-100" : "opacity-20"}`}>
-                        Verify Iris
-                      </button>
-                    )
-                  ) : (
-                    <button
-                      type="button"
-                      className="bg-[#1976D2] text-white px-10 py-2 rounded-md w-52 opacity-20">
-                      Verify Iris
-                    </button>
-                  )
-                }
+                {verifyIrisMutation?.isPending && (
+                  <button
+                    type="button"
+                    disabled
+                    className="bg-[#1976D2] text-white px-10 py-2 rounded-md w-52 opacity-60">
+                    Verifying Iris
+                    <span className="animate-bounceDot1">.</span>
+                    <span className="animate-bounceDot2">.</span>
+                    <span className="animate-bounceDot3">.</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -461,12 +470,10 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
           showSearch
           optionFilterProp="label"
           className="h-10 w-72"
-          options={devices?.results
-            ?.filter(device => device?.device_name?.includes('Iris'))
-            ?.map(device => ({
-              label: device.device_name,
-              value: device.id
-            }))}
+          options={irisDevices.map(device => ({
+            label: device.device_name,
+            value: device.id
+          }))}
           value={selectedDeviceId || undefined}
           onChange={value => {
             setSelectedDeviceId(value)
