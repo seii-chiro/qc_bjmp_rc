@@ -362,7 +362,7 @@ const PDLtable = () => {
                     </button>
                 </div>
                 <div className="flex gap-2 items-center">
-                    <Input placeholder="Search Personnel..." value={searchText} className="py-2 md:w-64 w-full" onChange={(e) => setSearchText(e.target.value)} />
+                    <Input placeholder="Search PDL..." value={searchText} className="py-2 md:w-64 w-full" onChange={(e) => setSearchText(e.target.value)} />
                 </div>
             </div>
             <Table
