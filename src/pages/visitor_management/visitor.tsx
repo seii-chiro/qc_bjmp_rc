@@ -42,9 +42,8 @@ const Visitor = () => {
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const navigate = useNavigate();
     const [page, setPage] = useState(1);
-    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const limit = 10;
-    const [allVisitors, setAllVisitors] = useState<Visitor[]>([]);
+    const [allVisitor, setAllVisitor] = useState<VisitorRecord[]>([]);
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -56,7 +55,7 @@ const Visitor = () => {
             });
             if (res.ok) {
                 const data = await res.json();
-                setAllVisitors(data.results || []);
+                setAllVisitor(data.results || []);
             }
         };
         fetchAll();
@@ -165,9 +164,9 @@ const Visitor = () => {
     );
 
 
-    const dataSource = data?.results?.map((visitor, index) => ({
+    const dataSource = data?.results?.map((visitor) => ({
         ...visitor,
-        key: ((page - 1) * limit) + index + 1,
+        key: visitor.id,
         visitor_reg_no: visitor?.visitor_reg_no,
         visitor_type: visitor?.visitor_type,
         nationality: visitor?.person?.nationality,
@@ -184,7 +183,8 @@ const Visitor = () => {
     const columns: ColumnsType<Visitor> = [
         {
             title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
         },
         {
             title: 'Visitor No.',
@@ -192,12 +192,9 @@ const Visitor = () => {
             key: 'visitor_reg_no',
             sorter: (a, b) => a.visitor_reg_no.localeCompare(b.visitor_reg_no),
             filters: [
-                ...Array.from(
-                    new Set(allVisitors.map(item => item.visitor_reg_no))
-                ).map(visitor_reg_no => ({
-                    text: visitor_reg_no,
-                    value: visitor_reg_no,
-                }))
+                ...Array.from(new Set(allVisitor.map(item => item.visitor_reg_no)))
+                    .filter(Boolean)
+                    .map(val => ({ text: val, value: val }))
             ],
             onFilter: (value, record) => record.visitor_reg_no === value,
         },
@@ -214,16 +211,13 @@ const Visitor = () => {
             },
             filters: [
                 ...Array.from(
-                    new Set(allVisitors.map(item => `${item?.person?.first_name ?? ''} ${item?.person?.middle_name ?? ''} ${item?.person?.last_name ?? ''}`.trim()))
-                ).map(name => ({
-                    text: name,
-                    value: name,
+                    new Set(allVisitor.map(item => item.person?.last_name))
+                ).map(last_name => ({
+                    text: last_name,
+                    value: last_name,
                 }))
             ],
-            onFilter: (value, record) => {
-                const fullName = `${record?.person?.first_name ?? ''} ${record?.person?.middle_name ?? ''} ${record?.person?.last_name ?? ''}`.trim();
-                return fullName === value;
-            },
+            onFilter: (value, record) => record.person?.last_name === value,
         },
         {
             title: 'Gender',
@@ -232,10 +226,10 @@ const Visitor = () => {
             sorter: (a, b) => a.person?.gender?.gender_option.localeCompare(b.person?.gender?.gender_option),
             filters: [
                 ...Array.from(
-                    new Set(allVisitors.map(item => item.person?.gender?.gender_option))
-                ).map(gender => ({
-                    text: gender,
-                    value: gender,
+                    new Set(allVisitor.map(item => item.person?.gender?.gender_option))
+                ).map(name => ({
+                    text: name,
+                    value: name,
                 }))
             ],
             onFilter: (value, record) => record.person?.gender?.gender_option === value,
@@ -247,13 +241,14 @@ const Visitor = () => {
             sorter: (a, b) => a.visitor_type.localeCompare(b.visitor_type),
             filters: [
                 ...Array.from(
-                    new Set(allVisitors.map(item => item.visitor_type))
+                    new Set(allVisitor.map(item => item.visitor_type))
                 ).map(visitor_type => ({
                     text: visitor_type,
                     value: visitor_type,
                 }))
             ],
             onFilter: (value, record) => record.visitor_type === value,
+
         },
         {
             title: 'Approved By',
@@ -262,7 +257,7 @@ const Visitor = () => {
             sorter: (a, b) => a.approved_by.localeCompare(b.approved_by),
             filters: [
                 ...Array.from(
-                    new Set(allVisitors.map(item => item.approved_by))
+                    new Set(allVisitor.map(item => item.approved_by))
                 ).map(approved_by => ({
                     text: approved_by,
                     value: approved_by,
@@ -275,7 +270,6 @@ const Visitor = () => {
             key: "action",
             render: (_, record) => (
                 <div className="flex gap-2">
-
                     <Button
                         type="link"
                         onClick={(e) => {
@@ -333,6 +327,7 @@ const Visitor = () => {
             <p className="mt-1 w-full bg-[#F9F9F9] rounded-md px-2 py-[1px] text-[13px] break-words">{info || ""}</p>
         </div>
     );
+
     const fetchAllVisitors = async () => {
         const res = await fetch(`${BASE_URL}/api/visitors/visitor/?limit=100000`, {
             headers: {

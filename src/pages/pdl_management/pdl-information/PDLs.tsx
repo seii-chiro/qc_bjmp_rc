@@ -165,9 +165,8 @@ const PDLtable = () => {
                 ),
     };
 
-    const dataSource = filteredPDLs?.results?.map((pdl, index) => ({
-        key: ((page - 1) * limit) + index + 1,
-        id: pdl?.id ?? 'N/A',
+    const dataSource = filteredPDLs?.results?.map((pdl) => ({
+        key: pdl.id,
         pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
         first_name: pdl?.person?.first_name ?? 'N/A',
         middle_name: pdl?.person?.middle_name ?? '',
@@ -191,7 +190,8 @@ const PDLtable = () => {
     const columns: ColumnsType<PDLs> = [
         {
             title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
         },
         {
             title: 'PDL Name',

@@ -14,6 +14,7 @@ import {
 import {
   DeviceSettingPayload,
   EditDeviceSettingRecord,
+  GroupResponse,
   MainGateLog,
   NonPDLVisitorPayload,
   OTPAccount,
@@ -757,6 +758,56 @@ export const deleteWatchlistPersonBiometric = async (
 
   if (!response.ok) {
     throw new Error("Failed to delete Watchlist Person Biometric");
+  }
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
+};
+
+export async function getGroupAffiliation(
+  token: string
+): Promise<GroupResponse[]> {
+  const res = await fetch(`${BASE_URL}/api/service-providers/service-provider-group-affiliations/`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch Group Response data.");
+  }
+  return res.json();
+}
+
+export const patchGroupAffiliation = async (
+  token: string,
+  id: number,
+  data: Partial<GroupResponse>
+): Promise<GroupResponse> => {
+  const url = `${BASE_URL}/api/service-providers/service-provider-group-affiliations/${id}/`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update Group Response");
+  return res.json();
+};
+
+export const deleteGroupAffiliation = async (token: string, id: number) => {
+  const response = await fetch(
+    `${BASE_URL}/api/service-providers/service-provider-group-affiliations/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error("Failed to delete Group Affiliation");
   }
   const text = await response.text();
   return text ? JSON.parse(text) : {};

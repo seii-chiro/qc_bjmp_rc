@@ -1,4 +1,4 @@
-import { GroupAffiliationResponse } from '@/lib/issues-difinitions';
+import { GroupResponse } from '@/lib/issues-difinitions';
 import { getUser } from '@/lib/queries';
 import { deleteGroupAffiliation, getGroupAffiliation, patchGroupAffiliation } from '@/lib/query';
 import { useTokenStore } from '@/store/useTokenStore';
@@ -26,7 +26,7 @@ const GroupAffiliation = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-        const [groupAffiliation, setGroupAffiliation] = useState<GroupAffiliationResponse | null>(null);
+        const [groupAffiliation, setGroupAffiliation] = useState<GroupResponse | null>(null);
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     
 
@@ -60,7 +60,7 @@ const GroupAffiliation = () => {
     };
 
     const { mutate: editGangAffiliation, isLoading: isUpdating } = useMutation({
-        mutationFn: (updated: GroupAffiliationResponse) =>
+        mutationFn: (updated: GroupResponse) =>
             patchGroupAffiliation(token ?? "", updated.id, updated),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["group-affiliation"] });
@@ -72,7 +72,7 @@ const GroupAffiliation = () => {
         },
     });
 
-    const handleEdit = (record: GroupAffiliationResponse) => {
+    const handleEdit = (record: GroupResponse) => {
         setGroupAffiliation(record);
         form.setFieldsValue(record);
         setIsEditModalOpen(true);
@@ -80,7 +80,7 @@ const GroupAffiliation = () => {
 
     const handleUpdate = (values: any) => {
         if (groupAffiliation && groupAffiliation.id) {
-            const updatedGangAffiliation: GroupAffiliationResponse = {
+            const updatedGangAffiliation: GroupResponse = {
                 ...groupAffiliation,
                 ...values,
             };
@@ -106,7 +106,7 @@ const GroupAffiliation = () => {
         )
     );
     
-        const columns: ColumnsType<GroupAffiliationResponse> = [
+        const columns: ColumnsType<GroupResponse> = [
             {
                 title: 'No.',
                 render: (_: any, __: any, index: number) =>
@@ -145,7 +145,7 @@ const GroupAffiliation = () => {
             {
             title: "Actions",
             key: "actions",
-            render: (_: any, record: GroupAffiliationResponse) => (
+            render: (_: any, record: GroupResponse) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
                         <Button type="link" onClick={() => handleEdit(record)}>
                             <AiOutlineEdit />

@@ -91,12 +91,30 @@ const ID_Types = () => {
             dataIndex: 'id_type',
             key: 'id_type',
             sorter: (a, b) => a.id_type.localeCompare(b.id_type),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.id_type))
+                ).map(id_type => ({
+                    text: id_type,
+                    value: id_type,
+                }))
+            ],
+            onFilter: (value, record) => record.id_type === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(description => ({
+                    text: description,
+                    value: description,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",
@@ -143,7 +161,7 @@ const ID_Types = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     

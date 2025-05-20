@@ -122,9 +122,8 @@ const Personnel = () => {
         },
     });
 
-    const dataSource = data?.results?.map((personnel, index) => ({
-        id: personnel?.id,
-        key: ((page - 1) * limit) + index + 1,
+    const dataSource = data?.results?.map((personnel) => ({
+        key: personnel.id,
         organization: personnel?.organization ?? '',
         personnel_reg_no: personnel?.personnel_reg_no ?? '',
         person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
@@ -149,7 +148,8 @@ const Personnel = () => {
     const columns: ColumnType<PersonnelForm> = [
         {
             title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
         },
         {
             title: 'Personnel No.',

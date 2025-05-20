@@ -896,3 +896,21 @@ export type WatchlistPerson = {
   mitigation: string;
   remarks: string;
 }
+
+interface GroupResponse {
+  count: number;
+  next: string | null; // It can be null if there's no next page
+  previous: string | null; // It can be null if there's no previous page
+  results: GroupRecord[];
+}
+
+interface GroupRecord {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  created_at: string; // Alternatively, you can use Date if you parse it
+  updated_at: string; // Alternatively, you can use Date if you parse it
+  name: string;
+  description: string;
+}

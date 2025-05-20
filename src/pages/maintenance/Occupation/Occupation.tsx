@@ -216,7 +216,7 @@ const Occupation = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 26; 
     
         let startY = headerHeight;
     

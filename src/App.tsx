@@ -182,7 +182,7 @@ function App() {
                     element: <JailFacility />
                 },
                 {
-                    path: "assets/levels",
+                    path: "assets/level",
                     element: <Level />
                 },
                 {

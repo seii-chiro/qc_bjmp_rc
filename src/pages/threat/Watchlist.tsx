@@ -121,9 +121,8 @@ useEffect(() => {
             const data = await res.json();
 
             // Transform the data for export
-            const formattedData = data.results.map((watchlist, index) => ({
-                key: index + 1,
-                id: watchlist?.id,
+            const formattedData = data.results.map((watchlist) => ({
+                key: watchlist.id,
                 person: watchlist?.person ?? '',
                 white_listed_type: watchlist?.white_listed_type ?? '',
                 risk_level: watchlist?.risk_level ?? '',
@@ -182,7 +181,7 @@ useEffect(() => {
         {
             title: 'No.',
             key: 'no',
-            render: (_: any, __: any, index: number) => index + 1,
+            render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
         },
         {
             title: 'Person Name',

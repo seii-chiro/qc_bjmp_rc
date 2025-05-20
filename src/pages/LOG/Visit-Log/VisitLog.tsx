@@ -1,13 +1,54 @@
+import { MainGateLog } from '@/lib/issues-difinitions';
+import { PaginatedResponse } from '@/lib/queries';
 import { getMainGate, getPDLStation, getVisitorStation } from '@/lib/query';
 import { useTokenStore } from '@/store/useTokenStore';
 import { useQuery } from '@tanstack/react-query';
 import { Input, Button, Table } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const VisitLog = () => {
   const [searchText, setSearchText] = useState('');
   const [view, setView] = useState<'Main Gate' | 'Visitor' | 'PDL'>('Main Gate');
   const token = useTokenStore().token;
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+    useEffect(() => {
+        const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
+        return () => clearTimeout(timeout);
+    }, [searchText]);
+
+    const { data: searchData, isLoading: searchLoading } = useQuery({
+        queryKey: ["", debouncedSearch],
+        queryFn: () => fetchPersonnels(debouncedSearch),
+        behavior: keepPreviousData(),
+        enabled: debouncedSearch.length > 0,
+    });
+  const { data, isFetching } = useQuery({
+        queryKey: ['main-gate', 'maingate-table', page],
+        queryFn: async (): Promise<PaginatedResponse<MainGateLog>> => {
+            // Add offset parameter for Django REST Framework's pagination
+            const offset = (page - 1) * limit;
+            const res = await fetch(
+                `${BASE_URL}/api/codes/personnel/?page=${page}&limit=${limit}&offset=${offset}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch Personnel data.');
+            }
+
+            return res.json();
+        },
+        behavior: keepPreviousData(),
+    });
 
   const { data: mainGateData, isLoading: mainGateLogsLoading } = useQuery({
     queryKey: ['main-gate'],
@@ -67,14 +108,16 @@ const VisitLog = () => {
   });
 
   const columns = [
-    { title: 'No.', dataIndex: 'key', key: 'key' },
+    { title: 'No.',
+      render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+     },
     {
       title: 'Timestamp',
       dataIndex: 'timestamp',
       key: 'timestamp',
       render: (text) => new Date(text).toLocaleString(),
-      sorter: (a, b) => new Date(a.timestamp) - new Date(b.timestamp), // Ascending order
-      defaultSortOrder: 'descend', // Default to descending order to show latest first
+      sorter: (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+      defaultSortOrder: 'descend', 
     },
     {
       title: 'Visitor Name',
@@ -85,6 +128,15 @@ const VisitLog = () => {
         const nameB = b.visitor.toLowerCase();
         return nameA.localeCompare(nameB); 
       },
+      filters: [
+        ...Array.from(
+            new Set(filteredData.map(item => item.visitor))
+        ).map(visitor => ({
+            text: visitor,
+            value: visitor,
+        }))
+      ],
+      onFilter: (value, record) => record.visitor === value,
     },
     {
       title: 'Visitor Type',
@@ -154,12 +206,15 @@ const VisitLog = () => {
       {/* Scrollable Table Container */}
       <div className="overflow-y-auto" style={{ maxHeight: '90vh' }}>
         <Table
-          loading={tableIsLoading}
-          dataSource={filteredData}
-          columns={columns}
-          rowKey="id"
-          pagination={false}
-          scroll={{ y: '72vh' }}
+            className="overflow-x-auto"
+            columns={columns}
+            dataSource={filteredData}
+            scroll={{ x: 'max-content' }} 
+            pagination={{
+                current: pagination.current,
+                pageSize: pagination.pageSize,
+                onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+            }}
         />
       </div>
     </div>
