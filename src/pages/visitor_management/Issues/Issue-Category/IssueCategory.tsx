@@ -94,10 +94,9 @@ const handleUpdate = (values: any) => {
     }
 };
 
-    const dataSource = data?.results?.map((issue_category, index) => (
+    const dataSource = data?.results?.map((issue_category) => (
         {
-            key: index + 1,
-            id: issue_category?.id ?? 'N/A',
+            key: issue_category?.id,
             name: issue_category?.name ?? 'N/A',
             description: issue_category?.description ?? 'N/A',
             updated_at: issue_category?.updated_at ?? 'N/A',
@@ -114,9 +113,11 @@ const handleUpdate = (values: any) => {
     );
 
     const columns: ColumnsType<IssueCategory> = [
-        {
+         {
             title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Issue Category',
@@ -247,8 +248,8 @@ const handleUpdate = (values: any) => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+        const tableData = dataSource.map((item, index) => [
+    index + 1,
             item.name,
             item.description,
         ]);
@@ -344,7 +345,17 @@ const handleUpdate = (values: any) => {
                 </button>
             </div>
         </div>
-        <Table columns={columns} dataSource={filteredData} />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
         <Modal
                 title="Issue Category Report"
                 open={isPdfModalOpen}

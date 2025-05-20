@@ -58,9 +58,8 @@ const DeviceSetting = () => {
         },
     });
 
-    const dataSource = DeviceSettingData?.results?.map((device_setting, index) => ({
-        key: index + 1,
-        id: device_setting?.id ?? '',
+    const dataSource = DeviceSettingData?.results?.map((device_setting) => ({
+        key: device_setting.id,
         device: device_setting?.device ?? '',
         settingKey: device_setting?.key ?? '',
         value: device_setting?.value ?? '',
@@ -76,11 +75,11 @@ const DeviceSetting = () => {
     );
 
     const columns: ColumnsType<DeviceSettingPayload> = [
-        {
+         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
-            render: (_, __, index) => index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Device',
@@ -88,14 +87,14 @@ const DeviceSetting = () => {
             key: 'device',
             sorter: (a, b) => a.device.localeCompare(b.device),
             filters: [
-                { text: 'Mantra MATIS X Dual Iris Scanner', value: 'Mantra MATIS X Dual Iris Scanner' },
-                { text: 'Mantra MORPHS 442 Slap Fingerprint Scanner', value: 'Mantra MORPHS 442 Slap Fingerprint Scanner' },
+                ...Array.from(
+                    new Set(filteredData.map(item => item.device))
+                ).map(device => ({
+                    text: device,
+                    value: device,
+                }))
             ],
-            onFilter: (value, record) => {
-                const matchesFilter = record.device === value;
-                const matchesSearch = record.device.toLowerCase().includes(searchText.toLowerCase());
-                return matchesFilter && matchesSearch;
-            },
+            onFilter: (value, record) => record.device === value,
         },
         {
             title: 'Setting Key',
@@ -103,8 +102,12 @@ const DeviceSetting = () => {
             key: 'settingKey',
             sorter: (a, b) => a.settingKey.localeCompare(b.settingKey),
             filters: [
-                { text: 'NFIQ_Quality', value: 'NFIQ_Quality' },
-                { text: 'TimeOut', value: 'TimeOut' },
+                ...Array.from(
+                    new Set(filteredData.map(item => item.settingKey))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
             ],
             onFilter: (value, record) => record.settingKey === value,
         },
@@ -120,8 +123,12 @@ const DeviceSetting = () => {
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
             filters: [
-                { text: 'To set threshold for reading fingerprint.', value: 'To set threshold for reading fingerprint.' },
-                { text: 'Set timeout when reading.', value: 'Set timeout when reading.' },
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(description => ({
+                    text: description,
+                    value: description,
+                }))
             ],
             onFilter: (value, record) => record.description === value,
         },
@@ -193,8 +200,8 @@ const DeviceSetting = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+        const tableData = dataSource.map((item, index) => [
+    index + 1,
             item.device,
             item.settingKey,
             item.value,
@@ -292,7 +299,17 @@ const DeviceSetting = () => {
                 </button>
             </div>
             <div>
-                <Table className="overflow-x-auto" dataSource={filteredData} columns={columns} scroll={{ x: 'max-content' }}  />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             </div>
             <Modal
                 title="Devices Setting Report"

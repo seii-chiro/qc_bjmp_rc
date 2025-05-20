@@ -100,6 +100,15 @@ const Device = () => {
             dataIndex: 'device_type',
             key: 'device_type',
             sorter: (a, b) => a.device_type.localeCompare(b.device_type),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.device_type))
+                ).map(device_type => ({
+                    text: device_type,
+                    value: device_type,
+                }))
+            ],
+            onFilter: (value, record) => record.device_type === value,
         },
         
         {
@@ -107,42 +116,105 @@ const Device = () => {
             dataIndex: 'device_name',
             key: 'device_name',
             sorter: (a, b) => a.device_name.localeCompare(b.device_name),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.device_name))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.device_name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(description => ({
+                    text: description,
+                    value: description,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: 'Jail',
             dataIndex: 'jail',
             key: 'jail',
             sorter: (a, b) => a.jail.localeCompare(b.jail),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.jail))
+                ).map(jail => ({
+                    text: jail,
+                    value: jail,
+                }))
+            ],
+            onFilter: (value, record) => record.jail === value,
         },
         {
             title: 'Jail Area',
             dataIndex: 'area',
             key: 'area',
             sorter: (a, b) => a.area.localeCompare(b.area),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.area))
+                ).map(area => ({
+                    text: area,
+                    value: area,
+                }))
+            ],
+            onFilter: (value, record) => record.area === value,
         },
         {
             title: 'Serial No.',
             dataIndex: 'serial_no',
             key: 'serial_no',
             sorter: (a, b) => a.serial_no.localeCompare(b.serial_no),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.serial_no))
+                ).map(serial_no => ({
+                    text: serial_no,
+                    value: serial_no,
+                }))
+            ],
+            onFilter: (value, record) => record.serial_no === value,
         },
         {
             title: 'Manufacturer',
             dataIndex: 'manufacturer',
             key: 'manufacturer',
             sorter: (a, b) => a.manufacturer.localeCompare(b.manufacturer),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.manufacturer))
+                ).map(manufacturer => ({
+                    text: manufacturer,
+                    value: manufacturer,
+                }))
+            ],
+            onFilter: (value, record) => record.manufacturer === value,
         },
         {
             title: 'Supplier',
             dataIndex: 'supplier',
             key: 'supplier',
             sorter: (a, b) => a.supplier.localeCompare(b.supplier),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.supplier))
+                ).map(supplier => ({
+                    text: supplier,
+                    value: supplier,
+                }))
+            ],
+            onFilter: (value, record) => record.supplier === value,
         },
         {
             title: "Actions",

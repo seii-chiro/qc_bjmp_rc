@@ -14,6 +14,8 @@ import {
 import {
   DeviceSettingPayload,
   EditDeviceSettingRecord,
+  EditResponse,
+  GroupAffiliationResponse,
   GroupRecord,
   MainGateLog,
   NonPDLVisitorPayload,
@@ -764,51 +766,51 @@ export const deleteWatchlistPersonBiometric = async (
 };
 
 export async function getGroupAffiliation(
-  token: string
-): Promise<GroupRecord> {
-  const res = await fetch(`${BASE_URL}/api/service-providers/service-provider-group-affiliations/`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
-  if (!res.ok) {
-    throw new Error("Failed to fetch Group Response data.");
-  }
-  return res.json();
+    token: string
+    ): Promise<GroupAffiliationResponse[]> {
+    const res = await fetch(`${BASE_URL}/api/service-providers/service-provider-group-affiliations/`, {
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+        },
+    });
+    if (!res.ok) {
+        throw new Error("Failed to fetch Group Affiliation data.");
+    }
+    return res.json();
 }
 
-export const patchGroupAffiliation = async (
-  token: string,
-  id: number,
-  data: Partial<GroupRecord>
-): Promise<GroupRecord> => {
-  const url = `${BASE_URL}/api/service-providers/service-provider-group-affiliations/${id}/`;
-  const res = await fetch(url, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error("Failed to update Device Setting");
-  return res.json();
+export const deleteGroupAffiliation = async (token: string, id: number) => {
+    const response = await fetch(
+        `${BASE_URL}/api/service-providers/service-provider-group-affiliations/${id}/`,
+        {
+        method: "DELETE",
+        headers: {
+            Authorization: `Token ${token}`,
+        },
+        }
+    );
+    if (!response.ok) {
+        throw new Error("Failed to delete Group Affiliations Person");
+    }
+    const text = await response.text();
+    return text ? JSON.parse(text) : {};
 };
 
-export const deleteGroupAffiliation = async (token: string, id: number) => {
-  const response = await fetch(
-    `${BASE_URL}/api/service-providers/service-provider-group-affiliations/${id}/`,
-    {
-      method: "DELETE",
-      headers: {
+export const patchGroupAffiliation = async (
+    token: string,
+    id: number,
+    data: Partial<EditResponse>
+    ): Promise<EditResponse> => {
+    const url = `${BASE_URL}/api/service-providers/service-provider-group-affiliations/${id}/`;
+    const res = await fetch(url, {
+        method: "PATCH",
+        headers: {
+        "Content-Type": "application/json",
         Authorization: `Token ${token}`,
-      },
-    }
-  );
-  if (!response.ok) {
-    throw new Error("Failed to delete Group Affiliation");
-  }
-  const text = await response.text();
-  return text ? JSON.parse(text) : {};
+        },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Failed to update Group Affiliation");
+    return res.json();
 };

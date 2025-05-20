@@ -64,10 +64,9 @@ const Looks = () => {
     },
     });
 
-    const dataSource = data?.results?.map((look, index) => (
+    const dataSource = data?.results?.map((look) => (
         {
-            key: index + 1,
-            id: look?.id ?? 'N/A',
+            key: look.id,
             name: look?.name ?? 'N/A',
             description: look?.description ?? 'N/A',
             updated_by: look?.updated_by ?? 'N/A',
@@ -83,9 +82,11 @@ const Looks = () => {
         )
     );
     const columns: ColumnsType<LookProps> = [
-        {
+         {
             title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Look',
@@ -212,8 +213,8 @@ const Looks = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+        const tableData = dataSource.map((item, index) => [
+            index + 1,
             item.name,
             item.description,
         ]);
@@ -312,7 +313,17 @@ const Looks = () => {
             </div>
             </div>
             <div>
-            <Table columns={columns} dataSource={filteredData} />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             </div>
             <Modal
                 title="Look Report"

@@ -63,9 +63,8 @@ const EmploymentType = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.results?.map((employmenttype, index) => ({
-        key: index + 1,
-        id: employmenttype.id,
+    const dataSource = data?.results?.map((employmenttype) => ({
+        key: employmenttype.id,
         employment_type: employmenttype?.employment_type ?? "N/A",
         description: employmenttype?.description ?? "N/A",
         organization: employmenttype?.organization ?? "Bureau of Jail Management and Penology",
@@ -81,7 +80,9 @@ const EmploymentType = () => {
     const columns: ColumnsType<EmploymentType> = [
         {
             title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Employment Type',
@@ -158,7 +159,7 @@ const EmploymentType = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     
@@ -187,8 +188,8 @@ const EmploymentType = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+        const tableData = dataSource.map((item, index) => [
+            index + 1,
             item.employment_type,
             item.description,
         ]);
@@ -291,9 +292,15 @@ const EmploymentType = () => {
                 </div>
                 <div className="overflow-x-auto overflow-y-auto h-full">
                     <Table
+                        className="overflow-x-auto"
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{ x: 800 }}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

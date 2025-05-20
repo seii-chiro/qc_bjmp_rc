@@ -108,10 +108,9 @@ const Court = () => {
             messageApi.error("Selected Court is invalid");
         }
     };
-    const dataSource = data?.results?.map((court, index) => (
+    const dataSource = data?.results?.map((court) => (
         {
-            key: index + 1,
-            id: court?.id ?? 'N/A',
+            key: court.id,
             court: court?.court ?? 'N/A',
             description: court?.description ?? 'N/A',
             updated_by: court?.updated_by ?? 'N/A',
@@ -128,9 +127,11 @@ const Court = () => {
     );
 
     const columns: ColumnType<EditCourt> = [
-        {
+         {
             title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Court',
@@ -257,8 +258,8 @@ const Court = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+        const tableData = dataSource.map((item, index) => [
+    index + 1,
             item.court,
             item.description,
         ]);
@@ -347,11 +348,17 @@ const Court = () => {
                 </div>
                 
             </div>
-            <Table
-                columns={columns}
-                dataSource={filteredData}
-                scroll={{ x: "max-content" }}
-            />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             <Modal
                 title="Judicial Court Report"
                 open={isPdfModalOpen}

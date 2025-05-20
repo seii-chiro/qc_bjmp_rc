@@ -89,9 +89,11 @@ const Prefixes = () => {
     );
 
     const columns: ColumnsType<PrefixesProps> = [
-        {
+         {
             title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Prefix',
@@ -216,7 +218,7 @@ const Prefixes = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     
@@ -245,8 +247,8 @@ const Prefixes = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+        const tableData = dataSource.map((item, index) => [
+    index + 1,
             item.prefix,
             item.full_title,
             item.description,
@@ -347,7 +349,17 @@ const Prefixes = () => {
                 </div>
 
             </div>
-            <Table dataSource={filteredData} columns={columns} />
+                                <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             <Modal
                 title="Prefixes Report"
                 open={isPdfModalOpen}

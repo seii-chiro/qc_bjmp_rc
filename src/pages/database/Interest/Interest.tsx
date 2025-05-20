@@ -62,10 +62,9 @@ const Interest = () => {
         },
     });
 
-    const dataSource = data?.results?.map((interest, index) => (
+    const dataSource = data?.results?.map((interest) => (
         {
-            key: index + 1,
-            id: interest?.id ?? 'N/A',
+            key: interest.id,
             name: interest?.name ?? 'N/A',
             description: interest?.description ?? 'N/A',
             organization: interest?.organization ?? 'Bureau of Jail Management and Penology',
@@ -82,7 +81,9 @@ const Interest = () => {
     const columns: ColumnsType<InterestProps> = [
         {
             title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Interests',
@@ -181,8 +182,8 @@ const Interest = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+        const tableData = dataSource.map((item, index) => [
+            index + 1,
             item.name,
             item.description,
         ]);

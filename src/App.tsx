@@ -110,6 +110,7 @@ import Alphalist from "./pages/alphalist/Alphalist.tsx";
 import Level from "./pages/assets/level/Level.tsx";
 import Annex from "./pages/assets/annex/Annex.tsx";
 import Dorm from "./pages/assets/dorm/Dorm.tsx";
+import GroupAffiliation from "./pages/maintenance/group-affiliation/GroupAffiliation.tsx";
 
 // Lazy-loaded components
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -288,6 +289,10 @@ function App() {
                 {
                     path: "maintenance/multi-birth-classification",
                     element: <MultiBirth />
+                },
+                {
+                    path: "maintenance/group-affiliation",
+                    element: <GroupAffiliation />
                 },
                 {
                     path: "settings",

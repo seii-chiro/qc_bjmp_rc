@@ -96,9 +96,8 @@ const Relationship = () => {
         }
     };
 
-    const dataSource = data?.results?.map((relationship, index) => ({
-        key: index + 1,
-        id: relationship?.id ?? 'N/A',
+    const dataSource = data?.results?.map((relationship, ) => ({
+        key: relationship.id,
         relationship_name: relationship?.relationship_name ?? 'N/A',
         description: relationship?.description ?? 'N/A',
         updated_at: moment(relationship?.updated_at).format('YYYY-MM-DD h:mm A') ?? 'N/A', 
@@ -114,9 +113,11 @@ const Relationship = () => {
     );
 
     const columns = [
-        {
-        title: "No",
-        render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+         {
+            title: 'No.',
+            key: 'no',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
         title: "Relationship Name",
@@ -216,7 +217,7 @@ const Relationship = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 28; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     
@@ -245,8 +246,8 @@ const Relationship = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+        const tableData = dataSource.map((item, index) => [
+            index + 1,
             item.relationship_name,
             item.description,
         ]);
@@ -341,10 +342,17 @@ const Relationship = () => {
                     </button>
                 </div>
             </div>
-            <Table
-                dataSource={filteredData}
-                columns={columns}
-            />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             <Modal
                 title="Relationship Report"
                 open={isPdfModalOpen}

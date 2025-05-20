@@ -59,10 +59,9 @@ const Talents = () => {
         },
     });
 
-    const dataSource = data?.results?.map((talents, index) => (
+    const dataSource = data?.results?.map((talents) => (
         {
-            key: index + 1,
-            id: talents?.id ?? 'N/A',
+            key: talents.id,
             name: talents?.name ?? 'N/A',
             description: talents?.description ?? 'N/A',
             organization: talents?.organization ?? 'Bureau of Jail Management and Penology',
@@ -79,7 +78,9 @@ const Talents = () => {
     const columns: ColumnsType<TalentProps> = [
         {
             title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Talents',
@@ -177,8 +178,8 @@ const Talents = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+        const tableData = dataSource.map((item, index) => [
+            index + 1,
             item.name,
             item.description,
         ]);
@@ -279,7 +280,17 @@ const Talents = () => {
             </div>
             
             <div>
-                <Table columns={columns} dataSource={filteredData}/>
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             </div>
             <Modal
                 title="Talents Report"

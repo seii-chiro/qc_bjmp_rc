@@ -66,9 +66,8 @@ const Rank = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.results?.map((rank, index) => ({
-        key: index + 1,
-        id: rank?.id,
+    const dataSource = data?.results?.map((rank) => ({
+        key: rank.id,
         organization: rank?.organization ?? 'N/A',
         rank_code: rank?.rank_code ?? 'N/A',
         rank_name: rank?.rank_name ?? 'N/A',
@@ -84,9 +83,11 @@ const Rank = () => {
     );
 
     const columns: ColumnsType<Rank> = [
-        {
+         {
             title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Organization',
@@ -137,7 +138,7 @@ const Rank = () => {
             title: 'Category',
             dataIndex: 'category',
             key: 'category',
-            sorter: (a, b) => a.category?.localeCompare(b.category),
+            sorter: (a, b) => a.category.localeCompare(b.category),
             filters: [
                 ...Array.from(
                     new Set(filteredData.map(item => item.category))
@@ -209,7 +210,7 @@ const Rank = () => {
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
         const availableHeight = doc.internal.pageSize.height - headerHeight - footerHeight;
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     
@@ -238,8 +239,8 @@ const Rank = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+        const tableData = dataSource.map((item, index) => [
+            index + 1, // This gives you 1, 2, 3, ... regardless of key/id
             item.rank_code,
             item.rank_name,
             item.category,
@@ -345,9 +346,15 @@ const Rank = () => {
                 </div>
                 <div className="overflow-x-auto overflow-y-auto h-full">
                     <Table
+                        className="overflow-x-auto"
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{ x: 800 }}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

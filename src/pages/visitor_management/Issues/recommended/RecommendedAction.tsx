@@ -115,10 +115,9 @@ const RecommendedAction = () => {
         }));
     }; 
 
-    const dataSource = data?.results?.map((recommeded, index) => (
+    const dataSource = data?.results?.map((recommeded) => (
         {
-            key: index + 1,
-            id: recommeded?.id ?? 'N/A',
+            key: recommeded?.id,
             name: recommeded?.name ?? 'N/A',
             description: recommeded?.description ?? 'N/A',
             updated_at: recommeded?.updated_at ?? 'N/A',
@@ -136,10 +135,12 @@ const RecommendedAction = () => {
     );
 
     const columns: ColumnsType<RecommendedActionProps> = [
-        {
-            title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
-        },
+         {
+        title: 'No.',
+        key: 'no',
+        render: (_: any, __: any, index: number) =>
+            (pagination.current - 1) * pagination.pageSize + index + 1,
+    },
         {
             title: 'Recommeded Action',
             dataIndex: 'name',
@@ -285,8 +286,8 @@ const RecommendedAction = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+        const tableData = dataSource.map((item, index) => [
+    index + 1,
             item.name,
             item.risk,
         ]);
@@ -383,7 +384,17 @@ const RecommendedAction = () => {
                 </button>
             </div>
         </div>
-        <Table columns={columns} dataSource={filteredData} />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
         <Modal
                 title="Recommended Action Report"
                 open={isPdfModalOpen}

@@ -896,17 +896,6 @@ export type WatchlistPerson = {
   mitigation: string;
   remarks: string;
 }
-
-type GroupRecord = {
-  id: number;
-  created_by: string;
-  updated_by: string;
-  record_status: string;
-  created_at: string; // Alternatively, you can use Date if you parse it
-  updated_at: string; // Alternatively, you can use Date if you parse it
-  name: string;
-  description: string;
-}
 interface DailyVisitSummaryResponse {
   success: {
     daily_visit_summary: {
@@ -922,4 +911,20 @@ interface DailyVisitSummary {
   visitor_station_tracking: number;
   pdl_station_visits: number;
   pdl_station_tracking: number;
+}
+
+export interface GroupAffiliationResponse {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  created_at: string; // or Date, if you parse it
+  updated_at: string; // or Date, if you parse it
+  name: string;
+  description: string;
+}
+
+export interface EditResponse {
+  name: string;
+  description: string;
 }

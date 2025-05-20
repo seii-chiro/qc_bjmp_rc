@@ -67,10 +67,9 @@ const EducationalAttainment = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.results?.map((educational_attainments, index) => (
+    const dataSource = data?.results?.map((educational_attainments) => (
         {
-            key: index + 1,
-            id: educational_attainments?.id ?? 'N/A',
+            key: educational_attainments?.id,
             name: educational_attainments?.name ?? 'N/A',
             description: educational_attainments?.description ?? 'N/A',
             updated_at: educational_attainments?.updated_at
@@ -89,9 +88,11 @@ const EducationalAttainment = () => {
     );
 
     const columns: ColumnsType<EducationalAttainmentProps> = [
-        {
+         {
             title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Educational Attainment',
@@ -226,8 +227,8 @@ const EducationalAttainment = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+        const tableData = dataSource.map((item, index) => [
+            index + 1,
             item.name,
             item.description,
         ]);
@@ -327,7 +328,17 @@ const EducationalAttainment = () => {
                     </button>
                 </div>
                 </div>
-                <Table columns={columns} dataSource={filteredData} />
+                <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             </div>
             <Modal
                 title="Educational Attainment Report"
