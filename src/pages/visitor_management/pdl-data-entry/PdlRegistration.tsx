@@ -614,39 +614,39 @@ const PdlRegistration = () => {
 
     const toExclude = ["Female", "LGBTQ + LESBIAN / BISEXUAL"]
 
-    const dorms = dropdownOptions?.[0]?.data
-    const genders = dropdownOptions?.[1]?.data?.filter(
+    const dorms = dropdownOptions?.[0]?.data?.results;
+    const genders = dropdownOptions?.[1]?.data?.results?.filter(
         gender => !toExclude.includes(gender?.gender_option)
     );
-    const nationalities = dropdownOptions?.[2]?.data
-    const nationalitiesLoading = dropdownOptions?.[2]?.isLoading
-    const civilStatuses = dropdownOptions?.[3]?.data
-    const religions = dropdownOptions?.[4]?.data
-    const religionsLoading = dropdownOptions?.[4]?.isLoading
-    const regions = dropdownOptions?.[5]?.data
-    const provinces = dropdownOptions?.[6]?.data
-    const municipalities = dropdownOptions?.[7]?.data
-    const barangays = dropdownOptions?.[8]?.data
-    const countries = dropdownOptions?.[9]?.data
-    const persons = dropdownOptions?.[10]?.data
-    const personsLoading = dropdownOptions?.[10]?.isLoading
-    const talents = dropdownOptions?.[11]?.data
-    const talentsLoading = dropdownOptions?.[11]?.isLoading
-    const skills = dropdownOptions?.[12]?.data
-    const skillsLoading = dropdownOptions?.[12]?.isLoading
-    const currentUser = dropdownOptions?.[13]?.data
-    const prefixes = dropdownOptions?.[14]?.data
-    const prefixesLoading = dropdownOptions?.[14]?.isLoading
-    const suffixes = dropdownOptions?.[15]?.data
-    const suffixesLoading = dropdownOptions?.[15]?.isLoading
-    const birthClassTypes = dropdownOptions?.[16]?.data
-    const birthClassTypesLoading = dropdownOptions?.[16]?.isLoading
-    const interests = dropdownOptions?.[17]?.data
-    const interestsLoading = dropdownOptions?.[17]?.isLoading
-    const levels = dropdownOptions?.[18]?.data
-    const levelsLoading = dropdownOptions?.[18]?.isLoading
-    const annex = dropdownOptions?.[19]?.data
-    const annexLoading = dropdownOptions?.[19]?.isLoading
+    const nationalities = dropdownOptions?.[2]?.data?.results;
+    const nationalitiesLoading = dropdownOptions?.[2]?.isLoading;
+    const civilStatuses = dropdownOptions?.[3]?.data?.results;
+    const religions = dropdownOptions?.[4]?.data?.results;
+    const religionsLoading = dropdownOptions?.[4]?.isLoading;
+    const regions = dropdownOptions?.[5]?.data?.results;
+    const provinces = dropdownOptions?.[6]?.data?.results;
+    const municipalities = dropdownOptions?.[7]?.data?.results;
+    const barangays = dropdownOptions?.[8]?.data?.results;
+    const countries = dropdownOptions?.[9]?.data?.results;
+    const persons = dropdownOptions?.[10]?.data?.results;
+    const personsLoading = dropdownOptions?.[10]?.isLoading;
+    const talents = dropdownOptions?.[11]?.data?.results;
+    const talentsLoading = dropdownOptions?.[11]?.isLoading;
+    const skills = dropdownOptions?.[12]?.data?.results;
+    const skillsLoading = dropdownOptions?.[12]?.isLoading;
+    const currentUser = dropdownOptions?.[13]?.data;
+    const prefixes = dropdownOptions?.[14]?.data?.results;
+    const prefixesLoading = dropdownOptions?.[14]?.isLoading;
+    const suffixes = dropdownOptions?.[15]?.data?.results;
+    const suffixesLoading = dropdownOptions?.[15]?.isLoading;
+    const birthClassTypes = dropdownOptions?.[16]?.data?.results;
+    const birthClassTypesLoading = dropdownOptions?.[16]?.isLoading;
+    const interests = dropdownOptions?.[17]?.data?.results;
+    const interestsLoading = dropdownOptions?.[17]?.isLoading;
+    const levels = dropdownOptions?.[18]?.data?.results;
+    const levelsLoading = dropdownOptions?.[18]?.isLoading;
+    const annex = dropdownOptions?.[19]?.data?.results;
+    const annexLoading = dropdownOptions?.[19]?.isLoading;
 
     const addressDataSource = personForm?.address_data?.map((address, index) => {
         return ({
@@ -937,7 +937,7 @@ const PdlRegistration = () => {
                                     showSearch
                                     optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={precincts?.map(precinct => ({
+                                    options={precincts?.results?.map(precinct => ({
                                         value: precinct?.id,
                                         label: precinct?.precinct_name
                                     }))}
@@ -958,7 +958,7 @@ const PdlRegistration = () => {
                                     showSearch
                                     optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={gangAffiliation?.map(gang => ({
+                                    options={gangAffiliation?.results?.map(gang => ({
                                         value: gang?.id,
                                         label: gang?.name
                                     }))}
@@ -979,7 +979,7 @@ const PdlRegistration = () => {
                                     showSearch
                                     optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={pdlVisitStatuses?.map(status => ({
+                                    options={pdlVisitStatuses?.results?.map(status => ({
                                         value: status?.id,
                                         label: status?.name
                                     }))}
@@ -1183,7 +1183,7 @@ const PdlRegistration = () => {
                                     showSearch
                                     optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={occupations?.map(occupation => ({
+                                    options={occupations?.results?.map(occupation => ({
                                         value: occupation?.id,
                                         label: occupation?.name
                                     }))}
@@ -1204,7 +1204,7 @@ const PdlRegistration = () => {
                                     showSearch
                                     optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={ethnicitiesProvinces?.map(ethnicity => ({
+                                    options={ethnicitiesProvinces?.results?.map(ethnicity => ({
                                         value: ethnicity?.id,
                                         label: `${ethnicity?.ethnicity}`
                                     }))}
@@ -1288,7 +1288,7 @@ const PdlRegistration = () => {
                                     showSearch
                                     optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={looks?.map(look => ({
+                                    options={looks?.results?.map(look => ({
                                         value: look?.id,
                                         label: look?.name
                                     }))}

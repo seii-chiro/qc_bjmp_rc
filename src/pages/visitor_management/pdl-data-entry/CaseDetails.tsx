@@ -77,8 +77,8 @@ const CaseDetails = ({ pdlForm, setPdlForm }: Props) => {
         return ({
             key: index,
             caseNumber: pdlCase?.case_number || "xxxx-xxxx",
-            offense: offenses?.find(offense => offense?.id === pdlCase?.offense_id)?.offense || "N/A",
-            courtBranch: `${pdlCase?.court_name} ${courtBranches?.find(branch => branch?.id === pdlCase?.court_branch_id)?.branch}`,
+            offense: offenses?.results?.find(offense => offense?.id === pdlCase?.offense_id)?.offense || "N/A",
+            courtBranch: `${pdlCase?.court_name} ${courtBranches?.results?.find(branch => branch?.id === pdlCase?.court_branch_id)?.branch}`,
             judge: pdlCase?.judge,
             bailRecommended: pdlCase?.bail_recommended,
             dateCrimeCommitted: pdlCase?.date_crime_committed,
@@ -212,15 +212,15 @@ const CaseDetails = ({ pdlForm, setPdlForm }: Props) => {
             >
                 <CaseDetailsForm
                     pdlForm={pdlForm}
-                    crimeCategories={crimeCategories || []}
+                    crimeCategories={crimeCategories?.results || []}
                     crimeCategoriesLoading={crimeCategoriesLoading}
-                    laws={laws || []}
+                    laws={laws?.results || []}
                     lawsLoading={lawsLoading}
-                    offenses={offenses || []}
+                    offenses={offenses?.results || []}
                     offensesLoading={offensesLoading}
                     handleModalClose={handleModalClose}
                     setPdlForm={setPdlForm}
-                    courtBranches={courtBranches || []}
+                    courtBranches={courtBranches?.results || []}
                     courtBranchesLoading={courtBranchesLoading}
                     editIndex={editIndex}
                 />

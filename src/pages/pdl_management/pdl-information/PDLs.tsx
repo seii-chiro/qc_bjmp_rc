@@ -6,19 +6,20 @@ import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Form, Input, Menu, message, Modal } from "antd";
 import Table, { ColumnsType } from "antd/es/table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
 import { NavLink, useLocation } from "react-router-dom";
+import { BASE_URL } from "@/lib/urls";
+import { PaginatedResponse } from "@/pages/personnel_management/personnel/personnel";
 
 const PDLtable = () => {
     const location = useLocation();
     const filterOption = location?.state?.filterOption || "all";
-    console.log(filterOption)
     const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
     const [form] = Form.useForm();
@@ -29,11 +30,57 @@ const PDLtable = () => {
     const [selectPDL, setSelectedPDL] = useState<PDLs | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [page, setPage] = useState(1);
+    const limit = 10;
+    const [debouncedSearch, setDebouncedSearch] = useState("");
 
-    const { data: pdlData, isLoading: pdlLoading } = useQuery({
-        queryKey: ['pdl'],
-        queryFn: () => getPDLs(token ?? ""),
-    })
+    const fetchPdls = async (search: string) => {
+        const res = await fetch(`${BASE_URL}/api/pdls/pdl/?search=${search}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    useEffect(() => {
+        const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
+        return () => clearTimeout(timeout);
+    }, [searchText]);
+
+    const { data: searchData, isLoading: searchLoading } = useQuery({
+        queryKey: ["visitors", debouncedSearch],
+        queryFn: () => fetchPdls(debouncedSearch),
+        behavior: keepPreviousData(),
+        enabled: debouncedSearch.length > 0,
+    });
+
+    const { data: pdlData, isFetching } = useQuery({
+        queryKey: ['visitors', 'visitor-table', page],
+        queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
+            // Add offset parameter for Django REST Framework's pagination
+            const offset = (page - 1) * limit;
+            const res = await fetch(
+                `${BASE_URL}/api/pdls/pdl/?page=${page}&limit=${limit}&offset=${offset}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch PDLs data.');
+            }
+
+            return res.json();
+        },
+        behavior: keepPreviousData(),
+    });
 
     const { data: UserData } = useQuery({
         queryKey: ['user'],
@@ -92,8 +139,8 @@ const PDLtable = () => {
 
     const filteredPDLs = filterOption === "all" ? pdlData : pdlData?.filter((pdl) => pdl?.person?.gender?.gender_option === filterOption);
 
-    const dataSource = filteredPDLs?.map((pdl, index) => ({
-        key: index + 1,
+    const dataSource = filteredPDLs?.results?.map((pdl, index) => ({
+        key: ((page - 1) * limit) + index + 1,
         id: pdl?.id ?? 'N/A',
         pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
         first_name: pdl?.person?.first_name ?? 'N/A',
@@ -127,12 +174,12 @@ const PDLtable = () => {
             key: 'name',
         },
         {
-            title: 'Cell No.',
+            title: 'Dorm No.',
             dataIndex: 'cell_no',
             key: 'cell_no',
         },
         {
-            title: 'Cell Name',
+            title: 'Dorm Name',
             dataIndex: 'cell_name',
             key: 'cell_name',
         },
@@ -310,7 +357,43 @@ const PDLtable = () => {
                     <Input placeholder="Search Personnel..." value={searchText} className="py-2 md:w-64 w-full" onChange={(e) => setSearchText(e.target.value)} />
                 </div>
             </div>
-            <Table dataSource={filteredData} columns={columns} loading={pdlLoading} />
+            <Table
+                columns={columns}
+                loading={isFetching || searchLoading}
+                scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
+                dataSource={
+                    debouncedSearch
+                        ? (searchData?.results || []).map((pdl, index) => ({
+                            key: index + 1,
+                            id: pdl?.id ?? 'N/A',
+                            pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
+                            first_name: pdl?.person?.first_name ?? 'N/A',
+                            middle_name: pdl?.person?.middle_name ?? '',
+                            last_name: pdl?.person?.last_name ?? '',
+                            name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
+                            cell_no: pdl?.cell?.cell_no ?? 'N/A',
+                            cell_name: pdl?.cell?.cell_name ?? 'N/A',
+                            gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
+                            look: pdl?.look ?? 'N/A',
+                            date_of_admission: pdl?.date_of_admission ?? 'N/A',
+                            organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
+                            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+                        }))
+                        : filteredData
+                }
+                pagination={
+                    debouncedSearch
+                        ? false // Hide pagination when searching
+                        : {
+                            current: page,
+                            pageSize: limit,
+                            total: pdlData?.count || 0,
+                            onChange: (newPage) => setPage(newPage),
+                            showSizeChanger: false,
+                        }
+                }
+                rowKey="id"
+            />
             <Modal open={isEditModalOpen} onCancel={() => setIsEditModalOpen(false)} onOk={() => form.submit()} width="40%" confirmLoading={isUpdating} style={{ overflowY: "auto" }} >
                 <Form form={form} layout="vertical" onFinish={handleUpdate}>
                     <h1 className="text-xl font-bold">PDL Information</h1>

@@ -59,12 +59,12 @@ const UpdatePdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
     // Create table data source directly from pdlForm.visitor
     const pdlToVisitDataSource = pdlForm?.visitor?.map((visitorEntry, index) => {
         // Find the visitor from the visitors data
-        const visitor = pdlVisitors?.find(
+        const visitor = pdlVisitors?.results?.find(
             v => v?.id === (visitorEntry?.visitor ?? visitorEntry?.id)
         );
 
         // Find the relationship name
-        const relationship = visitorToPdlRelationship?.find(
+        const relationship = visitorToPdlRelationship?.results?.find(
             r => r.id === visitorEntry.relationship_to_visitor
         );
 
@@ -178,14 +178,14 @@ const UpdatePdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
                 width="40%"
             >
                 <PDLVisitorForm
-                    pdlVisitors={pdlVisitors || []}
+                    pdlVisitors={pdlVisitors?.results || []}
                     pdlVisitorsLoading={pdlVisitorsLoading}
                     editPdlToVisitIndex={editIndex}
                     setEditPdlToVisitIndex={setEditIndex}
                     handlePdlToVisitModalCancel={handleModalClose}
                     pdlForm={pdlForm}
                     setPdlForm={setPdlForm}
-                    visitorToPdlRelationship={visitorToPdlRelationship || []}
+                    visitorToPdlRelationship={visitorToPdlRelationship?.results || []}
                     visitorToPdlRelationshipLoading={visitorToPdlRelationshipLoading}
                 />
             </Modal>

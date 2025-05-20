@@ -82,7 +82,7 @@ const PdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
             lastname: pdl?.lastName ?? "N/A",
             firstName: pdl?.firstName ?? "N/A",
             middleName: pdl?.middleName ?? "N/A",
-            relationship: visitorToPdlRelationship?.find(relationship => relationship?.id === pdl.relationship)?.relationship_name,
+            relationship: visitorToPdlRelationship?.results?.find(relationship => relationship?.id === pdl.relationship)?.relationship_name,
             visitationStatus: pdl?.visitationStatus ?? "N/A",
             birthClassClassification: pdl?.multipleBirthClass?.multiple_birth_class ?? "Single",
             action: (
@@ -188,7 +188,7 @@ const PdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
                 width="40%"
             >
                 <PDLVisitorForm
-                    pdlVisitors={pdlVisitors || []}
+                    pdlVisitors={pdlVisitors?.results || []}
                     pdlVisitorsLoading={pdlVisitorsLoading}
                     editPdlToVisitIndex={editIndex}
                     setEditPdlToVisitIndex={setEditIndex}
@@ -197,7 +197,7 @@ const PdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
                     pdlVisitorTableInfo={pdlVisitorTableInfo}
                     setPdlForm={setPdlForm}
                     setPdlVisitorTableInfo={setPdlVisitorTableInfo}
-                    visitorToPdlRelationship={visitorToPdlRelationship || []}
+                    visitorToPdlRelationship={visitorToPdlRelationship?.results || []}
                     visitorToPdlRelationshipLoading={visitorToPdlRelationshipLoading}
                 />
             </Modal>
