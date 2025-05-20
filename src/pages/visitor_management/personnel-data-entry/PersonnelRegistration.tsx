@@ -1333,7 +1333,7 @@ const PersonnelRegistration = () => {
                             <div className="flex gap-4 w-[30%] h-full items-end">
                                 <button
                                     type="button"
-                                    className="bg-blue-500 text-white rounded-md py-2 px-6 flex-1"
+                                    className="bg-blue-500 text-white rounded-md py-2 px-6 flex-1 opacity-0"
                                 >
                                     View Profile
                                 </button>
