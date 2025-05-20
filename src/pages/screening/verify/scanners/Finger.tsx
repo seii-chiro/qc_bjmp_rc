@@ -115,6 +115,10 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
 
             if (data?.ErrorDescription === "Success") {
                 message.success(data?.ErrorDescription)
+                // Automatically verify after successful capture
+                setTimeout(() => {
+                    handleVerifyFingerprints();
+                }, 300); // slight delay to ensure state is updated
             } else {
                 message.error(data?.ErrorDescription)
             }
@@ -495,34 +499,34 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                                             )
                                         }
                                         {
-                                            LeftFingerResponse?.CapturedFingers || RightFingerResponse?.CapturedFingers || ThumbFingerResponse?.CapturedFingers ? (
-                                                verifyFingerprintMutation?.isPending ? (
-                                                    <button
-                                                        type="button"
-                                                        className="bg-[#1976D2] text-white px-10 py-2 rounded-md">
-                                                        Verifying Fingerprints
-                                                        <span className="animate-bounceDot1">.</span>
-                                                        <span className="animate-bounceDot2">.</span>
-                                                        <span className="animate-bounceDot3">.</span>
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={handleVerifyFingerprints}
-                                                        type="button"
-                                                        className="bg-[#1976D2] text-white px-10 py-2 rounded-md">
-                                                        Verify Fingerprints
-                                                    </button>
-                                                )
-                                            ) : (
-                                                <button
-                                                    // onClick={() => {
-                                                    //     enrollAllFingersMutation.mutate(LeftFingerResponse?.CapturedFingers?.[0].FingerBitmapStr)
-                                                    // }}
-                                                    type="button"
-                                                    className="bg-[#1976D2] text-white px-10 py-2 rounded-md cursor-not-allowed opacity-25">
-                                                    Verify Fingerprints
-                                                </button>
-                                            )
+                                            // LeftFingerResponse?.CapturedFingers || RightFingerResponse?.CapturedFingers || ThumbFingerResponse?.CapturedFingers ? (
+                                            //     verifyFingerprintMutation?.isPending ? (
+                                            //         <button
+                                            //             type="button"
+                                            //             className="bg-[#1976D2] text-white px-10 py-2 rounded-md">
+                                            //             Verifying Fingerprints
+                                            //             <span className="animate-bounceDot1">.</span>
+                                            //             <span className="animate-bounceDot2">.</span>
+                                            //             <span className="animate-bounceDot3">.</span>
+                                            //         </button>
+                                            //     ) : (
+                                            //         <button
+                                            //             onClick={handleVerifyFingerprints}
+                                            //             type="button"
+                                            //             className="bg-[#1976D2] text-white px-10 py-2 rounded-md">
+                                            //             Verify Fingerprints
+                                            //         </button>
+                                            //     )
+                                            // ) : (
+                                            //     <button
+                                            //         // onClick={() => {
+                                            //         //     enrollAllFingersMutation.mutate(LeftFingerResponse?.CapturedFingers?.[0].FingerBitmapStr)
+                                            //         // }}
+                                            //         type="button"
+                                            //         className="bg-[#1976D2] text-white px-10 py-2 rounded-md cursor-not-allowed opacity-25">
+                                            //         Verify Fingerprints
+                                            //     </button>
+                                            // )
                                         }
                                     </div>
                                 </div>
