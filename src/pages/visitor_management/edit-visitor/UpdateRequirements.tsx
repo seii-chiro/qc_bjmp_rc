@@ -59,7 +59,7 @@ const UpdateRequirements = ({
         ]
     })
 
-    const idTypes = results?.[0]?.data
+    const idTypes = results?.[0]?.data?.results
 
     const handleRequirementsModalOpen = () => {
         setRequirementIndexToEdit(null);
@@ -81,12 +81,12 @@ const UpdateRequirements = ({
 
     const handleEditRequirement = (index: number) => {
         setRequirementIndexToEdit(index);
-        setRequirementModalOpen(true); 
+        setRequirementModalOpen(true);
     };
 
     const handleIdRequirement = (index: number) => {
         setIdIndexToEdit(index);
-        setIdsModalOpen(true); 
+        setIdsModalOpen(true);
     };
 
     const requirementDataSources = personForm?.media_requirement_data?.map((requirement, index) => {

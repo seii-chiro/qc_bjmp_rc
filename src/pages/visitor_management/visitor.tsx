@@ -1,6 +1,6 @@
-import { deleteVisitors, getUser, getVisitorSpecific, getVisitorSpecificById } from "@/lib/queries"
+import { deleteVisitors, getUser, getVisitorSpecificById } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { message, Table, Modal, Button, Image, Menu, Dropdown } from "antd"
 import Fuse from "fuse.js";
 import { Key, useEffect, useState } from "react"
@@ -20,6 +20,9 @@ import bjmp from '../../assets/Logo/QCJMD.png'
 import EditVisitor from "./edit-visitor/EditVisitor";
 import { useNavigate } from "react-router-dom";
 import { PiFolderUserDuotone } from "react-icons/pi";
+import { BASE_URL } from "@/lib/urls";
+import { PaginatedResponse } from "../personnel_management/personnel/personnel";
+import { Visitor as NewVisitorType } from "@/lib/pdl-definitions";
 
 type Visitor = VisitorRecord;
 
@@ -41,6 +44,8 @@ const Visitor = () => {
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const navigate = useNavigate();
+    const [page, setPage] = useState(1);
+    const limit = 10;
 
     useEffect(() => {
         if (selectedVisitor?.main_gate_visits) {
@@ -48,17 +53,28 @@ const Visitor = () => {
         }
     }, [selectedVisitor]);
 
-    const { data, isLoading: visitorsLoading } = useQuery({
-        queryKey: ['visitor'],
-        queryFn: async () => {
-            try {
-                return await getVisitorSpecific(token ?? "");
-            } catch (error) {
-                console.error("Error fetching visitor data:", error);
-                return [];
+    const { data, isFetching } = useQuery({
+        queryKey: ['personnel', 'personnel-table', page],
+        queryFn: async (): Promise<PaginatedResponse<NewVisitorType>> => {
+            // Add offset parameter for Django REST Framework's pagination
+            const offset = (page - 1) * limit;
+            const res = await fetch(
+                `${BASE_URL}/api/visitors/visitor/?page=${page}&limit=${limit}&offset=${offset}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch Visitors data.');
             }
+
+            return res.json();
         },
-        retry: false,
+        behavior: keepPreviousData(),
     });
 
     const { data: UserData } = useQuery({
@@ -109,9 +125,9 @@ const Visitor = () => {
     );
 
 
-    const dataSource = data?.map((visitor, index) => ({
+    const dataSource = data?.results?.map((visitor, index) => ({
         ...visitor,
-        key: index + 1,
+        key: ((page - 1) * limit) + index + 1,
         visitor_reg_no: visitor?.visitor_reg_no,
         visitor_type: visitor?.visitor_type,
         nationality: visitor?.person?.nationality,
@@ -405,10 +421,21 @@ const Visitor = () => {
 
                 <div className="flex-grow overflow-y-auto overflow-x-auto">
                     <Table
-                        loading={visitorsLoading}
+                        loading={isFetching}
                         columns={columns}
                         dataSource={filteredData}
                         scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
+                        pagination={{
+                            current: page,
+                            pageSize: limit,
+                            total: data?.count || 0,
+                            onChange: (newPage) => {
+                                console.log("Changing to page:", newPage);
+                                setPage(newPage);
+                            },
+                            showSizeChanger: false,
+                        }}
+                        rowKey="id"
                     />
                 </div>
             </div>
@@ -557,7 +584,7 @@ const Visitor = () => {
                                                 <div className="flex items-center">
                                                     <label className="w-48 text-[10px] text-[#8E8E8E]">Relationship to PDL:</label>
                                                     <p className="mt-1 block w-full bg-[#F9F9F9] rounded-md text-xs px-2 py-[1px]">
-                                                        { selectedVisitor?.pdls?.[0]?.relationship_to_pdl || "No PDL relationship"}
+                                                        {selectedVisitor?.pdls?.[0]?.relationship_to_pdl || "No PDL relationship"}
                                                     </p>
                                                 </div>
                                                 <Info

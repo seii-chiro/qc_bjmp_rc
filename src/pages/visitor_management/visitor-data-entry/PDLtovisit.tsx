@@ -83,10 +83,10 @@ const PDLtovisit = ({
         ]
     })
 
-    const pdls = results?.[0]?.data
+    const pdls = results?.[0]?.data?.results
     const pdlsLoading = results?.[0]?.isLoading
-    const visitorToPdlRelationship = results?.[1]?.data
-    const idTypes = results?.[2]?.data
+    const visitorToPdlRelationship = results?.[1]?.data?.results
+    const idTypes = results?.[2]?.data?.results
 
     const handlePdlToVisitModalOpen = () => {
         setPdlToVisitModalOpen(true)
