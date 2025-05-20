@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { useTokenStore } from "@/store/useTokenStore";
-import { getSummary_Card, getJail, getPersonnel } from '@/lib/queries';
+import { getSummary_Card, getJail, getPersonnel, getSummaryDaily } from '@/lib/queries';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, BarElement, LinearScale, CategoryScale, PointElement, LineElement, Filler } from 'chart.js';
@@ -54,6 +54,11 @@ const Dashboard = () => {
     const { data: summarydata } = useQuery({
         queryKey: ['summary-card'],
         queryFn: () => getSummary_Card(token ?? "")
+    });
+
+const { data: dailysummarydata } = useQuery({
+        queryKey: ['daily-summary'],
+        queryFn: () => getSummaryDaily(token ?? "")
     });
 
     const { data: jail } = useQuery({
@@ -236,14 +241,20 @@ const Dashboard = () => {
     //     cutout: '60%',
     // };
 
+    const latestDate = Object.keys(dailysummarydata?.success.daily_visit_summary || {})[0];
+    const summary = dailysummarydata?.success.daily_visit_summary[latestDate];
+
+
     const pdlEnteredExitData = {
         labels: ['Entered', 'Exited'],
         datasets: [
             {
                 label: 'Entry/Exits to Jail Premises of PDLs',
                 data: [
-                    summarydata?.success.premises_logs.pdl_logs_today["Time In"] || 0,
-                    summarydata?.success.premises_logs.pdl_logs_today["Time Out"] || 0,
+                    summary?.pdl_station_visits,
+                    0
+                    // summarydata?.success.premises_logs.pdl_logs_today["Time In"] || 0,
+                    // summarydata?.success.premises_logs.pdl_logs_today["Time Out"] || 0,
                 ],
                 backgroundColor: ['#20BA22', '#', '#97A5BB'],
                 borderColor: '#ffffff',
@@ -258,8 +269,10 @@ const Dashboard = () => {
             {
                 label: 'Entry/Exits to Jail Premises of Visitors',
                 data: [
-                    summarydata?.success.premises_logs.visitor_logs_today["Time In"] || 0,
-                    summarydata?.success.premises_logs.visitor_logs_today["Time Out"] || 0,
+                    (summary?.visitor_station_visits ?? 0) + (summary?.main_gate_visits ?? 0),
+                    0
+                    // summarydata?.success.premises_logs.visitor_logs_today["Time In"] || 0,
+                    // summarydata?.success.premises_logs.visitor_logs_today["Time Out"] || 0,
                 ],
                 backgroundColor: ['#FE8D06', '#', '#97A5BB'],
                 borderColor: '#ffffff',
@@ -290,8 +303,9 @@ const Dashboard = () => {
             {
                 label: 'Entry/Exits to Jail Premises of Visitors',
                 data: [
-                    summarydata?.success.premises_logs.visitor_logs_today.Enter || 0,
-                    summarydata?.success.premises_logs.visitor_logs_today.Exit || 0,
+                    0,0
+                    // summarydata?.success.premises_logs.visitor_logs_today.Enter || 0,
+                    // summarydata?.success.premises_logs.visitor_logs_today.Exit || 0,
                 ],
                 backgroundColor: ['#1CBEDB', '#', '#97A5BB'],
                 borderColor: '#ffffff',
@@ -306,8 +320,9 @@ const Dashboard = () => {
             {
                 label: 'Entry/Exits to Jail Premises of Visitors',
                 data: [
-                    summarydata?.success.premises_logs.visitor_logs_today.Enter || 0,
-                    summarydata?.success.premises_logs.visitor_logs_today.Exit || 0,
+                    0,0
+                    // summarydata?.success.premises_logs.visitor_logs_today.Enter || 0,
+                    // summarydata?.success.premises_logs.visitor_logs_today.Exit || 0,
                 ],
                 backgroundColor: ['#E847D8', '#', '#97A5BB'],
                 borderColor: '#ffffff',
@@ -581,7 +596,14 @@ const Dashboard = () => {
                                         <Pie data={visitorEnteredExitData} options={EntryExitVisitorOptions} />
                                     </div>
                                     <div className='flex-1 w-full h-[82%] flex flex-col justify-center gap-2'>
-                                        <Card4 image={pdl_enter} title='Entered' count={summarydata?.success.premises_logs.visitor_logs_today.Enter || 0} />
+                                        <Card4
+                                            image={pdl_enter}
+                                            title='Entered'
+                                            count={
+                                                (summary?.main_gate_tracking ?? 0) + (summary?.visitor_station_visits ?? 0)
+                                            }
+                                        />
+                                        {/* summarydata?.success.premises_logs.visitor_logs_today.Enter || 0 */}
                                         <Card4 image={exited} title='Exited' count={summarydata?.success.premises_logs.visitor_logs_today.Exit ?? 0} />
                                     </div>
                                 </div>

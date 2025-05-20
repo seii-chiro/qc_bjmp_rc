@@ -1,4 +1,3 @@
-import { GroupResponse } from '@/lib/issues-difinitions';
 import { getUser } from '@/lib/queries';
 import { deleteGroupAffiliation, getGroupAffiliation, patchGroupAffiliation } from '@/lib/query';
 import { useTokenStore } from '@/store/useTokenStore';
@@ -15,6 +14,8 @@ import { GoDownload, GoPlus } from 'react-icons/go';
 import { LuSearch } from 'react-icons/lu';
 import bjmp from '../../../assets/Logo/QCJMD.png'
 import AddGroupAffiliation from './AddGroupAffiliation';
+import { GroupRecord } from '@/lib/issues-difinitions';
+
 
 const GroupAffiliation = () => {
     const [searchText, setSearchText] = useState("");
@@ -26,7 +27,7 @@ const GroupAffiliation = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-        const [groupAffiliation, setGroupAffiliation] = useState<GroupResponse | null>(null);
+        const [groupAffiliation, setGroupAffiliation] = useState<GroupRecord | null>(null);
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     
 
@@ -60,7 +61,7 @@ const GroupAffiliation = () => {
     };
 
     const { mutate: editGangAffiliation, isLoading: isUpdating } = useMutation({
-        mutationFn: (updated: GroupResponse) =>
+        mutationFn: (updated: GroupRecord) =>
             patchGroupAffiliation(token ?? "", updated.id, updated),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["group-affiliation"] });
@@ -72,7 +73,7 @@ const GroupAffiliation = () => {
         },
     });
 
-    const handleEdit = (record: GroupResponse) => {
+    const handleEdit = (record: GroupRecord) => {
         setGroupAffiliation(record);
         form.setFieldsValue(record);
         setIsEditModalOpen(true);
@@ -80,7 +81,7 @@ const GroupAffiliation = () => {
 
     const handleUpdate = (values: any) => {
         if (groupAffiliation && groupAffiliation.id) {
-            const updatedGangAffiliation: GroupResponse = {
+            const updatedGangAffiliation: GroupRecord = {
                 ...groupAffiliation,
                 ...values,
             };
@@ -90,11 +91,10 @@ const GroupAffiliation = () => {
         }
     };
 
-    const dataSource = data?.results?.map((group_affiliation: { id: any; name: any; description: any; organization: any; }, index: number) => (
+    const dataSource = data?.results?.map((group_affiliation, index) => (
         {
-            key: index + 1,
-            id: group_affiliation?.id,
-            name: group_affiliation?.name ?? 'N/A',
+            key: group_affiliation.id,
+            id: group_affiliation?.name,
             description: group_affiliation?.description ?? 'N/A',
             organization: group_affiliation?.organization ?? 'Bureau of Jail Management and Penology',
         }
@@ -106,7 +106,7 @@ const GroupAffiliation = () => {
         )
     );
     
-        const columns: ColumnsType<GroupResponse> = [
+        const columns: ColumnsType<GroupRecord> = [
             {
                 title: 'No.',
                 render: (_: any, __: any, index: number) =>
@@ -145,7 +145,7 @@ const GroupAffiliation = () => {
             {
             title: "Actions",
             key: "actions",
-            render: (_: any, record: GroupResponse) => (
+            render: (_: any, record: GroupRecord) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
                         <Button type="link" onClick={() => handleEdit(record)}>
                             <AiOutlineEdit />

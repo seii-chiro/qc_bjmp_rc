@@ -23,6 +23,9 @@ const ServiceProvider = () => {
     const token = useTokenStore().token;
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+    const [page, setPage] = useState(1);
+    const limit = 10;
 
     const { data: ServicerProviderData } = useQuery({
         queryKey: ['service-provider'],
@@ -54,7 +57,7 @@ const ServiceProvider = () => {
             messageApi.error(error.message || "Failed to delete Service Provider");
         },
     });
-    const dataSource = ServicerProviderData?.map((provider, index) => {
+    const dataSource = ServicerProviderData?.results?.map((provider, index) => {
         const matchedPerson = PersonsData?.find(person => person.id === provider.person);
 
         const matchedServiceProviderType = SPTypeData?.find(serv_prov_type => serv_prov_type.id === provider.serv_prov_type);
@@ -62,8 +65,7 @@ const ServiceProvider = () => {
         const PSmatchData = ProvidedServiceData?.find(provided_service => provided_service.id === provider.provided_service);
     
         return {
-            key: index + 1,
-            id: provider?.id,
+            key: provider.id,
             sp_reg_no: provider?.sp_reg_no,
             serv_prov_type: matchedServiceProviderType?.serv_prov_type,
             provided_service: PSmatchData?.service_provided,
@@ -82,38 +84,89 @@ const ServiceProvider = () => {
     const columns: ColumnsType<ServiceProviderPayload> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            key: 'no',
+            render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
         },
         {
             title: 'SP Type',
             dataIndex: 'serv_prov_type',
-            key: 'serv_prov_type'
+            key: 'serv_prov_type',
+            sorter: (a, b) => a.serv_prov_type.localeCompare(b.serv_prov_type),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.serv_prov_type))
+                ).map(serv_prov_type => ({
+                    text: serv_prov_type,
+                    value: serv_prov_type,
+                }))
+            ],
+            onFilter: (value, record) => record.serv_prov_type === value,
         },
         {
             title: 'Provided Service',
             dataIndex: 'provided_service',
-            key: 'provided_service'
+            key: 'provided_service',
+            sorter: (a, b) => a.provided_service.localeCompare(b.provided_service),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.provided_service))
+                ).map(provided_service => ({
+                    text: provided_service,
+                    value: provided_service,
+                }))
+            ],
+            onFilter: (value, record) => record.provided_service === value,
         },
         {
             title: 'SP No.',
             dataIndex: 'sp_reg_no',
             key: 'sp_reg_no',
+            sorter: (a, b) => a.sp_reg_no.localeCompare(b.sp_reg_no),
         },
         {
             title: 'Person',
             dataIndex: 'person',
-            key: 'person'
+            key: 'person',
+            sorter: (a, b) => a.person.localeCompare(b.person),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.person))
+                ).map(person => ({
+                    text: person,
+                    value: person,
+                }))
+            ],
+            onFilter: (value, record) => record.person === value,
         },
         {
             title: 'Visitor Type',
             dataIndex: 'visitor_type',
-            key: 'visitor_type'
+            key: 'visitor_type',
+            sorter: (a, b) => a.visitor_type.localeCompare(b.visitor_type),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.visitor_type))
+                ).map(visitor_type => ({
+                    text: visitor_type,
+                    value: visitor_type,
+                }))
+            ],
+            onFilter: (value, record) => record.visitor_type === value,
         },
         {
             title: 'Group Affiliation',
             dataIndex: 'group_affiliation',
-            key: 'group_affiliation'
+            key: 'group_affiliation',
+            sorter: (a, b) => a.group_affiliation.localeCompare(b.group_affiliation),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.group_affiliation))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.group_affiliation === value,
         },
         {
             title: "Action",

@@ -897,14 +897,7 @@ export type WatchlistPerson = {
   remarks: string;
 }
 
-interface GroupResponse {
-  count: number;
-  next: string | null; // It can be null if there's no next page
-  previous: string | null; // It can be null if there's no previous page
-  results: GroupRecord[];
-}
-
-interface GroupRecord {
+type GroupRecord = {
   id: number;
   created_by: string;
   updated_by: string;
@@ -913,4 +906,20 @@ interface GroupRecord {
   updated_at: string; // Alternatively, you can use Date if you parse it
   name: string;
   description: string;
+}
+interface DailyVisitSummaryResponse {
+  success: {
+    daily_visit_summary: {
+      [date: string]: DailyVisitSummary;
+    };
+  };
+}
+
+interface DailyVisitSummary {
+  main_gate_visits: number;
+  main_gate_tracking: number;
+  visitor_station_visits: number;
+  visitor_station_tracking: number;
+  pdl_station_visits: number;
+  pdl_station_tracking: number;
 }

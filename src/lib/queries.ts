@@ -102,7 +102,6 @@ import {
   Skill,
   Talent,
   HealthConditionCategories,
-  VisitorSpecific,
   MultipleBirthClassType,
   Suffix,
   Prefix,
@@ -144,7 +143,7 @@ import {
   Visitor as NewVisitor,
 } from "./pdl-definitions";
 import { EducationalAttainment } from "./visitorFormDefinition";
-import { ReportingCategory, SeverityLevel } from "./issues-difinitions";
+import { DailyVisitSummaryResponse, ReportingCategory, SeverityLevel } from "./issues-difinitions";
 
 export type PaginatedResponse<T> = {
   count: number;
@@ -3754,6 +3753,23 @@ export async function getSeverityLevel(
 
   if (!res.ok) {
     throw new Error("Failed to fetch Incident Severity Level data.");
+  }
+
+  return res.json();
+}
+
+export async function getSummaryDaily(
+  token: string,
+): Promise<DailyVisitSummaryResponse> {
+  const res = await fetch(`${BASE_URL}/api/dashboard/summary-dashboard/get-daily-visit-summary`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch Daily data.");
   }
 
   return res.json();

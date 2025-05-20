@@ -290,101 +290,110 @@ useEffect(() => {
         setCsvReady(true);
     };
 
-    const handleExportPDF = async () => {
-        const allData = await fetchAllWatchlistData();
-        if (allData.length === 0) {
-            message.warn("No data available to export");
-            return;
-        }
+const handleExportPDF = async () => {
+    setExportLoading(true);
+    const doc = new jsPDF();
+    const headerHeight = 48;
+    const footerHeight = 32;
 
-        const doc = new jsPDF();
-        const headerHeight = 48;
-        const footerHeight = 32;
-        const organizationName = allData[0]?.organization || "Bureau of Jail Management and Penology";
-        const PreparedBy = allData[0]?.updated || `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`;
+    // Fetch all watchlist data for export (with search if needed)
+    const allData = await fetchAllWatchlistData();
 
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+    // Prepare table data
+    const tableData = allData.map((item, index) => [
+        index + 1,
+        item.person,
+        item.white_listed_type,
+        item.risk_level,
+        item.threat_level,
+    ]);
 
-        const maxRowsPerPage = 29;
+    // Header info
+    const organizationName = allData[0]?.organization || "";
+    const PreparedBy = allData[0]?.updated_by || '';
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    const reportReferenceNo = `WATCHLIST-${formattedDate}-XXX`;
 
-        let startY = headerHeight;
+    const maxRowsPerPage = 26;
+    let startY = headerHeight;
 
-        const addHeader = () => {
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const imageWidth = 30;
-            const imageHeight = 30;
-            const margin = 10;
-            const imageX = pageWidth - imageWidth - margin;
-            const imageY = 12;
+    const addHeader = () => {
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const imageWidth = 30;
+        const imageHeight = 30;
+        const margin = 10;
+        const imageX = pageWidth - imageWidth - margin;
+        const imageY = 12;
 
-            doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-
-            doc.setTextColor(0, 102, 204);
-            doc.setFontSize(16);
-            doc.text("Watchlist Report", 10, 15);
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(10);
-            doc.text(`Organization Name: ${organizationName}`, 10, 25);
-            doc.text("Report Date: " + formattedDate, 10, 30);
-            doc.text("Prepared By: " + PreparedBy, 10, 35);
-            doc.text("Department/ Unit: IT", 10, 40);
-            doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
-        };
-
-        addHeader();
-
-        const tableData = allData.map(item => [
-            item.key,
-            item.person,
-            item.white_listed_type,
-            item.risk_level,
-            item.threat_level,
-        ]);
-
-        for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
-            const pageData = tableData.slice(i, i + maxRowsPerPage);
-
-            autoTable(doc, {
-                head: [['No.', 'Name', 'White Listed Type', 'Risk Level', 'Threat Level']],
-                body: pageData,
-                startY: startY,
-                margin: { top: 0, left: 10, right: 10 },
-                didDrawPage: function (data) {
-                    if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                        addHeader();
-                    }
-                },
-            });
-
-            if (i + maxRowsPerPage < tableData.length) {
-                doc.addPage();
-                startY = headerHeight;
-            }
-        }
-
-        const pageCount = doc.internal.getNumberOfPages();
-        for (let page = 1; page <= pageCount; page++) {
-            doc.setPage(page);
-            const footerText = [
-                "Document Version: Version 1.0",
-                "Confidentiality Level: Internal use only",
-                "Contact Info: " + PreparedBy,
-                `Timestamp of Last Update: ${formattedDate}`
-            ].join('\n');
-            const footerX = 10;
-            const footerY = doc.internal.pageSize.height - footerHeight + 15;
-            const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
-            doc.setFontSize(8);
-            doc.text(footerText, footerX, footerY);
-            doc.text(`${page} / ${pageCount}`, pageX, footerY);
-        }
-
-        const pdfOutput = doc.output('datauristring');
-        setPdfDataUrl(pdfOutput);
-        setIsPdfModalOpen(true);
+        doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
+        doc.setTextColor(0, 102, 204);
+        doc.setFontSize(16);
+        doc.text("Watchlist Report", 10, 15);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(`Organization Name: ${organizationName}`, 10, 25);
+        doc.text("Report Date: " + formattedDate, 10, 30);
+        doc.text("Prepared By: " + PreparedBy, 10, 35);
+        doc.text("Department/ Unit: IT", 10, 40);
+        doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
     };
+
+    addHeader();
+
+    const columns = [
+        'No.',
+        'Person Name',
+        'White Listed Type',
+        'Risk Level',
+        'Threat Level',
+    ];
+
+    // Paginate table data: 26 rows per page
+    for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
+        const pageData = tableData.slice(i, i + maxRowsPerPage);
+
+        autoTable(doc, {
+            head: [columns],
+            body: pageData,
+            startY: startY,
+            margin: { top: 0, left: 10, right: 10 },
+            didDrawPage: function () {
+                if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+                    addHeader();
+                }
+            },
+        });
+
+        if (i + maxRowsPerPage < tableData.length) {
+            doc.addPage();
+            startY = headerHeight;
+        }
+    }
+
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let page = 1; page <= pageCount; page++) {
+        doc.setPage(page);
+        const footerText = [
+            "Document Version: Version 1.0",
+            "Confidentiality Level: Internal use only",
+            "Contact Info: " + PreparedBy,
+            `Timestamp of Last Update: ${formattedDate}`
+        ].join('\n');
+        const footerX = 10;
+        const footerY = doc.internal.pageSize.height - footerHeight + 15;
+        const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+        doc.setFontSize(8);
+        doc.text(footerText, footerX, footerY);
+        doc.text(`${page} / ${pageCount}`, pageX, footerY);
+    }
+
+    const pdfOutput = doc.output('datauristring');
+    setPdfDataUrl(pdfOutput);
+    setIsPdfModalOpen(true);
+    setExportLoading(false);
+};
 
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);

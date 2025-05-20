@@ -14,7 +14,7 @@ import {
 import {
   DeviceSettingPayload,
   EditDeviceSettingRecord,
-  GroupResponse,
+  GroupRecord,
   MainGateLog,
   NonPDLVisitorPayload,
   OTPAccount,
@@ -765,7 +765,7 @@ export const deleteWatchlistPersonBiometric = async (
 
 export async function getGroupAffiliation(
   token: string
-): Promise<GroupResponse[]> {
+): Promise<GroupRecord> {
   const res = await fetch(`${BASE_URL}/api/service-providers/service-provider-group-affiliations/`, {
     headers: {
       "Content-Type": "application/json",
@@ -781,8 +781,8 @@ export async function getGroupAffiliation(
 export const patchGroupAffiliation = async (
   token: string,
   id: number,
-  data: Partial<GroupResponse>
-): Promise<GroupResponse> => {
+  data: Partial<GroupRecord>
+): Promise<GroupRecord> => {
   const url = `${BASE_URL}/api/service-providers/service-provider-group-affiliations/${id}/`;
   const res = await fetch(url, {
     method: "PATCH",
@@ -792,7 +792,7 @@ export const patchGroupAffiliation = async (
     },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to update Group Response");
+  if (!res.ok) throw new Error("Failed to update Device Setting");
   return res.json();
 };
 
