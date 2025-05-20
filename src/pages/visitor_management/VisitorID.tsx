@@ -74,7 +74,7 @@ const VisitorID = () => {
                         optionFilterProp='label'
                         placeholder='Select Visitor'
                         className='w-72 h-10'
-                        options={visitors?.map((visitor) => ({
+                        options={visitors?.results?.map((visitor) => ({
                             value: visitor.id_number,
                             label: `${visitor?.person?.first_name ?? ""} ${visitor?.person?.middle_name ?? ""} ${visitor?.person?.last_name ?? ""}`,
                         })) ?? []}
