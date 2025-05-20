@@ -137,7 +137,15 @@ const PDLtable = () => {
         }
     };
 
-    const filteredPDLs = filterOption === "all" ? pdlData : pdlData?.filter((pdl) => pdl?.person?.gender?.gender_option === filterOption);
+    const filteredPDLs = {
+        ...pdlData,
+        results:
+            filterOption === "all"
+                ? pdlData?.results || []
+                : (pdlData?.results || []).filter(
+                    (pdl) => pdl?.person?.gender?.gender_option === filterOption
+                ),
+    };
 
     const dataSource = filteredPDLs?.results?.map((pdl, index) => ({
         key: ((page - 1) * limit) + index + 1,
