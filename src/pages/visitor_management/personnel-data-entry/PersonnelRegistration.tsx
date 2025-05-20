@@ -1,4 +1,4 @@
-import { DatePicker, Input, message, Modal, Select, Table } from "antd";
+import { DatePicker, Input, message, Modal, Select, Table, Tooltip } from "antd";
 import { Plus } from "lucide-react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import AddAddress from "../visitor-data-entry/AddAddress";
@@ -882,7 +882,13 @@ const PersonnelRegistration = () => {
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={ethnicities?.map(ethnicity => ({
                                         value: ethnicity?.id,
-                                        label: ethnicity?.region
+                                        label: (
+                                            <Tooltip title={`${ethnicity?.region} - ${ethnicity?.province}`}>
+                                                <span style={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>
+                                                    {`${ethnicity?.province} - ${ethnicity?.region}`}
+                                                </span>
+                                            </Tooltip>
+                                        )
                                     }))}
                                     onChange={value => {
                                         setPersonForm(prev => ({

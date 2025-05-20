@@ -6,7 +6,9 @@ import { useEffect, useState } from "react";
 //All errors are linter errors, please ignore. Me too lazy write long type huhu
 type Visitor = VisitorRecord;
 
-const IdentificationLandscape = ({ visitor }: { visitor: any }) => {
+const IdentificationLandscape = ({ visitor_log }: { visitor_log: any }) => {
+    const visitor = visitor_log?.visitor;
+
     const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(visitor);
     const [visitorVisits, setVisitorVisits] = useState(selectedVisitor?.main_gate_visits || []);
     const [showAllVisits, setShowAllVisits] = useState(false);
@@ -111,7 +113,7 @@ const IdentificationLandscape = ({ visitor }: { visitor: any }) => {
 
     const hasAnyAddress = addressParts.some(Boolean);
 
-    console.log("Visitor Info", visitor)
+    // console.log("Visitor Info", visitor)
 
     return (
         <div>
@@ -132,70 +134,70 @@ const IdentificationLandscape = ({ visitor }: { visitor: any }) => {
                                         }
                                     </div>
                                     <div className="border h-fit border-[#EAEAEC] rounded-xl py-2 px-3 overflow-hidden">
-                                            <p className="text-[#404958] text-sm">Visitor History</p>
-                                            <div className="overflow-y-auto h-full">
-                                                <div>
-                                                    <table className="w-full border-collapse">
-                                                        <thead>
-                                                            <tr>
-                                                                <th className="rounded-l-lg bg-[#2F3237] text-white py-1 px-2 font-semibold text-xs">Date</th>
-                                                                <th className="bg-[#2F3237] text-white py-1 px-2 font-semibold text-xs">Duration</th>
-                                                                <th className="bg-[#2F3237] text-white py-1 px-2 font-semibold text-xs">Login</th>
-                                                                <th className="rounded-r-lg bg-[#2F3237] text-white py-1 px-2 font-semibold text-xs">Logout</th>
-                                                            </tr>
-                                                        </thead>
-                                                        {selectedVisitor?.main_gate_visits?.length > 0 && (
-                                                            <tbody>
-                                                                {(showAllVisits
-                                                                    ? [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-                                                                    : [...visitorVisits]
-                                                                        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-                                                                        .slice(0, 3)
-                                                                ).map((visit, index, arr) => {
-                                                                    const login = new Date(visit.created_at);
-                                                                    const logout = arr[index + 1] ? new Date(arr[index + 1].created_at) : new Date(visit.updated_at);
-                                                                    const durationMs = logout.getTime() - login.getTime();
-                                                                    const durationMins = Math.floor(durationMs / 60000);
-                                                                    const hours = Math.floor(durationMins / 60);
-                                                                    const minutes = durationMins % 60;
-                                                                    return (
-                                                                        <tr key={index}>
-                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                                                {login.toLocaleDateString()}
-                                                                            </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                                                {`${hours}h ${minutes}m`}
-                                                                            </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                                                {login.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                                                                            </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                                                {logout
-                                                                                    ? logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                                                                                    : "-"}
-                                                                            </td>
-                                                                        </tr>
-                                                                    );
-                                                                })}
-                                                                {selectedVisitor.main_gate_visits?.length > 4 && (
-                                                                    <div className="text-center mt-2">
-                                                                        <button
-                                                                            onClick={() => setShowAllVisits(!showAllVisits)}
-                                                                            className="text-xs text-blue-600 hover:underline"
-                                                                        >
-                                                                            {showAllVisits ? "Show Less" : "Show More"}
-                                                                        </button>
-                                                                    </div>
-                                                                )}
+                                        <p className="text-[#404958] text-sm">Visitor History</p>
+                                        <div className="overflow-y-auto h-full">
+                                            <div>
+                                                <table className="w-full border-collapse">
+                                                    <thead>
+                                                        <tr>
+                                                            <th className="rounded-l-lg bg-[#2F3237] text-white py-1 px-2 font-semibold text-xs">Date</th>
+                                                            <th className="bg-[#2F3237] text-white py-1 px-2 font-semibold text-xs">Duration</th>
+                                                            <th className="bg-[#2F3237] text-white py-1 px-2 font-semibold text-xs">Login</th>
+                                                            <th className="rounded-r-lg bg-[#2F3237] text-white py-1 px-2 font-semibold text-xs">Logout</th>
+                                                        </tr>
+                                                    </thead>
+                                                    {selectedVisitor?.main_gate_visits?.length > 0 && (
+                                                        <tbody>
+                                                            {(showAllVisits
+                                                                ? [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+                                                                : [...visitorVisits]
+                                                                    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+                                                                    .slice(0, 3)
+                                                            ).map((visit, index, arr) => {
+                                                                const login = new Date(visit.created_at);
+                                                                const logout = arr[index + 1] ? new Date(arr[index + 1].created_at) : new Date(visit.updated_at);
+                                                                const durationMs = logout.getTime() - login.getTime();
+                                                                const durationMins = Math.floor(durationMs / 60000);
+                                                                const hours = Math.floor(durationMins / 60);
+                                                                const minutes = durationMins % 60;
+                                                                return (
+                                                                    <tr key={index}>
+                                                                        <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                            {login.toLocaleDateString()}
+                                                                        </td>
+                                                                        <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                            {`${hours}h ${minutes}m`}
+                                                                        </td>
+                                                                        <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                            {login.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                                                        </td>
+                                                                        <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                            {logout
+                                                                                ? logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                                                                                : "-"}
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })}
+                                                            {selectedVisitor.main_gate_visits?.length > 4 && (
+                                                                <div className="text-center mt-2">
+                                                                    <button
+                                                                        onClick={() => setShowAllVisits(!showAllVisits)}
+                                                                        className="text-xs text-blue-600 hover:underline"
+                                                                    >
+                                                                        {showAllVisits ? "Show Less" : "Show More"}
+                                                                    </button>
+                                                                </div>
+                                                            )}
 
-                                                            </tbody>
-                                                        )}
-                                                    </table>
-
-                                                </div>
+                                                        </tbody>
+                                                    )}
+                                                </table>
 
                                             </div>
+
                                         </div>
+                                    </div>
                                 </div>
                             </div>
                             <div className="w-full space-y-2 flex-1">
@@ -211,14 +213,14 @@ const IdentificationLandscape = ({ visitor }: { visitor: any }) => {
                                             <Info
                                                 title="Address:"
                                                 info={hasAnyAddress
-                                                    ? addressParts.filter(Boolean).join(' ')
+                                                    ? addressParts?.filter(Boolean)?.join(' ')
                                                     : 'N/A'}
                                             />
                                             <Info title="Gender:" info={visitor?.person?.gender?.gender_option || "N/A"} />
                                             <Info title="Age:" info={String(calculateAge(visitor?.person?.date_of_birth)) || "N/A"} />
                                             <Info title="Birthday:" info={visitor?.person?.date_of_birth} />
-                                            <Info title="Relationship to PDL:" info={relationshipToPdl.join(", ") || "N/A"} />
-                                            <Info title="Requirements:" info={requirements.join(", ") || "N/A"} />
+                                            <Info title="Relationship to PDL:" info={relationshipToPdl?.join(", ") || "N/A"} />
+                                            <Info title="Requirements:" info={requirements?.join(", ") || "N/A"} />
                                         </div>
                                     </div>
                                 </div>

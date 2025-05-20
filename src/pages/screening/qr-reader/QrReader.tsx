@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getDevice } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { getPDLVisitStatuses } from "@/lib/additionalQueries";
+import clsx from "clsx";
 
 
 const QrReader = ({ selectedArea }: { selectedArea: string }) => {
@@ -119,26 +120,20 @@ const QrReader = ({ selectedArea }: { selectedArea: string }) => {
             <div className="w-full flex items-center justify-center">
               {
                 lastScanned ? (
-                  <div className="w-[50%] text-3xl flex">
+                  <div className="w-fit text-3xl flex">
                     <div className="flex items-center justify-between w-full">
-                      <div className="flex-[2] flex gap-12">
-
-                        <>
-                          <span>Status:</span>
-                          <span className={`font-semibold ${lastScanned?.pdls?.[0]?.pdl?.visitation_status === "Available" ? "text-green-700" : "text-red-600"}`}>
-                            {lastScanned?.pdls?.[0]?.pdl?.visitation_status}
-                          </span>
-                        </>
-
-                      </div>
-                      <div className="flex justify-end flex-1 gap-4">
-                        {
-                          lastScanned?.pdls?.[0]?.pdl?.visitation_status === "Available" ? (
-                            <img src={check} alt="Check Mark" className="w-10 h-10" />
-                          ) : (
-                            <img src={ex} alt="X Mark" className="w-10 h-10" />
-                          )
-                        }
+                      <div className="flex items-center gap-2">
+                        <h1 className={clsx(
+                          'font-bold text-4xl',
+                          lastScanned?.visitor_app_status === 'Verified'
+                            ? 'text-green-500'
+                            : 'text-red-500'
+                        )}>{lastScanned?.visitor_app_status}</h1>
+                        {lastScanned?.visitor_app_status === "Verified" ? (
+                          <img src={check} alt="Check Mark" className="w-10 h-10" />
+                        ) : (
+                          <img src={ex} alt="X Mark" className="w-10 h-10" />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -149,11 +144,11 @@ const QrReader = ({ selectedArea }: { selectedArea: string }) => {
                 )
               }
             </div>
-            <div>
+            {/* <div>
               <p className="text-lg">
                 {visitation_status?.results?.find(status => status?.name === lastScanned?.pdls?.[0]?.pdl?.visitation_status)?.description}
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
