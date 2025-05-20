@@ -26,12 +26,9 @@ import { Visitor as NewVisitorType } from "@/lib/pdl-definitions";
 
 type Visitor = VisitorRecord;
 
-// interface VisitorProps {
-//     handlePrintPDF: () => void;
-// }
-
 const Visitor = () => {
     const [searchText, setSearchText] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
     const queryClient = useQueryClient();
     const token = useTokenStore().token;
@@ -47,14 +44,39 @@ const Visitor = () => {
     const [page, setPage] = useState(1);
     const limit = 10;
 
+    const fetchVisitors = async (search: string) => {
+        const res = await fetch(`${BASE_URL}/api/visitors/visitor/?search=${search}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+
     useEffect(() => {
         if (selectedVisitor?.main_gate_visits) {
             setVisitorVisits(selectedVisitor.main_gate_visits);
         }
     }, [selectedVisitor]);
 
+    useEffect(() => {
+        const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
+        return () => clearTimeout(timeout);
+    }, [searchText]);
+
+    const { data: searchData } = useQuery({
+        queryKey: ["visitors", debouncedSearch],
+        queryFn: () => fetchVisitors(debouncedSearch),
+        behavior: keepPreviousData(),
+        enabled: debouncedSearch.length > 0,
+    });
+
     const { data, isFetching } = useQuery({
-        queryKey: ['personnel', 'personnel-table', page],
+        queryKey: ['visitors', 'visitor-table', page],
         queryFn: async (): Promise<PaginatedResponse<NewVisitorType>> => {
             // Add offset parameter for Django REST Framework's pagination
             const offset = (page - 1) * limit;
@@ -423,18 +445,31 @@ const Visitor = () => {
                     <Table
                         loading={isFetching}
                         columns={columns}
-                        dataSource={filteredData}
+                        dataSource={
+                            debouncedSearch
+                                ? (searchData?.results || []).map((visitor, index) => ({
+                                    ...visitor,
+                                    key: index + 1,
+                                    visitor_reg_no: visitor?.visitor_reg_no,
+                                    visitor_type: visitor?.visitor_type,
+                                    nationality: visitor?.person?.nationality,
+                                    organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
+                                    updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+                                }))
+                                : filteredData
+                        }
                         scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
-                        pagination={{
-                            current: page,
-                            pageSize: limit,
-                            total: data?.count || 0,
-                            onChange: (newPage) => {
-                                console.log("Changing to page:", newPage);
-                                setPage(newPage);
-                            },
-                            showSizeChanger: false,
-                        }}
+                        pagination={
+                            debouncedSearch
+                                ? false // Hide pagination when searching
+                                : {
+                                    current: page,
+                                    pageSize: limit,
+                                    total: data?.count || 0,
+                                    onChange: (newPage) => setPage(newPage),
+                                    showSizeChanger: false,
+                                }
+                        }
                         rowKey="id"
                     />
                 </div>
