@@ -1,6 +1,6 @@
 import { WatchlistPerson } from "@/lib/issues-difinitions";
 import { getUser } from "@/lib/queries";
-import { deleteWatchlistPerson, deleteWatchlistPersonBiometric, getWatchlistPerson } from "@/lib/query";
+import { deleteWatchlistPerson, getWatchlistPerson } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Menu, message, Modal } from "antd";
@@ -10,25 +10,58 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import moment from "moment";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GoDownload, GoPlus } from "react-icons/go";
 import { LuSearch } from "react-icons/lu";
 import bjmp from '../../assets/Logo/QCJMD.png'
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
+import { BASE_URL } from "@/lib/urls";
 // import { useNavigate } from "react-router-dom";
 
 const Watchlist = () => {
     const [searchText, setSearchText] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const limit = 10;
     const token = useTokenStore().token;
     const queryClient = useQueryClient();
-    const [messageApi, contextHolder] = message.useMessage();
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     // const navigate = useNavigate()
 
-    const { data: WatchlistData } = useQuery({
-        queryKey: ['watchlist'],
-        queryFn: () => getWatchlistPerson(token ?? ""),
+    useEffect(() => {
+        const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
+        return () => clearTimeout(timeout);
+    }, [searchText]);
+
+    const { data: WatchlistData, isFetching } = useQuery({
+        queryKey: ['watchlist', page, debouncedSearch],
+        queryFn: async () => {
+            const offset = (page - 1) * limit;
+            const params = new URLSearchParams({
+                page: String(page),
+                limit: String(limit),
+                offset: String(offset),
+            });
+            if (debouncedSearch) params.append("search", debouncedSearch);
+
+            const res = await fetch(
+                `${BASE_URL}/api/whitelists/whitelisted-persons/?${params.toString()}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch Watchlist data.');
+            }
+
+            return res.json();
+        },
+        keepPreviousData: true,
     });
 
     const { data: UserData } = useQuery({
@@ -38,7 +71,6 @@ const Watchlist = () => {
 
     const deletePersonAndBiometric = async (token: string, id: number) => {
         await deleteWatchlistPerson(token, id);
-        await deleteWatchlistPersonBiometric(token, id);
     };
 
     const deleteMutation = useMutation({
@@ -52,20 +84,18 @@ const Watchlist = () => {
         },
     });
 
-    const dataSource = WatchlistData?.results?.map((watchlist, index) => (
-        {
-            key: index + 1,
-            id: watchlist?.id,
-            person: watchlist?.person ?? '',
-            white_listed_type: watchlist?.white_listed_type ?? '',
-            risk_level: watchlist?.risk_level ?? '',
-            threat_level: watchlist?.threat_level ?? '',
-            updated_by: watchlist?.updated_by ?? '',
-            updated_at: watchlist?.updated_at ? moment(watchlist.updated_at).format('YYYY-MM-DD HH:mm:ss A') : '',
-            organization: watchlist?.organization ?? 'Bureau of Jail Management and Penology',
-            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-        }
-    )) || [];
+    const dataSource = WatchlistData?.results?.map((watchlist, index) => ({
+        key: (page - 1) * limit + index + 1,
+        id: watchlist?.id,
+        person: watchlist?.person ?? '',
+        white_listed_type: watchlist?.white_listed_type ?? '',
+        risk_level: watchlist?.risk_level ?? '',
+        threat_level: watchlist?.threat_level ?? '',
+        updated_by: watchlist?.updated_by ?? '',
+        updated_at: watchlist?.updated_at ? moment(watchlist.updated_at).format('YYYY-MM-DD HH:mm:ss A') : '',
+        organization: watchlist?.organization ?? 'Bureau of Jail Management and Penology',
+        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+    })) || [];
 
     const filteredData = dataSource?.filter((watchlist) =>
         Object.values(watchlist).some((value) =>
@@ -254,7 +284,6 @@ const Watchlist = () => {
 
     return (
         <div className="w-full">
-            {contextHolder}
             <h1 className="text-3xl font-bold text-[#1E365D]">Watchlist</h1>
             <div className="w-full bg-white">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center p-4 gap-5">
@@ -273,7 +302,11 @@ const Watchlist = () => {
                             <input
                                 placeholder="Search"
                                 type="text"
-                                onChange={(e) => setSearchText(e.target.value)}
+                                value={searchText}
+                                onChange={(e) => {
+                                    setSearchText(e.target.value);
+                                    setPage(1);
+                                }}
                                 className="border border-gray-400 h-10 w-full md:w-96 rounded-md px-2 active:outline-none focus:outline-none"
                             />
                             <LuSearch className="absolute right-[1%] text-gray-400" />
@@ -281,7 +314,30 @@ const Watchlist = () => {
                     </div>
                 </div>
                 <div>
-                    <Table dataSource={filteredData} columns={columns} scroll={{ x: 800 }} />
+                    <Table
+                        loading={isFetching}
+                        dataSource={WatchlistData?.results?.map((watchlist, index) => ({
+                            key: (page - 1) * limit + index + 1,
+                            id: watchlist?.id,
+                            person: watchlist?.person ?? '',
+                            white_listed_type: watchlist?.white_listed_type ?? '',
+                            risk_level: watchlist?.risk_level ?? '',
+                            threat_level: watchlist?.threat_level ?? '',
+                            updated_by: watchlist?.updated_by ?? '',
+                            updated_at: watchlist?.updated_at ? moment(watchlist.updated_at).format('YYYY-MM-DD HH:mm:ss A') : '',
+                            organization: watchlist?.organization ?? 'Bureau of Jail Management and Penology',
+                            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+                        })) || []}
+                        columns={columns}
+                        scroll={{ x: 800 }}
+                        pagination={{
+                            current: page,
+                            pageSize: limit,
+                            total: WatchlistData?.count || 0,
+                            onChange: (newPage) => setPage(newPage),
+                            showSizeChanger: false,
+                        }}
+                    />
                 </div>
             </div>
             <Modal
