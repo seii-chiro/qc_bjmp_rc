@@ -62,7 +62,7 @@ const Verify = () => {
                     ) : selectedOption === "Fingerprint" ? (
                         <Finger devices={data || []} deviceLoading={isLoading} selectedArea={selectedArea} />
                     ) : selectedOption === "Face Recognition" ? (
-                        <Face devices={data || []} deviceLoading={isLoading} selectedArea={selectedArea} />
+                        <Face devices={data?.results || []} deviceLoading={isLoading} selectedArea={selectedArea} />
                     ) : selectedOption === "Iris" ? (
                         <Iris devices={data || []} deviceLoading={isLoading} selectedArea={selectedArea} />
                     ) : <div>No Scanner Available</div>

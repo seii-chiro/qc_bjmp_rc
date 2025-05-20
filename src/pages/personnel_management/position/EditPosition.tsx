@@ -151,7 +151,7 @@ const EditPosition = ({ position, onClose }: { position: any; onClose: () => voi
                         optionFilterProp="label"
                         onChange={onRankChange}
                         loading={rankLoading}
-                        options={rankData?.map(rank => (
+                        options={rankData?.results?.map(rank => (
                             {
                                 value: rank.id,
                                 label: rank?.rank_name
@@ -169,7 +169,7 @@ const EditPosition = ({ position, onClose }: { position: any; onClose: () => voi
                         optionFilterProp="label"
                         onChange={onOrganizationChange}
                         loading={organizationLoading}
-                        options={organizationData?.map(organization => (
+                        options={organizationData?.results?.map(organization => (
                             {
                                 value: organization.id,
                                 label: organization?.org_name

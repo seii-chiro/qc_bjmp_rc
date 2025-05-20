@@ -32,6 +32,7 @@ const ID_Types = () => {
     const [id_Types, setID_Types] = useState<ID_Types | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['id-types'],
@@ -62,7 +63,7 @@ const ID_Types = () => {
         setIsModalOpen(false);
         };
 
-    const dataSource = data?.map((id_types, index) => (
+    const dataSource = data?.results?.map((id_types, index) => (
         {
             key: index + 1,
             id: id_types?.id,
@@ -82,18 +83,20 @@ const ID_Types = () => {
     const columns: ColumnsType<ID_Types> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'ID Type',
             dataIndex: 'id_type',
             key: 'id_type',
+            sorter: (a, b) => a.id_type.localeCompare(b.id_type),
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
         },
         {
             title: "Actions",
@@ -179,7 +182,7 @@ const ID_Types = () => {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
     
             autoTable(doc, { 
-                head: [['No.', 'Employment Type', 'Description']],
+                head: [['No.', 'ID Type', 'Description']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
@@ -276,7 +279,12 @@ const ID_Types = () => {
                     <Table
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{ x: 800 }}
+                        scroll={{ x: 700 }}
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

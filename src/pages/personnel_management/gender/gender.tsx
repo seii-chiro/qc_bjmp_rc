@@ -32,6 +32,7 @@ const Gender = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [gender, setGender] = useState<Gender | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
     const { data } = useQuery({
@@ -63,7 +64,7 @@ const Gender = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((gender, index) => (
+    const dataSource = data?.results?.map((gender, index) => (
         {
             key: index + 1,
             id: gender?.id ?? 'N/A',
@@ -81,20 +82,22 @@ const Gender = () => {
     );
 
     const columns: ColumnsType<Gender> = [
-        {
-            title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
-        },
+            {
+                title: 'No.',
+                render: (_: any, __: any, index: number) =>
+                    (pagination.current - 1) * pagination.pageSize + index + 1,
+            },
         {
             title: 'Gender Option',
             dataIndex: 'gender_option',
             key: 'gender_option',
+            sorter: (a, b) => a.gender_option.localeCompare(b.gender_option),
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
         },
         {
             title: "Actions",
@@ -280,7 +283,12 @@ const Gender = () => {
                     <Table
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{ x: 800 }}
+                        scroll={{ x: 700 }}
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

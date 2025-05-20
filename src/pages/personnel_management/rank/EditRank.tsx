@@ -114,7 +114,7 @@ const EditRank = ({ rank, onClose }: { rank: any; onClose: () => void }) => {
                         optionFilterProp="label"
                         onChange={onOrganizationChange}
                         loading={organizationLoading}
-                        options={organizationData?.map(organization => ({
+                        options={organizationData?.results?.map(organization => ({
                             value: organization.id,
                             label: organization?.org_name
                         }))}/>

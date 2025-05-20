@@ -32,6 +32,7 @@ const CivilStatus = () => {
     const [civilStatus, setCivilStatus] = useState<CivilStatus | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['civil-status'],
@@ -62,7 +63,7 @@ const CivilStatus = () => {
         setIsModalOpen(false);
         };
 
-    const dataSource = data?.map((civil_status, index) => (
+    const dataSource = data?.results?.map((civil_status, index) => (
         {
             key: index + 1,
             id: civil_status?.id,
@@ -82,18 +83,20 @@ const CivilStatus = () => {
     const columns: ColumnsType<CivilStatus> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Civil Status',
             dataIndex: 'status',
             key: 'status',
+            sorter: (a, b) => a.status.localeCompare(b.status),
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
         },
         {
             title: "Actions",
@@ -276,7 +279,12 @@ const CivilStatus = () => {
                     <Table
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{ x: 800 }}
+                        scroll={{ x: 700 }}
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

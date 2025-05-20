@@ -32,6 +32,7 @@ const EmploymentType = () => {
     const [employmentType, setEmploymentType] = useState<EmploymentType | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ["employment-type"],
@@ -62,7 +63,7 @@ const EmploymentType = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((employmenttype, index) => ({
+    const dataSource = data?.results?.map((employmenttype, index) => ({
         key: index + 1,
         id: employmenttype.id,
         employment_type: employmenttype?.employment_type ?? "N/A",
@@ -80,18 +81,37 @@ const EmploymentType = () => {
     const columns: ColumnsType<EmploymentType> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Employment Type',
             dataIndex: 'employment_type',
             key: 'employment_type',
+            sorter: (a, b) => a.employment_type.localeCompare(b.employment_type),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.employment_type))
+                ).map(employment_type => ({
+                    text: employment_type,
+                    value: employment_type,
+                }))
+            ],
+            onFilter: (value, record) => record.employment_type === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(description => ({
+                    text: description,
+                    value: description,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",
@@ -301,7 +321,7 @@ const EmploymentType = () => {
                 width="30%"
                 style={{ maxHeight: "80vh", overflowY: "auto" }} 
                 >
-                <AddEmploymentType />
+                <AddEmploymentType onClose={handleCancel}/>
             </Modal>
             <Modal
                 title="Edit Employment Type"

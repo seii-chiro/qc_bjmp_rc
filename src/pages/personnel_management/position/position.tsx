@@ -37,6 +37,7 @@ const Position = () => {
     const [position, setPosition] = useState<Position | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['position'],
@@ -67,7 +68,7 @@ const Position = () => {
         setIsModalOpen(false);
         };
 
-    const dataSource = data?.map((position, index) => (
+    const dataSource = data?.results?.map((position, index) => (
         {
             key: index + 1,
             id: position?.id,
@@ -93,38 +94,97 @@ const Position = () => {
     const columns: ColumnsType<Position> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Position Code',
             dataIndex: 'position_code',
             key: 'position_code',
+            sorter: (a, b) => a.position_code.localeCompare(b.position_code),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.position_code))
+                ).map(position_code => ({
+                    text: position_code,
+                    value: position_code,
+                }))
+            ],
+            onFilter: (value, record) => record.position_code === value,
         },
         {
             title: 'Position Title',
             dataIndex: 'position_title',
             key: 'position_title',
+            sorter: (a, b) => a.position_title.localeCompare(b.position_title),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.position_title))
+                ).map(position_title => ({
+                    text: position_title,
+                    value: position_title,
+                }))
+            ],
+            onFilter: (value, record) => record.position_title === value,
         },
         {
             title: 'Position Level',
             dataIndex: 'position_level',
             key: 'position_level',
+            sorter: (a, b) => a.position_level.localeCompare(b.position_level),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.position_level))
+                ).map(position_level => ({
+                    text: position_level,
+                    value: position_level,
+                }))
+            ],
+            onFilter: (value, record) => record.position_level === value,
         },
         {
             title: 'Position Type',
             dataIndex: 'position_type',
             key: 'position_type',
+            sorter: (a, b) => a.position_type.localeCompare(b.position_type),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.position_type))
+                ).map(position_type => ({
+                    text: position_type,
+                    value: position_type,
+                }))
+            ],
+            onFilter: (value, record) => record.position_type === value,
         },
         {
             title: 'Rank Required',
             dataIndex: 'rank_required',
             key: 'rank_required',
+            sorter: (a, b) => a.rank_required - b.rank_required,
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.rank_required))
+                ).map(rank_required => ({
+                    text: rank_required,
+                    value: rank_required,
+                }))
+            ],
+            onFilter: (value, record) => record.rank_required === value,
         },
         {
             title: 'Organization',
             dataIndex: 'organization',
             key: 'organization',
+            sorter: (a, b) => a.organization.localeCompare(b.organization),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.organization))
+                ).map(organization => ({
+                    text: organization,
+                    value: organization,
+                }))
+            ],
+            onFilter: (value, record) => record.organization === value,
         },
         {
             title: "Actions",
@@ -305,9 +365,15 @@ const Position = () => {
                 </div>
                 <div className="overflow-x-auto overflow-y-auto h-full">
                     <Table
+                        className="overflow-x-auto"
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{ x: 800 }}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

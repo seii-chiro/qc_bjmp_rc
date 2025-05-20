@@ -34,6 +34,8 @@ const Rank = () => {
     const [rank, setRank] = useState<Rank | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+
 
     const { data } = useQuery({
         queryKey: ['ranks'],
@@ -64,7 +66,7 @@ const Rank = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((rank, index) => ({
+    const dataSource = data?.results?.map((rank, index) => ({
         key: index + 1,
         id: rank?.id,
         organization: rank?.organization ?? 'N/A',
@@ -84,33 +86,82 @@ const Rank = () => {
     const columns: ColumnsType<Rank> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Organization',
             dataIndex: 'organization',
             key: 'organization',
+            sorter: (a, b) => a.organization.localeCompare(b.organization),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.organization))
+                ).map(organization => ({
+                    text: organization,
+                    value: organization,
+                }))
+            ],
+            onFilter: (value, record) => record.organization === value,
         },
         {
             title: 'Rank Code',
             dataIndex: 'rank_code',
             key: 'rank_code',
+            sorter: (a, b) => a.rank_code.localeCompare(b.rank_code),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.rank_code))
+                ).map(rank_code => ({
+                    text: rank_code,
+                    value: rank_code,
+                }))
+            ],
+            onFilter: (value, record) => record.rank_code === value,
         },
         {
             title: 'Rank Name',
             dataIndex: 'rank_name',
             key: 'rank_name',
+            sorter: (a, b) => a.rank_name.localeCompare(b.rank_name),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.rank_name))
+                ).map(rank_name => ({
+                    text: rank_name,
+                    value: rank_name,
+                }))
+            ],
+            onFilter: (value, record) => record.rank_name === value,
         },
         {
             title: 'Category',
             dataIndex: 'category',
             key: 'category',
+            sorter: (a, b) => a.category?.localeCompare(b.category),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.category))
+                ).map(category => ({
+                    text: category,
+                    value: category,
+                }))
+            ],
+            onFilter: (value, record) => record.category === value,
         },
         {
             title: 'Class Level',
             dataIndex: 'class_level',
             key: 'class_level',
+            sorter: (a, b) => a.class_level - b.class_level,
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.class_level))
+                ).map(class_level => ({
+                    text: class_level,
+                    value: class_level,
+                }))
+            ],
+            onFilter: (value, record) => record.class_level === value,
         },
         {
             title: "Actions",

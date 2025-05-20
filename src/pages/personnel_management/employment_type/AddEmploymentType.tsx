@@ -10,13 +10,12 @@ type EmploymentForm = {
 };
 
 
-const AddEmploymentType = () => {
+const AddEmploymentType = ({ onClose }: { onClose: () => void }) => {
     const [messageApi, contextHolder] = message.useMessage();
     const [EmploymentForm, setEmploymentForm] = useState<EmploymentForm>({
         employment_type: '',
         description: '',
     });
-
     const token = useTokenStore().token
 
     async function registerEmploymentType(employment_type: EmploymentForm) {
@@ -42,13 +41,18 @@ const AddEmploymentType = () => {
         mutationFn: registerEmploymentType,
         onSuccess: (data) => {
             console.log(data)
-            messageApi.success("added successfully")
+            messageApi.success("added successfully");
+            onClose();
         },
         onError: (error) => {
             console.error(error)
             messageApi.error(error.message)
         }
     })
+    const handleEmploymentTypeSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        employmentTypeMutation.mutate(EmploymentForm)
+    }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -58,10 +62,7 @@ const AddEmploymentType = () => {
         }));
     };
 
-    const handleEmploymentTypeSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-        employmentTypeMutation.mutate(EmploymentForm)
-    }
+    
 
     return (
         <div>
