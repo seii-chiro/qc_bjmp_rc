@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CustomFingerResponse, FingerprintData } from '@/lib/scanner-definitions'
 import { captureFingerprints, getScannerInfo, uninitScanner, verifyFingerprint } from '@/lib/scanner-queries'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { Checkbox, message, Select } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
 import no_img from "@/assets/no-img.png"
@@ -12,7 +12,8 @@ import { useVisitorLogStore } from '@/store/useVisitorLogStore'
 import { useTokenStore } from '@/store/useTokenStore'
 import { BASE_URL } from '@/lib/urls'
 import { Device } from '@/lib/definitions'
-import { getPDLVisitStatuses } from '@/lib/additionalQueries'
+import clsx from 'clsx'
+// import { getPDLVisitStatuses } from '@/lib/additionalQueries'
 
 type Props = {
     devices: Device[];
@@ -60,10 +61,10 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
 
     const NFIQ_Quality_Options = [10, 20, 30, 40, 50]
 
-    const { data: visitation_status } = useQuery({
-        queryKey: ['get-visitation-status', 'qr-reader'],
-        queryFn: () => getPDLVisitStatuses(token ?? ""),
-    })
+    // const { data: visitation_status } = useQuery({
+    //     queryKey: ['get-visitation-status', 'qr-reader'],
+    //     queryFn: () => getPDLVisitStatuses(token ?? ""),
+    // })
 
     const fingerprintDevices = useMemo(
         () =>
@@ -339,6 +340,17 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
         fetchVisitorLog();
     }, [token, addOrRemoveVisitorLog, setLastScanned, selectedDeviceId, fingerprintVerificationResult, selectedArea]);
 
+    useEffect(() => {
+        // Only run if a new capture was successful
+        if (
+            (LeftFingerResponse && capturePayload.Slap === 0) ||
+            (RightFingerResponse && capturePayload.Slap === 1) ||
+            (ThumbFingerResponse && capturePayload.Slap === 2)
+        ) {
+            handleVerifyFingerprints();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [LeftFingerResponse, RightFingerResponse, ThumbFingerResponse]);
 
     if (isFetching) {
         message.info("Processing scan...");
@@ -728,26 +740,20 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                                 <div className="w-full flex items-center justify-center">
                                     {
                                         lastScanned ? (
-                                            <div className="w-[60%] text-3xl flex">
+                                            <div className="w-fit text-3xl flex">
                                                 <div className="flex items-center justify-between w-full">
-                                                    <div className="flex-[4] flex gap-12">
-
-                                                        <>
-                                                            <span>PDL Status:</span>
-                                                            <span className={`font-semibold ${lastScanned?.pdls?.[0]?.pdl?.visitation_status === "Available" ? "text-green-700" : "text-red-600"}`}>
-                                                                {lastScanned?.pdls?.[0]?.pdl?.visitation_status}
-                                                            </span>
-                                                        </>
-
-                                                    </div>
-                                                    <div className="flex justify-end flex-1 gap-4">
-                                                        {
-                                                            lastScanned?.pdls?.[0]?.pdl?.visitation_status === "Available" ? (
-                                                                <img src={check} alt="Check Mark" className="w-10 h-10" />
-                                                            ) : (
-                                                                <img src={ex} alt="X Mark" className="w-10 h-10" />
-                                                            )
-                                                        }
+                                                    <div className="flex items-center gap-2">
+                                                        <h1 className={clsx(
+                                                            'font-bold text-4xl',
+                                                            lastScanned?.visitor_app_status === 'Verified'
+                                                                ? 'text-green-500'
+                                                                : 'text-red-500'
+                                                        )}>{lastScanned?.visitor_app_status}</h1>
+                                                        {lastScanned?.visitor_app_status === "Verified" ? (
+                                                            <img src={check} alt="Check Mark" className="w-10 h-10" />
+                                                        ) : (
+                                                            <img src={ex} alt="X Mark" className="w-10 h-10" />
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -759,11 +765,11 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                                     }
                                 </div>
                             </div>
-                            <div className='mt-4'>
+                            {/* <div className='mt-4'>
                                 <p className="text-lg text-center">
                                     {visitation_status?.results?.find(status => status?.name === lastScanned?.pdls?.[0]?.pdl?.visitation_status)?.description}
                                 </p>
-                            </div>
+                            </div> */}
                         </div>
                     )
                 }
