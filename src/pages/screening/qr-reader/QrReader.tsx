@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import QCJMD_logo from "@/assets/Logo/QCJMD.png"
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import QrScanner from "./QrScanner";
 import noImg from "@/assets/no-img.webp"
 import check from "@/assets/Icons/check-mark.png"
@@ -27,6 +27,21 @@ const QrReader = ({ selectedArea }: { selectedArea: string }) => {
     queryKey: ['get-visitation-status', 'qr-reader'],
     queryFn: () => getPDLVisitStatuses(token ?? ""),
   })
+
+  const webcamDevices = useMemo(
+    () =>
+      data?.results?.filter(device =>
+        device?.device_name?.toLowerCase().includes("webcam")
+      ) || [],
+    [data]
+  );
+
+  // Set default device to the first webcam device when devices change
+  useEffect(() => {
+    if (webcamDevices.length > 0) {
+      setSelectedDeviceId(webcamDevices[0].id);
+    }
+  }, [webcamDevices]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -150,23 +165,23 @@ const QrReader = ({ selectedArea }: { selectedArea: string }) => {
             showSearch
             optionFilterProp="label"
             className="h-10 w-72"
-            options={data?.results?.map(device => ({
+            options={webcamDevices.map(device => ({
               label: device?.device_name,
               value: device?.id
             }))}
             value={selectedDeviceId || undefined}
-            onChange={handleDeviceChange}
+            onChange={setSelectedDeviceId}
             placeholder="Select a device"
           />
         </div>
-        <div className="mr-24">
+        {/* <div className="mr-24">
           <button
             className="bg-blue-200 py-1 px-10 font-semibold rounded hover:bg-blue-500 hover:text-white"
             onClick={handleClear}
           >
             Clear
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   )

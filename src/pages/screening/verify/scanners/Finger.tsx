@@ -3,7 +3,7 @@ import { CustomFingerResponse, FingerprintData } from '@/lib/scanner-definitions
 import { captureFingerprints, getScannerInfo, uninitScanner, verifyFingerprint } from '@/lib/scanner-queries'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Checkbox, message, Select } from 'antd'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import no_img from "@/assets/no-img.png"
 import noImg from "@/assets/no-img.webp"
 import check from "@/assets/Icons/check-mark.png"
@@ -64,6 +64,20 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
         queryKey: ['get-visitation-status', 'qr-reader'],
         queryFn: () => getPDLVisitStatuses(token ?? ""),
     })
+
+    const fingerprintDevices = useMemo(
+        () =>
+            devices?.results?.filter(device =>
+                device?.device_name?.toLowerCase().includes("fingerprint")
+            ) || [],
+        [devices]
+    );
+
+    useEffect(() => {
+        if (!deviceLoading && fingerprintDevices.length > 0) {
+            setSelectedDeviceId(fingerprintDevices[0].id);
+        }
+    }, [deviceLoading, fingerprintDevices]);
 
     const fingerScannerUninitThenInitMutation = useMutation({
         mutationKey: ['finger-scanner-uninit'],
@@ -761,7 +775,7 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                     showSearch
                     optionFilterProp="label"
                     className="h-10 w-72"
-                    options={devices?.results?.map(device => ({
+                    options={fingerprintDevices.map(device => ({
                         label: device?.device_name,
                         value: device?.id
                     }))}

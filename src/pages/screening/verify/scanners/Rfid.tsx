@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import noimg from '../../../../../public/noimg.png';
 import qjmmd from '../../../../assets/Logo/QCJMD.png';
 import rfid from '../../../../assets/rfid.png'
@@ -31,15 +31,26 @@ const Rfid = ({
     const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null)
     const prevIdRef = useRef<string | null>(null);
 
-
-    console.log(scannedVisitor)
-    console.log(scannedIdNumber)
-
     useEffect(() => {
         if (scannedIdNumber === "") {
             inputRef.current?.focus();
         }
     }, [scannedIdNumber]);
+
+    const rfidDevices = useMemo(
+        () =>
+            devices?.results?.filter(device =>
+                device?.device_name?.toLowerCase().includes("rfid")
+            ) || [],
+        [devices]
+    );
+
+    // Set default device to the first RFID device when devices change
+    useEffect(() => {
+        if (!deviceLoading && rfidDevices.length > 0) {
+            setSelectedDeviceId(rfidDevices[0].id);
+        }
+    }, [deviceLoading, rfidDevices]);
 
     const fetchVisitorLog = async () => {
         if (!scannedIdNumber) return;
@@ -136,17 +147,15 @@ const Rfid = ({
             }
         } catch (err: any) {
             message.error(`Error: ${err.message}`);
-        } finally {
-            setScannedIdNumber("");
         }
     };
 
     // Trigger manually on Enter key
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
-            fetchVisitorLog();
-        }
-    };
+    // const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    //     if (e.key === "Enter") {
+    //         fetchVisitorLog();
+    //     }
+    // };
 
     useEffect(() => {
         if (!scannedIdNumber) return;
@@ -189,7 +198,7 @@ const Rfid = ({
                         loading={deviceLoading}
                         value={selectedDeviceId}
                         className='h-10 w-full'
-                        options={devices?.results?.map(device => ({
+                        options={rfidDevices.map(device => ({
                             label: device?.device_name,
                             value: device?.id
                         }))}
@@ -204,7 +213,6 @@ const Rfid = ({
                         autoFocus
                         value={scannedIdNumber}
                         onChange={e => setScannedIdNumber(e.target.value)}
-                        onKeyDown={handleKeyDown}
                     />
                 </div>
             </div>
