@@ -56,15 +56,15 @@ const Verify = () => {
             <div>
                 {
                     selectedOption === "RFID" ? (
-                        <Rfid />
+                        <Rfid devices={data || []} deviceLoading={isLoading} selectedArea={selectedArea} />
                     ) : selectedOption === "QR" ? (
                         <QrReader selectedArea={selectedArea} />
                     ) : selectedOption === "Fingerprint" ? (
-                        <Finger devices={data || []} deviceLoading={isLoading} selectedArea={selectedArea}/>
+                        <Finger devices={data || []} deviceLoading={isLoading} selectedArea={selectedArea} />
                     ) : selectedOption === "Face Recognition" ? (
-                        <Face devices={data || []} deviceLoading={isLoading} selectedArea={selectedArea}/>
+                        <Face devices={data || []} deviceLoading={isLoading} selectedArea={selectedArea} />
                     ) : selectedOption === "Iris" ? (
-                        <Iris devices={data || []} deviceLoading={isLoading} selectedArea={selectedArea}/>
+                        <Iris devices={data || []} deviceLoading={isLoading} selectedArea={selectedArea} />
                     ) : <div>No Scanner Available</div>
                 }
             </div>

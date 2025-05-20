@@ -743,7 +743,7 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                             </div>
                             <div className='mt-4'>
                                 <p className="text-lg text-center">
-                                    {visitation_status?.find(status => status?.name === lastScanned?.pdls?.[0]?.pdl?.visitation_status)?.description}
+                                    {visitation_status?.results?.find(status => status?.name === lastScanned?.pdls?.[0]?.pdl?.visitation_status)?.description}
                                 </p>
                             </div>
                         </div>
@@ -757,7 +757,7 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                     showSearch
                     optionFilterProp="label"
                     className="h-10 w-72"
-                    options={devices?.map(device => ({
+                    options={devices?.results?.map(device => ({
                         label: device?.device_name,
                         value: device?.id
                     }))}

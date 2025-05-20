@@ -112,7 +112,7 @@ const QrReader = ({ selectedArea }: { selectedArea: string }) => {
                           <span>Status:</span>
                           <span className={`font-semibold ${lastScanned?.pdls?.[0]?.pdl?.visitation_status === "Available" ? "text-green-700" : "text-red-600"}`}>
                             {lastScanned?.pdls?.[0]?.pdl?.visitation_status}
-                            </span>
+                          </span>
                         </>
 
                       </div>
@@ -136,7 +136,7 @@ const QrReader = ({ selectedArea }: { selectedArea: string }) => {
             </div>
             <div>
               <p className="text-lg">
-                {visitation_status?.find(status => status?.name === lastScanned?.pdls?.[0]?.pdl?.visitation_status)?.description}
+                {visitation_status?.results?.find(status => status?.name === lastScanned?.pdls?.[0]?.pdl?.visitation_status)?.description}
               </p>
             </div>
           </div>
@@ -150,7 +150,7 @@ const QrReader = ({ selectedArea }: { selectedArea: string }) => {
             showSearch
             optionFilterProp="label"
             className="h-10 w-72"
-            options={data?.map(device => ({
+            options={data?.results?.map(device => ({
               label: device?.device_name,
               value: device?.id
             }))}

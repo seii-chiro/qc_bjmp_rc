@@ -1,34 +1,168 @@
-import { useEffect, useState } from 'react'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useRef, useState } from 'react'
 import noimg from '../../../../../public/noimg.png';
 import qjmmd from '../../../../assets/Logo/QCJMD.png';
 import rfid from '../../../../assets/rfid.png'
 import close from '../../../../assets/Icons/close.png'
 import check from '../../../../assets/Icons/check-mark.png'
+import { Input, InputRef, message, Select } from 'antd';
+import { useTokenStore } from '@/store/useTokenStore';
+import { Device } from '@/lib/definitions';
+import { BASE_URL } from '@/lib/urls';
+import { useVisitorLogStore } from '@/store/useVisitorLogStore';
+import Clock from '../../Clock';
 
-const Rfid = () => {
-    const [dateTime, setDateTime] = useState<string>("");
+type Props = {
+    devices: Device[];
+    deviceLoading: boolean;
+    selectedArea: string;
+}
+
+const Rfid = ({
+    selectedArea,
+    deviceLoading,
+    devices
+}: Props) => {
+    const inputRef = useRef<InputRef>(null);
+    const token = useTokenStore()?.token
+    const [scannedIdNumber, setScannedIdNumber] = useState("")
+    const [scannedVisitor, setScannedVisitor] = useState({})
+    const addOrRemoveVisitorLog = useVisitorLogStore((state) => state.addOrRemoveVisitorLog);
+    const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null)
+    const prevIdRef = useRef<string | null>(null);
+
+
+    console.log(scannedVisitor)
+    console.log(scannedIdNumber)
 
     useEffect(() => {
-        const updateTime = () => {
-            const now = new Date();
-            const options: Intl.DateTimeFormatOptions = {
-                weekday: "short",
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-                hour12: true,
-            };
-            setDateTime(now.toLocaleString("en-US", options));
-        };
+        if (scannedIdNumber === "") {
+            inputRef.current?.focus();
+        }
+    }, [scannedIdNumber]);
 
-        updateTime();
-        const interval = setInterval(updateTime, 1000);
+    const fetchVisitorLog = async () => {
+        if (!scannedIdNumber) return;
 
-        return () => clearInterval(interval);
-    }, []);
+        try {
+            const res = await fetch(`${BASE_URL}/api/visit-logs/visitor-specific/?id_number=${scannedIdNumber}`, {
+                method: 'get',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`
+                },
+            });
+
+            if (!res.ok) {
+                throw new Error(`Failed to fetch visitor log. Status: ${res.status}`);
+            }
+
+            const data = await res.json();
+            setScannedVisitor(data);
+
+            if (selectedArea?.toLowerCase() === "main gate") {
+                try {
+                    const storeSuccess = addOrRemoveVisitorLog(data);
+                    if (!storeSuccess) {
+                        console.warn("Could not persist to local storage");
+                    }
+                } catch (storeErr) {
+                    console.error("Error updating visitor log store:", storeErr);
+                }
+            }
+
+            let visitsUrl = "";
+            let trackingUrl = "";
+
+            switch (selectedArea?.toLowerCase()) {
+                case "main gate":
+                    visitsUrl = `${BASE_URL}/api/visit-logs/main-gate-visits/`;
+                    trackingUrl = `${BASE_URL}/api/visit-logs/main-gate-tracking/`;
+                    break;
+                case "visitor station":
+                    visitsUrl = `${BASE_URL}/api/visit-logs/visitor-station-visits/`;
+                    trackingUrl = `${BASE_URL}/api/visit-logs/visitor-station-tracking/`;
+                    break;
+                default:
+                    message.error("Unknown area. Cannot post visit.");
+                    return;
+            }
+
+            if (data && selectedDeviceId) {
+                const postRes = await fetch(visitsUrl, {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${token}`
+                    },
+                    body: JSON.stringify({
+                        device_id: selectedDeviceId,
+                        id_number: data.id_number,
+                        binary_data: data.encrypted_id_number_qr,
+                        person_id: data?.person?.id
+                    })
+                });
+
+                if (!postRes.ok) {
+                    throw new Error(`Failed to log visit. Status: ${postRes.status}`);
+                }
+
+                const visitLogResponse = await postRes.json();
+                message.success("Visit logged successfully!");
+
+                if (visitLogResponse?.id) {
+                    const trackingRes = await fetch(trackingUrl, {
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Token ${token}`
+                        },
+                        body: JSON.stringify({
+                            visit_id: visitLogResponse.id
+                        })
+                    });
+
+                    if (!trackingRes.ok) {
+                        throw new Error(`Failed to log visit tracking. Status: ${trackingRes.status}`);
+                    }
+
+                    message.success("Visit tracking created successfully!");
+                    message.success("Process Complete!");
+                } else {
+                    message.warning("Missing visit ID for tracking");
+                }
+            } else {
+                message.warning("Please select a device.");
+            }
+        } catch (err: any) {
+            message.error(`Error: ${err.message}`);
+        } finally {
+            setScannedIdNumber("");
+        }
+    };
+
+    // Trigger manually on Enter key
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            fetchVisitorLog();
+        }
+    };
+
+    useEffect(() => {
+        if (!scannedIdNumber) return;
+
+        if (scannedIdNumber === prevIdRef.current) return; // same card, skip
+
+        const delay = setTimeout(() => {
+            fetchVisitorLog();
+            prevIdRef.current = scannedIdNumber; // update the previous scanned ID
+            setScannedIdNumber(""); // clear only when it's new
+        }, 700); // debounce delay
+
+        return () => clearTimeout(delay);
+    }, [scannedIdNumber]);
+
+    console.log(selectedDeviceId)
 
     return (
         <div className="flex flex-col md:flex-row items-center justify-center gap-5 p-5 md:p-10">
@@ -39,7 +173,9 @@ const Rfid = () => {
                     <h1 className="uppercase font-bold text-xl md:text-3xl">
                         Visitor Check In / Check Out
                     </h1>
-                    <div className="text-sm md:text-base text-gray-600">{dateTime}</div>
+                    <div className="text-sm md:text-base text-gray-600">
+                        <Clock />
+                    </div>
                     <div className="mt-5">
                         <h1 className=" font-bold text-xl text-orange-500 md:text-2xl">
                             Hold your RFID Card near the Reader
@@ -47,30 +183,69 @@ const Rfid = () => {
                     </div>
                     <img src={rfid} className="w-52" alt="RFID" />
                 </div>
-                <div className="flex justify-normal items-start">
-                    Device ID: <select name="device" id="device">
-                        <option value="1|RFID Reader | SNO: 12345678">1|RFID Reader | SNO: 12345678</option>
-                    </select>
+                <div className="w-full justify-normal flex items-center gap-4 px-20">
+                    <span className='min-w-fit'>Device ID:</span>
+                    <Select
+                        loading={deviceLoading}
+                        value={selectedDeviceId}
+                        className='h-10 w-full'
+                        options={devices?.results?.map(device => ({
+                            label: device?.device_name,
+                            value: device?.id
+                        }))}
+                        onChange={value => {
+                            setSelectedDeviceId(value)
+                        }}
+                    />
+                </div>
+                <div>
+                    <Input
+                        ref={inputRef}
+                        autoFocus
+                        value={scannedIdNumber}
+                        onChange={e => setScannedIdNumber(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                    />
                 </div>
             </div>
+
             {/* Image section */}
             <div className="flex justify-center flex-col items-center gap-5 w-full md:w-1/2">
                 <div className="w-64 md:w-96 h-64 md:h-96 bg-gray-200 p-5 rounded-lg flex items-center justify-center">
-                    <img src={noimg} alt="No Image" className="max-h-full max-w-full object-contain" />
+                    {
+                        scannedVisitor?.person?.media?.find(image => image?.media_description === "Close-Up Front Picture")?.media_binary ? (
+                            <img
+                                src={`data:image/png;base64,${scannedVisitor?.person?.media?.find(
+                                    image => image?.media_description === "Close-Up Front Picture"
+                                )?.media_binary}`}
+                                alt="Close-Up Front Picture"
+                            />
+                        ) : (
+                            <img src={noimg} alt="No Image" className="max-h-full max-w-full object-contain" />
+                        )
+                    }
                 </div>
-                <h1 className="text-2xl font-bold text-center">JUAN DELA CRUZ</h1>
+                <h1 className="text-2xl font-bold text-center">
+                    {`${scannedVisitor?.person?.first_name ?? ""} ${scannedVisitor?.person?.middle_name ? scannedVisitor.person.middle_name + " " : ""}${scannedVisitor?.person?.last_name ?? ""}`}
+                </h1>
                 <div className="flex items-center gap-2">
                     <h1 className="font-bold text-2xl">STATUS:</h1>
-                    <h1 className="font-bold text-2xl">ALLOWED VISIT</h1>
-
+                    <h1 className="font-bold text-2xl">{scannedVisitor?.visitor_app_status}</h1>
                 </div>
-                <div className="flex gap-5">
-                    <img src={check} className="w-14" alt="Check" />
-                    <img src={close} className="w-14" alt="Close" />
+                <div className='w-full flex items-center justify-center'>
+                    {
+                        scannedVisitor?.visitor_app_status && (
+                            <div className="flex gap-5">
+                                {scannedVisitor?.visitor_app_status === "Verified" ? (
+                                    <img src={check} className="w-14" alt="Check" />
+                                ) : (
+                                    <img src={close} className="w-14" alt="Close" />
+                                )}
+                            </div>
+                        )
+                    }
                 </div>
             </div>
-
-
         </div>
     )
 }
