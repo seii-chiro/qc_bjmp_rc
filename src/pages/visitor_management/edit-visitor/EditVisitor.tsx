@@ -873,7 +873,7 @@ const VisitorRegistration = () => {
             pdl_data: visitorData?.pdls?.map((pdl: { pdl: { id: any; }; relationship_to_pdl: string; }) => ({
                 ...pdl,
                 pdl_id: pdl?.pdl?.id,
-                relationship_to_pdl_id: relationships?.find(rel => rel?.relationship_name === pdl?.relationship_to_pdl)?.id
+                relationship_to_pdl_id: relationships?.results?.find(rel => rel?.relationship_name === pdl?.relationship_to_pdl)?.id
             })) ?? [],
             id_number: visitorData?.id_number ?? null,
             verified_at: visitorData?.verified_at ?? null,
@@ -1388,7 +1388,7 @@ const VisitorRegistration = () => {
                             <div className="flex gap-4 w-[30%] h-full items-end">
                                 <button
                                     type="button"
-                                    className="bg-blue-500 text-white rounded-md py-2 px-6 flex-1"
+                                    className="bg-blue-500 text-white rounded-md py-2 px-6 flex-1 opacity-0"
                                 >
                                     View Profile
                                 </button>
