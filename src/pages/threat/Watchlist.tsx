@@ -29,7 +29,27 @@ const Watchlist = () => {
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [exportLoading, setExportLoading] = useState(false);
     // const navigate = useNavigate()
+const [allWatchlist, setAllWatchlist] = useState<WatchlistPerson[]>([]);
 
+useEffect(() => {
+    const fetchAll = async () => {
+        const params = new URLSearchParams({ limit: '10000' }); // adjust limit as needed
+        const res = await fetch(
+            `${BASE_URL}/api/whitelists/whitelisted-persons/?${params.toString()}`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Token ${token}`,
+                },
+            }
+        );
+        if (res.ok) {
+            const data = await res.json();
+            setAllWatchlist(data.results || []);
+        }
+    };
+    fetchAll();
+}, [token]);
     useEffect(() => {
         const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
         if (csvReady) setCsvReady(false);
@@ -161,39 +181,70 @@ const Watchlist = () => {
     const columns: ColumnsType<WatchlistPerson> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            key: 'no',
+            render: (_: any, __: any, index: number) => index + 1,
         },
         {
             title: 'Person Name',
             dataIndex: 'person',
             key: 'person',
+            sorter: (a, b) => a.person.localeCompare(b.person),
+            filters: [
+                ...Array.from(new Set(allWatchlist.map(item => item.person ?? '')))
+                    .filter(name => name)
+                    .map(name => ({ text: name, value: name }))
+            ],
+            onFilter: (value, record) => record.person === value,
         },
         {
             title: 'White Listed Type',
             dataIndex: 'white_listed_type',
             key: 'white_listed_type',
+            sorter: (a, b) => (a.white_listed_type ?? '').localeCompare(b.white_listed_type ?? ''),
+            filters: [
+                ...Array.from(new Set(allWatchlist.map(item => item.white_listed_type ?? '')))
+                    .filter(type => type)
+                    .map(type => ({ text: type, value: type }))
+            ],
+            onFilter: (value, record) => record.white_listed_type === value,
         },
-        {
-            title: 'Risk Level',
-            dataIndex: 'risk_level',
-            key: 'risk_level',
-        },
-        {
-            title: 'Threat Level',
-            dataIndex: 'threat_level',
-            key: 'threat_level',
-        },
-        {
-            title: 'Updated By',
-            dataIndex: 'updated_by',
-            key: 'updated_by',
-        },
-        {
-            title: 'Updated At',
-            dataIndex: 'updated_at',
-            key: 'updated_at',
-        },
+// Repeat for risk_level, threat_level, updated_by, etc.
+    {
+        title: 'Risk Level',
+        dataIndex: 'risk_level',
+        key: 'risk_level',
+        sorter: (a, b) => (a.risk_level ?? '').localeCompare(b.risk_level ?? ''),
+        filters: [
+            ...Array.from(new Set((WatchlistData?.results ?? []).map(item => item.risk_level ?? '')))
+                .filter(level => level)
+                .map(level => ({ text: level, value: level }))
+        ],
+        onFilter: (value, record) => record.risk_level === value,
+    },
+    {
+        title: 'Threat Level',
+        dataIndex: 'threat_level',
+        key: 'threat_level',
+        sorter: (a, b) => (a.threat_level ?? '').localeCompare(b.threat_level ?? ''),
+        filters: [
+            ...Array.from(new Set((WatchlistData?.results ?? []).map(item => item.threat_level ?? '')))
+                .filter(level => level)
+                .map(level => ({ text: level, value: level }))
+        ],
+        onFilter: (value, record) => record.threat_level === value,
+    },
+    {
+        title: 'Updated By',
+        dataIndex: 'updated_by',
+        key: 'updated_by',
+        sorter: (a, b) => (a.updated_by ?? '').localeCompare(b.updated_by ?? ''),
+        filters: [
+            ...Array.from(new Set((WatchlistData?.results ?? []).map(item => item.updated_by ?? '')))
+                .filter(name => name)
+                .map(name => ({ text: name, value: name }))
+        ],
+        onFilter: (value, record) => record.updated_by === value,
+    },
         {
             title: "Actions",
             key: "actions",

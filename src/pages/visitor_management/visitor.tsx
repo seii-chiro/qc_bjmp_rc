@@ -44,6 +44,23 @@ const Visitor = () => {
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const limit = 10;
+    const [allVisitors, setAllVisitors] = useState<Visitor[]>([]);
+
+    useEffect(() => {
+        const fetchAll = async () => {
+            const res = await fetch(`${BASE_URL}/api/visitors/visitor/?limit=100000`, {
+                headers: {
+                    Authorization: `Token ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setAllVisitors(data.results || []);
+            }
+        };
+        fetchAll();
+    }, [token]);
 
     const fetchVisitors = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/visitors/visitor/?search=${search}`, {
@@ -176,7 +193,7 @@ const Visitor = () => {
             sorter: (a, b) => a.visitor_reg_no.localeCompare(b.visitor_reg_no),
             filters: [
                 ...Array.from(
-                    new Set(filteredData.map(item => item.visitor_reg_no))
+                    new Set(allVisitors.map(item => item.visitor_reg_no))
                 ).map(visitor_reg_no => ({
                     text: visitor_reg_no,
                     value: visitor_reg_no,
@@ -197,7 +214,7 @@ const Visitor = () => {
             },
             filters: [
                 ...Array.from(
-                    new Set(filteredData.map(item => `${item?.person?.first_name ?? ''} ${item?.person?.middle_name ?? ''} ${item?.person?.last_name ?? ''}`.trim()))
+                    new Set(allVisitors.map(item => `${item?.person?.first_name ?? ''} ${item?.person?.middle_name ?? ''} ${item?.person?.last_name ?? ''}`.trim()))
                 ).map(name => ({
                     text: name,
                     value: name,
@@ -215,7 +232,7 @@ const Visitor = () => {
             sorter: (a, b) => a.person?.gender?.gender_option.localeCompare(b.person?.gender?.gender_option),
             filters: [
                 ...Array.from(
-                    new Set(filteredData.map(item => item.person?.gender?.gender_option))
+                    new Set(allVisitors.map(item => item.person?.gender?.gender_option))
                 ).map(gender => ({
                     text: gender,
                     value: gender,
@@ -230,7 +247,7 @@ const Visitor = () => {
             sorter: (a, b) => a.visitor_type.localeCompare(b.visitor_type),
             filters: [
                 ...Array.from(
-                    new Set(filteredData.map(item => item.visitor_type))
+                    new Set(allVisitors.map(item => item.visitor_type))
                 ).map(visitor_type => ({
                     text: visitor_type,
                     value: visitor_type,
@@ -245,7 +262,7 @@ const Visitor = () => {
             sorter: (a, b) => a.approved_by.localeCompare(b.approved_by),
             filters: [
                 ...Array.from(
-                    new Set(filteredData.map(item => item.approved_by))
+                    new Set(allVisitors.map(item => item.approved_by))
                 ).map(approved_by => ({
                     text: approved_by,
                     value: approved_by,
@@ -316,124 +333,133 @@ const Visitor = () => {
             <p className="mt-1 w-full bg-[#F9F9F9] rounded-md px-2 py-[1px] text-[13px] break-words">{info || ""}</p>
         </div>
     );
+    const fetchAllVisitors = async () => {
+        const res = await fetch(`${BASE_URL}/api/visitors/visitor/?limit=100000`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+const handleExportPDF = async () => {
+    const doc = new jsPDF();
+    const headerHeight = 48;
+    const footerHeight = 32;
 
-    const handleExportPDF = () => {
-        const doc = new jsPDF();
-        const headerHeight = 48;
-        const footerHeight = 32;
-        const printSource = debouncedSearch
-            ? (searchData?.results || []).map((item, index) => ({
-                ...item,
-                key: index + 1,
-                visitor_reg_no: item?.visitor_reg_no,
-                visitor_type: item?.visitor_type,
-                nationality: item?.person?.nationality,
-                organization: item?.organization ?? 'Bureau of Jail Management and Penology',
-                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-            }))
-            : filteredData;
+    let printSource;
+    if (debouncedSearch) {
+        printSource = (searchData?.results || []).map((item, index) => ({
+            ...item,
+            key: index + 1,
+            visitor_reg_no: item?.visitor_reg_no,
+            visitor_type: item?.visitor_type,
+            nationality: item?.person?.nationality,
+            organization: item?.organization ?? 'Bureau of Jail Management and Penology',
+            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+        }));
+    } else {
+        // Fetch all visitors for printing
+        const allData = await fetchAllVisitors();
+        printSource = (allData?.results || []).map((item, index) => ({
+            ...item,
+            key: index + 1,
+            visitor_reg_no: item?.visitor_reg_no,
+            visitor_type: item?.visitor_type,
+            nationality: item?.person?.nationality,
+            organization: item?.organization ?? 'Bureau of Jail Management and Penology',
+            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+        }));
+    }
 
-        const organizationName = printSource[0]?.organization || "";
-        const PreparedBy = printSource[0]?.updated || '';
+    const organizationName = printSource[0]?.organization || "";
+    const PreparedBy = printSource[0]?.updated || '';
 
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
-        const maxRowsPerPage = 27;
+    const maxRowsPerPage = 27;
+    let startY = headerHeight;
 
-        let startY = headerHeight;
+    const addHeader = () => {
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const imageWidth = 30;
+        const imageHeight = 30;
+        const margin = 10;
+        const imageX = pageWidth - imageWidth - margin;
+        const imageY = 12;
 
-        const addHeader = () => {
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const imageWidth = 30;
-            const imageHeight = 30;
-            const margin = 10;
-            const imageX = pageWidth - imageWidth - margin;
-            const imageY = 12;
+        doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
 
-            doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
+        doc.setTextColor(0, 102, 204);
+        doc.setFontSize(16);
+        doc.text("Visitor Report", 10, 15);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(`Organization Name: ${organizationName}`, 10, 25);
+        doc.text("Report Date: " + formattedDate, 10, 30);
+        doc.text("Prepared By: " + PreparedBy, 10, 35);
+        doc.text("Department/ Unit: IT", 10, 40);
+        doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
+    };
 
-            doc.setTextColor(0, 102, 204);
-            doc.setFontSize(16);
-            doc.text("Visitor Report", 10, 15);
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(10);
-            doc.text(`Organization Name: ${organizationName}`, 10, 25);
-            doc.text("Report Date: " + formattedDate, 10, 30);
-            doc.text("Prepared By: " + PreparedBy, 10, 35);
-            doc.text("Department/ Unit: IT", 10, 40);
-            doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
-        };
+    addHeader();
 
+    const tableData = printSource.map((item, index) => {
+        const fullName = `${item?.person?.first_name ?? ''} ${item?.person?.middle_name ?? ''} ${item?.person?.last_name ?? ''}`.trim();
+        return [
+            index + 1,
+            item.visitor_reg_no,
+            fullName,
+            item.visitor_type,
+            item.approved_by,
+        ];
+    });
 
-        addHeader();
+    for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
+        const pageData = tableData.slice(i, i + maxRowsPerPage);
 
-        const tableData = (
-            debouncedSearch
-                ? (searchData?.results || []).map((item, index) => ({
-                    ...item,
-                    key: index + 1,
-                    visitor_reg_no: item?.visitor_reg_no,
-                    visitor_type: item?.visitor_type,
-                    nationality: item?.person?.nationality,
-                    organization: item?.organization ?? 'Bureau of Jail Management and Penology',
-                    updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-                }))
-                : filteredData
-        ).map((item, index) => {
-            const fullName = `${item?.person?.first_name ?? ''} ${item?.person?.middle_name ?? ''} ${item?.person?.last_name ?? ''}`.trim();
-            return [
-                index + 1,
-                item.visitor_reg_no,
-                fullName,
-                item.visitor_type,
-                item.approved_by,
-            ];
+        autoTable(doc, {
+            head: [['No.', 'Visitor Registration No.', 'Name', 'Visitor Type', 'Approved By']],
+            body: pageData,
+            startY: startY,
+            margin: { top: 0, left: 10, right: 10 },
+            didDrawPage: function (data) {
+                if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+                    addHeader();
+                }
+            },
         });
 
-        for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
-            const pageData = tableData.slice(i, i + maxRowsPerPage);
-
-            autoTable(doc, {
-                head: [['No.', 'Visitor Registration No.', 'Name', 'Visitor Type', 'Approved By']],
-                body: pageData,
-                startY: startY,
-                margin: { top: 0, left: 10, right: 10 },
-                didDrawPage: function (data) {
-                    if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                        addHeader();
-                    }
-                },
-            });
-
-            if (i + maxRowsPerPage < tableData.length) {
-                doc.addPage();
-                startY = headerHeight;
-            }
+        if (i + maxRowsPerPage < tableData.length) {
+            doc.addPage();
+            startY = headerHeight;
         }
+    }
 
-        const pageCount = doc.internal.getNumberOfPages();
-        for (let page = 1; page <= pageCount; page++) {
-            doc.setPage(page);
-            const footerText = [
-                "Document Version: Version 1.0",
-                "Confidentiality Level: Internal use only",
-                "Contact Info: " + PreparedBy,
-                `Timestamp of Last Update: ${formattedDate}`
-            ].join('\n');
-            const footerX = 10;
-            const footerY = doc.internal.pageSize.height - footerHeight + 15;
-            const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
-            doc.setFontSize(8);
-            doc.text(footerText, footerX, footerY);
-            doc.text(`${page} / ${pageCount}`, pageX, footerY);
-        }
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let page = 1; page <= pageCount; page++) {
+        doc.setPage(page);
+        const footerText = [
+            "Document Version: Version 1.0",
+            "Confidentiality Level: Internal use only",
+            "Contact Info: " + PreparedBy,
+            `Timestamp of Last Update: ${formattedDate}`
+        ].join('\n');
+        const footerX = 10;
+        const footerY = doc.internal.pageSize.height - footerHeight + 15;
+        const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+        doc.setFontSize(8);
+        doc.text(footerText, footerX, footerY);
+        doc.text(`${page} / ${pageCount}`, pageX, footerY);
+    }
 
-        const pdfOutput = doc.output('datauristring');
-        setPdfDataUrl(pdfOutput);
-        setIsPdfModalOpen(true);
-    };
+    const pdfOutput = doc.output('datauristring');
+    setPdfDataUrl(pdfOutput);
+    setIsPdfModalOpen(true);
+};
 
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
