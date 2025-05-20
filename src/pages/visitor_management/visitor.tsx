@@ -42,6 +42,7 @@ const Visitor = () => {
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const navigate = useNavigate();
     const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const limit = 10;
 
     const fetchVisitors = async (search: string) => {
@@ -166,13 +167,22 @@ const Visitor = () => {
     const columns: ColumnsType<Visitor> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Visitor No.',
             dataIndex: 'visitor_reg_no',
             key: 'visitor_reg_no',
+            sorter: (a, b) => a.visitor_reg_no.localeCompare(b.visitor_reg_no),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.visitor_reg_no))
+                ).map(visitor_reg_no => ({
+                    text: visitor_reg_no,
+                    value: visitor_reg_no,
+                }))
+            ],
+            onFilter: (value, record) => record.visitor_reg_no === value,
         },
         {
             title: 'Visitor Name',
@@ -180,21 +190,68 @@ const Visitor = () => {
             render: (_, visitor) => (
                 `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim()
             ),
+            sorter: (a, b) => {
+                const nameA = `${a?.person?.first_name ?? ''} ${a?.person?.middle_name ?? ''} ${a?.person?.last_name ?? ''}`.trim();
+                const nameB = `${b?.person?.first_name ?? ''} ${b?.person?.middle_name ?? ''} ${b?.person?.last_name ?? ''}`.trim();
+                return nameA.localeCompare(nameB);
+            },
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => `${item?.person?.first_name ?? ''} ${item?.person?.middle_name ?? ''} ${item?.person?.last_name ?? ''}`.trim()))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => {
+                const fullName = `${record?.person?.first_name ?? ''} ${record?.person?.middle_name ?? ''} ${record?.person?.last_name ?? ''}`.trim();
+                return fullName === value;
+            },
         },
         {
             title: 'Gender',
             key: 'gender',
             render: (_, visitor) => visitor?.person?.gender?.gender_option ?? '',
+            sorter: (a, b) => a.person?.gender?.gender_option.localeCompare(b.person?.gender?.gender_option),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.person?.gender?.gender_option))
+                ).map(gender => ({
+                    text: gender,
+                    value: gender,
+                }))
+            ],
+            onFilter: (value, record) => record.person?.gender?.gender_option === value,
         },
         {
             title: 'Visitor Type',
             dataIndex: 'visitor_type',
             key: 'visitor_type',
+            sorter: (a, b) => a.visitor_type.localeCompare(b.visitor_type),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.visitor_type))
+                ).map(visitor_type => ({
+                    text: visitor_type,
+                    value: visitor_type,
+                }))
+            ],
+            onFilter: (value, record) => record.visitor_type === value,
         },
         {
             title: 'Approved By',
             dataIndex: 'approved_by',
             key: 'approved_by',
+            sorter: (a, b) => a.approved_by.localeCompare(b.approved_by),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.approved_by))
+                ).map(approved_by => ({
+                    text: approved_by,
+                    value: approved_by,
+                }))
+            ],
+            onFilter: (value, record) => record.approved_by === value,
         },
         {
             title: "Action",
@@ -264,8 +321,20 @@ const Visitor = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || "";
-        const PreparedBy = dataSource[0]?.updated || '';
+        const printSource = debouncedSearch
+            ? (searchData?.results || []).map((item, index) => ({
+                ...item,
+                key: index + 1,
+                visitor_reg_no: item?.visitor_reg_no,
+                visitor_type: item?.visitor_type,
+                nationality: item?.person?.nationality,
+                organization: item?.organization ?? 'Bureau of Jail Management and Penology',
+                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+            }))
+            : filteredData;
+
+        const organizationName = printSource[0]?.organization || "";
+        const PreparedBy = printSource[0]?.updated || '';
 
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
@@ -300,7 +369,19 @@ const Visitor = () => {
 
         addHeader();
 
-        const tableData = dataSource.map((item, index) => {
+        const tableData = (
+            debouncedSearch
+                ? (searchData?.results || []).map((item, index) => ({
+                    ...item,
+                    key: index + 1,
+                    visitor_reg_no: item?.visitor_reg_no,
+                    visitor_type: item?.visitor_type,
+                    nationality: item?.person?.nationality,
+                    organization: item?.organization ?? 'Bureau of Jail Management and Penology',
+                    updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+                }))
+                : filteredData
+        ).map((item, index) => {
             const fullName = `${item?.person?.first_name ?? ''} ${item?.person?.middle_name ?? ''} ${item?.person?.last_name ?? ''}`.trim();
             return [
                 index + 1,
