@@ -11,7 +11,7 @@ import * as XLSX from "xlsx";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Input, Menu, message, Modal, Table } from "antd";
 import { ColumnType } from "antd/es/table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png';
@@ -35,9 +35,34 @@ const Personnel = () => {
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [page, setPage] = useState(1);
     const limit = 10;
+    const [debouncedSearch, setDebouncedSearch] = useState("");
 
     const location = useLocation();
     const filterOption = location.state?.filterOption;
+
+    const fetchPersonnels = async (search: string) => {
+        const res = await fetch(`${BASE_URL}/api/codes/personnel/?search=${search}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    useEffect(() => {
+        const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
+        return () => clearTimeout(timeout);
+    }, [searchText]);
+
+    const { data: searchData, isLoading: searchLoading } = useQuery({
+        queryKey: ["visitors", debouncedSearch],
+        queryFn: () => fetchPersonnels(debouncedSearch),
+        behavior: keepPreviousData(),
+        enabled: debouncedSearch.length > 0,
+    });
 
     const { data, isFetching } = useQuery({
         queryKey: ['personnel', 'personnel-table', page],
@@ -304,19 +329,38 @@ const Personnel = () => {
                 </div>
             </div>
             <Table
-                dataSource={filteredData}
+                loading={isFetching || searchLoading}
                 columns={columns}
-                loading={isFetching}
-                pagination={{
-                    current: page,
-                    pageSize: limit,
-                    total: data?.count || 0,
-                    onChange: (newPage) => {
-                        console.log("Changing to page:", newPage);
-                        setPage(newPage);
-                    },
-                    showSizeChanger: false,
-                }}
+                dataSource={
+                    debouncedSearch
+                        ? (searchData?.results || []).map((personnel, index) => ({
+                            id: personnel?.id,
+                            key: index + 1,
+                            organization: personnel?.organization ?? '',
+                            personnel_reg_no: personnel?.personnel_reg_no ?? '',
+                            person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
+                            shortname: personnel?.person?.shortname ?? '',
+                            rank: personnel?.rank ?? '',
+                            status: personnel?.status ?? '',
+                            gender: personnel?.person?.gender?.gender_option ?? '',
+                            date_joined: personnel?.date_joined ?? '',
+                            record_status: personnel?.record_status ?? '',
+                            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+                        }))
+                        : filteredData
+                }
+                scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
+                pagination={
+                    debouncedSearch
+                        ? false // Hide pagination when searching
+                        : {
+                            current: page,
+                            pageSize: limit,
+                            total: data?.count || 0,
+                            onChange: (newPage) => setPage(newPage),
+                            showSizeChanger: false,
+                        }
+                }
                 rowKey="id"
             />
             <Modal

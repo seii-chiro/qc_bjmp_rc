@@ -263,27 +263,36 @@ const AddAddress = ({ setPersonForm, handleAddressCancel, countries, provinces, 
         if (!validateForm()) {
             return;
         }
+        // Build full_address by joining non-empty address parts
+        const full_address = [
+            addressForm?.building_subdivision,
+            addressForm?.street,
+            filteredBarangays.find(brgy => brgy?.id === addressForm?.barangay_id)?.desc,
+            filteredMunicipalities.find(municipality => municipality?.id === addressForm?.municipality_id)?.desc,
+            filteredProvinces.find(province => province?.id === addressForm?.province_id)?.desc,
+            regions.find(region => region?.id === addressForm?.region_id)?.desc,
+            countries.find(country => country?.id === addressForm?.country_id)?.country,
+        ]
+            .filter(Boolean)
+            .join(", ");
 
         setPersonForm(prev => {
-            // Create a safe copy of the address data array
             const currentAddressData = Array.isArray(prev.address_data) ? [...prev.address_data] : [];
+            const addressWithFull = { ...addressForm, full_address };
 
             if (editAddressIndex !== null) {
-                // Edit existing address
-                currentAddressData[editAddressIndex] = addressForm;
+                currentAddressData[editAddressIndex] = addressWithFull;
                 return {
                     ...prev,
                     address_data: currentAddressData,
                 };
             } else {
-                // Add new address
                 return {
                     ...prev,
-                    address_data: [...currentAddressData, addressForm],
+                    address_data: [...currentAddressData, addressWithFull],
                 };
             }
         });
-
         // Reset the address form to default values
         setAddressForm({
             type: "Home",

@@ -115,6 +115,7 @@ export type AddressForm = {
   longitude?: number | string;
   latitude?: number | string;
   remarks: string | null;
+  full_address?: string;
 };
 
 export type ContactForm = {
