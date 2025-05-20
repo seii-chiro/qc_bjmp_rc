@@ -7,9 +7,6 @@ import { MapContent } from "./map/MapContent.tsx";
 import Landing from "./pages/landing/Home.tsx";
 import Assets from "./pages/assets/assets.tsx";
 import JailFacility from "./pages/assets/jail-facility/jailfacility.tsx";
-import Annex from "./pages/assets/Annex/annex.tsx";
-import Level from "./pages/assets/Level/level.tsx";
-import Dorm from "./pages/assets/Dorm/dorm.tsx";
 import JailArea from "./pages/facility_management/Jail-Area/jailarea.tsx";
 import JailType from "./pages/facility_management/Jail-Type/Jail_Type.tsx";
 import JailCategory from "./pages/facility_management/Jail-Category/jailcategory.tsx";
@@ -27,7 +24,6 @@ import GeneralSetting from "./pages/Settings/generalsetting.tsx";
 import User from "./pages/User_Management/User.tsx";
 import Users from "./pages/User_Management/User/User.tsx";
 import Roles from "./pages/User_Management/Roles/Roles.tsx";
-import RoleLevel from "./pages/User_Management/RolesLevel/roleslevel.tsx";
 import Tools from "./pages/tools/Tools.tsx";
 import Integration from "./pages/Integration/Integration.tsx";
 import Support from "./pages/support/Support.tsx";
@@ -111,6 +107,9 @@ import DeviceSetting from "./pages/devices-management/device-setting/DeviceSetti
 import AddWatchlist from "./pages/threat/AddWatchlist.tsx";
 import Watchlist from "./pages/threat/Watchlist.tsx";
 import Alphalist from "./pages/alphalist/Alphalist.tsx";
+import Level from "./pages/assets/level/Level.tsx";
+import Annex from "./pages/assets/annex/Annex.tsx";
+import Dorm from "./pages/assets/dorm/Dorm.tsx";
 
 // Lazy-loaded components
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -184,11 +183,11 @@ function App() {
                 },
                 {
                     path: "assets/levels",
-                    element: <Annex />
+                    element: <Level />
                 },
                 {
                     path: "assets/annex",
-                    element: <Level />
+                    element: <Annex />
                 },
                 {
                     path: "assets/dorms",
@@ -305,10 +304,6 @@ function App() {
                 {
                     path: "users/roles",
                     element: <Roles />
-                },
-                {
-                    path: "users/role-levels",
-                    element: <RoleLevel />
                 },
                 {
                     path: "users/user-otp-account",

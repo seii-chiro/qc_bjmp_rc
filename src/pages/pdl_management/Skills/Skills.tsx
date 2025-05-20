@@ -28,6 +28,7 @@ const Skills = () => {
     const [skills, setSkills] = useState<SkillProps | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['skills'],
@@ -58,13 +59,12 @@ const Skills = () => {
         },
     });
 
-    const dataSource = data?.map((skills, index) => (
+    const dataSource = data?.results?.map((skills, index) => (
         {
             key: index + 1,
             id: skills?.id ?? 'N/A',
             name: skills?.name ?? 'N/A',
             description: skills?.description ?? 'N/A',
-            record_status: skills?.record_status ?? 'N/A',
             organization: skills?.organization ?? 'Bureau of Jail Management and Penology',
             updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
@@ -79,23 +79,37 @@ const Skills = () => {
     const columns: ColumnsType<SkillProps> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Skills',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => a.name.localeCompare(b.name),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.name))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
-        },
-        {
-            title: 'Record Status',
-            dataIndex: 'record_status',
-            key: 'record_status',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(description => ({
+                    text: description,
+                    value: description,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",
@@ -262,7 +276,17 @@ const Skills = () => {
                 
             </div>
             <div>
-                <Table columns={columns} dataSource={filteredData}/>
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             </div>
             <Modal
                 title="Skills Report"

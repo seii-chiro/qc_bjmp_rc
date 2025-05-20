@@ -152,7 +152,7 @@ const AddDevices = ({ onClose }: { onClose: () => void }) => {
                             optionFilterProp="label"
                             onChange={onDeviceTypeChange}
                             loading={deviceTypeLoading}
-                            options={deviceTypeData?.map(device_type => (
+                            options={deviceTypeData?.results?.map(device_type => (
                                 {
                                     value: device_type.id,
                                     label: device_type?.device_type,
@@ -177,7 +177,7 @@ const AddDevices = ({ onClose }: { onClose: () => void }) => {
                             optionFilterProp="label"
                             onChange={onJailChange}
                             loading={jailLoading}
-                            options={jailData?.map(jail => (
+                            options={jailData?.results?.map(jail => (
                                 {
                                     value: jail.id,
                                     label: jail?.jail_name,
@@ -194,7 +194,7 @@ const AddDevices = ({ onClose }: { onClose: () => void }) => {
                             optionFilterProp="label"
                             onChange={onJailAreaChange}
                             loading={jailAreaLoading}
-                            options={jailAreaData?.map(jailarea => (
+                            options={jailAreaData?.results?.map(jailarea => (
                                 {
                                     value: jailarea.id,
                                     label: jailarea?.area_name

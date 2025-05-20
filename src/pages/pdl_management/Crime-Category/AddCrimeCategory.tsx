@@ -1,12 +1,10 @@
-import { getRecord_Status } from "@/lib/queries";
 import { BASE_URL} from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
-import { message, Select } from "antd";
+import { useMutation } from "@tanstack/react-query";
+import { message } from "antd";
 import { useState } from "react";
 
 type AddCrimeCategoryProps = {
-    record_status_id: number;
     crime_category_name: string;
     description: string;
 }
@@ -15,21 +13,9 @@ const AddCrimeCategory = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
     const [selectCrimeCategory, setSelectCrimeCategory] = useState<AddCrimeCategoryProps>({
-        record_status_id: 0,
         crime_category_name: '',
         description: '',
     });
-
-    const results = useQueries({
-        queries: [
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
-        ]
-    });
-
-    const recordStatusData = results[0].data;
 
     async function AddCrimeCategory(crime_category: AddCrimeCategoryProps) {
         const res = await fetch(`${BASE_URL}/api/standards/crime-category/`, {
@@ -85,13 +71,6 @@ const AddCrimeCategory = ({ onClose }: { onClose: () => void }) => {
             }));
         };
 
-    const onRecordStatusChange = (value: number) => {
-        setSelectCrimeCategory(prevForm => ({
-            ...prevForm,
-            record_status_id: value
-        }));
-    };
-
     return (
         <div>
         {contextHolder}
@@ -104,22 +83,6 @@ const AddCrimeCategory = ({ onClose }: { onClose: () => void }) => {
                     <div>
                         <p className="text-gray-500 font-bold">Description:</p>
                         <input type="text" name="description" id="description" onChange={handleInputChange} placeholder="Description" className="h-12 border border-gray-300 rounded-lg px-2 w-full" />
-                    </div>
-                    <div>
-                        <p className="text-gray-500 font-bold">Record Status:</p>
-                        <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Record Status"
-                        optionFilterProp="label"
-                        onChange={onRecordStatusChange}
-                        options={recordStatusData?.map(status => (
-                            {
-                                value: status.id,
-                                label: status?.status,
-                            }
-                        ))}
-                        />
                     </div>
                 </div>
                 <div className="w-full flex justify-end mt-10">

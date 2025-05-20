@@ -34,6 +34,7 @@ const Impact = () => {
     const [selectImpact, setSelctedImpact] = useState<ImpactProps | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['impact'],
@@ -95,7 +96,7 @@ const Impact = () => {
         }
     };
 
-    const dataSource = data?.map((impact, index) => ({
+    const dataSource = data?.results?.map((impact, index) => ({
         key: index + 1,
         id: impact?.id ?? 'N/A',
         name: impact?.name ?? 'N/A',
@@ -117,18 +118,37 @@ const Impact = () => {
     const columns: ColumnsType<typeof dataSource[number]> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Impact',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => a.name.localeCompare(b.name),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.name))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Updated At",
@@ -136,11 +156,32 @@ const Impact = () => {
             key: "updated_at",
             render: (value) =>
                 value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
+            sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => moment(item.updated_at).format("MMMM D, YYYY h:mm A")))
+                ).map(dateTime => ({
+                    text: dateTime,
+                    value: dateTime,
+                }))
+            ],
+            onFilter: (value, record) =>
+                moment(record.updated_at).format("MMMM D, YYYY h:mm A") === value,
         },
         {
             title: 'Updated By',
             dataIndex: 'updated_by',
             key: 'updated_by',
+            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.updated_by))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.updated_by === value,
         },
         {
             title: "Action",
@@ -180,7 +221,7 @@ const Impact = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     
@@ -292,7 +333,7 @@ const Impact = () => {
                     </div>
                 <div className="flex gap-2 items-center">
                     <Input
-                        placeholder="Search Impact..."
+                        placeholder="Search..."
                         value={searchText}
                         className="py-2 md:w-64 w-full"
                         onChange={(e) => setSearchText(e.target.value)}
@@ -306,10 +347,17 @@ const Impact = () => {
                     </button>
                 </div>
             </div>
-            <Table
-                dataSource={filteredData}
-                columns={columns}
-            />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             <Modal
                 title="Impact Report"
                 open={isPdfModalOpen}

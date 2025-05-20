@@ -1,46 +1,44 @@
-import { deleteDetention_Floor, getDetention_Floor, getUser } from "@/lib/queries"
-import { useTokenStore } from "@/store/useTokenStore"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Button, Dropdown, Menu, message, Modal, Table } from "antd"
+import { deleteDetention_Building, getDetention_Building, getUser } from "@/lib/queries";
+import { useTokenStore } from "@/store/useTokenStore";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button, Dropdown, Menu, message, Modal } from "antd";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-import { ColumnsType } from "antd/es/table";
-import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
+import Table, { ColumnsType } from "antd/es/table";
 import { useState } from "react";
+import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
+import bjmp from '../../../assets/Logo/QCJMD.png'
 import { GoDownload, GoPlus } from "react-icons/go";
 import { LuSearch } from "react-icons/lu";
-import EditFloor from "./EditFloor";
-import AddFloor from "./AddFloor";
-import bjmp from '../../../assets/Logo/QCJMD.png'
+import AddLevel from "./AddLevel";
+import EditLevel from "./EditLevel";
 
-type Floor = {
+type LevelReport = {
+    key: number;
     id: number;
-    building: string;
-    floor_number: string;
-    floor_name: string;
-    security_level: string;
-    floor_description: string;
-    floor_status: string | null;
-    record_status: string;
+    jail: number;
+    bldg_name: string;
+    bldg_status: string;
 };
 
 const Level = () => {
     const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
-    const queryClient = useQueryClient();
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedDetentionFloor, setSelectedDetentionFloor] = useState<Floor | null>(null);
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedLevel, setSelectedLevel] = useState<LevelReport | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
-        queryKey: ['detentionfloor'],
-        queryFn: () => getDetention_Floor(token ?? ""),
-    })
+        queryKey: ["level"],
+        queryFn: () => getDetention_Building(token ?? ""),
+    });
 
     const { data: UserData } = useQuery({
         queryKey: ['user'],
@@ -48,232 +46,206 @@ const Level = () => {
     })
 
     const deleteMutation = useMutation({
-        mutationFn: (id: number) => deleteDetention_Floor(token ?? "", id),
+        mutationFn: (id: number) => deleteDetention_Building(token ?? "", id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["detention-floor"] });
-            messageApi.success("Detention Floor deleted successfully");
+            queryClient.invalidateQueries({ queryKey: ["level"] });
+            messageApi.success("Level deleted successfully");
         },
         onError: (error: any) => {
-            messageApi.error(error.message || "Failed to delete Detention Floor");
+            messageApi.error(error.message || "Failed to delete Level");
         },
     });
-
     const showModal = () => {
         setIsModalOpen(true);
-      };
-
+    };
+    
     const handleCancel = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((floor, index) => ({
-        key: index + 1,
-        id: floor?.id,
-        building: floor?.building,
-        floor_number: floor?.floor_number,
-        floor_name: floor?.floor_name,
-        security_level: floor?.security_level,
-        floor_description: floor?.floor_description,
-        floor_status: floor?.floor_status,
-        record_status: floor?.record_status,
-        organization: floor?.organization ?? 'Bureau of Jail Management and Penology',
-        updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-    })) || [];
-
-    const filteredData = dataSource?.filter((detention_floor) =>
-        Object.values(detention_floor).some((value) =>
-            String(value).toLowerCase().includes(searchText.toLowerCase())
-        )
-    );
-
-    const columns: ColumnsType<Floor> = [
-        {
-            title: "No.",
-            dataIndex: "key",
-            key: "key",
-        },
-        {
-            title: "Building",
-            dataIndex: "building",
-            key: "building",
-        },
-        {
-            title: "Floor Number",
-            dataIndex: "floor_number",
-            key: "floor_number",
-        },
-        {
-            title: "Floor Name",
-            dataIndex: "floor_name",
-            key: "floor_name",
-        },
-        {
-            title: "Security Level",
-            dataIndex: "security_level",
-            key: "security_level",
-        },
-        {
-            title: "Description",
-            dataIndex: "floor_description",
-            key: "floor_description",
-        },
-        {
-            title: "Status",
-            dataIndex: "floor_status",
-            key: "floor_status",
-        },
-        {
-            title: "Record Status",
-            dataIndex: "record_status",
-            key: "record_status",
-        },
-        {
-            title: "Actions",
-            key: "actions",
-            render: (_: any, record: Floor) => (
-            <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
-                <Button
-                    type="link"
-                    onClick={() => {
-                        setSelectedDetentionFloor(record);
-                        setIsEditModalOpen(true);
-                    }}
-                >
-                    <AiOutlineEdit />
-                </Button>
-                <Button
-                    type="link"
-                    danger
-                    onClick={() => deleteMutation.mutate(record.id)}
-                >
-                    <AiOutlineDelete />
-                </Button>
-            </div>
-            ),
-        },
-    ];
-
-    const handleExportExcel = () => {
-        const ws = XLSX.utils.json_to_sheet(dataSource);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Annex");
-        XLSX.writeFile(wb, "Annex.xlsx");
-    };
-
-    const handleExportPDF = () => {
-        const doc = new jsPDF();
-        const headerHeight = 48;
-        const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+        const dataSource = data?.results?.map((level, index) => ({
+            key: index + 1,
+            id: level?.id,
+            jail: level?.jail ?? "N/A",
+            bldg_name: level?.bldg_name ?? "N/A",
+            bldg_status: level?.bldg_status ?? "N/A",
+            organization: level?.organization ?? 'Bureau of Jail Management and Penology',
+            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+        })) || [];
     
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-    
-        const maxRowsPerPage = 29; 
-    
-        let startY = headerHeight;
-    
-        const addHeader = () => {
-            const pageWidth = doc.internal.pageSize.getWidth(); 
-            const imageWidth = 30;
-            const imageHeight = 30; 
-            const margin = 10; 
-            const imageX = pageWidth - imageWidth - margin;
-            const imageY = 12;
-        
-            doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-        
-            doc.setTextColor(0, 102, 204);
-            doc.setFontSize(16);
-            doc.text("Level Report", 10, 15); 
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(10);
-            doc.text(`Organization Name: ${organizationName}`, 10, 25);
-            doc.text("Report Date: " + formattedDate, 10, 30);
-            doc.text("Prepared By: " + PreparedBy, 10, 35);
-            doc.text("Department/ Unit: IT", 10, 40);
-            doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
+        const filteredData = dataSource?.filter((level) =>
+            Object.values(level).some((value) =>
+                String(value).toLowerCase().includes(searchText.toLowerCase())
+            )
+        );
+
+        const columns: ColumnsType<LevelReport> = [
+            {
+                title: "No.",
+                render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            },
+            {
+                title: "Jail",
+                dataIndex: "jail",
+                key: "jail",
+                sorter: (a, b) => a.jail.localeCompare(b.jail),
+            },
+            {
+                title: "Level Name",
+                dataIndex: "bldg_name", 
+                key: "bldg_name",
+                sorter: (a, b) => a.bldg_name.localeCompare(b.bldg_name),
+            },
+            {
+                title: "Level Status",
+                dataIndex: "bldg_status", 
+                key: "bldg_status",
+                sorter: (a, b) => a.bldg_status.localeCompare(b.bldg_status),
+            },
+            {
+                title: "Actions",
+                key: "actions",
+                render: (_: any, record: LevelReport) => (
+                    <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
+                        <Button
+                            type="link"
+                            onClick={() => {
+                                setSelectedLevel(record);
+                                setIsEditModalOpen(true);
+                            }}
+                        >
+                            <AiOutlineEdit />
+                        </Button>
+                        <Button
+                            type="link"
+                            danger
+                            onClick={() => deleteMutation.mutate(record.id)}
+                        >
+                            <AiOutlineDelete />
+                        </Button>
+                    </div>
+                ),
+            },
+        ];
+
+        const handleExportExcel = () => {
+            const ws = XLSX.utils.json_to_sheet(dataSource);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Level");
+            XLSX.writeFile(wb, "Level.xlsx");
         };
+const handleExportPDF = () => {
+            const doc = new jsPDF();
+            const headerHeight = 48;
+            const footerHeight = 32;
+            const organizationName = dataSource[0]?.organization || ""; 
+            const PreparedBy = dataSource[0]?.updated_by || ''; 
         
-    
-        addHeader(); 
-    
-        const tableData = dataSource.map(item => [
-            item.key,
-            item.floor_number,
-            item.floor_name,
-            item.building,
-            item.floor_status,
-        ]);
-    
-        for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
-            const pageData = tableData.slice(i, i + maxRowsPerPage);
-    
-            autoTable(doc, { 
-                head: [['No.', 'Level No.', 'Level', 'Building', 'Status']],
-                body: pageData,
-                startY: startY,
-                margin: { top: 0, left: 10, right: 10 },
-                didDrawPage: function (data) {
-                    if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                        addHeader(); 
-                    }
-                },
-            });
-    
-            if (i + maxRowsPerPage < tableData.length) {
-                doc.addPage();
-                startY = headerHeight;
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+        
+            const maxRowsPerPage = 29; 
+        
+            let startY = headerHeight;
+        
+            const addHeader = () => {
+                const pageWidth = doc.internal.pageSize.getWidth(); 
+                const imageWidth = 30;
+                const imageHeight = 30; 
+                const margin = 10; 
+                const imageX = pageWidth - imageWidth - margin;
+                const imageY = 12;
+            
+                doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
+            
+                doc.setTextColor(0, 102, 204);
+                doc.setFontSize(16);
+                doc.text("Level Report", 10, 15); 
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(10);
+                doc.text(`Organization Name: ${organizationName}`, 10, 25);
+                doc.text("Report Date: " + formattedDate, 10, 30);
+                doc.text("Prepared By: " + PreparedBy, 10, 35);
+                doc.text("Department/ Unit: IT", 10, 40);
+                doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
+            };
+            
+        
+            addHeader(); 
+        
+            const tableData = dataSource.map(item => [
+                item.key,
+                item.bldg_name,
+                item.jail,
+                item.bldg_status,
+            ]);
+        
+            for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
+                const pageData = tableData.slice(i, i + maxRowsPerPage);
+        
+                autoTable(doc, { 
+                    head: [['No.', 'Annex', 'Jail', 'Status']],
+                    body: pageData,
+                    startY: startY,
+                    margin: { top: 0, left: 10, right: 10 },
+                    didDrawPage: function (data) {
+                        if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+                            addHeader(); 
+                        }
+                    },
+                });
+        
+                if (i + maxRowsPerPage < tableData.length) {
+                    doc.addPage();
+                    startY = headerHeight;
+                }
             }
-        }
+        
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let page = 1; page <= pageCount; page++) {
+                doc.setPage(page);
+                const footerText = [
+                    "Document Version: Version 1.0",
+                    "Confidentiality Level: Internal use only",
+                    "Contact Info: " + PreparedBy,
+                    `Timestamp of Last Update: ${formattedDate}`
+                ].join('\n');
+                const footerX = 10;
+                const footerY = doc.internal.pageSize.height - footerHeight + 15;
+                const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+                doc.setFontSize(8);
+                doc.text(footerText, footerX, footerY);
+                doc.text(`${page} / ${pageCount}`, pageX, footerY);
+            }
+        
+            const pdfOutput = doc.output('datauristring');
+            setPdfDataUrl(pdfOutput);
+            setIsPdfModalOpen(true);
+        };
     
-        const pageCount = doc.internal.getNumberOfPages();
-        for (let page = 1; page <= pageCount; page++) {
-            doc.setPage(page);
-            const footerText = [
-                "Document Version: Version 1.0",
-                "Confidentiality Level: Internal use only",
-                "Contact Info: " + PreparedBy,
-                `Timestamp of Last Update: ${formattedDate}`
-            ].join('\n');
-            const footerX = 10;
-            const footerY = doc.internal.pageSize.height - footerHeight + 15;
-            const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
-            doc.setFontSize(8);
-            doc.text(footerText, footerX, footerY);
-            doc.text(`${page} / ${pageCount}`, pageX, footerY);
-        }
+        const handleClosePdfModal = () => {
+            setIsPdfModalOpen(false);
+            setPdfDataUrl(null); 
+        };
     
-        const pdfOutput = doc.output('datauristring');
-        setPdfDataUrl(pdfOutput);
-        setIsPdfModalOpen(true);
-    };
-
-    const handleClosePdfModal = () => {
-        setIsPdfModalOpen(false);
-        setPdfDataUrl(null); 
-    };
-
-    const menu = (
-        <Menu>
-            <Menu.Item>
-                <a onClick={handleExportExcel}>Export Excel</a>
-            </Menu.Item>
-            <Menu.Item>
-                <CSVLink data={dataSource} filename="Floor.csv">
-                    Export CSV
-                </CSVLink>
-            </Menu.Item>
-        </Menu>
-    );
-
+        const menu = (
+            <Menu>
+                <Menu.Item>
+                    <a onClick={handleExportExcel}>Export Excel</a>
+                </Menu.Item>
+                <Menu.Item>
+                    <CSVLink data={dataSource} filename="Level.csv">
+                        Export CSV
+                    </CSVLink>
+                </Menu.Item>
+            </Menu>
+        );
     return (
         <div>
             {contextHolder}
-            <h1 className="text-3xl font-bold text-[#1E365D]">Annex</h1>
-            <div className="flex justify-between my-5">
+            <h1 className="text-3xl font-bold text-[#1E365D]">Level</h1>
+            <div className="my-5 flex justify-between">
             <div className="flex gap-2">
                         <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
                             <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
@@ -299,17 +271,25 @@ const Level = () => {
                         onClick={showModal}
                     >
                         <GoPlus />
-                        Add Annex
+                        Add Level
                     </button>
                 </div>
-            </div>
-            <div className="overflow-x-auto">
-                <Table
-                    columns={columns}
-                    dataSource={filteredData}
+                </div>
+            <div className="w-full">
+                
+                <div id="printable-table">
+                    <Table
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 700 }}
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
-            </div>
-            <Modal
+                </div>
+                <Modal
                 title="Level Report"
                 open={isPdfModalOpen}
                 onCancel={handleClosePdfModal}
@@ -324,29 +304,29 @@ const Level = () => {
                     />
                 )}
             </Modal>
-            <Modal
+                <Modal
+                className="overflow-y-auto rounded-lg scrollbar-hide"
+                title="Add Level"
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
+                width="50%"
+                style={{ maxHeight: "80vh", overflowY: "auto" }} 
                 >
-                <AddFloor
-                    onClose={() => {
-                    setIsModalOpen(false);
-                    queryClient.invalidateQueries({ queryKey: ["detentionfloor"] });
-                    }}
-                />
-                </Modal>
-            <Modal
-                title="Edit Annex"
-                open={isEditModalOpen}
-                onCancel={() => setIsEditModalOpen(false)}
-                footer={null}
-            >
-                <EditFloor
-                    detentionFloor={selectedDetentionFloor}
-                    onClose={() => setIsEditModalOpen(false)}
-                />
+                <AddLevel onClose={handleCancel} />
             </Modal>
+                    <Modal
+                        title="Edit Level"
+                        open={isEditModalOpen}
+                        onCancel={() => setIsEditModalOpen(false)}
+                        footer={null}
+                    >
+                        <EditLevel
+                            level={selectedLevel}
+                            onClose={() => setIsEditModalOpen(false)}
+                        />
+                    </Modal>
+            </div>
         </div>
     )
 }

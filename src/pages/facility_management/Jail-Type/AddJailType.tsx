@@ -1,13 +1,11 @@
-import { getRecord_Status } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useQueries, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import { Select, message } from "antd";
+import { message } from "antd";
 import { JAIL_TYPE } from "@/lib/urls";
 
 type AddJailType = {
     type_name: string;
-    record_status: number | null;
     description: string;
 };
 
@@ -16,21 +14,8 @@ const AddJailType = ({ onClose }: { onClose: () => void }) => {
     const [messageApi, contextHolder] = message.useMessage();
     const [jailTypeForm, setJailTypeForm] = useState<AddJailType>({
         type_name: '',
-        record_status: null,
         description: '',
     });
-
-    const results = useQueries({
-        queries: [
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? ""),
-            },
-        ],
-    });
-
-    const recordStatusData = results[0].data;
-    const recordStatusLoading = results[0].isLoading;
 
     async function registerjailType(jailType: AddJailType) {
         const res = await fetch(JAIL_TYPE.getJAIL_TYPE, {
@@ -43,7 +28,7 @@ const AddJailType = ({ onClose }: { onClose: () => void }) => {
         });
     
         if (!res.ok) {
-            let errorMessage = "Error registering Detention Floor";
+            let errorMessage = "Error registering Jail Type";
     
             try {
                 const errorData = await res.json();
@@ -88,13 +73,6 @@ const AddJailType = ({ onClose }: { onClose: () => void }) => {
         }));
     };
 
-    const onRecordStatusChange = (value: number) => {
-        setJailTypeForm(prevForm => ({
-            ...prevForm,
-            record_status_id: value,
-        }));
-    };
-
     return (
         <div>
             {contextHolder}
@@ -110,24 +88,6 @@ const AddJailType = ({ onClose }: { onClose: () => void }) => {
                             <p>Description:</p>
                             <input type="text" name="description" id="description" onChange={handleInputChange} placeholder="Description" className="w-full h-12 border border-gray-300 rounded-lg px-2" />
                         </div>
-                        <div>
-                            <p>Record Status:</p>
-                            <Select
-                                className="h-[3rem] w-full"
-                                showSearch
-                                placeholder="Record Status"
-                                optionFilterProp="label"
-                                onChange={onRecordStatusChange}
-                                loading={recordStatusLoading}
-                                options={recordStatusData?.map(record_status => (
-                                    {
-                                        value: record_status.id,
-                                        label: record_status?.status,
-                                    }
-                                ))}
-                            />
-                        </div>
-                        
                     </div>
                 </div>
 

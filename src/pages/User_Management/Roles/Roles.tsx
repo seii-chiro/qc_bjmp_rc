@@ -61,16 +61,15 @@ const Roles = () => {
             setIsModalOpen(false);
         };
 
-    const dataSource = data?.map((role, index) => ({
-        key: index + 1,
+    const dataSource = data?.results?.map((role) => ({
         id: role.id,
         name: role?.name ?? "N/A",
         organization: role?.organization ?? 'Bureau of Jail Management and Penology',
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
-    const filteredData = dataSource?.filter((roles) =>
-        Object.values(roles).some((value) =>
+    const filteredData = dataSource?.filter((role) =>
+        Object.values(role).some((value) =>
             String(value).toLowerCase().includes(searchText.toLowerCase())
         )
     );
@@ -78,13 +77,13 @@ const Roles = () => {
     const columns: ColumnsType<GroupRole> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => index + 1,
         },
         {
             title: 'Role Name',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => a.name.localeCompare(b.name), 
         },
         {
             title: "Actions",
@@ -132,7 +131,7 @@ const Roles = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     

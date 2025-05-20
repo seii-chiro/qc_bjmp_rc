@@ -6,7 +6,6 @@ import { message, Select } from "antd";
 import { useState } from "react";
 
 type AddIssueType = {
-    record_status_id: number | null;
     name: string;
     description: string;
     remarks: string;
@@ -17,7 +16,6 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
     const [selectIssueType, setSelectIssueType] = useState<AddIssueType>({
-        record_status_id: null,
         name: '',
         description: '',
         remarks: '',
@@ -27,18 +25,13 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
     const results = useQueries({
         queries: [
             {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
-            {
                 queryKey: ['issue_category'],
                 queryFn: () => getIssueCategories(token ?? "")
             }
         ]
     });
 
-    const recordStatusData = results[0].data;
-    const issueCategoryData = results[1].data;
+    const issueCategoryData = results[0].data;
 
     async function AddIssueType(issue_type: AddIssueType) {
         const res = await fetch(ISSUE_TYPE.getISSUE_TYPE, {
@@ -94,13 +87,6 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
             }));
         };
 
-    const onRecordStatusChange = (value: number) => {
-        setSelectIssueType(prevForm => ({
-            ...prevForm,
-            record_status_id: value
-        }));
-    };
-
     const onIssueCategoryChange = (value: number) => {
         setSelectIssueType(prevForm => ({
             ...prevForm,
@@ -126,30 +112,14 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
                         <textarea name="remarks" id="remarks" onChange={handleInputChange} placeholder="Description" className="h-14 py-2 outline-none border border-gray-300 rounded-lg px-2 w-full" />
                     </div>
                     <div>
-                        <p className="text-gray-500 font-bold">Record Status:</p>
-                        <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Record Status"
-                        optionFilterProp="label"
-                        onChange={onRecordStatusChange}
-                        options={recordStatusData?.map(status => (
-                            {
-                                value: status.id,
-                                label: status?.status,
-                            }
-                        ))}
-                        />
-                    </div>
-                    <div>
-                        <p className="text-gray-500 font-bold">Issue Type:</p>
+                        <p className="text-gray-500 font-bold">Issue Category:</p>
                         <Select
                         className="h-[3rem] w-full"
                         showSearch
                         placeholder="Issue Category"
                         optionFilterProp="label"
                         onChange={onIssueCategoryChange}
-                        options={issueCategoryData?.map(issue_category => (
+                        options={issueCategoryData?.results?.map(issue_category => (
                             {
                                 value: issue_category.id,
                                 label: issue_category?.name,

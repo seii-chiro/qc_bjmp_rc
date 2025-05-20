@@ -1,13 +1,13 @@
-import { OTPAccount } from "@/lib/issues-difinitions"
+import { OTPAccount } from "@/lib/issues-difinitions";
 import { deleteOTP, getOTP } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Input, message, Table } from "antd"
+import { Button, Input, message, Table } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import { AiOutlineDelete } from "react-icons/ai";
 
-type OTPForm = OTPAccount
+type OTPForm = OTPAccount;
 
 const OTP = () => {
     const [searchText, setSearchText] = useState("");
@@ -23,7 +23,7 @@ const OTP = () => {
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteOTP(token ?? "", id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["otp"] });
+            queryClient.invalidateQueries({ queryKey: ["OTP"] });
             messageApi.success("OTP deleted successfully");
         },
         onError: (error: any) => {
@@ -31,16 +31,15 @@ const OTP = () => {
         },
     });
 
-    const dataSource = data?.map((otp, index) => ({
-        key: index + 1,
-        id: otp?.id ?? 'N/A',
+    const dataSource = data?.results?.map((otp) => ({
+        id: otp?.id ?? '',
         failed_attempts: otp?.failed_attempts ?? '',
         last_failed_at: otp?.last_failed_at ?? '',
         locked_until: otp?.locked_until ?? '',
         user: otp?.user ?? '',
     })) || [];
 
-    const filteredData = dataSource?.filter((otp) =>
+    const filteredData = dataSource.filter((otp) =>
         Object.values(otp).some((value) =>
             String(value).toLowerCase().includes(searchText.toLowerCase())
         )
@@ -49,28 +48,35 @@ const OTP = () => {
     const columns: ColumnsType<OTPForm> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => index + 1,
         },
         {
             title: 'Failed Attempt',
             dataIndex: 'failed_attempts',
             key: 'failed_attempts',
+            sorter: (a, b) => a.failed_attempts - b.failed_attempts, // Sorting
         },
         {
             title: 'Last Failed At',
             dataIndex: 'last_failed_at',
             key: 'last_failed_at',
+            sorter: (a, b) => new Date(b.last_failed_at).getTime() - new Date(a.last_failed_at).getTime(), // Sorting
         },
         {
             title: 'Locked Until',
             dataIndex: 'locked_until',
             key: 'locked_until',
+            sorter: (a, b) => new Date(b.locked_until).getTime() - new Date(a.locked_until).getTime(), // Sorting
         },
         {
             title: 'User',
             dataIndex: 'user',
             key: 'user',
+            filters: [
+                // Assuming users are unique in the data
+                ...Array.from(new Set(dataSource.map(otp => ({ text: otp.user, value: otp.user }))),
+                )],
+            onFilter: (value, record) => record.user?.includes(value), // Filtering
         },
         {
             title: "Action",
@@ -87,24 +93,28 @@ const OTP = () => {
                 </div>
             ),
         },
-    ]
-    
+    ];
+
     return (
         <div>
             {contextHolder}
             <div className="flex justify-between items-center my-4">
                 <h1 className="text-2xl font-bold text-[#1E365D]">User OTP Account Lockout</h1>
                 <Input
-                        placeholder="Search OTP..."
-                        value={searchText}
-                        className="py-2 md:w-64 w-full"
-                        onChange={(e) => setSearchText(e.target.value)}
-                    />
+                    placeholder="Search OTP..."
+                    value={searchText}
+                    className="py-2 md:w-64 w-full"
+                    onChange={(e) => setSearchText(e.target.value)}
+                />
             </div>
             
-            <Table columns={columns} dataSource={filteredData}/>
+            <Table
+                columns={columns}
+                dataSource={filteredData}
+                pagination={{ pageSize: 10 }}
+            />
         </div>
-    )
+    );
 }
 
-export default OTP
+export default OTP;

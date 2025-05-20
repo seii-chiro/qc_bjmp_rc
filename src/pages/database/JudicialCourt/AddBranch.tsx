@@ -1,4 +1,4 @@
-import { getCourt, getJail_Province, getJailRegion } from "@/lib/queries";
+import { getJail_Province, getJailRegion } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQueries } from "@tanstack/react-query";
 import { Input, message, Select } from "antd";
@@ -8,7 +8,6 @@ type BranchProps = {
   court_id: number;
   region_id: number;
   province_id: number;
-  record_status_id: number;
   branch: string;
   judge: string;
 };
@@ -71,7 +70,7 @@ const AddBranch = ({ courtId, courtName, onAddBranch, onCancel }: AddBranchProps
     }));
   };
 
-  const filteredProvinces = ProvinceData?.filter(
+  const filteredProvinces = ProvinceData?.results?.filter(
     (province) => province.region === form.region_id
 );
 
@@ -89,7 +88,6 @@ const AddBranch = ({ courtId, courtName, onAddBranch, onCancel }: AddBranchProps
       province_id,
       branch,
       judge,
-      record_status_id: 1,
     };
 
     onAddBranch(newBranch);
@@ -123,7 +121,7 @@ const AddBranch = ({ courtId, courtName, onAddBranch, onCancel }: AddBranchProps
                 placeholder="Region"
                 optionFilterProp="label"
                 onChange={onRegionChange}
-                options={RegionData?.map(region => ({
+                options={RegionData?.results?.map(region => ({
                     value: region.id,
                     label: region?.desc,
                 }))}

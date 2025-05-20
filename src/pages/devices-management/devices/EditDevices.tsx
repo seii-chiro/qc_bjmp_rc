@@ -113,7 +113,7 @@ const EditDevices = ({ devices, onClose }: { devices: any; onClose: () => void }
                         optionFilterProp="label"
                         onChange={onDeviceTypeChange}
                         loading={deviceTypeLoading}
-                        options={deviceTypeData?.map(devicetype => ({
+                        options={deviceTypeData?.results?.map(devicetype => ({
                             value: devicetype.id,
                             label: devicetype.device_type
                         }))}/>
@@ -129,7 +129,7 @@ const EditDevices = ({ devices, onClose }: { devices: any; onClose: () => void }
                         optionFilterProp="label"
                         onChange={onJailChange}
                         loading={jailLoading}
-                        options={jailData?.map(jail => ({
+                        options={jailData?.results?.map(jail => ({
                             value: jail.id,
                             label: jail.jail_name
                         }))}/>

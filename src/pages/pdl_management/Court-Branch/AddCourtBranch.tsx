@@ -9,7 +9,6 @@ type AddCourtBranch = {
     province_id: number | null;
     region_id: number | null;
     court_id: number | null;
-    record_status_id: number | null;
     branch: string;
     judge: string;
 };
@@ -21,7 +20,6 @@ const AddCourtBranch = ({ onClose }: { onClose: () => void }) => {
         province_id: null,
         region_id: null,
         court_id: null,
-        record_status_id: null,
         branch: "",
         judge: "",
     });
@@ -40,17 +38,12 @@ const AddCourtBranch = ({ onClose }: { onClose: () => void }) => {
                 queryKey: ["court"],
                 queryFn: () => getCourt(token ?? ""),
             },
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
         ],
     });
 
     const regionData = results[0].data;
     const provinceData = results[1].data;
     const courtData = results[2].data;
-    const recordStatusData = results[3].data;
 
     async function addCourtBranch(branch: AddCourtBranch) {
         const res = await fetch(BRANCH.postBRANCH, {
@@ -92,7 +85,7 @@ const AddCourtBranch = ({ onClose }: { onClose: () => void }) => {
     const handleBranchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        const selectedProvince = provinceData?.find(p => p.id === branchForm.province_id);
+        const selectedProvince = provinceData?.results?.find(p => p.id === branchForm.province_id);
         if (!selectedProvince) {
             messageApi.error("Selected province is invalid or does not exist.");
             return;
@@ -131,14 +124,7 @@ const AddCourtBranch = ({ onClose }: { onClose: () => void }) => {
         }));
     };
 
-    const onRecordStatusChange = (value: number) => {
-        setBranchForm(prevForm => ({
-            ...prevForm,
-            record_status_id: value,
-        }));
-    };
-
-    const filteredProvinces = provinceData?.filter(
+    const filteredProvinces = provinceData?.results?.filter(
         (province) => province.region === branchForm.region_id
     );
 
@@ -156,7 +142,7 @@ const AddCourtBranch = ({ onClose }: { onClose: () => void }) => {
                                 placeholder="Judicial Court"
                                 optionFilterProp="label"
                                 onChange={onCourtChange}
-                                options={courtData?.map(court => ({
+                                options={courtData?.results?.map(court => ({
                                     value: court.id,
                                     label: court?.court,
                                 }))}
@@ -193,7 +179,7 @@ const AddCourtBranch = ({ onClose }: { onClose: () => void }) => {
                                 placeholder="Region"
                                 optionFilterProp="label"
                                 onChange={onRegionChange}
-                                options={regionData?.map(region => ({
+                                options={regionData?.results?.map(region => ({
                                     value: region.id,
                                     label: region?.desc,
                                 }))}
@@ -213,20 +199,6 @@ const AddCourtBranch = ({ onClose }: { onClose: () => void }) => {
                                     label: province?.desc,
                                 }))}
                                 disabled={!branchForm.region_id}
-                            />
-                        </div>
-                        <div className="w-full">
-                            <p>Record Status</p>
-                            <Select
-                                className="h-[3rem] w-full"
-                                showSearch
-                                placeholder="Record Status"
-                                optionFilterProp="label"
-                                onChange={onRecordStatusChange}
-                                options={recordStatusData?.map(status => ({
-                                    value: status.id,
-                                    label: status?.status,
-                                }))}
                             />
                         </div>
                     </div>

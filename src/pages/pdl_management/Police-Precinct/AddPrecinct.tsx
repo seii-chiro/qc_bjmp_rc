@@ -1,4 +1,4 @@
-import { getJail_Municipality, getJail_Province, getJailRegion, getRecord_Status } from "@/lib/queries";
+import { getJail_Municipality, getJail_Province, getJailRegion } from "@/lib/queries";
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries } from "@tanstack/react-query";
@@ -12,7 +12,6 @@ export type AddPolicePrecinct = {
     region_id: number | null;
     province_id: number | null;
     city_municipality_id: number | null;
-    record_status_id: number | null;
 };
 
 const AddPrecinct = ({ onClose }: { onClose: () => void }) => {
@@ -25,7 +24,6 @@ const AddPrecinct = ({ onClose }: { onClose: () => void }) => {
         province_id: null,
         region_id: null,
         city_municipality_id: null,
-        record_status_id: null,
     });
 
     const results = useQueries({
@@ -42,17 +40,12 @@ const AddPrecinct = ({ onClose }: { onClose: () => void }) => {
                 queryKey: ["municipality"],
                 queryFn: () => getJail_Municipality(token ?? ""),
             },
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
         ],
     });
 
     const regionData = results[0].data;
     const provinceData = results[1].data;
     const municipalityData = results[2].data;
-    const recordStatusData = results[3].data;
 
     async function addPrecinct(branch: AddPolicePrecinct) {
         const res = await fetch(`${BASE_URL}/api/pdls/precinct/`, {
@@ -93,11 +86,11 @@ const AddPrecinct = ({ onClose }: { onClose: () => void }) => {
     const handleBranchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        const selectedProvince = provinceData?.find(p => p.id === precinctForm.province_id);
-        if (!selectedProvince) {
-            messageApi.error("Selected province is invalid or does not exist.");
-            return;
-        }
+        const selectedProvince = provinceData?.results?.find(p => p.id === precinctForm.province_id);
+            if (!selectedProvince) {
+                messageApi.error("Selected province is invalid or does not exist.");
+                return;
+            }
 
         PrecinctMutation.mutate(precinctForm);
     };
@@ -133,18 +126,12 @@ const AddPrecinct = ({ onClose }: { onClose: () => void }) => {
             city_municipality_id: value,
         }));
     };
-    const onRecordStatusChange = (value: number) => {
-        setPrecinctForm(prevForm => ({
-            ...prevForm,
-            record_status_id: value,
-        }));
-    };
 
-    const filteredProvinces = provinceData?.filter(
+    const filteredProvinces = provinceData?.results?.filter(
         (province) => province.region === precinctForm.region_id
     );
 
-    const filteredMunicipality = municipalityData?.filter(
+    const filteredMunicipality = municipalityData?.results?.filter(
         (city_municipality) => city_municipality.province === precinctForm.province_id
     );
 
@@ -191,7 +178,7 @@ const AddPrecinct = ({ onClose }: { onClose: () => void }) => {
                                 placeholder="Region"
                                 optionFilterProp="label"
                                 onChange={onRegionChange}
-                                options={regionData?.map(region => ({
+                                options={regionData?.results?.map(region => ({
                                     value: region.id,
                                     label: region?.desc,
                                 }))}
@@ -227,20 +214,6 @@ const AddPrecinct = ({ onClose }: { onClose: () => void }) => {
                                     label: municipality?.desc,
                                 }))}
                                 disabled={!precinctForm.province_id}
-                            />
-                        </div>
-                        <div className="w-full">
-                            <p>Record Status</p>
-                            <Select
-                                className="h-[3rem] w-full"
-                                showSearch
-                                placeholder="Record Status"
-                                optionFilterProp="label"
-                                onChange={onRecordStatusChange}
-                                options={recordStatusData?.map(status => ({
-                                    value: status.id,
-                                    label: status?.status,
-                                }))}
                             />
                         </div>
                 </div>

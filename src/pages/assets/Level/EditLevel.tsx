@@ -1,21 +1,21 @@
-import { useMutation, useQueries } from "@tanstack/react-query";
-import { Form, Input, Button, message, Select } from "antd";
-import { updateDetention_Building, getJail, getJail_Security_Level } from "@/lib/queries";
+import { getJail, getJail_Security_Level, updateDetention_Building } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
+import { useMutation, useQueries } from "@tanstack/react-query";
+import { Button, Form, Input, message, Select } from "antd";
 import { useState } from "react";
 
-type EditDetentionBuilding = {
+type EditLevelResponse = {
     bldg_name: string,
     jail_id: number | null,
     security_level_id: number | null,
 }
 
-const EditDetentionBuilding = ({ detentionBuilding, onClose }: { detentionBuilding: any; onClose: () => void }) => {
+const EditLevel = ({ level, onClose }: { level: any; onClose: () => void }) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false); 
-    const [jail, setJail] = useState<EditDetentionBuilding>({
+    const [selectLevel, setSelectedLevel] = useState<EditLevelResponse>({
         bldg_name: '',
         jail_id: null,
         security_level_id: null,
@@ -23,15 +23,15 @@ const EditDetentionBuilding = ({ detentionBuilding, onClose }: { detentionBuildi
 
     const updateMutation = useMutation({
         mutationFn: (updatedData: any) =>
-            updateDetention_Building(token ?? "", detentionBuilding.id, updatedData),
+            updateDetention_Building(token ?? "", level.id, updatedData),
         onSuccess: () => {
             setIsLoading(true); 
-            messageApi.success("Detention Building updated successfully");
+            messageApi.success("Level updated successfully");
             onClose();
         },
         onError: (error: any) => {
             setIsLoading(false); 
-            messageApi.error(error.message || "Failed to update Detention Building");
+            messageApi.error(error.message || "Failed to update Level");
         },
     });
 
@@ -54,7 +54,7 @@ const EditDetentionBuilding = ({ detentionBuilding, onClose }: { detentionBuildi
     const securityLevelData = results[1].data;
     const securityLevelLoading = results[1].isLoading;
 
-    const handleDetentionBuildingSubmit = (values: { 
+        const handleDetentionBuildingSubmit = (values: { 
         bldg_name: string;
         jail_id: number;
         security_level_id: number;
@@ -64,19 +64,18 @@ const EditDetentionBuilding = ({ detentionBuilding, onClose }: { detentionBuildi
     };
 
     const onJailChange = (value: number) => {
-        setJail(prevForm => ({
+        setSelectedLevel(prevForm => ({
             ...prevForm,
             jail_id: value
         }));
     };
 
     const onSecurityLevelChange = (value: number) => {
-        setJail(prevForm => ({
+        setSelectedLevel(prevForm => ({
             ...prevForm,
             security_level_id: value
         }));
     };
-
     return (
         <div>
             {contextHolder}
@@ -85,13 +84,13 @@ const EditDetentionBuilding = ({ detentionBuilding, onClose }: { detentionBuildi
                 layout="vertical"
                 onFinish={handleDetentionBuildingSubmit}
                 initialValues={{
-                    bldg_name: detentionBuilding?.bldg_name,
-                    jail_id: detentionBuilding?.jail_id,
-                    security_level_id: detentionBuilding?.security_level_id,
+                    bldg_name: level?.bldg_name,
+                    jail_id: level?.jail_id,
+                    security_level_id: level?.security_level_id,
                 }}
             >
                 <Form.Item
-                    label="Building Name"
+                    label="Level Name"
                     name="bldg_name"
                 >
                     <Input />
@@ -107,7 +106,7 @@ const EditDetentionBuilding = ({ detentionBuilding, onClose }: { detentionBuildi
                             optionFilterProp="label"
                             onChange={onJailChange}
                             loading={jailLoading}
-                            options={jailData?.map(jail => (
+                            options={jailData?.results?.map(jail => (
                                 {
                                     value: jail.id,
                                     label: jail?.jail_name,
@@ -126,7 +125,7 @@ const EditDetentionBuilding = ({ detentionBuilding, onClose }: { detentionBuildi
                             optionFilterProp="label"
                             onChange={onSecurityLevelChange}
                             loading={securityLevelLoading}
-                            options={securityLevelData?.map(securitylevel => (
+                            options={securityLevelData?.results?.map(securitylevel => (
                                 {
                                     value: securitylevel.id,
                                     label: securitylevel?.category_name,
@@ -136,12 +135,12 @@ const EditDetentionBuilding = ({ detentionBuilding, onClose }: { detentionBuildi
                 </Form.Item>
                 <Form.Item>
                     <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Detention Building"}
+                        {isLoading ? "Updating..." : "Update Level"}
                     </Button>
                 </Form.Item>
             </Form>
         </div>
-    );
-};
+    )
+}
 
-export default EditDetentionBuilding;
+export default EditLevel

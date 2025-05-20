@@ -18,7 +18,6 @@ import bjmp from '../../../assets/Logo/QCJMD.png'
 type GangAffiliationProps = {
     key: number;
     id: number;
-    record_status: string;
     name: string;
     description: string;
     created_by: number;
@@ -36,6 +35,7 @@ const GangAffiliation = () => {
     const [selectAffiliation, setSelctedAffiliation] = useState<GangAffiliationProps | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['gang-affiliation'],
@@ -97,7 +97,7 @@ const GangAffiliation = () => {
         }
     };
 
-    const dataSource = data?.map((gang_affiliation, index) => ({
+    const dataSource = data?.results?.map((gang_affiliation, index) => ({
         key: index + 1,
         id: gang_affiliation?.id ?? 'N/A',
         name: gang_affiliation?.name ?? 'N/A',
@@ -118,37 +118,60 @@ const GangAffiliation = () => {
         const columns: ColumnsType<GangAffiliationProps> = [
             {
                 title: 'No.',
-                dataIndex: 'key',
-                key: 'key',
+                render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
             },
             {
                 title: 'Gang Affiliation',
                 dataIndex: 'name',
                 key: 'name',
+                sorter: (a, b) => a.name.localeCompare(b.name),
             },
             {
                 title: 'Description',
                 dataIndex: 'description',
                 key: 'description',
+                sorter: (a, b) => a.description.localeCompare(b.description),
             },
             {
                 title: 'Remarks',
                 dataIndex: 'remarks',
                 key: 'remarks',
+                sorter: (a, b) => a.remarks.localeCompare(b.remarks),
             },
             {
                 title: "Updated At",
                 dataIndex: "updated_at",
                 key: "updated_at",
+                sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.updated_at.split(' ')[0]))
+                    ).map(date => ({
+                        text: date,
+                        value: date,
+                    }))
+                ],
+                onFilter: (value, record) => record.updated_at.startsWith(value),
             },
             {
                 title: 'Updated By',
                 dataIndex: 'updated_by',
                 key: 'updated_by',
+                sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.updated_by))
+                    ).map(name => ({
+                        text: name,
+                        value: name,
+                    }))
+                ],
+                onFilter: (value, record) => record.updated_by === value,
             },
             {
                 title: "Action",
                 key: "action",
+                fixed: "right",
                 render: (_, record) => (
                     <div className="flex gap-2">
                         <Button type="link" onClick={() => handleEdit(record)}>
@@ -183,7 +206,7 @@ const GangAffiliation = () => {
             const formattedDate = today.toISOString().split('T')[0];
             const reportReferenceNo = `TAL-${formattedDate}-XXX`;
         
-            const maxRowsPerPage = 29; 
+            const maxRowsPerPage = 27; 
         
             let startY = headerHeight;
         
@@ -310,10 +333,17 @@ const GangAffiliation = () => {
                     </button>
                 </div>
             </div>
-            <Table
-                dataSource={filteredData}
-                columns={columns}
-            />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             <Modal
                 title="Gang Affiliation Report"
                 open={isPdfModalOpen}

@@ -1,4 +1,4 @@
-import { getJail_Security_Level, getJail, getRecord_Status, getDetention_Building, getDetention_Floor } from "@/lib/queries";
+import { getJail_Security_Level, getJail, getDetention_Building, getDetention_Floor } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQueries, useMutation } from "@tanstack/react-query";
 import { useState } from "react"
@@ -9,7 +9,6 @@ type AddJailArea = {
     jail_id: number | null;
     building_id : number | null;
     security_level: number | null;
-    record_status_id: number | null;
     floor_id: number | null;
     area_name: string;
 };
@@ -21,7 +20,6 @@ const AddJailArea = ({ onClose }: { onClose: () => void }) => {
         jail_id: null,
         building_id :null,
         security_level: null,
-        record_status_id: null,
         floor_id: null,
         area_name: '',
     })
@@ -35,10 +33,6 @@ const AddJailArea = ({ onClose }: { onClose: () => void }) => {
             {
                 queryKey: ['jail-security-level'],
                 queryFn: () => getJail_Security_Level(token ?? "")
-            },
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
             },
             {
                 queryKey: ['detention-building'],
@@ -57,14 +51,11 @@ const AddJailArea = ({ onClose }: { onClose: () => void }) => {
     const jailSecurityLevelData = results[1].data;
     const jailSecurityLevelLoading = results[1].isLoading;
 
-    const recordStatusData = results[2].data;
-    const recordStatusLoading = results[2].isLoading;
+    const detentionBuildingData = results[2].data;
+    const detentionBuildingLoading = results[2].isLoading;
 
-    const detentionBuildingData = results[3].data;
-    const detentionBuildingLoading = results[3].isLoading;
-
-    const detentionFloorData = results[4].data;
-    const detentionFloorLoading = results[4].isLoading;
+    const detentionFloorData = results[3].data;
+    const detentionFloorLoading = results[3].isLoading;
 
     async function registerJailArea(jailarea: AddJailArea) {
         const res = await fetch(JAIL_AREA.getJAIL_AREA, {
@@ -137,13 +128,6 @@ const AddJailArea = ({ onClose }: { onClose: () => void }) => {
         }));
     };
 
-    const onRecordStatusChange = (value: number) => {
-        setJailAreaForm(prevForm => ({
-            ...prevForm,
-            record_status_id: value
-        }));
-    };
-
     const onDetentionBuildingChange = (value: number) => {
         setJailAreaForm(prevForm => ({
             ...prevForm,
@@ -178,7 +162,7 @@ const AddJailArea = ({ onClose }: { onClose: () => void }) => {
                                 optionFilterProp="label"
                                 onChange={onJailChange}
                                 loading={jailLoading}
-                                options={jailData?.map(jail => (
+                                options={jailData?.results?.map(jail => (
                                     {
                                         value: jail.id,
                                         label: jail?.jail_name,
@@ -195,27 +179,10 @@ const AddJailArea = ({ onClose }: { onClose: () => void }) => {
                                 optionFilterProp="label"
                                 onChange={onJailSecurityLevelChange}
                                 loading={jailSecurityLevelLoading}
-                                options={jailSecurityLevelData?.map(security_level => (
+                                options={jailSecurityLevelData?.results?.map(security_level => (
                                     {
                                         value: security_level.id,
                                         label: security_level?.category_name
-                                    }
-                                ))}
-                            />
-                        </div>
-                        <div>
-                            <p>Record Status:</p>
-                            <Select
-                                className="h-[3rem] w-full"
-                                showSearch
-                                placeholder="Record Status"
-                                optionFilterProp="label"
-                                onChange={onRecordStatusChange}
-                                loading={recordStatusLoading}
-                                options={recordStatusData?.map(record => (
-                                    {
-                                        value: record.id,
-                                        label: record?.status,
                                     }
                                 ))}
                             />
@@ -229,7 +196,7 @@ const AddJailArea = ({ onClose }: { onClose: () => void }) => {
                                 optionFilterProp="label"
                                 onChange={onDetentionBuildingChange}
                                 loading={detentionBuildingLoading}
-                                options={detentionBuildingData?.map(building => (
+                                options={detentionBuildingData?.results?.map(building => (
                                     {
                                         value: building.id,
                                         label: building?.bldg_name
@@ -246,7 +213,7 @@ const AddJailArea = ({ onClose }: { onClose: () => void }) => {
                                 optionFilterProp="label"
                                 onChange={onDetentionFloorChange}
                                 loading={detentionFloorLoading}
-                                options={detentionFloorData?.map(floor => (
+                                options={detentionFloorData?.results?.map(floor => (
                                     {
                                         value: floor.id,
                                         label: floor?.floor_name,

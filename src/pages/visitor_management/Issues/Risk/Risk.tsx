@@ -27,6 +27,7 @@ const Risk = () => {
     const [selectedRisk, setSelectedRisk] = useState<RiskProps | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ["risk"],
@@ -107,7 +108,7 @@ const Risk = () => {
     }; 
 
     const dataSource =
-        data?.map((risk, index) => ({
+        data?.results?.map((risk, index) => ({
         key: index + 1,
         ...risk,
         organization: risk?.organization ?? 'Bureau of Jail Management and Penology',
@@ -121,18 +122,47 @@ const Risk = () => {
     );
 
 const columns: ColumnsType<RiskProps & { key: number }> = [
-    { title: "No.", dataIndex: "key", key: "key" },
-    { title: "Risk", dataIndex: "name", key: "name" },
-    { title: "Description", dataIndex: "description", key: "description" },
-    {
-        title: "Updated At",
-        dataIndex: "updated_at",
-        key: "updated_at",
-        render: (value) => moment(value).format("MMMM D, YYYY h:mm A"),
-    },
+    { title: "No.", render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,},
+    { title: "Risk", dataIndex: "name", key: "name", sorter: (a, b) => a.name.localeCompare(b.name), },
+    { title: "Description", dataIndex: "description", key: "description", sorter: (a, b) => a.description.localeCompare(b.description), },
+{
+    title: "Updated At",
+    dataIndex: "updated_at",
+    key: "updated_at",
+    render: (value) =>
+        value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
+    sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+    filters: [
+        ...Array.from(
+            new Set(filteredData.map(item => moment(item.updated_at).format("MMMM D, YYYY h:mm A")))
+        ).map(dateTime => ({
+            text: dateTime,
+            value: dateTime,
+        }))
+    ],
+    onFilter: (value, record) =>
+        moment(record.updated_at).format("MMMM D, YYYY h:mm A") === value,
+},
 
-    { title: "Updated By", dataIndex: "updated_by", key: "updated_by" },
-    { title: "Risk Level", dataIndex: "risk_level", key: "risk_level" },
+    {
+    title: "Updated At",
+    dataIndex: "updated_at",
+    key: "updated_at",
+    render: (value) =>
+        value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
+    sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+    filters: [
+        ...Array.from(
+            new Set(filteredData.map(item => moment(item.updated_at).format("MMMM D, YYYY h:mm A")))
+        ).map(dateTime => ({
+            text: dateTime,
+            value: dateTime,
+        }))
+    ],
+    onFilter: (value, record) =>
+        moment(record.updated_at).format("MMMM D, YYYY h:mm A") === value,
+},
+    { title: "Risk Level", dataIndex: "risk_level", key: "risk_level", sorter: (a, b) => a.risk_level.localeCompare(b.risk_level), },
     {
         title: "Action",
         key: "action",
@@ -170,7 +200,7 @@ const handleExportPDF = () => {
     const formattedDate = today.toISOString().split('T')[0];
     const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
-    const maxRowsPerPage = 29; 
+    const maxRowsPerPage = 27; 
 
     let startY = headerHeight;
 
@@ -283,7 +313,7 @@ const menu = (
                     </div>
             <div className="flex gap-2 items-center">
                 <Input
-                    placeholder="Search risk..."
+                    placeholder="Search..."
                     value={searchText}
                     className="py-2 md:w-64 w-full"
                     onChange={(e) => setSearchText(e.target.value)}
@@ -297,7 +327,17 @@ const menu = (
                 </button>
             </div>
         </div>
-        <Table columns={columns} dataSource={filteredData} />
+            <Table
+                className="overflow-x-auto"
+                columns={columns}
+                dataSource={filteredData}
+                scroll={{ x: 'max-content' }} 
+                pagination={{
+                    current: pagination.current,
+                    pageSize: pagination.pageSize,
+                    onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                }}
+            />
         <Modal
                 title="Risk Report"
                 open={isPdfModalOpen}
@@ -345,7 +385,7 @@ const menu = (
                         placeholder="Risk Level"
                         optionFilterProp="label"
                         onChange={onRiskLevelChange}
-                        options={riskLevelData?.map(risklevel => (
+                        options={riskLevelData?.results?.map(risklevel => (
                             {
                                 value: risklevel.id,
                                 label: risklevel?.name

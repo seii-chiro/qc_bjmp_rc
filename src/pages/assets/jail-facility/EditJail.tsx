@@ -16,7 +16,6 @@ type EditJailFacility = {
     jail_barangay_id: number| null;
     jail_postal_code: number| null;
     security_level_id: number | null;
-    record_status_id: number | null;
 };
 
 const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
@@ -37,7 +36,6 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
         jail_barangay_id: null,
         jail_postal_code: null,
         security_level_id: null,
-        record_status_id: null,
         }
     )
 
@@ -85,10 +83,6 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                 queryKey: ['security-level'],
                 queryFn: () => getJail_Security_Level(token ?? "")
             },
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
         ]
     });
 
@@ -99,7 +93,6 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
     const jailRegionData = results[4].data;
     const jailBarangayData = results[5].data;
     const securityLevelData = results[6].data;
-    const recordStatusData = results[7].data;
 
     useEffect(() => {
         if (jail) {
@@ -115,7 +108,6 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                 jail_barangay_id: jail.jail_barangay_id,
                 jail_postal_code: jail.jail_postal_code,
                 security_level_id: jail.security_level_id,
-                record_status_id: jail.record_status_id,
             });
         }
     }, [jail, form]);
@@ -133,7 +125,6 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
             jail_barangay_id: values.jail_barangay_id,
             jail_postal_code: values.jail_postal_code,
             security_level_id: values.security_level_id,
-            record_status_id: values.record_status_id,
         };
         
         
@@ -235,7 +226,6 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                     jail_barangay_id: jail.jail_barangay_id ?? 'N/A',
                     jail_postal_code: jail.jail_postal_code ?? 'N/A',
                     security_level_id: jail.security_level_id ?? 'N/A',
-                    record_status_id: jail.record_status_id ?? 'N/A',
                 }}
             >
                 <div className="grid grid-cols-1 md:grid-cols-2 w-full gap-3">
@@ -251,7 +241,7 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                             placeholder="Jail Type"
                             optionFilterProp="label"
                             onChange={onJailTypeChange}
-                            options={jailTypeData?.map(jail_type => (
+                            options={jailTypeData?.results?.map(jail_type => (
                                 {
                                     value: jail_type.id,
                                     label: jail_type?.type_name,
@@ -270,7 +260,7 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                         placeholder="Jail Category"
                         optionFilterProp="label"
                         onChange={onJailCategoryChange}
-                        options={jailCategoryData?.map(jail_category => (
+                        options={jailCategoryData?.results?.map(jail_category => (
                             {
                                 value: jail_category.id,
                                 label: jail_category?.description,
@@ -297,7 +287,7 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                         showSearch
                         placeholder="Jail Region"
                         onChange={onRegionChange}
-                        options={jailRegionData?.map(region => ({
+                        options={jailRegionData?.results?.map(region => ({
                             value: region.id,
                             label: region?.desc,
                         }))}
@@ -310,7 +300,7 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                             showSearch
                             placeholder="Jail Province"
                             onChange={onJailProvinceChange}
-                            options={jailProvinceData?.filter(province => province.region === selectjail.jail_region_id).map(province => ({
+                            options={jailProvinceData?.results?.filter(province => province.region === selectjail.jail_region_id).map(province => ({
                                 value: province.id,
                                 label: province?.desc,
                             }))}
@@ -323,7 +313,7 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                         showSearch
                         placeholder="Jail Municipality"
                         onChange={onMunicipalityChange}
-                        options={jailMunicipalityData?.filter(municipality => municipality.province === selectjail.jail_province_id).map(municipality => ({
+                        options={jailMunicipalityData?.results?.filter(municipality => municipality.province === selectjail.jail_province_id).map(municipality => ({
                             value: municipality.id,
                             label: municipality?.desc,
                         }))}
@@ -336,7 +326,7 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                         showSearch
                         placeholder="Jail Barangay"
                         onChange={onJailBarangayChange}
-                        options={jailBarangayData?.filter(barangay => barangay.municipality === selectjail.jail_city_municipality_id).map(barangay => ({
+                        options={jailBarangayData?.results?.filter(barangay => barangay.municipality === selectjail.jail_city_municipality_id).map(barangay => ({
                             value: barangay.id,
                             label: barangay?.desc,
                         }))}
@@ -350,26 +340,10 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                             placeholder="Security Level"
                             optionFilterProp="label"
                             onChange={onSecurityLevelChange}
-                            options={securityLevelData?.map(security_level => (
+                            options={securityLevelData?.results?.map(security_level => (
                                 {
                                     value: security_level.id,
                                     label: security_level?.category_name,
-                                }
-                            ))}
-                        />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                        <p>Record Status</p>
-                        <Select
-                            className="h-[3rem] w-full"
-                            showSearch
-                            placeholder="Record Status"
-                            optionFilterProp="label"
-                            onChange={onRecordStatusChange}
-                            options={recordStatusData?.map(record_status => (
-                                {
-                                    value: record_status.id,
-                                    label: record_status?.status,
                                 }
                             ))}
                         />

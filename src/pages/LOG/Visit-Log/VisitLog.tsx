@@ -48,21 +48,23 @@ const VisitLog = () => {
         : pdlData;
 
   const dataSource =
-    activeData?.map((entry, index) => ({
+    activeData?.results?.map((entry, index) => ({
       key: index + 1,
       id: entry?.id ?? 'N/A',
       timestamp: entry?.tracking_logs?.[0]?.created_at ?? '',
       visitor: entry?.person || '',
-      visitor_type: entry?.visitor?.visitor_type || '',
-      pdl_name: `${entry?.visitor?.pdls?.[0]?.pdl?.person?.first_name || ''} ${entry?.visitor?.pdls?.[0]?.pdl?.person?.last_name || ''}`,
-      pdl_type: entry?.visitor?.pdls?.[0]?.pdl?.pdl_type || '',
+      visitor_type: entry?.visitor?.results?.visitor_type || '',
+      pdl_name: `${entry?.visitor?.results?.pdls?.[0]?.pdl?.person?.first_name || ''} ${entry?.visitor?.results?.pdls?.[0]?.pdl?.person?.last_name || ''}`,
+      pdl_type: entry?.visitor?.results?.pdls?.[0]?.pdl?.pdl_type || '',
     })) || [];
 
-  const filteredData = dataSource.filter((log) =>
-    Object.values(log).some((value) =>
+  const filteredData = dataSource.filter((log) => {
+    const visitorMatch = log.visitor.toLowerCase().includes(searchText.toLowerCase());
+    const otherMatch = Object.values(log).some((value) =>
       String(value).toLowerCase().includes(searchText.toLowerCase())
-    )
-  );
+    );
+    return visitorMatch || otherMatch; // Include visitor name in the filtering
+  });
 
   const columns = [
     { title: 'No.', dataIndex: 'key', key: 'key' },
@@ -71,9 +73,37 @@ const VisitLog = () => {
       dataIndex: 'timestamp',
       key: 'timestamp',
       render: (text) => new Date(text).toLocaleString(),
+      sorter: (a, b) => new Date(a.timestamp) - new Date(b.timestamp), // Ascending order
+      defaultSortOrder: 'descend', // Default to descending order to show latest first
     },
-    { title: 'Visitor Name', dataIndex: 'visitor', key: 'visitor' },
-    { title: 'Visitor Type', dataIndex: 'visitor_type', key: 'visitor_type' },
+    {
+      title: 'Visitor Name',
+      dataIndex: 'visitor',
+      key: 'visitor',
+      sorter: (a, b) => {
+        const nameA = a.visitor.toLowerCase();
+        const nameB = b.visitor.toLowerCase();
+        return nameA.localeCompare(nameB); 
+      },
+    },
+    {
+      title: 'Visitor Type',
+      dataIndex: 'visitor_type',
+      key: 'visitor_type',
+      sorter: (a, b) => a.visitor_type.localeCompare(b.visitor_type), 
+      
+      filters: [
+        { text: 'Regular', value: 'Regular' },
+        { text: 'Senior Citizen', value: 'Senior Citizen' },
+        { text: 'Person with Disabilities', value: 'Person with Disabilities' },
+        { text: 'Pregnant Woman', value: 'Pregnant Woman' },
+        { text: 'Minor', value: 'Minor' },
+        { text: 'LGBTQ + TRANSGENDER', value: 'LGBTQ + TRANSGENDER' },
+        { text: 'LGBTQ + GAY / BISEXUAL', value: 'LGBTQ + GAY / BISEXUAL' },
+        { text: 'LGBTQ + LESBIAN / BISEXUAL', value: 'LGBTQ + LESBIAN / BISEXUAL' },
+      ],
+      onFilter: (value, record) => record.visitor_type.includes(value), // Filtering
+    },
     { title: 'PDL Name', dataIndex: 'pdl_name', key: 'pdl_name' },
     { title: 'PDL Type', dataIndex: 'pdl_type', key: 'pdl_type' },
   ];
@@ -133,7 +163,6 @@ const VisitLog = () => {
         />
       </div>
     </div>
-
   );
 };
 

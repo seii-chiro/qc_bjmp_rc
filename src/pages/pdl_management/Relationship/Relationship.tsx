@@ -34,6 +34,7 @@ const Relationship = () => {
     const [selectRelationship, setSelctedRelationship] = useState<RelationshipForm | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['relationship'],
@@ -95,7 +96,7 @@ const Relationship = () => {
         }
     };
 
-    const dataSource = data?.map((relationship, index) => ({
+    const dataSource = data?.results?.map((relationship, index) => ({
         key: index + 1,
         id: relationship?.id ?? 'N/A',
         relationship_name: relationship?.relationship_name ?? 'N/A',
@@ -115,28 +116,67 @@ const Relationship = () => {
     const columns = [
         {
         title: "No",
-        dataIndex: "key",
-        key: "key",
+        render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
         title: "Relationship Name",
         dataIndex: "relationship_name",
         key: "relationship_name",
+        sorter: (a, b) => a.relationship_name.localeCompare(b.relationship_name),
+        filters: [
+            ...Array.from(
+                new Set(filteredData.map(item => item.relationship_name))
+            ).map(name => ({
+                text: name,
+                value: name,
+            }))
+        ],
+        onFilter: (value, record) => record.relationship_name === value,
         },
         {
         title: "Description",
         dataIndex: "description",
         key: "description",
+        sorter: (a, b) => a.description.localeCompare(b.description),
+        filters: [
+            ...Array.from(
+                new Set(filteredData.map(item => item.description))
+            ).map(name => ({
+                text: name,
+                value: name,
+            }))
+        ],
+        onFilter: (value, record) => record.description === value,
         },
         {
-        title: "Updated At",
-        dataIndex: "updated_at",
-        key: "updated_at",
+            title: "Updated At",
+            dataIndex: "updated_at",
+            key: "updated_at",
+            sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.updated_at.split(' ')[0]))
+                ).map(date => ({
+                    text: date,
+                    value: date,
+                }))
+            ],
+            onFilter: (value, record) => record.updated_at.startsWith(value),
         },
         {
             title: 'Updated By',
             dataIndex: 'updated_by',
             key: 'updated_by',
+            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.updated_by))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.updated_by === value,
         },
         {
         title: "Actions",

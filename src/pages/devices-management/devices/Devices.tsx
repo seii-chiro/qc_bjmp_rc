@@ -38,6 +38,7 @@ const Device = () => {
     const [devices, setDevices] = useState<Device | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ["devices"],
@@ -68,7 +69,7 @@ const Device = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((devices, index) => ({
+    const dataSource = data?.results?.map((devices, index) => ({
         key: index + 1,
         id: devices.id,
         device_type: devices?.device_type ?? "N/A",
@@ -92,49 +93,56 @@ const Device = () => {
     const columns: ColumnsType<Device> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Device Type',
             dataIndex: 'device_type',
             key: 'device_type',
+            sorter: (a, b) => a.device_type.localeCompare(b.device_type),
         },
         
         {
             title: 'Device Name',
             dataIndex: 'device_name',
             key: 'device_name',
+            sorter: (a, b) => a.device_name.localeCompare(b.device_name),
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
         },
         {
             title: 'Jail',
             dataIndex: 'jail',
             key: 'jail',
+            sorter: (a, b) => a.jail.localeCompare(b.jail),
         },
         {
             title: 'Jail Area',
             dataIndex: 'area',
             key: 'area',
+            sorter: (a, b) => a.area.localeCompare(b.area),
         },
         {
             title: 'Serial No.',
             dataIndex: 'serial_no',
             key: 'serial_no',
+            sorter: (a, b) => a.serial_no.localeCompare(b.serial_no),
         },
         {
             title: 'Manufacturer',
             dataIndex: 'manufacturer',
             key: 'manufacturer',
+            sorter: (a, b) => a.manufacturer.localeCompare(b.manufacturer),
         },
         {
             title: 'Supplier',
             dataIndex: 'supplier',
             key: 'supplier',
+            sorter: (a, b) => a.supplier.localeCompare(b.supplier),
         },
         {
             title: "Actions",
@@ -316,12 +324,17 @@ const Device = () => {
                     </div>
                     
                 </div>
-            <Table
-                className="overflow-x-auto"
-                columns={columns}
-                dataSource={filteredData}
-                scroll={{ x: 'max-content' }} 
-            />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
                         <Modal
                 title="Devices Report"
                 open={isPdfModalOpen}

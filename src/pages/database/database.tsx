@@ -52,7 +52,7 @@ const Database = () => {
                         link="/jvms/maintenance/id-types"
                         title="ID Types"/>
                         <GodotLink
-                        link="/jvms/maintenance/backup"
+                        link=""
                         title="Backup"/>
                     </div>
                 </div>

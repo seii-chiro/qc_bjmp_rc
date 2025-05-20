@@ -11,7 +11,7 @@ const Assets = () => {
                             <div className="ml-8">
                                 <GodotLink link="jail-facility" title="Jail Facility" />
                                 <GodotLink link="annex" title="Annex" />
-                                <GodotLink link="levels" title="Levels" />
+                                <GodotLink link="level" title="Levels" />
                                 <GodotLink link="dorms" title="Dorms" />
                                 <GodotLink link="areas" title="Areas" />
                             </div>

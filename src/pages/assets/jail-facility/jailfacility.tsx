@@ -30,7 +30,6 @@ type Jail = {
     jail_street: string;
     security_level: string;
     jail_description: string;
-    record_status: string;
 };
 
 const jailfacility = () => {
@@ -73,7 +72,7 @@ const jailfacility = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((jail: Jail, index: any) => ({
+    const dataSource = data?.results?.map((jail: Jail, index: any) => ({
         key: index + 1,
         id: jail?.id,
         jail_name: jail?.jail_name ?? "N/A",
@@ -89,7 +88,6 @@ const jailfacility = () => {
         jail_street: jail?.jail_street ?? "N/A",
         security_level: jail?.security_level ?? "N/A",
         jail_description: jail?.jail_description ?? "N/A",
-        record_status: jail?.record_status ?? "N/A",
         organization: jail?.organization ?? 'Bureau of Jail Management and Penology',
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];

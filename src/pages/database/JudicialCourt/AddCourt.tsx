@@ -16,7 +16,6 @@ type BranchProps = {
     court_id?: number;
     region_id: number;
     province_id: number;
-    record_status_id: number;
     branch: string;
     judge: string;
     court?: string; 
@@ -83,7 +82,6 @@ const AddCourt = ({ onClose }: { onClose: () => void }) => {
                     court_id,
                     region_id: branch.region_id,
                     province_id: branch.province_id,
-                    record_status_id: branch.record_status_id,
                     branch: branch.branch,
                     judge: branch.judge,
                 });

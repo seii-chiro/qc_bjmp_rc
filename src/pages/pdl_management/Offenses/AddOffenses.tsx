@@ -8,7 +8,6 @@ import { useState } from "react";
 type OffenseFormValues = {
     crime_category_id: number;  
     law_id: number;             
-    record_status_id: number;   
     offense: string;           
     description: string;       
     crime_severity: string;    
@@ -21,7 +20,6 @@ const AddOffenses = ({ onClose }: { onClose: () => void }) => {
     const [selectOffenses, setSelectedOffenses] = useState<OffenseFormValues>({
         crime_category_id: 0,
         law_id: 0,
-        record_status_id: 0,
         offense: '',
         description: '',
         crime_severity: '',
@@ -37,17 +35,12 @@ const AddOffenses = ({ onClose }: { onClose: () => void }) => {
             {
                 queryKey: ["law"],
                 queryFn: () => getLaws(token ?? ""),
-            },
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
+            }
         ],
     });
 
     const crimeCategoryData = results[0].data;
     const lawData = results[1].data;
-    const recordStatusData = results[2].data;
 
     const onCrimeCategoryChange = (value: number) => {
         setSelectedOffenses(prevForm => ({
@@ -60,13 +53,6 @@ const AddOffenses = ({ onClose }: { onClose: () => void }) => {
         setSelectedOffenses(prevForm => ({
             ...prevForm,
             law_id: value,
-        }));
-    };
-
-    const onRecordStatusChange = (value: number) => {
-        setSelectedOffenses(prevForm => ({
-            ...prevForm,
-            record_status_id: value,
         }));
     };
 
@@ -147,7 +133,7 @@ const AddOffenses = ({ onClose }: { onClose: () => void }) => {
                         placeholder="Crime Category"
                         optionFilterProp="label"
                         onChange={onCrimeCategoryChange}
-                        options={crimeCategoryData?.map(crime => (
+                        options={crimeCategoryData?.results?.map(crime => (
                             {
                                 value: crime.id,
                                 label: crime?.crime_category_name,
@@ -163,7 +149,7 @@ const AddOffenses = ({ onClose }: { onClose: () => void }) => {
                         placeholder="Law"
                         optionFilterProp="label"
                         onChange={onLawChange}
-                        options={lawData?.map(law => (
+                        options={lawData?.results?.map(law => (
                             {
                                 value: law.id,
                                 label: law?.name,
@@ -174,22 +160,6 @@ const AddOffenses = ({ onClose }: { onClose: () => void }) => {
                     <div>
                         <p className="text-gray-500 font-bold">Description:</p>
                         <input type="text" name="description" id="description" onChange={handleInputChange} placeholder="Description" className="h-12 border border-gray-300 rounded-lg px-2 w-full" />
-                    </div>
-                    <div>
-                        <p className="text-gray-500 font-bold">Record Status:</p>
-                        <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Record Status"
-                        optionFilterProp="label"
-                        onChange={onRecordStatusChange}
-                        options={recordStatusData?.map(status => (
-                            {
-                                value: status.id,
-                                label: status?.status,
-                            }
-                        ))}
-                        />
                     </div>
                 </div>
                 <div className="w-full flex justify-end mt-10">

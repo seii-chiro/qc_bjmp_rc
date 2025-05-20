@@ -32,6 +32,7 @@ const JailCategory = () => {
     const [selectedJailCategories, setSelectedJailCategories] = useState<JailCategoryReport | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ["jail-category"],
@@ -62,7 +63,7 @@ const JailCategory = () => {
       setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((category, index) => ({
+    const dataSource = data?.results?.map((category, index) => ({
         key: index + 1,
         id: category.id,
         description: category?.description ?? "N/A",
@@ -80,26 +81,23 @@ const JailCategory = () => {
     const columns: ColumnsType<JailCategoryReport> = [
         {
             title: "No.",
-            dataIndex: "key", 
-            key: "key",
-            align: "center",
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: "Jail Category",
             dataIndex: "category",
             key: "category",
-            align: "center",
+            sorter: (a, b) => a.category.localeCompare(b.category),
         },
         {
             title: "Description",
             dataIndex: "description", 
             key: "description",
-            align: "center",
+            sorter: (a, b) => a.description.localeCompare(b.description),
         },
         {
             title: "Actions",
             key: "actions",
-            align: "center",
             render: (_: any, record: JailCategoryReport) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
                     <Button
@@ -300,7 +298,7 @@ const JailCategory = () => {
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
-                width="40%"
+                width="30%"
                 style={{ maxHeight: "80vh", overflowY: "auto" }} 
                 >
                 <AddJailCategory onClose={handleCancel} />

@@ -1,12 +1,10 @@
-import { getRecord_Status } from "@/lib/queries";
 import { BASE_URL} from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
-import { message, Select } from "antd";
+import { useMutation } from "@tanstack/react-query";
+import { message } from "antd";
 import { useState } from "react";
 
 type AddRiskLevelProps = {
-    record_status_id: number | null;
     name: string;
     description: string;
 }
@@ -15,21 +13,9 @@ const AddRiskLevel = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
     const [selectRiskLevel, setSelectRiskLevel] = useState<AddRiskLevelProps>({
-        record_status_id: null,
         name: '',
         description: '',
     });
-
-    const results = useQueries({
-        queries: [
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
-        ]
-    });
-
-    const recordStatusData = results[0].data;
 
     async function AddRiskLevel(risk_level: AddRiskLevelProps) {
         const res = await fetch(`${BASE_URL}/api/issues/risk-levels/`, {
@@ -84,14 +70,7 @@ const AddRiskLevel = ({ onClose }: { onClose: () => void }) => {
             [name]: value,
             }));
         };
-
-    const onRecordStatusChange = (value: number) => {
-        setSelectRiskLevel(prevForm => ({
-            ...prevForm,
-            record_status_id: value
-        }));
-    };
-
+    
     return (
         <div>
         {contextHolder}
@@ -104,22 +83,6 @@ const AddRiskLevel = ({ onClose }: { onClose: () => void }) => {
                     <div>
                         <p className="text-gray-500 font-bold">Description:</p>
                         <input type="text" name="description" id="description" onChange={handleInputChange} placeholder="Description" className="h-12 border border-gray-300 rounded-lg px-2 w-full" />
-                    </div>
-                    <div>
-                        <p className="text-gray-500 font-bold">Record Status:</p>
-                        <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Record Status"
-                        optionFilterProp="label"
-                        onChange={onRecordStatusChange}
-                        options={recordStatusData?.map(status => (
-                            {
-                                value: status.id,
-                                label: status?.status,
-                            }
-                        ))}
-                        />
                     </div>
                 </div>
                 <div className="w-full flex justify-end mt-10">

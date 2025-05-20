@@ -6,7 +6,6 @@ import { message, Select } from "antd";
 import { useState } from "react";
 
 type AddRisks = {
-    record_status_id: number | null;
     name: string;
     description: string;
     risk_level: number | null;
@@ -15,7 +14,6 @@ const AddRisk = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
     const [selectRisks, setSelectRisks] = useState<AddRisks>({
-        record_status_id: null,
         name: '',
         description: '',
         risk_level: null,
@@ -24,18 +22,13 @@ const AddRisk = ({ onClose }: { onClose: () => void }) => {
     const results = useQueries({
         queries: [
             {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
-            {
                 queryKey: ['risk-level'],
                 queryFn: () => getRiskLevels(token ?? "")
             }
         ]
     });
     
-    const recordStatusData = results[0].data;
-    const riskLevelData = results[1].data;
+    const riskLevelData = results[0].data;
 
     async function addRisk(risk: AddRisks) {
         const res = await fetch(RISK.getRISK, {
@@ -89,13 +82,6 @@ const AddRisk = ({ onClose }: { onClose: () => void }) => {
         }));
     };
 
-    const onRecordStatusChange = (value: number) => {
-        setSelectRisks(prevForm => ({
-            ...prevForm,
-            record_status_id: value
-        }));
-    };
-
     const onRiskLevelChange = (value: number) => {
         setSelectRisks(prevForm => ({
             ...prevForm,
@@ -117,22 +103,6 @@ const AddRisk = ({ onClose }: { onClose: () => void }) => {
                         <input type="text" name="description" id="description" onChange={handleInputChange} placeholder="Description" className="h-12 border border-gray-300 rounded-lg px-2 w-full" />
                     </div>
                     <div>
-                        <p className="text-gray-500 font-bold">Record Status:</p>
-                        <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Record Status"
-                        optionFilterProp="label"
-                        onChange={onRecordStatusChange}
-                        options={recordStatusData?.map(status => (
-                            {
-                                value: status.id,
-                                label: status?.status,
-                            }
-                        ))}
-                        />
-                    </div>
-                    <div>
                         <p className="text-gray-500 font-bold">Risk Level:</p>
                         <Select
                         className="h-[3rem] w-full"
@@ -140,7 +110,7 @@ const AddRisk = ({ onClose }: { onClose: () => void }) => {
                         placeholder="Risk Level"
                         optionFilterProp="label"
                         onChange={onRiskLevelChange}
-                        options={riskLevelData?.map(risklevel => (
+                        options={riskLevelData?.results?.map(risklevel => (
                             {
                                 value: risklevel.id,
                                 label: risklevel?.description,

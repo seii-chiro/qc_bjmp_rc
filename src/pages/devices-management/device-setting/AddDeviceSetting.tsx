@@ -10,7 +10,6 @@ type DeviceSettingAdd = {
     key: string;
     value: string;
     description: string;
-    record_status_id: number | null;
 }
 
 const AddDeviceSetting = ({ onClose }: { onClose: () => void }) => {
@@ -21,7 +20,6 @@ const AddDeviceSetting = ({ onClose }: { onClose: () => void }) => {
         key: '',
         value: '',
         description: "",
-        record_status_id: null,
     });
 
     const results = useQueries({
@@ -30,15 +28,10 @@ const AddDeviceSetting = ({ onClose }: { onClose: () => void }) => {
                 queryKey: ["device"],
                 queryFn: () => getDevice(token ?? ""),
             },
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
         ],
     });
 
     const deviceData = results[0].data;
-    const recordStatusData = results[1].data;
 
     async function addDevice(device_setting: DeviceSettingAdd) {
         const res = await fetch(`${BASE_URL}/api/codes/device-settings/`, {
@@ -117,7 +110,7 @@ const AddDeviceSetting = ({ onClose }: { onClose: () => void }) => {
                             placeholder="Device"
                             optionFilterProp="label"
                             onChange={onDeviceChange}
-                            options={deviceData?.map(device => ({
+                            options={deviceData?.results?.map(device => ({
                                 value: device.id,
                                 label: `${device.device_name} (${device.serial_no})`,
                             }))}
@@ -154,22 +147,6 @@ const AddDeviceSetting = ({ onClose }: { onClose: () => void }) => {
                             placeholder="Description"
                             onChange={handleInputChange}
                         />
-                    </div>
-                </div>
-                <div className="flex w-full gap-2 mt-5">
-                    <div className="w-full">
-                        <p>Record Status:</p>
-                            <Select
-                                className="h-[3rem] w-full"
-                                showSearch
-                                placeholder="Record Status"
-                                optionFilterProp="label"
-                                onChange={onRecordStatusChange}
-                                options={recordStatusData?.map(status => ({
-                                    value: status.id,
-                                    label: status?.status,
-                                }))}
-                            />
                     </div>
                 </div>
             </div>

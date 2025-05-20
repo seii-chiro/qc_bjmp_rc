@@ -44,6 +44,7 @@ const Issues = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [issues, setIssues] = useState<IssuesProps>(
         {id: null,
         module: '',
@@ -220,7 +221,7 @@ const Issues = () => {
         }));
     }; 
 
-    const dataSource = data?.map((issues, index) => (
+    const dataSource = data?.results?.map((issues, index) => (
         {
             key: index + 1,
             id: issues?.id ?? 'N/A',
@@ -242,28 +243,67 @@ const Issues = () => {
     const columns: ColumnsType<IssuesProps> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Issue Type',
             dataIndex: 'issue_type',
             key: 'issue_type',
+            sorter: (a, b) => a.issue_type.localeCompare(b.issue_type),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.issue_type))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.issue_type === value,
         },
         {
             title: 'Issue Category',
             dataIndex: 'issue_category',
             key: 'issue_category',
+            sorter: (a, b) => a.issue_category.localeCompare(b.issue_category),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.issue_category))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.issue_category === value,
         },
         {
             title: 'Risk',
             dataIndex: 'risk',
             key: 'risk',
+            sorter: (a, b) => a.risk.localeCompare(b.risk),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.risk))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.risk === value,
         },
         {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
+            sorter: (a, b) => a.status.localeCompare(b.status),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.status))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.status === value,
         },
         {
             title: "Actions",
@@ -416,7 +456,7 @@ const Issues = () => {
                     </div>
             <div className="flex gap-2 items-center">
                 <Input
-                    placeholder="Search Issues..."
+                    placeholder="Search..."
                     value={searchText}
                     className="py-2 md:w-72 w-full"
                     onChange={(e) => setSearchText(e.target.value)}
@@ -471,7 +511,7 @@ const Issues = () => {
                         placeholder="Reporting Category"
                         optionFilterProp="label"
                         onChange={onReportingCategoryChange}
-                        options={ReportingCategoryData?.map(reporting_cateogry => (
+                        options={ReportingCategoryData?.results?.map(reporting_cateogry => (
                             {
                                 value: reporting_cateogry.id,
                                 label: reporting_cateogry?.name
@@ -489,7 +529,7 @@ const Issues = () => {
                         placeholder="Issue Category"
                         optionFilterProp="label"
                         onChange={onIssueCateogryChange}
-                        options={IssueCategoryData?.map(issue_category => ({
+                        options={IssueCategoryData?.results?.map(issue_category => ({
                             value: issue_category.id,
                             label: issue_category?.name,
                         }))}
@@ -506,7 +546,7 @@ const Issues = () => {
                         placeholder="Severity Level"
                         optionFilterProp="label"
                         onChange={onSeverityLevelChange}
-                        options={SeverityLevelData?.map(level => ({
+                        options={SeverityLevelData?.results?.map(level => ({
                             value: level.id,
                             label: level?.name,
                         }))}
@@ -523,7 +563,7 @@ const Issues = () => {
                         placeholder="Risk Level"
                         optionFilterProp="label"
                         onChange={onRiskLevelChange}
-                        options={RiskLevelData?.map(risk => ({
+                        options={RiskLevelData?.results?.map(risk => ({
                             value: risk.id,
                             label: risk?.name,
                         }))}
@@ -540,7 +580,7 @@ const Issues = () => {
                         placeholder="Impact Level"
                         optionFilterProp="label"
                         onChange={onImpactLevelChange}
-                        options={ImpactLevelData?.map(impact => ({
+                        options={ImpactLevelData?.results?.map(impact => ({
                             value: impact.id,
                             label: impact?.name,
                         }))}
@@ -557,7 +597,7 @@ const Issues = () => {
                         placeholder="Impact"
                         optionFilterProp="label"
                         onChange={onImpactChange}
-                        options={ImpactData?.map(impact => ({
+                        options={ImpactData?.results?.map(impact => ({
                             value: impact.id,
                             label: impact?.name,
                         }))}
@@ -574,7 +614,7 @@ const Issues = () => {
                         placeholder="Issue Status"
                         optionFilterProp="label"
                         onChange={onIssueStatusChange}
-                        options={IssueStatusData?.map(status => ({
+                        options={IssueStatusData?.results?.map(status => ({
                             value: status.id,
                             label: status?.name,
                         }))}
@@ -597,7 +637,7 @@ const Issues = () => {
                         placeholder="Issues Status"
                         optionFilterProp="label"
                         onChange={onIssueStatusChange}
-                        options={IssueStatusData?.map(issue_status => (
+                        options={IssueStatusData?.results?.map(issue_status => (
                             {
                                 value: issue_status.id,
                                 label: issue_status?.name

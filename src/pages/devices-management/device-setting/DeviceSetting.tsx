@@ -27,6 +27,7 @@ const DeviceSetting = () => {
     const [devices, setDevices] = useState<DeviceSettingPayload | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data: DeviceSettingData } = useQuery({
         queryKey: ['device-setting'],
@@ -57,7 +58,7 @@ const DeviceSetting = () => {
         },
     });
 
-    const dataSource = DeviceSettingData?.map((device_setting, index) => ({
+    const dataSource = DeviceSettingData?.results?.map((device_setting, index) => ({
         key: index + 1,
         id: device_setting?.id ?? '',
         device: device_setting?.device ?? '',
@@ -85,21 +86,44 @@ const DeviceSetting = () => {
             title: 'Device',
             dataIndex: 'device',
             key: 'device',
+            sorter: (a, b) => a.device.localeCompare(b.device),
+            filters: [
+                { text: 'Mantra MATIS X Dual Iris Scanner', value: 'Mantra MATIS X Dual Iris Scanner' },
+                { text: 'Mantra MORPHS 442 Slap Fingerprint Scanner', value: 'Mantra MORPHS 442 Slap Fingerprint Scanner' },
+            ],
+            onFilter: (value, record) => {
+                const matchesFilter = record.device === value;
+                const matchesSearch = record.device.toLowerCase().includes(searchText.toLowerCase());
+                return matchesFilter && matchesSearch;
+            },
         },
         {
             title: 'Setting Key',
             dataIndex: 'settingKey',
             key: 'settingKey',
+            sorter: (a, b) => a.settingKey.localeCompare(b.settingKey),
+            filters: [
+                { text: 'NFIQ_Quality', value: 'NFIQ_Quality' },
+                { text: 'TimeOut', value: 'TimeOut' },
+            ],
+            onFilter: (value, record) => record.settingKey === value,
         },
         {
             title: 'Value',
             dataIndex: 'value',
             key: 'value',
+            sorter: (a, b) => a.value.localeCompare(b.value),
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                { text: 'To set threshold for reading fingerprint.', value: 'To set threshold for reading fingerprint.' },
+                { text: 'Set timeout when reading.', value: 'Set timeout when reading.' },
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",

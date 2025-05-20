@@ -32,6 +32,7 @@ const VisitorType = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ["visitor-type"],
@@ -63,7 +64,7 @@ const VisitorType = () => {
         setIsModalOpen(false);
         };
 
-    const dataSource = data?.map((visitor_type, index) => (
+    const dataSource = data?.results?.map((visitor_type, index) => (
         {
         key: index + 1,
         id: visitor_type.id,
@@ -82,18 +83,37 @@ const VisitorType = () => {
     const columns: ColumnsType<VisitorTypeRecord> = [
         {
             title: "No.",
-            dataIndex: "key", 
-            key: "key",
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: "Visitor Type",
             dataIndex: "visitor_type",
             key: "visitor_type",
+            sorter: (a, b) => a.visitor_type.localeCompare(b.visitor_type),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.visitor_type))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.visitor_type === value,
         },
         {
             title: "Description",
             dataIndex: "description", 
             key: "description",
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],  
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",

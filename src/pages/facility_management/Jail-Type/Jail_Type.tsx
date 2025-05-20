@@ -32,6 +32,7 @@ const JailType = () => {
     const [selectedJailType, setSelectedJailType] = useState<JailTypeReport | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['jailtype'],
@@ -62,7 +63,7 @@ const JailType = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((jailtype, index) => (
+    const dataSource = data?.results?.map((jailtype, index) => (
         {
             key: index + 1,
             id: jailtype.id,
@@ -82,18 +83,19 @@ const JailType = () => {
     const columns: ColumnsType<JailTypeReport> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Jail Type',
             dataIndex: 'type_name',
             key: 'type_name',
+            sorter: (a, b) => a.type_name.localeCompare(b.type_name),
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
         },
         {
             title: "Actions",
@@ -275,9 +277,13 @@ const JailType = () => {
                 <div className="overflow-x-auto">
                     <Table
                         columns={columns}
-                        dataSource={dataSource}
-                        className="h-screen"
-                        scroll={{ x: 800 }}
+                        dataSource={filteredData}
+                        scroll={{ x: 700 }}
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

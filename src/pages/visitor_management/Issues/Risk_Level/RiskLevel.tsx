@@ -52,6 +52,7 @@ const RiskLevel = () => {
     const [selectRiskLevel, setSelctedRiskLevel] = useState<RiskLevelProps | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['risk-level'],
@@ -113,7 +114,7 @@ const RiskLevel = () => {
         }
     };
 
-    const dataSource = data?.map((risk_level, index) => ({
+    const dataSource = data?.results?.map((risk_level, index) => ({
         key: index + 1,
         id: risk_level?.id ?? '',
         name: risk_level?.name ?? '',
@@ -135,18 +136,37 @@ const RiskLevel = () => {
     const columns: ColumnsType<typeof dataSource[number]> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Risk Level',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => a.name.localeCompare(b.name),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.name))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(description => ({
+                    text: description,
+                    value: description,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Updated At",
@@ -154,11 +174,32 @@ const RiskLevel = () => {
             key: "updated_at",
             render: (value) =>
                 value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
+            sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => moment(item.updated_at).format("MMMM D, YYYY h:mm A")))
+                ).map(dateTime => ({
+                    text: dateTime,
+                    value: dateTime,
+                }))
+            ],
+            onFilter: (value, record) =>
+                moment(record.updated_at).format("MMMM D, YYYY h:mm A") === value,
         },
         {
             title: 'Updated By',
             dataIndex: 'updated_by',
             key: 'updated_by',
+            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.updated_by))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.updated_by === value,
         },
         {
             title: "Action",
@@ -309,7 +350,7 @@ const RiskLevel = () => {
                     </div>
                 <div className="flex gap-2 items-center">
                     <Input
-                        placeholder="Search Risk Level..."
+                        placeholder="Search..."
                         value={searchText}
                         className="py-2 md:w-64 w-full"
                         onChange={(e) => setSearchText(e.target.value)}

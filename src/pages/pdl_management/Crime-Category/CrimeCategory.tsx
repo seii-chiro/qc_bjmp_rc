@@ -16,7 +16,6 @@ import bjmp from '../../../assets/Logo/QCJMD.png'
 
 type CrimeForm = {
     id: number;
-    record_status: string;
     crime_category_name: string;
     description: string;
 }
@@ -32,6 +31,7 @@ const CrimeCategory = () => {
     const [selectCrimeCategory, setSelectedCrimeCategory] = useState<CrimeForm | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['crime-category'],
@@ -92,7 +92,7 @@ const CrimeCategory = () => {
             messageApi.error("Selected Crime Category is invalid");
         }
     };
-    const dataSource = data?.map((item, index) => ({
+    const dataSource = data?.results?.map((item, index) => ({
         key: index + 1,
         id: item?.id ?? '',
         crime_category_name: item?.crime_category_name ?? '',
@@ -110,22 +110,33 @@ const CrimeCategory = () => {
     const columns: ColumnsType<CrimeForm> = [
         {
         title: 'No',
-        dataIndex: 'key',
-        key: 'key',
+        render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
         title: 'Crime Category Name',
         dataIndex: 'crime_category_name',
         key: 'crime_category_name',
+        sorter: (a, b) => a.crime_category_name.localeCompare(b.crime_category_name),
+        filters: [
+        ...Array.from(
+            new Set(filteredData.map(item => item.crime_category_name))
+            ).map(name => ({
+                text: name,
+                value: name,
+            }))
+        ],
+        onFilter: (value, record) => record.crime_category_name === value,
         },
         {
         title: 'Description',
         dataIndex: 'description',
         key: 'description',
+        sorter: (a, b) => a.description.localeCompare(b.description),
         },
         {
             title: "Action",
             key: "action",
+            fixed: "right",
             render: (_, record) => (
                 <div className="flex gap-2">
                     <Button type="link" onClick={() => handleEdit(record)}>
@@ -274,7 +285,7 @@ const menu = (
                     </div>
                 <div className="flex gap-2 items-center">
                     <Input
-                        placeholder="Search Crime Category..."
+                        placeholder="Search..."
                         value={searchText}
                         className="py-2 md:w-64 w-full"
                         onChange={(e) => setSearchText(e.target.value)}
@@ -288,10 +299,17 @@ const menu = (
                     </button>
                 </div>
             </div>
-            <Table
-                dataSource={filteredData}
-                columns={columns}
-            />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             <Modal
                 title="Crime Category Report"
                 open={isPdfModalOpen}

@@ -24,14 +24,15 @@ type DeviceUsage = {
 
 const DeviceUsage = () => {
     const [searchText, setSearchText] = useState("");
-  const token = useTokenStore().token;
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const queryClient = useQueryClient();
-  const [messageApi, contextHolder] = message.useMessage();
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [deviceUsage, setDeviceUsage] = useState<DeviceUsage | null>(null);
-  const [pdfDataUrl, setPdfDataUrl] = useState(null);
-  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const token = useTokenStore().token;
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const queryClient = useQueryClient();
+    const [messageApi, contextHolder] = message.useMessage();
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [deviceUsage, setDeviceUsage] = useState<DeviceUsage | null>(null);
+    const [pdfDataUrl, setPdfDataUrl] = useState(null);
+    const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ["device-usage"],
@@ -62,7 +63,7 @@ const DeviceUsage = () => {
       setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((building, index) => ({
+    const dataSource = data?.results?.map((building, index) => ({
         key: index + 1,
         id: building?.id,
         usage: building?.usage ?? "N/A",
@@ -80,18 +81,19 @@ const DeviceUsage = () => {
     const columns: ColumnsType<DeviceUsage> = [
         {
             title: "No.",
-            dataIndex: "key", 
-            key: "key",
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: "Device Usage",
             dataIndex: "usage",
             key: "usage",
+            sorter: (a, b) => a.usage.localeCompare(b.usage),
         },
         {
             title: "Description",
             dataIndex: "description", 
             key: "description",
+            sorter: (a, b) => a.description.localeCompare(b.description),
         },
         {
             title: "Actions",
@@ -261,7 +263,7 @@ const DeviceUsage = () => {
                     <button
                         className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center"
                         onClick={showModal}
-                      >
+                    >
                         <GoPlus />
                         Add Device Usage
                     </button>
@@ -269,12 +271,17 @@ const DeviceUsage = () => {
                     
                 </div>
             <div className="w-full">
-                
                 <div id="printable-table">
                     <Table
+                        className="overflow-x-auto"
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{x: 800}}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

@@ -120,7 +120,7 @@ const EditDevicesTypes = ({ devicetype, onClose }: { devicetype: any; onClose: (
                         optionFilterProp="label"
                         onChange={onDeviceUsageChange}
                         loading={deviceUsageLoading}
-                        options={deviceUsageData?.map(device_usage => (
+                        options={deviceUsageData?.results?.map(device_usage => (
                             {
                                 value: device_usage.id,
                                 label: device_usage?.usage

@@ -1,4 +1,4 @@
-import { getDevice, getRecord_Status } from "@/lib/queries";
+import { getDevice } from "@/lib/queries";
 import { patchDeviceSetting } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries } from "@tanstack/react-query";
@@ -10,7 +10,6 @@ type DeviceSettingEdit = {
     key: string;
     value: string;
     description: string;
-    record_status_id: number | null;
 }
 
 const EditDeviceSetting = ({ devicesSetting, onClose }: { devicesSetting: any; onClose: () => void }) => {
@@ -39,15 +38,10 @@ const EditDeviceSetting = ({ devicesSetting, onClose }: { devicesSetting: any; o
                 queryKey: ['device'],
                 queryFn: () => getDevice(token ?? "")
             },
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
         ]
     });
 
     const deviceData = results[0].data;
-    const recordStatusData = results[1].data;
 
     useEffect(() => {
         if (devicesSetting) {
@@ -56,7 +50,6 @@ const EditDeviceSetting = ({ devicesSetting, onClose }: { devicesSetting: any; o
                 key: devicesSetting.key,
                 value: devicesSetting.value,
                 description: devicesSetting.description,
-                record_status_id: devicesSetting.record_status_id,
             };
             
             form.setFieldsValue(initialValues);
@@ -73,10 +66,6 @@ const EditDeviceSetting = ({ devicesSetting, onClose }: { devicesSetting: any; o
         form.setFieldsValue({ device_id: value });
     };
 
-    const onRecordStatusChange = (value: number) => {
-        form.setFieldsValue({ record_status_id: value });
-    };
-
     return (
         <div>
         {contextHolder}
@@ -89,7 +78,6 @@ const EditDeviceSetting = ({ devicesSetting, onClose }: { devicesSetting: any; o
                     key: devicesSetting?.key ?? null,
                     value: devicesSetting?.value ?? null,
                     description: devicesSetting?.description ?? null,
-                    record_status_id: devicesSetting?.record_status_id ?? null,
                 }}
             >
                 <Form.Item
@@ -102,7 +90,7 @@ const EditDeviceSetting = ({ devicesSetting, onClose }: { devicesSetting: any; o
                         placeholder="Device"
                         optionFilterProp="label"
                         onChange={onDeviceChange}
-                        options={deviceData?.map(device => ({
+                        options={deviceData?.results?.map(device => ({
                             value: device.id,
                             label: device.device_name
                         }))}/>
@@ -124,21 +112,6 @@ const EditDeviceSetting = ({ devicesSetting, onClose }: { devicesSetting: any; o
                     name="description"
                 >
                     <Input />
-                </Form.Item>
-                                <Form.Item
-                    label="Record Status"
-                    name="record_status_id"
-                >
-                    <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Record Status"
-                        optionFilterProp="label"
-                        onChange={onRecordStatusChange}
-                        options={recordStatusData?.map(status => ({
-                            value: status.id,
-                            label: status.status
-                        }))}/>
                 </Form.Item>
                 <Form.Item>
                     <Button

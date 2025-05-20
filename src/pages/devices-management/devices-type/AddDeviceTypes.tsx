@@ -127,7 +127,7 @@ const AddDeviceType = ({ onClose }: { onClose: () => void }) => {
                         optionFilterProp="label"
                         onChange={onDeviceUsageChange}
                         loading={deviceUsageLoading}
-                        options={deviceUsageData?.map(deviceusage => (
+                        options={deviceUsageData?.results?.map(deviceusage => (
                             {
                                 value: deviceusage.id,
                                 label: deviceusage?.usage,

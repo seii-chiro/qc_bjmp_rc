@@ -566,34 +566,33 @@ const NonPdlVisitorRegistration = () => {
         },
     });
 
-    const visitorTypes = dropdownOptions?.[0]?.data
-    const genders = dropdownOptions?.[1]?.data
-    const nationalities = dropdownOptions?.[2]?.data
-    const nationalitiesLoading = dropdownOptions?.[2]?.isLoading
-    const civilStatuses = dropdownOptions?.[3]?.data
-    const religions = dropdownOptions?.[4]?.data
-    const religionsLoading = dropdownOptions?.[4]?.isLoading
-    const regions = dropdownOptions?.[5]?.data
-    const provinces = dropdownOptions?.[6]?.data
-    const municipalities = dropdownOptions?.[7]?.data
-    const barangays = dropdownOptions?.[8]?.data
-    const countries = dropdownOptions?.[9]?.data
-    const personnel = dropdownOptions?.[10]?.data
-    const personnelLoading = dropdownOptions?.[10]?.isLoading
-    const users = dropdownOptions?.[11]?.data
-    const userLoading = dropdownOptions?.[11]?.isLoading
-    const visitorAppStatus = dropdownOptions?.[12]?.data
-    const visitorAppStatusLoading = dropdownOptions?.[12]?.isLoading
-    const currentUser = dropdownOptions?.[13]?.data
-    const prefixes = dropdownOptions?.[14]?.data
-    const prefixesLoading = dropdownOptions?.[14]?.isLoading
-    const suffixes = dropdownOptions?.[15]?.data
-    const suffixesLoading = dropdownOptions?.[15]?.isLoading
-    const relationships = dropdownOptions?.[16]?.data
-    const relationshipsLoading = dropdownOptions?.[16]?.isLoading
-    const reasons = dropdownOptions?.[17]?.data
-    const reasonsLoading = dropdownOptions?.[17]?.isLoading
-
+    const visitorTypes = dropdownOptions?.[0]?.data?.results;
+    const genders = dropdownOptions?.[1]?.data?.results;
+    const nationalities = dropdownOptions?.[2]?.data?.results;
+    const nationalitiesLoading = dropdownOptions?.[2]?.isLoading;
+    const civilStatuses = dropdownOptions?.[3]?.data?.results;
+    const religions = dropdownOptions?.[4]?.data?.results;
+    const religionsLoading = dropdownOptions?.[4]?.isLoading;
+    const regions = dropdownOptions?.[5]?.data?.results;
+    const provinces = dropdownOptions?.[6]?.data?.results;
+    const municipalities = dropdownOptions?.[7]?.data?.results;
+    const barangays = dropdownOptions?.[8]?.data?.results;
+    const countries = dropdownOptions?.[9]?.data?.results;
+    const personnel = dropdownOptions?.[10]?.data?.results;
+    const personnelLoading = dropdownOptions?.[10]?.isLoading;
+    const users = dropdownOptions?.[11]?.data?.results;
+    const userLoading = dropdownOptions?.[11]?.isLoading;
+    const visitorAppStatus = dropdownOptions?.[12]?.data?.results;
+    const visitorAppStatusLoading = dropdownOptions?.[12]?.isLoading;
+    const currentUser = dropdownOptions?.[13]?.data;
+    const prefixes = dropdownOptions?.[14]?.data?.results;
+    const prefixesLoading = dropdownOptions?.[14]?.isLoading;
+    const suffixes = dropdownOptions?.[15]?.data?.results;
+    const suffixesLoading = dropdownOptions?.[15]?.isLoading;
+    const relationships = dropdownOptions?.[16]?.data?.results;
+    const relationshipsLoading = dropdownOptions?.[16]?.isLoading;
+    const reasons = dropdownOptions?.[17]?.data?.results;
+    const reasonsLoading = dropdownOptions?.[17]?.isLoading;
 
     const addressDataSource = personForm?.address_data?.map((address, index) => {
         return ({

@@ -26,11 +26,9 @@ export type PolicePrecinct = {
     precinct_name: string;
     coverage_area: string;
     updated_by: number | null;
-
     region_id: number | null;
     province_id: number | null;
     city_municipality_id: number | null;
-    record_status_id: number | null;
 };
 
 const Precinct = () => {
@@ -41,6 +39,7 @@ const Precinct = () => {
     const [form] = Form.useForm();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [selectPrecinct, setSelectedPrecinct] = useState<PolicePrecinct>({
         id: 0,
         region: '',
@@ -52,11 +51,9 @@ const Precinct = () => {
         precinct_name: '',
         coverage_area: '',
         updated_by: null,
-
         region_id: null,
         province_id: null,
         city_municipality_id: null,
-        record_status_id: null,
     });
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
@@ -121,7 +118,7 @@ const Precinct = () => {
         }
     };
 
-    const dataSource = data?.map((precincts, index) => ({
+    const dataSource = data?.results?.map((precincts, index) => ({
         key: index + 1,
         id: precincts?.id,
         precinct_id: precincts?.precinct_id ?? 'N/A',
@@ -145,54 +142,111 @@ const Precinct = () => {
         const columns: ColumnsType<PolicePrecinct> = [
             {
                 title: 'No.',
-                dataIndex: 'key',
-                key: 'key',
+                render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
             },
             {
                 title: 'Precinct ID',
                 dataIndex: 'precinct_id',
                 key: 'precinct_id',
+                sorter: (a, b) => a.precinct_id.localeCompare(b.precinct_id),
             },
             {
                 title: 'Precinct Name',
                 dataIndex: 'precinct_name',
                 key: 'precinct_name',
+                sorter: (a, b) => a.precinct_name.localeCompare(b.precinct_name),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.precinct_name))
+                    ).map(name => ({
+                        text: name,
+                        value: name,
+                    }))
+                ],
             },
             {
                 title: 'Region',
                 dataIndex: 'region',
                 key: 'region',
+                sorter: (a, b) => a.region.localeCompare(b.region),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.region))
+                    ).map(name => ({
+                        text: name,
+                        value: name,
+                    }))
+                ],
             },
             {
                 title: 'Province',
                 dataIndex: 'province',
                 key: 'province',
+                sorter: (a, b) => a.province.localeCompare(b.province),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.province))
+                    ).map(name => ({
+                        text: name,
+                        value: name,
+                    }))
+                ],
             },
             {
                 title: 'City /Municipality',
                 dataIndex: 'city_municipality',
                 key: 'city_municipality',
+                sorter: (a, b) => a.city_municipality.localeCompare(b.city_municipality),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.city_municipality))
+                    ).map(name => ({
+                        text: name,
+                        value: name,
+                    }))
+                ],
+                onFilter: (value, record) => record.city_municipality === value,
             },
             {
                 title: 'Coverage Area',
                 dataIndex: 'coverage_area',
                 key: 'coverage_area',
+                sorter: (a, b) => a.coverage_area.localeCompare(b.coverage_area),
             },
             {
                 title: "Updated At",
                 dataIndex: "updated_at",
                 key: "updated_at",
-                render: (value) =>
-                    value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
+                sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.updated_at.split(' ')[0]))
+                    ).map(date => ({
+                        text: date,
+                        value: date,
+                    }))
+                ],
+                onFilter: (value, record) => record.updated_at.startsWith(value),
             },
             {
                 title: 'Updated By',
                 dataIndex: 'updated_by',
                 key: 'updated_by',
+                sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.updated_by))
+                    ).map(name => ({
+                        text: name,
+                        value: name,
+                    }))
+                ],
+                onFilter: (value, record) => record.updated_by === value,
             },
             {
                 title: "Action",
                 key: "action",
+                fixed: "right",
                 render: (_, record) => (
                     <div className="flex gap-2">
                         <Button type="link" onClick={() => handleEdit(record)}>
@@ -227,7 +281,7 @@ const Precinct = () => {
             const formattedDate = today.toISOString().split('T')[0];
             const reportReferenceNo = `TAL-${formattedDate}-XXX`;
         
-            const maxRowsPerPage = 28; 
+            const maxRowsPerPage = 27; 
         
             let startY = headerHeight;
         
@@ -337,17 +391,12 @@ const Precinct = () => {
                     queryKey: ["municipality"],
                     queryFn: () => getJail_Municipality(token ?? ""),
                 },
-                {
-                    queryKey: ['record-status'],
-                    queryFn: () => getRecord_Status(token ?? "")
-                },
             ],
         });
     
         const regionData = results[0].data;
         const provinceData = results[1].data;
         const municipalityData = results[2].data;
-        const recordStatusData = results[3].data;
 
         useEffect(() => {
             if (selectPrecinct) {
@@ -393,18 +442,12 @@ const Precinct = () => {
                 city_municipality_id: value,
             }));
         };
-        const onRecordStatusChange = (value: number) => {
-            setSelectedPrecinct(prevForm => ({
-                ...prevForm,
-                record_status_id: value,
-            }));
-        };
-    
-        const filteredProvinces = provinceData?.filter(
+
+        const filteredProvinces = provinceData?.results?.filter(
             (province) => province.region === selectPrecinct.region_id
         );
     
-        const filteredMunicipality = municipalityData?.filter(
+        const filteredMunicipality = municipalityData?.results?.filter(
             (city_municipality) => city_municipality.province === selectPrecinct.province_id
         );
 
@@ -425,7 +468,7 @@ const Precinct = () => {
                     </div>
                 <div className="flex gap-2 items-center">
                     <Input
-                        placeholder="Search Precinct..."
+                        placeholder="Search..."
                         value={searchText}
                         className="py-2 md:w-64 w-full"
                         onChange={(e) => setSearchText(e.target.value)}
@@ -439,7 +482,17 @@ const Precinct = () => {
                     </button>
                 </div>
             </div>
-            <Table dataSource={filteredData} columns={columns} />
+            <Table
+                className="overflow-x-auto"
+                columns={columns}
+                dataSource={filteredData}
+                scroll={{ x: 'max-content' }} 
+                pagination={{
+                    current: pagination.current,
+                    pageSize: pagination.pageSize,
+                        onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                    }}
+                />
             <Modal
                 title="Police Precinct Report"
                 open={isPdfModalOpen}
@@ -495,7 +548,7 @@ const Precinct = () => {
                         placeholder="Region"
                         optionFilterProp="label"
                         onChange={onRegionChange}
-                        options={regionData?.map(region => ({
+                        options={regionData?.results?.map(region => ({
                             value: region.id,
                             label: region?.desc,
                         }))}
@@ -538,23 +591,6 @@ const Precinct = () => {
                         }))}
                         disabled={!selectPrecinct.province_id}
                     />
-                </Form.Item>
-                <Form.Item
-                    label="Record Status"
-                    name="record_status"
-                >
-                    <Select 
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Record Status"
-                        optionFilterProp="label"
-                        onChange={onRecordStatusChange}
-                        options={recordStatusData?.map(status => (
-                            {
-                                value: status.id,
-                                label: status?.status
-                            }
-                        ))}/>
                 </Form.Item>
                 </Form>
             </Modal>

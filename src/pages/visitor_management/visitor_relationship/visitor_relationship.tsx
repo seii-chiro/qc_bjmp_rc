@@ -32,6 +32,7 @@ const VisitorRelationship = () => {
     const [visitorRelation, setVisitorRelation] = useState<VisitortoPDLRelationship | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['visitor-relation'],
@@ -62,7 +63,7 @@ const VisitorRelationship = () => {
         setIsModalOpen(false);
         };
 
-    const dataSource = data?.map((visit, index) => (
+    const dataSource = data?.results?.map((visit, index) => (
         {
             key: index + 1,
             id: visit?.id,
@@ -81,18 +82,37 @@ const VisitorRelationship = () => {
     const columns: ColumnsType<VisitortoPDLRelationship> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Relationship Name',
             dataIndex: 'relationship_name',
             key: 'relationship_name',
+            sorter: (a, b) => a.relationship_name.localeCompare(b.relationship_name),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.relationship_name))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.relationship_name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",
@@ -139,7 +159,7 @@ const VisitorRelationship = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 28; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     
@@ -274,9 +294,15 @@ const VisitorRelationship = () => {
                 </div>
                 <div className="overflow-x-auto overflow-y-auto h-full">
                     <Table
+                        className="overflow-x-auto"
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{ x: 800 }}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

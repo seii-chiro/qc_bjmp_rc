@@ -1,4 +1,4 @@
-import { getMainGate, getPDLStation } from "@/lib/query";
+import { getPDLStation } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnsType } from "antd/es/table";
@@ -17,20 +17,18 @@ const PDLVisitors = () => {
         refetchInterval: 60000,
     });
 
-
-    const dataSource: MainGateLog[] = visitLogData?.map((pdlstation, index) => {
-
-        const profileImage = pdlstation?.visitor?.person?.media?.find(
+    const dataSource: MainGateLog[] = visitLogData?.results?.map((pdlstation, index) => {
+        const profileImage = pdlstation?.results?.visitor?.person?.media?.find(
             (m: any) => m.picture_view === "Front"
         );
 
-        const pdlImage = pdlstation?.visitor?.pdls[0]?.pdl.person?.media?.find(
+        const pdlImage = pdlstation?.results?.visitor?.pdls[0]?.pdl.person?.media?.find(
             (m: any) => m.picture_view === "Front"
         );
 
         return {
             key: index + 1,
-            id: pdlstation?.id ?? "N/A",
+            id: pdlstation?.results?.id ?? "N/A",
             timestamp: pdlstation?.tracking_logs?.[0]?.created_at ?? '',
             visitor: pdlstation?.person,
             visitorPhoto: profileImage
@@ -47,7 +45,7 @@ const PDLVisitors = () => {
                 : null,
             visitorType: pdlstation?.visitor?.visitor_type ?? "",
             pdlName: pdlstation
-                ? `${pdlstation.visitor?.pdls[0]?.pdl.person?.first_name || ''} ${pdlstation.visitor?.pdls[0]?.pdl.person.last_name || ''}`
+                ? `${pdlstation?.visitor?.pdls[0]?.pdl.person?.first_name || ''} ${pdlstation?.visitor?.pdls[0]?.pdl.person?.last_name || ''}`
                 : "",
             relationshipToPDL: pdlstation?.visitor?.pdls[0]?.relationship_to_pdl || "No PDL relationship",
             level: pdlstation?.visitor?.pdls?.[0]?.pdl.cell.cell_name,
@@ -73,16 +71,35 @@ const PDLVisitors = () => {
             dataIndex: "timestamp",
             key: "timestamp",
             render: (text) => new Date(text).toLocaleString(),
+            sorter: (a, b) => new Date(b.timestamp) - new Date(a.timestamp), // Descending order for latest first
+            defaultSortOrder: 'descend', // Default to descending order
         },
         {
             title: "Visitor Name",
             dataIndex: "visitor",
             key: "visitor",
+            sorter: (a, b) => {
+                const nameA = a.visitor.toLowerCase();
+                const nameB = b.visitor.toLowerCase();
+                return nameA.localeCompare(nameB); // Sorting by visitor name
+            },
         },
         {
             title: "Visitor Type",
             dataIndex: "visitorType",
             key: "visitorType",
+            sorter: (a, b) => a.visitorType.localeCompare(b.visitorType), // Sorting for visitor type
+            filters: [
+                { text: 'Regular', value: 'Regular' },
+                { text: 'Senior Citizen', value: 'Senior Citizen' },
+                { text: 'Person with Disabilities', value: 'Person with Disabilities' },
+                { text: 'Pregnant Woman', value: 'Pregnant Woman' },
+                { text: 'Minor', value: 'Minor' },
+                { text: 'LGBTQ + TRANSGENDER', value: 'LGBTQ + TRANSGENDER' },
+                { text: 'LGBTQ + GAY / BISEXUAL', value: 'LGBTQ + GAY / BISEXUAL' },
+                { text: 'LGBTQ + LESBIAN / BISEXUAL', value: 'LGBTQ + LESBIAN / BISEXUAL' },
+            ],
+            onFilter: (value, record) => record.visitorType.includes(value), // Filtering
         },
         {
             title: "Visitor Photo",

@@ -11,11 +11,11 @@ import { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import { GoDownload, GoPlus } from "react-icons/go";
 import { LuSearch } from "react-icons/lu";
-import EditCell from "./EditCell";
-import AddCell from "./AddCell";
 import bjmp from '../../../assets/Logo/QCJMD.png'
+import AddDorm from "./AddDorm";
+import EditDorm from "./EditDorm";
 
-type Cell = {
+type DormResponse = {
     key: number;
     id: number;
     cell_no: number;
@@ -31,12 +31,13 @@ const Dorm = () => {
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectDorm, setSelectDorm] = useState<Cell | null>(null);
+    const [selectDorm, setSelectDorm] = useState<DormResponse | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-    
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+
     const { data } = useQuery({
-        queryKey: ["detention-cell"],
+        queryKey: ["dorm"],
         queryFn: () => getDetentionCell(token ?? ""),
     });
 
@@ -48,7 +49,7 @@ const Dorm = () => {
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteDetentionCell(token ?? "", id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["detention-cell"] });
+            queryClient.invalidateQueries({ queryKey: ["dorm"] });
             messageApi.success("Dorm deleted successfully");
         },
         onError: (error: any) => {
@@ -64,48 +65,56 @@ const Dorm = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((cell, index) => ({
+    const dataSource = data?.results?.map((dorm, index) => ({
         key: index + 1,
-        id: cell?.id,
-        floor: cell?.floor,
-        cell_no: cell?.cell_no,
-        cell_name: cell?.cell_name,
-        cell_description: cell?.cell_description,
-        organization: cell?.organization ?? 'Bureau of Jail Management and Penology',
+        id: dorm?.id,
+        floor: dorm?.floor,
+        cell_no: dorm?.cell_no,
+        cell_name: dorm?.cell_name,
+        cell_description: dorm?.cell_description,
+        organization: dorm?.organization ?? 'Bureau of Jail Management and Penology',
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
-    const filteredData = dataSource?.filter((cell) =>
-        Object.values(cell).some((value) =>
+    const filteredData = dataSource?.filter((dorm) =>
+        Object.values(dorm).some((value) =>
             String(value).toLowerCase().includes(searchText.toLowerCase())
         )
     );
 
-    const columns: ColumnsType<Cell> = [
+
+    const columns: ColumnsType<DormResponse> = [
         {
             title: "No.",
-            dataIndex: "key",
-            key: "key",
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
-            title: "Floor",
+            title: "Annex",
             dataIndex: "floor",
             key: "floor",
+            sorter: (a, b) => a.floor - b.floor,
+            sortDirections: ["ascend", "descend"],
         },
         {
-            title: "Cell No",
+            title: "Dorm No",
             dataIndex: "cell_no",
             key: "cell_no",
+            sorter: (a, b) => a.cell_no - b.cell_no,
+            sortDirections: ["ascend", "descend"],
         },
         {
-            title: "Cell Name",
+            title: "Dorm Name",
             dataIndex: "cell_name",
             key: "cell_name",
+            sorter: (a, b) => a.cell_name.localeCompare(b.cell_name),
+            sortDirections: ["ascend", "descend"],
         },
         {
-            title: "Cell Description",
+            title: "Dorm Description",
             dataIndex: "cell_description",
             key: "cell_description",
+            sorter: (a, b) => a.cell_description.localeCompare(b.cell_description),
+            sortDirections: ["ascend", "descend"],
         },
         {
             title: "Action",
@@ -149,7 +158,7 @@ const Dorm = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     
@@ -165,7 +174,7 @@ const Dorm = () => {
         
             doc.setTextColor(0, 102, 204);
             doc.setFontSize(16);
-            doc.text("Cell Report", 10, 15); 
+            doc.text("Dorm Report", 10, 15); 
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(10);
             doc.text(`Organization Name: ${organizationName}`, 10, 25);
@@ -178,7 +187,7 @@ const Dorm = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
+        const tableData = dataSource.map((item: { key: any; cell_no: any; cell_name: any; floor: any; cell_description: any; }) => [
             item.key,
             item.cell_no,
             item.cell_name,
@@ -190,7 +199,7 @@ const Dorm = () => {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
     
             autoTable(doc, { 
-                head: [['No.','Cell No.', 'Cell', 'Floor', 'Description']],
+                head: [['No.','Dorm No.', 'Dorm', 'Floor', 'Description']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
@@ -246,7 +255,6 @@ const Dorm = () => {
             </Menu.Item>
         </Menu>
     );
-    
     return (
         <div>
             {contextHolder}
@@ -286,6 +294,12 @@ const Dorm = () => {
                     <Table
                         columns={columns}
                         dataSource={filteredData}
+                        scroll={{ x: 700 }}
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>
@@ -313,7 +327,7 @@ const Dorm = () => {
                 width="30%"
                 style={{ maxHeight: "80vh", overflowY: "auto" }} 
             >
-                <AddCell onClose={handleCancel} />
+                <AddDorm onClose={handleCancel} />
             </Modal>
             <Modal
                 title="Edit Dorm"
@@ -321,8 +335,8 @@ const Dorm = () => {
                 onCancel={() => setIsEditModalOpen(false)}
                 footer={null}
             >
-                <EditCell
-                    cell={selectDorm}
+                <EditDorm
+                    dorm={selectDorm}
                     onClose={() => setIsEditModalOpen(false)}
                 />
             </Modal>

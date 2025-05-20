@@ -12,6 +12,7 @@ import { useState } from "react";
 import { AiOutlineEdit } from "react-icons/ai";
 import { GoDownload, GoPlus } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
+import AddUser from "./AddUser";
 
 type UsersProps = {
     id: number | null,
@@ -42,6 +43,10 @@ const Users = () => {
   const showModal = () => {
     setIsModalOpen(true);
   };
+
+        const handleCancel = () => {
+            setIsModalOpen(false);
+        };
 
   const { mutate: editUser, isLoading: isUpdating } = useMutation({
       mutationFn: (updated: UsersProps) =>
@@ -79,18 +84,16 @@ const Users = () => {
     }
   };
 
-  const dataSource = data?.map((user, index) => ({
-    key: index + 1,
+  const dataSource = data?.results?.map((user: { id: any; email: any; first_name: any; last_name: any; groups: any; organization: any; }) => ({
     id: user.id,
     email: user?.email ?? "N/A",
     first_name: user?.first_name ?? "N/A",
     last_name: user?.last_name ?? "N/A",
-    group: user?.groups ?? [], 
     organization: user?.organization ?? 'Bureau of Jail Management and Penology',
   })) || [];
   
-  const filteredData = dataSource?.filter((roles) =>
-    Object.values(roles).some((value) =>
+  const filteredData = dataSource?.filter((user: { [s: string]: unknown; } | ArrayLike<unknown>) =>
+    Object.values(user).some((value) =>
         String(value).toLowerCase().includes(searchText.toLowerCase())
     )
   );
@@ -98,29 +101,25 @@ const Users = () => {
   const columns: ColumnsType<UsersProps> = [
     {
       title: 'No.',
-      dataIndex: 'key',
-      key: 'key',
+      render: (_, __, index) => index + 1,
     },
     {
       title: 'Email',
       dataIndex: 'email',
-      key: 'email'
+      key: 'email',
+      sorter: (a, b) => a.email.localeCompare(b.email),
     },
     {
       title: 'First Name',
       dataIndex: 'first_name',
-      key: 'first_name'
+      key: 'first_name',
+      sorter: (a, b) => a.first_name.localeCompare(b.first_name),
     },
     {
       title: 'Last Name',
       dataIndex: 'last_name',
-      key: 'last_name'
-    },
-    {
-      title: 'Groups', 
-      dataIndex: 'group',
-      key: 'group',
-      render: (group: string[]) => group.length ? group.join(", ") : "N/A", 
+      key: 'last_name',
+      sorter: (a, b) => a.last_name.localeCompare(b.last_name),
     },
     {
       title: "Action",
@@ -321,6 +320,17 @@ const handleClosePdfModal = () => {
           </Form.Item>
         </Form>
       </Modal>
+                  <Modal
+                className="overflow-y-auto rounded-lg scrollbar-hide"
+                title="Add User"
+                open={isModalOpen}
+                onCancel={handleCancel}
+                footer={null}
+                width="20%"
+                style={{ maxHeight: "80vh", overflowY: "auto" }} 
+                >
+                <AddUser onClose={handleCancel} />
+            </Modal>
     </div>
   )
 }

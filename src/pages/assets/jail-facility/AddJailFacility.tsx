@@ -18,7 +18,6 @@ type AddJailFacility = {
     street: number| null;
     postal_code: number| null;
     security_level: number | null;
-    record_status: number | null;
 };
 
 const AddJailFacility = ({ onClose }: { onClose: () => void }) => {
@@ -37,7 +36,6 @@ const AddJailFacility = ({ onClose }: { onClose: () => void }) => {
         street: null,
         postal_code: null,
         security_level: null,
-        record_status: null,
     });
 
     const results = useQueries({
@@ -49,10 +47,6 @@ const AddJailFacility = ({ onClose }: { onClose: () => void }) => {
             {
                 queryKey: ['jail-security-level'],
                 queryFn: () => getJail_Security_Level(token ?? "")
-            },
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
             },
             {
                 queryKey: ['jail-types'],
@@ -84,22 +78,19 @@ const AddJailFacility = ({ onClose }: { onClose: () => void }) => {
     const jailSecurityLevelData = results[1].data;
     const jailSecurityLevelLoading = results[1].isLoading;
 
-    const recordStatusData = results[2].data;
-    const recordStatusLoading = results[2].isLoading;
+    const jailTypeData = results[2].data;
+    const jailTypeLoading = results[2].isLoading;
 
-    const jailTypeData = results[3].data;
-    const jailTypeLoading = results[3].isLoading;
+    const jailCategoryData = results[3].data;
+    const jailCategoryLoading = results[3].isLoading;
 
-    const jailCategoryData = results[4].data;
-    const jailCategoryLoading = results[4].isLoading;
+    const jailProvinceData = results[4].data;
 
-    const jailProvinceData = results[5].data;
+    const jailMunicipalityData = results[5].data;
 
-    const jailMunicipalityData = results[6].data;
+    const jailRegionData = results[6].data;
 
-    const jailRegionData = results[7].data;
-
-    const jailBarangayData = results[8].data;
+    const jailBarangayData = results[7].data;
 
     async function registerJailFacility(jailFacility: AddJailFacility) {
         const res = await fetch(JAIL.getJAIL, {
@@ -162,12 +153,6 @@ const AddJailFacility = ({ onClose }: { onClose: () => void }) => {
         setJailForm(prevForm => ({
             ...prevForm,
             security_level: value
-        }));
-    };
-    const onRecordStatusChange = (value: number) => {
-        setJailForm(prevForm => ({
-            ...prevForm,
-            jail: value
         }));
     };
 
@@ -247,7 +232,7 @@ const AddJailFacility = ({ onClose }: { onClose: () => void }) => {
                             optionFilterProp="label"
                             onChange={onJailTypeChange}
                             loading={jailTypeLoading}
-                            options={jailTypeData?.map(jail_type => (
+                            options={jailTypeData?.results?.map(jail_type => (
                                 {
                                     value: jail_type.id,
                                     label: jail_type?.type_name,
@@ -264,7 +249,7 @@ const AddJailFacility = ({ onClose }: { onClose: () => void }) => {
                                 optionFilterProp="label"
                                 onChange={onJailCategoryChange}
                                 loading={jailCategoryLoading}
-                                options={jailCategoryData?.map(jailcategory => (
+                                options={jailCategoryData?.results?.map(jailcategory => (
                                     {
                                         value: jailcategory.id,
                                         label: jailcategory?.description
@@ -279,7 +264,7 @@ const AddJailFacility = ({ onClose }: { onClose: () => void }) => {
                                 showSearch
                                 placeholder="Jail Region"
                                 onChange={onRegionChange}
-                                options={jailRegionData?.map(region => ({
+                                options={jailRegionData?.results?.map(region => ({
                                     value: region.id,
                                     label: region?.desc,
                                 }))}
@@ -292,7 +277,7 @@ const AddJailFacility = ({ onClose }: { onClose: () => void }) => {
                             showSearch
                             placeholder="Jail Province"
                             onChange={onJailProvinceChange}
-                            options={jailProvinceData?.filter(province => province.region === jailForm.region).map(province => ({
+                            options={jailProvinceData?.results?.filter(province => province.region === jailForm.region).map(province => ({
                                 value: province.id,
                                 label: province?.desc,
                             }))}
@@ -305,7 +290,7 @@ const AddJailFacility = ({ onClose }: { onClose: () => void }) => {
                                 showSearch
                                 placeholder="Jail Municipality"
                                 onChange={onMunicipalityChange}
-                                options={jailMunicipalityData?.filter(municipality => municipality.province === jailForm.province).map(municipality => ({
+                                options={jailMunicipalityData?.results?.filter(municipality => municipality.province === jailForm.province).map(municipality => ({
                                     value: municipality.id,
                                     label: municipality?.desc,
                                 }))}
@@ -318,7 +303,7 @@ const AddJailFacility = ({ onClose }: { onClose: () => void }) => {
                                 showSearch
                                 placeholder="Jail Barangay"
                                 onChange={onJailBarangayChange}
-                                options={jailBarangayData?.filter(barangay => barangay.municipality === jailForm.citymunicipality).map(barangay => ({
+                                options={jailBarangayData?.results?.filter(barangay => barangay.municipality === jailForm.citymunicipality).map(barangay => ({
                                     value: barangay.id,
                                     label: barangay?.desc,
                                 }))}
@@ -341,7 +326,7 @@ const AddJailFacility = ({ onClose }: { onClose: () => void }) => {
                                 optionFilterProp="label"
                                 onChange={onJailSecurityLevelChange}
                                 loading={jailSecurityLevelLoading}
-                                options={jailSecurityLevelData?.map(security_level => (
+                                options={jailSecurityLevelData?.results?.map(security_level => (
                                     {
                                         value: security_level.id,
                                         label: security_level?.category_name
@@ -349,27 +334,6 @@ const AddJailFacility = ({ onClose }: { onClose: () => void }) => {
                                 ))}
                             />
                         </div>
-                        <div>
-                        <p className="text-gray-500 font-semibold">Record Status:</p>
-                        <Select
-                            className="h-[3rem] w-full"
-                            showSearch
-                            placeholder="Record Status"
-                            optionFilterProp="label"
-                            onChange={onRecordStatusChange}
-                            loading={recordStatusLoading}
-                            options={recordStatusData?.map(record => (
-                                {
-                                    value: record.id,
-                                    label: record?.status,
-                                }
-                            ))}
-                        />
-
-                        </div>
-                        
-                        
-                        
                     </div>
                 </div>
                 <div className="w-full flex justify-end ml-auto mt-10">

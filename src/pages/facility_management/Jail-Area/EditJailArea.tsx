@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 type EditJailArea = {
     jail_id: number | null;
     building_id : number | null;
-    record_status_id: number | null;
     floor_id: number | null;
     area_name: string;
 }
@@ -20,7 +19,6 @@ const EditJailArea = ({ jailarea, onClose }: { jailarea: any; onClose: () => voi
     const [jailArea, setJailArea] = useState<EditJailArea>({
         jail_id: null,
         building_id: null,
-        record_status_id: null,
         floor_id: null,
         area_name: '',
     });
@@ -52,11 +50,7 @@ const EditJailArea = ({ jailarea, onClose }: { jailarea: any; onClose: () => voi
             {
             queryKey: ['floor'],
             queryFn: () => getDetention_Floor(token ?? "")
-            },
-            {
-            queryKey: ['record-status'],
-            queryFn: () => getRecord_Status(token ?? "")
-        },
+            }
         ]
     });
 
@@ -69,15 +63,12 @@ const EditJailArea = ({ jailarea, onClose }: { jailarea: any; onClose: () => voi
     const DetentionFloorData = results[2].data;
     const DetentionFloorLoading = results[2].isLoading;
 
-    const RecordStatusData = results[3].data;
-    const RecordStatusLoading = results[3].isLoading;
 
     useEffect(() => {
         if (jailarea) {
             form.setFieldsValue({
                 jail_id: jailarea.jail_id,
                 building_id: jailarea.building_id,
-                record_status_id: jailarea.record_status_id,
                 floor_id: jailarea.floor_id,
                 area_name: jailarea.area_name,
             });
@@ -90,12 +81,7 @@ const EditJailArea = ({ jailarea, onClose }: { jailarea: any; onClose: () => voi
             building_id: values.building_id,
             floor_id: values.floor_id,
             area_name: values.area_name,
-            record_status_id: values.record_status_id,
             };
-
-            const cleanedPayload = Object.fromEntries(
-                Object.entries(payload).filter(([_, v]) => v !== null)
-            );
         
             setIsLoading(true);
             updateMutation.mutate(payload);
@@ -127,13 +113,6 @@ const EditJailArea = ({ jailarea, onClose }: { jailarea: any; onClose: () => voi
       }));
   };
 
-  const onRecordStatusChange = (value: number) => {
-    setJailArea(prevForm => ({
-        ...prevForm,
-        record_status_id: value
-    }));
-};
-
     return (
         <div>
             {contextHolder}
@@ -160,7 +139,7 @@ const EditJailArea = ({ jailarea, onClose }: { jailarea: any; onClose: () => voi
                         optionFilterProp="label"
                         onChange={onJailChange}
                         loading={JailLoading}
-                        options={JailData?.map(jail => (
+                        options={JailData?.results?.map(jail => (
                             {
                                 value: jail.id,
                                 label: jail?.jail_name
@@ -178,7 +157,7 @@ const EditJailArea = ({ jailarea, onClose }: { jailarea: any; onClose: () => voi
                         optionFilterProp="label"
                         onChange={onDetentionBuildingChange}
                         loading={DetentionBuildingLoading}
-                        options={DetentionBuildingData?.map(building => (
+                        options={DetentionBuildingData?.results?.map(building => (
                             {
                                 value: building.id,
                                 label: building?.bldg_name
@@ -196,28 +175,10 @@ const EditJailArea = ({ jailarea, onClose }: { jailarea: any; onClose: () => voi
                         optionFilterProp="label"
                         onChange={onDetentionFloorChange}
                         loading={DetentionFloorLoading}
-                        options={DetentionFloorData?.map(floor => (
+                        options={DetentionFloorData?.results?.map(floor => (
                             {
                                 value: floor.id,
                                 label: floor?.floor_name
-                            }
-                        ))}/>
-                </Form.Item>
-                <Form.Item
-                    label="Record Status"
-                    name="record_status_id"
-                >
-                    <Select 
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Record Status"
-                        optionFilterProp="label"
-                        onChange={onRecordStatusChange}
-                        loading={RecordStatusLoading}
-                        options={RecordStatusData?.map(recordstatus => (
-                            {
-                                value: recordstatus.id,
-                                label: recordstatus?.status
                             }
                         ))}/>
                 </Form.Item>

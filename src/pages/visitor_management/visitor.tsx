@@ -68,7 +68,7 @@ const Visitor = () => {
         return () => clearTimeout(timeout);
     }, [searchText]);
 
-    const { data: searchData } = useQuery({
+    const { data: searchData, isLoading: searchLoading } = useQuery({
         queryKey: ["visitors", debouncedSearch],
         queryFn: () => fetchVisitors(debouncedSearch),
         behavior: keepPreviousData(),
@@ -443,7 +443,7 @@ const Visitor = () => {
 
                 <div className="flex-grow overflow-y-auto overflow-x-auto">
                     <Table
-                        loading={isFetching}
+                        loading={isFetching || searchLoading}
                         columns={columns}
                         dataSource={
                             debouncedSearch

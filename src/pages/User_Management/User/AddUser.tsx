@@ -121,7 +121,7 @@ const AddUser = ({ onClose }: { onClose: () => void }) => {
                         />
                     </div>
                 </div>
-                <button type="submit" className="mt-4 bg-blue-500 text-white rounded-lg px-4 py-2">Add User</button>
+                    <button type="submit" className="mt-4 bg-blue-500 text-white rounded-lg px-4 py-2 flex ml-auto">Add User</button>
             </form>
         </div>
     );

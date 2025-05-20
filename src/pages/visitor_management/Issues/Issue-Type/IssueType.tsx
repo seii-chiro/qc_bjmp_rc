@@ -24,7 +24,6 @@ type IssueTypes = {
     id: number;
     updated_by: string;
     issue_category: IssueCategory;
-    record_status: string;
     updated_at: string; 
     name: string;
     description: string;
@@ -41,6 +40,7 @@ const IssueType = () => {
     const [selectIssueType, setSelctedIssueType] = useState<IssueTypes | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['issue-type'],
@@ -120,7 +120,7 @@ const IssueType = () => {
         }));
     }; 
 
-    const dataSource = data?.map((issue_type, index) => (
+    const dataSource = data?.results?.map((issue_type, index) => (
         {
             key: index + 1,
             id: issue_type?.id ?? 'N/A',
@@ -143,34 +143,85 @@ const IssueType = () => {
     const columns: ColumnsType<IssueTypes> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Issue Type',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => a.name.localeCompare(b.name),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.name))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: 'Issue Category',
             dataIndex: 'issue_category',
             key: 'issue_category',
+            sorter: (a, b) => a.issue_category.localeCompare(b.issue_category),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.issue_category))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.issue_category === value,
         },
-    {
-        title: "Updated At",
-        dataIndex: "updated_at",
-        key: "updated_at",
-        render: (value) => moment(value).format("MMMM D, YYYY h:mm A"),
-    },
+        {
+            title: "Updated At",
+            dataIndex: "updated_at",
+            key: "updated_at",
+            render: (value) =>
+                value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
+            sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => moment(item.updated_at).format("MMMM D, YYYY h:mm A")))
+                ).map(dateTime => ({
+                    text: dateTime,
+                    value: dateTime,
+                }))
+            ],
+            onFilter: (value, record) =>
+                moment(record.updated_at).format("MMMM D, YYYY h:mm A") === value,
+        },
         {
             title: 'Updated By',
             dataIndex: 'updated_by',
             key: 'updated_by',
+            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.updated_by))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.updated_by === value,
         },
         {
             title: "Action",
@@ -209,7 +260,7 @@ const IssueType = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     
@@ -320,7 +371,7 @@ const IssueType = () => {
                     </div>
             <div className="flex gap-2 items-center">
                 <Input
-                    placeholder="Search Issue Type..."
+                    placeholder="Search..."
                     value={searchText}
                     className="py-2 md:w-64 w-full"
                     onChange={(e) => setSearchText(e.target.value)}
@@ -334,7 +385,17 @@ const IssueType = () => {
                 </button>
             </div>
         </div>
-        <Table columns={columns} dataSource={filteredData} />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
         <Modal
                 title="Issue Type Report"
                 open={isPdfModalOpen}
@@ -382,7 +443,7 @@ const IssueType = () => {
                         placeholder="Issue Category"
                         optionFilterProp="label"
                         onChange={onIssueTypeChange}
-                        options={IssueCategoryData?.map(issue_category => (
+                        options={IssueCategoryData?.results?.map(issue_category => (
                             {
                                 value: issue_category.id,
                                 label: issue_category?.name

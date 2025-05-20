@@ -17,7 +17,6 @@ import bjmp from '../../../assets/Logo/QCJMD.png'
 type LawForm = {
     id: number;                 
     crime_category: string; 
-    record_status: string;  
     name: string;           
     title: string;          
     description: string; 
@@ -33,11 +32,10 @@ const Law = () => {
     const [form] = Form.useForm();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [ selectLaw, setSelectedLaw ] = useState<LawForm>({
         id: 0,
         crime_category: '',
-        record_status: '',
-
         name: '',
         title: '',
         description: '',
@@ -107,7 +105,7 @@ const Law = () => {
         }
     };
 
-    const dataSource = data?.map((law, index) => ({
+    const dataSource = data?.results?.map((law, index) => ({
         key: index + 1,
         id: law?.id ?? 'N/A',
         crime_category: law?.crime_category ?? '',
@@ -127,32 +125,63 @@ const Law = () => {
         const columns: ColumnsType<LawForm> = [
             {
                 title: 'No',
-                dataIndex: 'key',
-                key: 'key',
+                render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
             },
             {
                 title: 'Law',
                 dataIndex: 'name',
                 key: 'name',
+                sorter: (a, b) => a.name.localeCompare(b.name),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.name))
+                    ).map(name => ({
+                        text: name,
+                        value: name,
+                    }))
+                ],
+                onFilter: (value, record) => record.name === value,
             },
             {
                 title: 'Crime Category',
                 dataIndex: 'crime_category',
                 key: 'crime_category',
+                sorter: (a, b) => a.crime_category.localeCompare(b.crime_category),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.crime_category))
+                    ).map(name => ({
+                        text: name,
+                        value: name,
+                    }))
+                ],
+                onFilter: (value, record) => record.crime_category === value,
             },
             {
                 title: 'Title',
                 dataIndex: 'title',
                 key: 'title',
+                sorter: (a, b) => a.title.localeCompare(b.title),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.title))
+                    ).map(name => ({
+                        text: name,
+                        value: name,
+                    }))
+                ],
+                onFilter: (value, record) => record.title === value,
             },
             {
                 title: 'Description',
                 dataIndex: 'description',
                 key: 'description',
+                sorter: (a, b) => a.description.localeCompare(b.description),
             },
             {
                 title: "Action",
                 key: "action",
+                fixed: "right",
                 render: (_, record) => (
                     <div className="flex gap-2">
                         <Button type="link" onClick={() => handleEdit(record)}>
@@ -175,27 +204,15 @@ const Law = () => {
                 queryKey: ["crime-category"],
                 queryFn: () => getCrimeCategories(token ?? ""),
             },
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
         ],
     });
 
     const crimeCategoryData = results[0].data;
-    const recordStatusData = results[1].data;
 
     const onCrimeCategoryChange = (value: number) => {
         setSelectedLaw(prevForm => ({
             ...prevForm,
             crime_category_id: value,
-        }));
-    };
-
-    const onRecordStatusChange = (value: number) => {
-        setSelectedLaw(prevForm => ({
-            ...prevForm,
-            record_status_id: value,
         }));
     };
 
@@ -312,7 +329,7 @@ const Law = () => {
                     </div>
                 <div className="flex gap-2 items-center">
                     <Input
-                        placeholder="Search Law..."
+                        placeholder="Search..."
                         value={searchText}
                         className="py-2 md:w-64 w-full"
                         onChange={(e) => setSearchText(e.target.value)}
@@ -326,7 +343,17 @@ const Law = () => {
                     </button>
                 </div>
             </div>
-        <Table columns={columns} dataSource={dataSource} />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
         <Modal
                 title="Law Report"
                 open={isPdfModalOpen}
@@ -381,28 +408,10 @@ const Law = () => {
                         placeholder="Crime Category"
                         optionFilterProp="label"
                         onChange={onCrimeCategoryChange}
-                        options={crimeCategoryData?.map(crime => (
+                        options={crimeCategoryData?.results?.map(crime => (
                             {
                                 value: crime.id,
                                 label: crime?.crime_category_name
-                            }
-                        ))}/>
-                </Form.Item>
-                
-                <Form.Item
-                    label="Record Status"
-                    name="record_status"
-                >
-                    <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Record Status"
-                        optionFilterProp="label"
-                        onChange={onRecordStatusChange}
-                        options={recordStatusData?.map(status => (
-                            {
-                                value: status.id,
-                                label: status?.status
                             }
                         ))}/>
                 </Form.Item>

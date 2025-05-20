@@ -10,7 +10,6 @@ type LawForm = {
     title: string;          
     description: string; 
     crime_category_id: number;
-    record_status_id: number;
 }
 
 const AddLaw = ({ onClose }: { onClose: () => void }) => {
@@ -21,7 +20,6 @@ const AddLaw = ({ onClose }: { onClose: () => void }) => {
         title: '',
         description: '',
         crime_category_id: 0,
-        record_status_id: 0,
     });
 
     const results = useQueries({
@@ -29,16 +27,11 @@ const AddLaw = ({ onClose }: { onClose: () => void }) => {
             {
                 queryKey: ["crime-category"],
                 queryFn: () => getCrimeCategories(token ?? ""),
-            },
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
+            }
         ],
     });
 
     const crimeCategoryData = results[0].data;
-    const recordStatusData = results[1].data;
 
     const onCrimeCategoryChange = (value: number) => {
         setSelectedLaw(prevForm => ({
@@ -131,26 +124,10 @@ const AddLaw = ({ onClose }: { onClose: () => void }) => {
                         placeholder="Crime Category"
                         optionFilterProp="label"
                         onChange={onCrimeCategoryChange}
-                        options={crimeCategoryData?.map(crime => (
+                        options={crimeCategoryData?.results?.map(crime => (
                             {
                                 value: crime.id,
                                 label: crime?.crime_category_name,
-                            }
-                        ))}
-                        />
-                    </div>
-                    <div>
-                        <p className="text-gray-500 font-bold">Record Status:</p>
-                        <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Record Status"
-                        optionFilterProp="label"
-                        onChange={onRecordStatusChange}
-                        options={recordStatusData?.map(status => (
-                            {
-                                value: status.id,
-                                label: status?.status,
                             }
                         ))}
                         />

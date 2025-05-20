@@ -35,6 +35,7 @@ const JailArea = () => {
     const [jailArea, setJailArea] = useState<jailAreaReport | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['jailarea'],
@@ -64,7 +65,7 @@ const JailArea = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((jailarea, index) => (
+    const dataSource = data?.results?.map((jailarea, index) => (
         {
             key: index + 1,
             id: jailarea?.id,
@@ -87,34 +88,38 @@ const JailArea = () => {
     const columns: ColumnsType<jailAreaReport> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Jail',
             dataIndex: 'jail',
             key: 'jail',
+            sorter: (a, b) => a.jail.localeCompare(b.jail),
         },
         {
-            title: 'Building ID',
+            title: 'Level',
             dataIndex: 'building',
             key: 'building',
+            sorter: (a, b) => a.building.localeCompare(b.building),
         },
         
         {
-            title: 'Floor ID',
+            title: 'Annex',
             dataIndex: 'floor',
             key: 'floor',
+            sorter: (a, b) => a.floor.localeCompare(b.floor),
         },
         {
             title: 'Area Name',
             dataIndex: 'area_name',
             key: 'area_name',
+            sorter: (a, b) => a.area_name.localeCompare(b.area_name),
         },
         {
-            title: 'Floor Status',
+            title: 'Annex Status',
             dataIndex: 'floor_status',
             key: 'floor_status',
+            sorter: (a, b) => a.floor_status.localeCompare(b.floor_status),
         },
         {
             title: "Actions",
@@ -160,7 +165,7 @@ const JailArea = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     
@@ -201,7 +206,7 @@ const JailArea = () => {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
     
             autoTable(doc, { 
-                head: [['No.', 'Jail Area', 'Building', 'Jail', 'Floor']],
+                head: [['No.', 'Jail Area', 'Level', 'Jail', 'Annex']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
@@ -297,8 +302,13 @@ const JailArea = () => {
                 <div className="overflow-x-auto">
                     <Table
                         columns={columns}
-                        dataSource={dataSource}
-                        scroll={{ x: 800 }}
+                        dataSource={filteredData}
+                        scroll={{ x: 700 }}
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

@@ -28,6 +28,7 @@ const Talents = () => {
     const [talents, setTalents] = useState<TalentProps | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['talents'],
@@ -58,13 +59,12 @@ const Talents = () => {
         },
     });
 
-    const dataSource = data?.map((talents, index) => (
+    const dataSource = data?.results?.map((talents, index) => (
         {
             key: index + 1,
             id: talents?.id ?? 'N/A',
             name: talents?.name ?? 'N/A',
             description: talents?.description ?? 'N/A',
-            record_status: talents?.record_status ?? 'N/A',
             organization: talents?.organization ?? 'Bureau of Jail Management and Penology',
             updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
@@ -79,28 +79,42 @@ const Talents = () => {
     const columns: ColumnsType<TalentProps> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Talents',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => a.name.localeCompare(b.name),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.name))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
-        },
-        {
-            title: 'Record Status',
-            dataIndex: 'record_status',
-            key: 'record_status',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",
             key: "actions",
-            align: "center",
+            fixed: "right",
             render: (_: any, record: TalentProps) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
                     <Button type="link" onClick={() => {

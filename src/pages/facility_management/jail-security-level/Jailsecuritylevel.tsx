@@ -32,6 +32,7 @@ const JailSecurityLevel = () => {
     const [securityLevel, setSecurityLevel] = useState<JailSecurityLevelReport | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['security-level'],
@@ -62,7 +63,7 @@ const JailSecurityLevel = () => {
             setIsModalOpen(false);
         };
 
-    const dataSource = data?.map((jailsecurity, index) => (
+    const dataSource = data?.results?.map((jailsecurity, index) => (
         {
             key: index + 1,
             id: jailsecurity?.id,
@@ -82,18 +83,19 @@ const JailSecurityLevel = () => {
     const columns: ColumnsType<JailSecurityLevelReport> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Security Level Category',
             dataIndex: 'category_name',
             key: 'category_name',
+            sorter: (a, b) => a.category_name.localeCompare(b.category_name),
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
         },
         {
             title: "Actions",
@@ -273,10 +275,14 @@ const JailSecurityLevel = () => {
                 </div>
                 <div className="overflow-x-auto">
                     <Table
-                    className="h-screen"
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{ x: 800 }}
+                        scroll={{ x: 700 }}
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

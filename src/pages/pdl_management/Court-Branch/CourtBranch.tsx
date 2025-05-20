@@ -35,6 +35,7 @@ const CourtBranch = () => {
     const [form] = Form.useForm();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [branch, setBranch] = useState<BranchProps>({
         id: 0,
         updated_by: '',
@@ -107,7 +108,7 @@ const CourtBranch = () => {
         }
     };
 
-    const dataSource = data?.map((court_branch, index) => (
+    const dataSource = data?.results?.map((court_branch, index) => (
         {
             key: index + 1,
             id: court_branch?.id ?? 'N/A',
@@ -132,47 +133,117 @@ const CourtBranch = () => {
     const columns: ColumnsType<BranchProps> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Court',
             dataIndex: 'court',
             key: 'court',
+            sorter: (a, b) => a.court.localeCompare(b.court),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.court))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.court === value,
         },
         {
             title: 'Branch',
             dataIndex: 'branch',
             key: 'branch',
+            sorter: (a, b) => a.branch.localeCompare(b.branch),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.branch))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.branch === value,
         },
         {
             title: 'Judge',
             dataIndex: 'judge',
             key: 'judge',
+            sorter: (a, b) => a.judge.localeCompare(b.judge),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.judge))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.judge === value,
         },
         {
             title: 'Region',
             dataIndex: 'region',
             key: 'region',
+            sorter: (a, b) => a.region.localeCompare(b.region),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.region))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.region === value,
         },
         {
             title: 'Province',
             dataIndex: 'province',
             key: 'province',
+            sorter: (a, b) => a.province.localeCompare(b.province),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.province))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.province === value,
+        },
+        {
+            title: "Updated At",
+            dataIndex: "updated_at",
+            key: "updated_at",
+            sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.updated_at.split(' ')[0]))
+                ).map(date => ({
+                    text: date,
+                    value: date,
+                }))
+            ],
+            onFilter: (value, record) => record.updated_at.startsWith(value),
         },
         {
             title: 'Updated By',
             dataIndex: 'updated_by',
             key: 'updated_by',
-        },
-        {
-            title: 'Updated At',
-            dataIndex: 'updated_at',
-            key: 'updated_at',
+            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.updated_by))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.updated_by === value,
         },
         {
             title: "Actions",
             key: "actions",
+            fixed: "right",
             render: (_: any, record: BranchProps) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
                     <Button type="link" onClick={() => handleEdit(record)}>
@@ -229,12 +300,9 @@ const CourtBranch = () => {
         }));
     };
 
-    const filteredProvinces = ProvinceData?.filter(
+    const filteredProvinces = ProvinceData?.results?.filter(
         (province) => province.region
     );
-
-    console.log("Selected Region:", branch.region);
-    console.log("Filtered Provinces:", filteredProvinces);
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(dataSource);
         const wb = XLSX.utils.book_new();
@@ -253,7 +321,7 @@ const CourtBranch = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     
@@ -380,18 +448,18 @@ const CourtBranch = () => {
                 </button>
             </div>
             <div>
-                <Table columns={columns} dataSource={filteredData} />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             </div>
-            <div className="flex gap-2">
-                        <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-                            <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
-                                <GoDownload /> Export
-                            </a>
-                        </Dropdown>
-                        <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
-                            Print Report
-                        </button>
-                    </div>
             <Modal
                 className="overflow-y-auto rounded-lg scrollbar-hide"
                 title="Add Court Branch"
@@ -436,7 +504,7 @@ const CourtBranch = () => {
                         placeholder="Court"
                         optionFilterProp="label"
                         onChange={onCourtChange}
-                        options={CourtData?.map(court => (
+                        options={CourtData?.results?.map(court => (
                             {
                                 value: court.id,
                                 label: court?.court
@@ -468,7 +536,7 @@ const CourtBranch = () => {
                         placeholder="Region"
                         optionFilterProp="label"
                         onChange={onRegionChange}
-                        options={RegionData?.map(region => ({
+                        options={RegionData?.results?.map(region => ({
                             value: region.id,
                             label: region?.desc,
                         }))}
@@ -484,7 +552,7 @@ const CourtBranch = () => {
                         placeholder="Province"
                         optionFilterProp="label"
                         onChange={onProvinceChange}
-                        options={filteredProvinces?.map(province => ({
+                        options={filteredProvinces?.results?.map(province => ({
                             value: province.id,
                             label: province?.desc,
                         }))}

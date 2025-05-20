@@ -570,31 +570,31 @@ const ServiceProviderRegistration = () => {
         },
     });
 
-    const affiliations = dropdownOptions?.[0]?.data
-    const affiliationsLoading = dropdownOptions?.[0]?.isLoading
-    const genders = dropdownOptions?.[1]?.data
-    const nationalities = dropdownOptions?.[2]?.data
-    const civilStatuses = dropdownOptions?.[3]?.data
-    const religions = dropdownOptions?.[4]?.data
-    const religionsLoading = dropdownOptions?.[4]?.isLoading
-    const regions = dropdownOptions?.[5]?.data
-    const provinces = dropdownOptions?.[6]?.data
-    const municipalities = dropdownOptions?.[7]?.data
-    const barangays = dropdownOptions?.[8]?.data
-    const countries = dropdownOptions?.[9]?.data
-    const visitorTypes = dropdownOptions?.[10]?.data
-    const visitorTypesLoading = dropdownOptions?.[10]?.isLoading
-    const users = dropdownOptions?.[11]?.data
-    const userLoading = dropdownOptions?.[11]?.isLoading
-    const visitorAppStatus = dropdownOptions?.[12]?.data
-    const visitorAppStatusLoading = dropdownOptions?.[12]?.isLoading
-    const currentUser = dropdownOptions?.[13]?.data
-    const prefixes = dropdownOptions?.[14]?.data
-    const prefixesLoading = dropdownOptions?.[14]?.isLoading
-    const suffixes = dropdownOptions?.[15]?.data
-    const suffixesLoading = dropdownOptions?.[15]?.isLoading
-    const services = dropdownOptions?.[16]?.data
-    const servicesLoading = dropdownOptions?.[16]?.isLoading
+    const affiliations = dropdownOptions?.[0]?.data?.results;
+    const affiliationsLoading = dropdownOptions?.[0]?.isLoading;
+    const genders = dropdownOptions?.[1]?.data?.results;
+    const nationalities = dropdownOptions?.[2]?.data?.results;
+    const civilStatuses = dropdownOptions?.[3]?.data?.results;
+    const religions = dropdownOptions?.[4]?.data?.results;
+    const religionsLoading = dropdownOptions?.[4]?.isLoading;
+    const regions = dropdownOptions?.[5]?.data?.results;
+    const provinces = dropdownOptions?.[6]?.data?.results;
+    const municipalities = dropdownOptions?.[7]?.data?.results;
+    const barangays = dropdownOptions?.[8]?.data?.results;
+    const countries = dropdownOptions?.[9]?.data?.results;
+    const visitorTypes = dropdownOptions?.[10]?.data?.results;
+    const visitorTypesLoading = dropdownOptions?.[10]?.isLoading;
+    const users = dropdownOptions?.[11]?.data?.results;
+    const userLoading = dropdownOptions?.[11]?.isLoading;
+    const visitorAppStatus = dropdownOptions?.[12]?.data?.results;
+    const visitorAppStatusLoading = dropdownOptions?.[12]?.isLoading;
+    const currentUser = dropdownOptions?.[13]?.data;
+    const prefixes = dropdownOptions?.[14]?.data?.results;
+    const prefixesLoading = dropdownOptions?.[14]?.isLoading;
+    const suffixes = dropdownOptions?.[15]?.data?.results;
+    const suffixesLoading = dropdownOptions?.[15]?.isLoading;
+    const services = dropdownOptions?.[16]?.data?.results;
+    const servicesLoading = dropdownOptions?.[16]?.isLoading;
 
     const addressDataSource = personForm?.address_data?.map((address, index) => {
         return ({
@@ -1241,7 +1241,7 @@ const ServiceProviderRegistration = () => {
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={users?.map((user) => ({
                                         value: user?.id,
-                                        label: `${user?.first_name ?? ""} ${user?.last_name ?? ""} ${user?.last_name ?? ""}`,
+                                        label: `${user?.first_name ?? ""} ${user?.last_name ?? ""}`,
                                     }))}
                                     onChange={value => {
                                         setServiceProviderForm(prev => ({

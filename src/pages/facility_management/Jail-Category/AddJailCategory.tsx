@@ -1,12 +1,10 @@
-import { getRecord_Status } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useQueries, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import { Select, message } from "antd";
+import { message } from "antd";
 import { JAIL_CATEGORY } from "@/lib/urls";
 
 type AddJailCategory = {
-    record_status: number | null;
     description: string;
     category_name: string;
 };
@@ -15,22 +13,9 @@ const AddJailCategory = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
     const [jailCategoryForm, setJailCategoryForm] = useState<AddJailCategory>({
-        record_status: null,
         description: '',
         category_name: '',
     });
-
-    const results = useQueries({
-        queries: [
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? ""),
-            },
-        ],
-    });
-
-    const recordStatusData = results[0].data;
-    const recordStatusLoading = results[0].isLoading;
 
     async function registerjailCategory(jail_category: AddJailCategory) {
         const res = await fetch(JAIL_CATEGORY.getJAIL_CATEGORY, {
@@ -88,13 +73,6 @@ const AddJailCategory = ({ onClose }: { onClose: () => void }) => {
         }));
     };
 
-    const onRecordStatusChange = (value: number) => {
-        setJailCategoryForm(prevForm => ({
-            ...prevForm,
-            record_status_id: value,
-        }));
-    };
-
     return (
         <div>
             {contextHolder}
@@ -110,24 +88,6 @@ const AddJailCategory = ({ onClose }: { onClose: () => void }) => {
                             <p>Description:</p>
                             <input type="text" name="description" id="description" onChange={handleInputChange} placeholder="Description" className="w-full h-12 border border-gray-300 rounded-lg px-2" />
                         </div>
-                        <div>
-                            <p>Record Status</p>
-                            <Select
-                            className="h-[3rem] w-full"
-                            showSearch
-                            placeholder="Record Status"
-                            optionFilterProp="label"
-                            onChange={onRecordStatusChange}
-                            loading={recordStatusLoading}
-                            options={recordStatusData?.map(record_status => (
-                                {
-                                    value: record_status.id,
-                                    label: record_status?.status,
-                                }
-                            ))}
-                        />
-                        </div>
-                        
                     </div>
                 </div>
 

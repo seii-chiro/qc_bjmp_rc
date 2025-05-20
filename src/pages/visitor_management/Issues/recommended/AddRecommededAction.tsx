@@ -1,4 +1,4 @@
-import { getRecord_Status, getRisks } from "@/lib/queries";
+import { getRisks } from "@/lib/queries";
 import { BASE_URL} from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries } from "@tanstack/react-query";
@@ -6,7 +6,6 @@ import { message, Select } from "antd";
 import { useState } from "react";
 
 type AddRecommededActionProps = {
-    record_status_id: number | null;
     name: string;
     description: string;
     risk: number |null;
@@ -16,7 +15,6 @@ const AddRecommededAction = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
     const [selectRecommeded, setSelectRecommeded] = useState<AddRecommededActionProps>({
-        record_status_id: null,
         name: '',
         description: '',
         risk: null,
@@ -25,18 +23,13 @@ const AddRecommededAction = ({ onClose }: { onClose: () => void }) => {
     const results = useQueries({
         queries: [
             {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
-            {
                 queryKey: ['risk'],
                 queryFn: () => getRisks(token ?? "")
             },
         ]
     });
 
-    const recordStatusData = results[0].data;
-    const riskData = results[1].data;
+    const riskData = results[0].data;
 
     async function AddRecommededAction(recommeded_action: AddRecommededActionProps) {
         const res = await fetch(`${BASE_URL}/api/issues_v2/recommended-action/`, {
@@ -92,13 +85,6 @@ const AddRecommededAction = ({ onClose }: { onClose: () => void }) => {
             }));
         };
 
-    const onRecordStatusChange = (value: number) => {
-        setSelectRecommeded(prevForm => ({
-            ...prevForm,
-            record_status_id: value
-        }));
-    };
-
     const onRiskChange = (value: number) => {
         setSelectRecommeded(prevForm => ({
             ...prevForm,
@@ -127,26 +113,10 @@ const AddRecommededAction = ({ onClose }: { onClose: () => void }) => {
                         placeholder="Risk"
                         optionFilterProp="label"
                         onChange={onRiskChange}
-                        options={riskData?.map(risk => (
+                        options={riskData?.results?.map(risk => (
                             {
                                 value: risk.id,
                                 label: risk?.name,
-                            }
-                        ))}
-                        />
-                    </div>
-                    <div>
-                        <p className="text-gray-500 font-bold">Record Status:</p>
-                        <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Record Status"
-                        optionFilterProp="label"
-                        onChange={onRecordStatusChange}
-                        options={recordStatusData?.map(status => (
-                            {
-                                value: status.id,
-                                label: status?.status,
                             }
                         ))}
                         />

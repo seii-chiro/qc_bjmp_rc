@@ -33,6 +33,7 @@ const VisitorReqDocs = () => {
     const [visitorReqDocs, setVisitorReqDocs] = useState<VisitorReqDocs | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['visitor-req-docs'],
@@ -63,7 +64,7 @@ const VisitorReqDocs = () => {
         setIsModalOpen(false);
         };
 
-    const dataSource = data?.map((visitor_req_docs, index) => (
+    const dataSource = data?.results?.map((visitor_req_docs, index) => (
         {
             key: index + 1,
             id: visitor_req_docs?.id,
@@ -83,18 +84,38 @@ const VisitorReqDocs = () => {
     const columns: ColumnsType<VisitorReqDocs> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Document Name',
             dataIndex: 'document_name',
             key: 'document_name',
+            sorter: (a, b) => a.document_name.localeCompare(b.document_name),
+            sortDirections: ['ascend', 'descend'],
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.document_name))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.document_name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",
@@ -141,7 +162,7 @@ const VisitorReqDocs = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     
@@ -274,11 +295,17 @@ const VisitorReqDocs = () => {
                     
                 </div>
                     <div className="overflow-x-auto overflow-y-auto h-full">
-                        <Table
-                            columns={columns}
-                            dataSource={filteredData}
-                            scroll={{ x: 800 }}
-                        />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
                     </div>
                 </div>
                 <Modal

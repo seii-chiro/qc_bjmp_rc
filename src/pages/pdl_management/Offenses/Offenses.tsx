@@ -20,13 +20,11 @@ type OffenseProps = {
     updated_by: string; 
     crime_category: string; 
     law: string; 
-    record_status: string;
     updated_at: string;
     offense: string;
     description: string; 
     crime_severity: string; 
     punishment: string; 
-
     crime_category_id?: number;
     law_id?: number; 
     record_status_id?: number; 
@@ -40,12 +38,12 @@ const Offenses = () => {
     const [form] = Form.useForm();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [ selectOffenses, setSelectedOffenses ] = useState<OffenseProps>({
     id: 0,
     updated_by: '', 
     crime_category: '', 
     law: '', 
-    record_status: '',
     updated_at: '', 
     offense: '', 
     description: '',
@@ -119,7 +117,7 @@ const Offenses = () => {
         }
     };
 
-    const dataSource = data?.map((offense, index) => ({
+    const dataSource = data?.results?.map((offense, index) => ({
         key: index + 1,
         id: offense?.id ?? 'N/A',
         crime_category: offense?.crime_category ?? 'N/A',
@@ -143,54 +141,123 @@ const Offenses = () => {
     const columns: ColumnsType<OffenseProps> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Offense',
             dataIndex: 'offense',
             key: 'offense',
+            sorter: (a, b) => a.offense.localeCompare(b.offense),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.offense))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.offense === value,
         },
         {
             title: 'Crime Category',
             dataIndex: 'crime_category',
             key: 'crime_category',
+            sorter: (a, b) => a.crime_category.localeCompare(b.crime_category),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.crime_category))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.crime_category === value,
         },
         {
             title: 'Crime Severity',
             dataIndex: 'crime_severity',
             key: 'crime_severity',
+            sorter: (a, b) => a.crime_severity.localeCompare(b.crime_severity),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.crime_severity))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.crime_severity === value, 
         },
         {
             title: 'Law',
             dataIndex: 'law',
             key: 'law',
+            sorter: (a, b) => a.law.localeCompare(b.law),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.law))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.law === value,
         },
         {
             title: 'Punishment',
             dataIndex: 'punishment',
             key: 'punishment',
+            sorter: (a, b) => a.punishment.localeCompare(b.punishment),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.punishment))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.punishment === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
         },
         {
             title: "Updated At",
             dataIndex: "updated_at",
             key: "updated_at",
-            render: (value) =>
-                value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
+            sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.updated_at.split(' ')[0]))
+                ).map(date => ({
+                    text: date,
+                    value: date,
+                }))
+            ],
+            onFilter: (value, record) => record.updated_at.startsWith(value),
         },
         {
             title: 'Updated By',
             dataIndex: 'updated_by',
             key: 'updated_by',
+            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.updated_by))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.updated_by === value,
         },
         {
             title: "Action",
             key: "action",
+            fixed: "right",
             render: (_, record) => (
                 <div className="flex gap-2">
                     <Button type="link" onClick={() => handleEdit(record)}>
@@ -218,16 +285,11 @@ const Offenses = () => {
                 queryKey: ["law"],
                 queryFn: () => getLaws(token ?? ""),
             },
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            },
         ],
     });
 
     const crimeCategoryData = results[0].data;
     const lawData = results[1].data;
-    const recordStatusData = results[2].data;
 
     const onCrimeCategoryChange = (value: number) => {
         setSelectedOffenses(prevForm => ({
@@ -243,12 +305,6 @@ const Offenses = () => {
         }));
     };
 
-    const onRecordStatusChange = (value: number) => {
-        setSelectedOffenses(prevForm => ({
-            ...prevForm,
-            record_status_id: value,
-        }));
-    };
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(dataSource);
         const wb = XLSX.utils.book_new();
@@ -380,7 +436,7 @@ const Offenses = () => {
                     </div>
                 <div className="flex gap-2 items-center">
                     <Input
-                        placeholder="Search Offenses..."
+                        placeholder="Search..."
                         value={searchText}
                         className="py-2 md:w-64 w-full"
                         onChange={(e) => setSearchText(e.target.value)}
@@ -394,10 +450,17 @@ const Offenses = () => {
                     </button>
                 </div>
             </div>
-            <Table
-                dataSource={filteredData}
-                columns={columns}
-            />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             <Modal
                 title="Offenses Report"
                 open={isPdfModalOpen}
@@ -438,7 +501,7 @@ const Offenses = () => {
                         placeholder="Crime Category"
                         optionFilterProp="label"
                         onChange={onCrimeCategoryChange}
-                        options={crimeCategoryData?.map(crime => (
+                        options={crimeCategoryData?.results?.map(crime => (
                             {
                                 value: crime.id,
                                 label: crime?.crime_category_name
@@ -455,7 +518,7 @@ const Offenses = () => {
                         placeholder="Law"
                         optionFilterProp="label"
                         onChange={onLawChange}
-                        options={lawData?.map(law => (
+                        options={lawData?.results?.map(law => (
                             {
                                 value: law.id,
                                 label: law?.name
@@ -468,23 +531,6 @@ const Offenses = () => {
                     rules={[{ required: true, message: "Please input a description" }]}
                 >
                     <Input.TextArea rows={3} />
-                </Form.Item>
-                <Form.Item
-                    label="Record Status"
-                    name="record_status"
-                >
-                    <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Record Status"
-                        optionFilterProp="label"
-                        onChange={onRecordStatusChange}
-                        options={recordStatusData?.map(status => (
-                            {
-                                value: status.id,
-                                label: status?.status
-                            }
-                        ))}/>
                 </Form.Item>
                 </Form>
             </Modal>

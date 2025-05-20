@@ -34,6 +34,7 @@ const DeviceType = () => {
     const [devicesType, setDevicesType] = useState<DeviceTypes | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ["devices-type"],
@@ -64,7 +65,7 @@ const DeviceType = () => {
         setIsModalOpen(false);
       };
 
-    const dataSource = data?.map((devicestypes, index) => ({
+    const dataSource = data?.results?.map((devicestypes, index) => ({
         key: index + 1,
         id: devicestypes.id,
         device_type: devicestypes?.device_type ?? "N/A",
@@ -84,29 +85,41 @@ const DeviceType = () => {
     const columns: ColumnsType<DeviceTypes> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Device Type',
             dataIndex: 'device_type',
             key: 'device_type',
+            sorter: (a, b) => a.device_type.localeCompare(b.device_type),
         },
         
         {
             title: 'Purpose',
             dataIndex: 'purpose',
             key: 'purpose',
+            sorter: (a, b) => a.purpose.localeCompare(b.purpose),
         },
         {
             title: 'Remarks',
             dataIndex: 'remarks',
             key: 'remarks',
+            sorter: (a, b) => a.remarks.localeCompare(b.remarks),
         },
         {
             title: 'Device Usage',
             dataIndex: 'device_usage',
             key: 'device_usage',
+            sorter: (a, b) => a.device_usage.localeCompare(b.device_usage),
+            filters: [
+                { text: 'Enrollment & Registration Devices', value: 'Enrollment & Registration Devices' },
+                { text: 'Entry/Exit Management Devices', value: 'Entry/Exit Management Devices' },
+                { text: 'Monitoring & Surveillance Devices', value: 'Monitoring & Surveillance Devices' },
+                { text: 'Geospatial and Location Tracking Devices', value: 'Geospatial and Location Tracking Devices'},
+                { text: 'IT & Backend Infrastructure', value: 'IT & Backend Infrastructure'},
+                { text: 'Optional Accessories', value: 'Optional Accessories'},
+            ],
+            onFilter: (value, record) => record.device_usage === value,
         },
         {
             title: "Actions",
@@ -286,12 +299,17 @@ const DeviceType = () => {
                     </div>
                     
                 </div>
-            <Table
-                className="overflow-x-auto"
-                columns={columns}
-                dataSource={filteredData}
-                scroll={{x: 900}}
-            />
+                <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             <Modal
                 title="Device Type Report"
                 open={isPdfModalOpen}
@@ -312,7 +330,7 @@ const DeviceType = () => {
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
-                width="30%"
+                width="50%"
                 style={{ maxHeight: "80vh", overflowY: "auto" }} 
                 >
                 <AddDeviceType onClose={handleCancel} />
