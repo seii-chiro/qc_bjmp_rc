@@ -95,7 +95,7 @@ const Report = () => {
         if (incidentForm?.type_id) {
             setIncidentForm(prev => ({
                 ...prev,
-                name: incidentTypes?.find(type => type.id === incidentForm.type_id)?.name || "",
+                name: incidentTypes?.results?.find(type => type.id === incidentForm.type_id)?.name || "",
             }))
         }
     }, [incidentForm?.type_id, incidentTypes])
@@ -106,9 +106,9 @@ const Report = () => {
         if (editState) {
             setIncidentForm(prev => ({
                 ...prev,
-                type_id: incidentTypes?.find(type => type?.name === editState?.type)?.id ?? null,
-                severity_id: severityLevels?.find(lvl => lvl?.name === editState?.severity)?.id ?? null,
-                status_id: incidentStatus?.find(status => status?.name === editState?.status)?.id ?? 1,
+                type_id: incidentTypes?.results?.find(type => type?.name === editState?.type)?.id ?? null,
+                severity_id: severityLevels?.results?.find(lvl => lvl?.name === editState?.severity)?.id ?? null,
+                status_id: incidentStatus?.results?.find(status => status?.name === editState?.status)?.id ?? 1,
                 incident_code: editState?.incident_code ?? "",
                 name: editState?.name ?? "",
                 incident_details: editState?.incident_details ?? "",
@@ -323,7 +323,7 @@ const Report = () => {
                         <Select
                             value={incidentForm?.type_id}
                             loading={incidentLoading}
-                            options={incidentTypes?.map(type => ({
+                            options={incidentTypes?.results?.map(type => ({
                                 label: type?.name,
                                 value: type?.id,
                             }))}
@@ -341,7 +341,7 @@ const Report = () => {
                         <Select
                             value={incidentForm?.severity_id}
                             loading={severityLevelsLoading}
-                            options={severityLevels?.map(type => ({
+                            options={severityLevels?.results?.map(type => ({
                                 label: type?.name,
                                 value: type?.id,
                             }))}

@@ -70,10 +70,10 @@ const IncidentTable = () => {
     });
 
     const getTypeName = (type: string) =>
-        incidentTypes?.find(incident => incident?.name === type)?.name || "";
+        incidentTypes?.results?.find(incident => incident?.name === type)?.name || "";
 
     const getSeverityName = (severity: string) =>
-        severityLevels?.find((s) => s.name === severity)?.name || "";
+        severityLevels?.results?.find((s) => s.name === severity)?.name || "";
 
 
     const columns = [
@@ -129,7 +129,7 @@ const IncidentTable = () => {
                                     ? "!bg-green-50"
                                     : "!bg-blue-50"
                         }
-                        value={incidentStatus?.find(s => s.name === status)?.id}
+                        value={incidentStatus?.results?.find(s => s.name === status)?.id}
                         style={{
                             width: 150,
                             color,
@@ -138,7 +138,7 @@ const IncidentTable = () => {
                             border: `1px solid ${color}`,
                             borderRadius: 8,
                         }}
-                        options={incidentStatus?.map(status => ({
+                        options={incidentStatus?.results?.map(status => ({
                             label: (
                                 <span
                                     style={{
@@ -168,14 +168,14 @@ const IncidentTable = () => {
             dataIndex: "user_assigned_to",
             key: "user_assigned_to",
             render: (user_assigned_to: string | null, record: any) => {
-                const assignedUserId = users?.find(user => user.email === user_assigned_to)?.id ?? null;
+                const assignedUserId = users?.results?.find(user => user.email === user_assigned_to)?.id ?? null;
                 return (
                     <Select
                         value={assignedUserId}
                         style={{ width: 150 }}
                         allowClear
                         placeholder="Assign user"
-                        options={users?.map(user => ({
+                        options={users?.results?.map(user => ({
                             label: user.email,
                             value: user.id,
                         }))}
@@ -247,7 +247,7 @@ const IncidentTable = () => {
             </div>
             <Table
                 columns={columns}
-                dataSource={incidents || []}
+                dataSource={(incidents?.results || []).slice().reverse()}
                 loading={incidentsLoading}
                 rowKey="id"
                 pagination={{ pageSize: 10 }}
