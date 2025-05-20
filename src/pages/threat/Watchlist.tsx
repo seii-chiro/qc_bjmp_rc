@@ -27,10 +27,12 @@ const Watchlist = () => {
     const queryClient = useQueryClient();
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [exportLoading, setExportLoading] = useState(false);
     // const navigate = useNavigate()
 
     useEffect(() => {
         const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
+        if (csvReady) setCsvReady(false);
         return () => clearTimeout(timeout);
     }, [searchText]);
 
@@ -67,7 +69,60 @@ const Watchlist = () => {
     const { data: UserData } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
-    })
+    });
+
+    // Function to fetch all watchlist data for export
+    const fetchAllWatchlistData = async () => {
+        try {
+            setExportLoading(true);
+            const params = new URLSearchParams({
+                limit: '1000', // Set a high limit to get all data at once
+            });
+
+            // Add search parameter if there's any search text
+            if (debouncedSearch) {
+                params.append("search", debouncedSearch);
+            }
+
+            const res = await fetch(
+                `${BASE_URL}/api/whitelists/whitelisted-persons/?${params.toString()}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch all Watchlist data for export.');
+            }
+
+            const data = await res.json();
+
+            // Transform the data for export
+            const formattedData = data.results.map((watchlist, index) => ({
+                key: index + 1,
+                id: watchlist?.id,
+                person: watchlist?.person ?? '',
+                white_listed_type: watchlist?.white_listed_type ?? '',
+                risk_level: watchlist?.risk_level ?? '',
+                threat_level: watchlist?.threat_level ?? '',
+                updated_by: watchlist?.updated_by ?? '',
+                updated_at: watchlist?.updated_at ? moment(watchlist.updated_at).format('YYYY-MM-DD HH:mm:ss A') : '',
+                organization: watchlist?.organization ?? 'Bureau of Jail Management and Penology',
+                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+            }));
+
+            setExportLoading(false);
+            return formattedData;
+        } catch (error) {
+            setExportLoading(false);
+            message.error("Failed to fetch data for export");
+            console.error(error);
+            return [];
+        }
+    };
 
     const deletePersonAndBiometric = async (token: string, id: number) => {
         await deleteWatchlistPerson(token, id);
@@ -166,19 +221,37 @@ const Watchlist = () => {
         }
     ];
 
-    const handleExportExcel = () => {
-        const ws = XLSX.utils.json_to_sheet(dataSource);
+    const handleExportExcel = async () => {
+        const allData = await fetchAllWatchlistData();
+        const ws = XLSX.utils.json_to_sheet(allData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Watchlist");
         XLSX.writeFile(wb, "Watchlist.xlsx");
     };
 
-    const handleExportPDF = () => {
+    // Store CSV data for export
+    const [csvData, setCsvData] = useState([]);
+    const [csvReady, setCsvReady] = useState(false);
+
+    const handleExportCSV = async () => {
+        setCsvReady(false);
+        const allData = await fetchAllWatchlistData();
+        setCsvData(allData);
+        setCsvReady(true);
+    };
+
+    const handleExportPDF = async () => {
+        const allData = await fetchAllWatchlistData();
+        if (allData.length === 0) {
+            message.warn("No data available to export");
+            return;
+        }
+
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || "";
-        const PreparedBy = dataSource[0]?.updated || '';
+        const organizationName = allData[0]?.organization || "Bureau of Jail Management and Penology";
+        const PreparedBy = allData[0]?.updated || `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`;
 
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
@@ -210,10 +283,9 @@ const Watchlist = () => {
             doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
         };
 
-
         addHeader();
 
-        const tableData = dataSource.map(item => [
+        const tableData = allData.map(item => [
             item.key,
             item.person,
             item.white_listed_type,
@@ -275,9 +347,19 @@ const Watchlist = () => {
                 <a onClick={handleExportExcel}>Export Excel</a>
             </Menu.Item>
             <Menu.Item>
-                <CSVLink data={dataSource} filename="Watchlist.csv">
-                    Export CSV
-                </CSVLink>
+                {csvReady ? (
+                    <CSVLink
+                        data={csvData}
+                        filename="Watchlist.csv"
+                        onClick={() => setCsvReady(false)}
+                    >
+                        Download CSV
+                    </CSVLink>
+                ) : (
+                    <a onClick={handleExportCSV}>
+                        {exportLoading ? "Preparing CSV..." : "Export CSV"}
+                    </a>
+                )}
             </Menu.Item>
         </Menu>
     );
@@ -293,9 +375,13 @@ const Watchlist = () => {
                                 <GoDownload /> Export
                             </a>
                         </Dropdown>
-                        <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
+                        <Button
+                            className="bg-[#1E365D] text-white h-10 text-base"
+                            onClick={handleExportPDF}
+                            loading={exportLoading}
+                        >
                             Print Report
-                        </button>
+                        </Button>
                     </div>
                     <div className="flex md:items-center gap-2">
                         <div className="flex-1 relative flex items-center">
@@ -316,18 +402,7 @@ const Watchlist = () => {
                 <div>
                     <Table
                         loading={isFetching}
-                        dataSource={WatchlistData?.results?.map((watchlist, index) => ({
-                            key: (page - 1) * limit + index + 1,
-                            id: watchlist?.id,
-                            person: watchlist?.person ?? '',
-                            white_listed_type: watchlist?.white_listed_type ?? '',
-                            risk_level: watchlist?.risk_level ?? '',
-                            threat_level: watchlist?.threat_level ?? '',
-                            updated_by: watchlist?.updated_by ?? '',
-                            updated_at: watchlist?.updated_at ? moment(watchlist.updated_at).format('YYYY-MM-DD HH:mm:ss A') : '',
-                            organization: watchlist?.organization ?? 'Bureau of Jail Management and Penology',
-                            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-                        })) || []}
+                        dataSource={dataSource}
                         columns={columns}
                         scroll={{ x: 800 }}
                         pagination={{
