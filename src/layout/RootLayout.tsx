@@ -10,6 +10,7 @@ import { Avatar, Dropdown, Button, Modal, MenuProps } from 'antd';
 import { useTokenStore } from "@/store/useTokenStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUserStore } from "@/store/useUserStore.ts";
+import profile_fallback from "@/assets/people.png"
 
 
 const RootLayout = () => {
@@ -107,7 +108,14 @@ const RootLayout = () => {
                                 <Breadcrumb url={location.pathname} />
                             </h2>
                             <Dropdown menu={{ items }} placement="bottomRight" arrow>
-                                <Avatar className="absolute right-[2%]">{user?.first_name?.charAt(0)?.toUpperCase()}{user?.last_name?.charAt(0)?.toUpperCase()}</Avatar>
+                                <Avatar
+                                    className="absolute right-[2%]"
+                                    src={user?.first_name || user?.last_name ? undefined : profile_fallback}
+                                    alt="Profile"
+                                >
+                                    {(user?.first_name || user?.last_name) &&
+                                        `${user?.first_name?.charAt(0)?.toUpperCase() ?? ""}${user?.last_name?.charAt(0)?.toUpperCase() ?? ""}`}
+                                </Avatar>
                             </Dropdown>
                         </header>
                         <div className="outlet-container w-full relative px-5">
