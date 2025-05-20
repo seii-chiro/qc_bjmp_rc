@@ -35,6 +35,7 @@ const EducationalAttainment = () => {
     const [educationalAttainment, setEducationalAttainment] = useState<EducationalAttainmentProps | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
 
     const { data } = useQuery({
@@ -66,7 +67,7 @@ const EducationalAttainment = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((educational_attainments, index) => (
+    const dataSource = data?.results?.map((educational_attainments, index) => (
         {
             key: index + 1,
             id: educational_attainments?.id ?? 'N/A',
@@ -90,28 +91,67 @@ const EducationalAttainment = () => {
     const columns: ColumnsType<EducationalAttainmentProps> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Educational Attainment',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => a.name.localeCompare(b.name),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.name))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(description => ({
+                    text: description,
+                    value: description,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
-            title: 'Updated At',
-            dataIndex: 'updated_at',
-            key: 'updated_at',
+            title: "Updated At",
+            dataIndex: "updated_at",
+            key: "updated_at",
+            sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.updated_at.split(' ')[0]))
+                ).map(date => ({
+                    text: date,
+                    value: date,
+                }))
+            ],
+            onFilter: (value, record) => record.updated_at.startsWith(value),
         },
         {
             title: 'Updated By',
-            dataIndex: 'updated',
-            key: 'updated',
+            dataIndex: 'updated_by',
+            key: 'updated_by',
+            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.updated_by))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.updated_by === value,
         },
         {
             title: "Actions",
@@ -309,7 +349,7 @@ const EducationalAttainment = () => {
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
-                width="30%"
+                width="25%"
                 style={{ maxHeight: "80vh", overflowY: "auto" }} 
                 >
                 <AddEducationalAttainment onClose={handleCancel} />
@@ -319,7 +359,7 @@ const EducationalAttainment = () => {
                 open={isEditModalOpen}
                 onCancel={() => setIsEditModalOpen(false)}
                 footer={null}
-                width="40%"
+                width="25%"
             >
                 <EditEducationalAttainment
                     educational_attainments={educationalAttainment}

@@ -33,6 +33,7 @@ const Organization = () => {
     const [organization, setOrganization] = useState<Organization | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['organization'],
@@ -63,7 +64,7 @@ const Organization = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((organization, index) => (
+    const dataSource = data?.results?.map((organization, index) => (
         {
             key: index + 1,
             id: organization?.id ?? 'N/A',
@@ -84,28 +85,67 @@ const Organization = () => {
     const columns: ColumnsType<Organization> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Organization Code',
             dataIndex: 'org_code',
             key: 'org_code',
+            sorter: (a, b) => a.org_code.localeCompare(b.org_code),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.org_code))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.org_code === value,
         },
         {
             title: 'Organization Name',
             dataIndex: 'org_name',
             key: 'org_name',
+            sorter: (a, b) => a.org_name.localeCompare(b.org_name),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.org_name))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.org_name === value,
         },
         {
             title: 'Organization Type',
             dataIndex: 'org_type',
             key: 'org_type',
+            sorter: (a, b) => a.org_type.localeCompare(b.org_type),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.org_type))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.org_type === value,
         },
         {
             title: 'Organization Level',
             dataIndex: 'org_level',
             key: 'org_level',
+            sorter: (a, b) => a.org_level.localeCompare(b.org_level),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.org_level))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.org_level === value,
         },
         {
             title: "Actions",
@@ -286,11 +326,17 @@ const Organization = () => {
                     
                 </div>
                     <div className="overflow-x-auto overflow-y-auto h-full">
-                        <Table
-                            columns={columns}
-                            dataSource={filteredData}
-                            scroll={{ x: 800 }}
-                        />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
                     </div>
                 </div>
                 <Modal

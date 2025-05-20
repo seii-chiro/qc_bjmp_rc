@@ -208,7 +208,7 @@ const Personnel = () => {
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
         const availableHeight = doc.internal.pageSize.height - headerHeight - footerHeight;
-        const maxRowsPerPage = 29;
+        const maxRowsPerPage = 26;
 
         let startY = headerHeight;
 

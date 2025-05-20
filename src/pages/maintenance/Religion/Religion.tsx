@@ -31,6 +31,7 @@ const Religion = () => {
     const [selectReligion, setSelectReligion] = useState<Religion | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['religion'],
@@ -61,7 +62,7 @@ const Religion = () => {
         },
     });
 
-    const dataSource = data?.map((religion, index) => (
+    const dataSource = data?.results?.map((religion, index) => (
         {
             key: index + 1,
             id: religion?.id ?? 'N/A',
@@ -81,18 +82,37 @@ const Religion = () => {
     const columns: ColumnsType<Religion> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Religion',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => a.name.localeCompare(b.name),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.name))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(description => ({
+                    text: description,
+                    value: description,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",
@@ -257,7 +277,17 @@ const Religion = () => {
                 </button>
             </div>
             <div>
-                <Table columns={columns} dataSource={filteredData}/>
+                <Table
+                    columns={columns}
+                    dataSource={filteredData}
+                    pagination={{
+                        pageSize: pagination.pageSize,
+                        current: pagination.current,
+                        onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                    }}
+                    scroll={{ x: 800 }}
+                    className="overflow-x-auto"
+                />
             </div>
             <Modal
                 title="Religion Report"

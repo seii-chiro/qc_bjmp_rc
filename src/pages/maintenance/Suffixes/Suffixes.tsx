@@ -36,6 +36,7 @@ const Suffixes = () => {
     const [suffixes, setSuffixes] = useState<SuffixesProps | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     
         const { data } = useQuery({
             queryKey: ['suffixes'],
@@ -67,11 +68,11 @@ const Suffixes = () => {
         setIsModalOpen(false);
     };
     
-        const dataSource = data?.map((suffixes, index) => (
+        const dataSource = data?.results?.map((suffixes, index) => (
             {
                 key: index + 1,
                 id: suffixes?.id ?? 'N/A',
-                suffixes: suffixes?.suffix ?? 'N/A',
+                suffix: suffixes?.suffix ?? 'N/A',
                 description: suffixes?.description ?? 'N/A',
                 full_title: suffixes?.full_title ?? 'N/A',
                 updated_at: suffixes?.updated_at
@@ -92,33 +93,85 @@ const Suffixes = () => {
         const columns: ColumnsType<SuffixesProps> = [
             {
                 title: 'No.',
-                dataIndex: 'key',
-                key: 'key',
+                render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
             },
             {
                 title: 'Suffixes',
-                dataIndex: 'suffixes',
-                key: 'suffixes',
+                dataIndex: 'suffix',
+                key: 'suffix',
+                sorter: (a, b) => a.suffix.localeCompare(b.suffix),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.suffix))
+                    ).map(suffix => ({
+                        text: suffix,
+                        value: suffix,
+                    }))
+                ],
+                onFilter: (value, record) => record.suffix === value,
             },
             {
                 title: 'Title',
                 dataIndex: 'full_title',
                 key: 'full_title',
+                sorter: (a, b) => a.full_title.localeCompare(b.full_title),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.full_title))
+                    ).map(title => ({
+                        text: title,
+                        value: title,
+                    }))
+                ],
+                onFilter: (value, record) => record.full_title === value,
             },
             {
                 title: 'Description',
                 dataIndex: 'description',
                 key: 'description',
+                sorter: (a, b) => a.description.localeCompare(b.description),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.description))
+                    ).map(description => ({
+                        text: description,
+                        value: description,
+                    }))
+                ],
+                onFilter: (value, record) => record.description === value,
             },
             {
-                title: 'Updated At',
-                dataIndex: 'updated_at',
-                key: 'updated_at',
+                title: "Updated At",
+                dataIndex: "updated_at",
+                key: "updated_at",
+                render: (value) =>
+                    value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
+                sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => moment(item.updated_at).format("MMMM D, YYYY h:mm A")))
+                    ).map(dateTime => ({
+                        text: dateTime,
+                        value: dateTime,
+                    }))
+                ],
+                onFilter: (value, record) =>
+                    moment(record.updated_at).format("MMMM D, YYYY h:mm A") === value,
             },
             {
                 title: 'Updated By',
-                dataIndex: 'updated',
-                key: 'updated',
+                dataIndex: 'updated_by',
+                key: 'updated_by',
+                sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.updated_by))
+                    ).map(name => ({
+                        text: name,
+                        value: name,
+                    }))
+                ],
+                onFilter: (value, record) => record.updated_by === value,
             },
         {
             title: "Actions",
@@ -195,7 +248,7 @@ const Suffixes = () => {
         
             const tableData = dataSource.map(item => [
                 item.key,
-                item.suffixes,
+                item.suffix,
                 item.full_title,
                 item.description,
             ]);
@@ -204,7 +257,7 @@ const Suffixes = () => {
                 const pageData = tableData.slice(i, i + maxRowsPerPage);
         
                 autoTable(doc, { 
-                    head: [['No.', 'Suffixes','Title', 'Description']],
+                    head: [['No.', 'Suffix','Title', 'Description']],
                     body: pageData,
                     startY: startY,
                     margin: { top: 0, left: 10, right: 10 },
@@ -294,9 +347,19 @@ const Suffixes = () => {
             </div>
 
         </div>
-        <Table dataSource={filteredData} columns={columns} />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
         <Modal
-                title="Suffixes Report"
+                title="Suffix Report"
                 open={isPdfModalOpen}
                 onCancel={handleClosePdfModal}
                 footer={null}

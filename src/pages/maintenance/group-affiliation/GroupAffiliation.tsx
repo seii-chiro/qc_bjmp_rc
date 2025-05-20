@@ -1,43 +1,38 @@
-import { deleteMultiBirthType, getMultipleBirthClassTypes, getUser } from "@/lib/queries";
-import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Dropdown, Menu, message, Modal, Table } from "antd";
-import { ColumnsType } from "antd/es/table";
-import { useState } from "react";
+import { GroupAffiliationResponse } from '@/lib/issues-difinitions';
+import { getUser } from '@/lib/queries';
+import { deleteGroupAffiliation, getGroupAffiliation, patchGroupAffiliation } from '@/lib/query';
+import { useTokenStore } from '@/store/useTokenStore';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Button, Dropdown, Form, Input, Menu, message, Modal } from 'antd';
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
-import { GoDownload, GoPlus } from "react-icons/go";
-import { LuSearch } from "react-icons/lu";
-import AddMultiBirth from "./AddMultiBirth";
-import EditMultiBirth from "./EditMultiBirth";
+import Table, { ColumnsType } from 'antd/es/table';
+import { useState } from 'react'
+import { AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai';
+import { GoDownload, GoPlus } from 'react-icons/go';
+import { LuSearch } from 'react-icons/lu';
 import bjmp from '../../../assets/Logo/QCJMD.png'
+import AddGroupAffiliation from './AddGroupAffiliation';
 
-type MultiBirthType = {
-    id: number;
-    classification: string;
-    group_size: number;
-    term_for_sibling_group: string;
-    description: string;
-};
-
-const MultiBirth = () => {
+const GroupAffiliation = () => {
     const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
+    const [form] = Form.useForm()
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectMultiBirth, setselectMultiBirth] = useState<MultiBirthType | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+        const [groupAffiliation, setGroupAffiliation] = useState<GroupAffiliationResponse | null>(null);
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+    
 
     const { data } = useQuery({
-        queryKey: ['sibling-group'],
-        queryFn: () => getMultipleBirthClassTypes(token ?? ""),
+        queryKey: ['group-affiliation'],
+        queryFn: () => getGroupAffiliation(token ?? ""),
     })
 
     const { data: UserData } = useQuery({
@@ -46,144 +41,134 @@ const MultiBirth = () => {
     })
 
     const deleteMutation = useMutation({
-        mutationFn: (id: number) => deleteMultiBirthType(token ?? "", id),
+        mutationFn: (id: number) => deleteGroupAffiliation(token ?? "", id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["multibirth"] });
-            messageApi.success("Multi Birth deleted successfully");
+            queryClient.invalidateQueries({ queryKey: ["group-affiliation"] });
+            messageApi.success("Group Affiliation deleted successfully");
         },
         onError: (error: any) => {
-            messageApi.error(error.message || "Failed to delete Multi Birth");
+            messageApi.error(error.message || "Failed to delete Group Affiliation");
         },
     });
 
     const showModal = () => {
         setIsModalOpen(true);
-    };
-
+        };
+        
     const handleCancel = () => {
         setIsModalOpen(false);
     };
 
-    const handleEditClose = () => {
-        setIsEditModalOpen(false);
-        setselectMultiBirth(null);
+    const { mutate: editGangAffiliation, isLoading: isUpdating } = useMutation({
+        mutationFn: (updated: GroupAffiliationResponse) =>
+            patchGroupAffiliation(token ?? "", updated.id, updated),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["group-affiliation"] });
+            messageApi.success("Group Affiliation updated successfully");
+            setIsEditModalOpen(false);
+        },
+        onError: () => {
+            messageApi.error("Failed to update Group Affiliation");
+        },
+    });
+
+    const handleEdit = (record: GroupAffiliationResponse) => {
+        setGroupAffiliation(record);
+        form.setFieldsValue(record);
+        setIsEditModalOpen(true);
     };
 
-    const dataSource =
-    data?.results?.map((multibirth, index) => ({
-        key: index + 1,
-        id: multibirth?.id ?? "N/A",
-        classification: multibirth?.classification ?? "N/A",
-        group_size: multibirth?.group_size ?? "N/A",
-        term_for_sibling_group: multibirth?.term_for_sibling_group ?? "N/A",
-        description: multibirth?.description ?? "N/A",
-        organization: multibirth?.organization ?? 'Bureau of Jail Management and Penology',
-        updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-    })) || [];
+    const handleUpdate = (values: any) => {
+        if (groupAffiliation && groupAffiliation.id) {
+            const updatedGangAffiliation: GroupAffiliationResponse = {
+                ...groupAffiliation,
+                ...values,
+            };
+            editGangAffiliation(updatedGangAffiliation);
+        } else {
+            messageApi.error("Selected Group Affiliation is invalid");
+        }
+    };
 
-    const filteredData = dataSource.filter((item) =>
-        Object.values(item).some((value) =>
+    const dataSource = data?.results?.map((group_affiliation: { id: any; name: any; description: any; organization: any; }, index: number) => (
+        {
+            key: index + 1,
+            id: group_affiliation?.id,
+            name: group_affiliation?.name ?? 'N/A',
+            description: group_affiliation?.description ?? 'N/A',
+            organization: group_affiliation?.organization ?? 'Bureau of Jail Management and Penology',
+        }
+    )) || [];
+
+    const filteredData = dataSource?.filter((group_affiliation: { [s: string]: unknown; } | ArrayLike<unknown>) =>
+        Object.values(group_affiliation).some((value) =>
             String(value).toLowerCase().includes(searchText.toLowerCase())
-            )
-        );
-
-        const columns: ColumnsType<MultiBirthType> = [
-                {
-                title: "No.",
-                render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
-                },
-                {
-                title: "Classification",
-                dataIndex: "classification",
-                key: "classification",
-                sorter: (a, b) => a.classification.localeCompare(b.classification),
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.classification))
-                    ).map(name => ({
-                        text: name,
-                        value: name,
-                    }))
-                ],
-                onFilter: (value, record) => record.classification === value,
-                },
-                {
-                title: "Group Size",
-                dataIndex: "group_size",
-                key: "group_size",
-                sorter: (a, b) => a.group_size - b.group_size,
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.group_size))
-                    ).map(name => ({
-                        text: name,
-                        value: name,
-                    }))
-                ],
-                onFilter: (value, record) => record.group_size === value,
-                },
-                {
-                    title: "Term for Sibling Group",
-                    dataIndex: "term_for_sibling_group",
-                    key: "term_for_sibling_group",
-                    sorter: (a, b) => a.term_for_sibling_group.localeCompare(b.term_for_sibling_group),
-                    filters: [
-                        ...Array.from(
-                            new Set(filteredData.map(item => item.term_for_sibling_group))
-                        ).map(name => ({
-                            text: name,
-                            value: name,
-                        }))
-                    ],
-                    onFilter: (value, record) => record.term_for_sibling_group === value,
-                },
-                {
-                    title: "Description",
-                    dataIndex: "description",
-                    key: "description",
-                    sorter: (a, b) => a.description.localeCompare(b.description),
-                    filters: [
-                        ...Array.from(
-                            new Set(filteredData.map(item => item.description))
-                        ).map(name => ({
-                            text: name,
-                            value: name,
-                        }))
-                    ],
-                    onFilter: (value, record) => record.description === value,
-                },
-                {
-                title: "Actions",
-                key: "actions",
-                render: (_: any, record: MultiBirthType) => (
-                    <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
-                    <Button
-                        type="link"
-                        onClick={() => {
-                        setselectMultiBirth(record);
-                        setIsEditModalOpen(true);
-                        }}
-                    >
-                        <AiOutlineEdit />
-                    </Button>
-                    <Button
-                        type="link"
-                        danger
-                        onClick={() => deleteMutation.mutate(record.id)}
-                    >
-                        <AiOutlineDelete />
-                    </Button>
-                    </div>
-                ),
+        )
+    );
+    
+        const columns: ColumnsType<GroupAffiliationResponse> = [
+            {
+                title: 'No.',
+                render: (_: any, __: any, index: number) =>
+                    (pagination.current - 1) * pagination.pageSize + index + 1,
             },
-        ];
+            {
+                title: 'Group Affiliation',
+                dataIndex: 'name',
+                key: 'name',
+                sorter: (a, b) => a.name.localeCompare(b.name),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.name))
+                    ).map(name => ({
+                        text: name,
+                        value: name,
+                    }))
+                ],
+                onFilter: (value, record) => record.name === value,
+            },
+            {
+                title: 'Description',
+                dataIndex: 'description',
+                key: 'description',
+                sorter: (a, b) => a.description.localeCompare(b.description),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.description))
+                    ).map(description => ({
+                        text: description,
+                        value: description,
+                    }))
+                ],
+                onFilter: (value, record) => record.description === value,
+            },
+            {
+            title: "Actions",
+            key: "actions",
+            render: (_: any, record: GroupAffiliationResponse) => (
+                <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
+                        <Button type="link" onClick={() => handleEdit(record)}>
+                            <AiOutlineEdit />
+                        </Button>
+                        <Button
+                            type="link"
+                            danger
+                            onClick={() => deleteMutation.mutate(record.id)}
+                        >
+                            <AiOutlineDelete />
+                        </Button>
+                </div>
+            ),
+        },
+        ]
+
         const handleExportExcel = () => {
             const ws = XLSX.utils.json_to_sheet(dataSource);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "MultiBirthClassification");
-            XLSX.writeFile(wb, "MultiBirthClassification.xlsx");
+            XLSX.utils.book_append_sheet(wb, ws, "GroupAffiliation");
+            XLSX.writeFile(wb, "GroupAffiliation.xlsx");
         };
-    
+
         const handleExportPDF = () => {
             const doc = new jsPDF();
             const headerHeight = 48;
@@ -195,7 +180,7 @@ const MultiBirth = () => {
             const formattedDate = today.toISOString().split('T')[0];
             const reportReferenceNo = `TAL-${formattedDate}-XXX`;
         
-            const maxRowsPerPage = 29; 
+            const maxRowsPerPage = 27; 
         
             let startY = headerHeight;
         
@@ -211,7 +196,7 @@ const MultiBirth = () => {
             
                 doc.setTextColor(0, 102, 204);
                 doc.setFontSize(16);
-                doc.text("Multi Birth Report", 10, 15); 
+                doc.text("Group Affiliation Report", 10, 15); 
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(10);
                 doc.text(`Organization Name: ${organizationName}`, 10, 25);
@@ -226,9 +211,7 @@ const MultiBirth = () => {
         
             const tableData = dataSource.map(item => [
                 item.key,
-                item.classification,
-                item.group_size,
-                item.term_for_sibling_group,
+                item.platform_name,
                 item.description,
             ]);
         
@@ -236,7 +219,7 @@ const MultiBirth = () => {
                 const pageData = tableData.slice(i, i + maxRowsPerPage);
         
                 autoTable(doc, { 
-                    head: [['No.', 'Multi Birth', 'Group Size', 'Term for Sibling Group', 'Description']],
+                    head: [['No.', 'Group Affiliation', 'Description']],
                     body: pageData,
                     startY: startY,
                     margin: { top: 0, left: 10, right: 10 },
@@ -286,19 +269,20 @@ const MultiBirth = () => {
                     <a onClick={handleExportExcel}>Export Excel</a>
                 </Menu.Item>
                 <Menu.Item>
-                    <CSVLink data={dataSource} filename="MultiBirthClassification.csv">
+                    <CSVLink data={dataSource} filename="GroupAffiliation.csv">
                         Export CSV
                     </CSVLink>
                 </Menu.Item>
             </Menu>
         );
+
     return (
-        <div className="h-screen">
+        <div>
             {contextHolder}
-            <h1 className="text-[#1E365D] text-3xl font-bold">Multi Birth Classification</h1>
+            <h1 className="text-3xl font-bold text-[#1E365D]">Group Affiliation</h1>
             <div className="w-full bg-white">
-                <div className="my-4 flex justify-between items-center gap-2">
-                <div className="flex gap-2">
+                <div className="my-4 flex justify-between gap-2">
+                    <div className="flex gap-2">
                         <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
                             <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
                                 <GoDownload /> Export
@@ -318,20 +302,20 @@ const MultiBirth = () => {
                             />
                             <LuSearch className="absolute right-[1%] text-gray-400" />
                         </div>
-                            <button
+                        <button
                             className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center"
-                            onClick={showModal}
-                            >
+                            onClick={showModal}>
                             <GoPlus />
-                            Add Multi Birth Classification
-                            </button>
+                                Add Group Affiliation
+                        </button>
                     </div>
                 </div>
+            </div>
+            <div className="overflow-x-auto">
                     <Table
-                        className="overflow-x-auto"
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{ x: 'max-content' }} 
+                        scroll={{ x: 700 }}
                         pagination={{
                             current: pagination.current,
                             pageSize: pagination.pageSize,
@@ -339,8 +323,8 @@ const MultiBirth = () => {
                         }}
                     />
             </div>
-            <Modal
-                title="Multi Birth Classification Report"
+        <Modal
+                title="Group Affiliation Report"
                 open={isPdfModalOpen}
                 onCancel={handleClosePdfModal}
                 footer={null}
@@ -355,30 +339,42 @@ const MultiBirth = () => {
                 )}
             </Modal>
             <Modal
+                title="Edit Group Affiliation"
+                open={isEditModalOpen}
+                onCancel={() => setIsEditModalOpen(false)}
+                onOk={() => form.submit()}
+                confirmLoading={isUpdating}
+            >
+                <Form form={form} layout="vertical" onFinish={handleUpdate}>
+                <Form.Item
+                    name="name"
+                    label="Group Affiliation Name"
+                    rules={[{ required: true, message: "Please input the Group Affiliation name" }]}
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    name="description"
+                    label="Description"
+                    rules={[{ required: true, message: "Please input a description" }]}
+                >
+                    <Input.TextArea rows={3} />
+                </Form.Item>
+                </Form>
+            </Modal>
+            <Modal
                 className="overflow-y-auto rounded-lg scrollbar-hide"
-                title="Add Multi Birth Classification"
+                title="Add Group Affiliation"
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
-                width="30%"
-                style={{ maxHeight: "80vh", overflowY: "auto" }}
-            >
-                <AddMultiBirth onClose={handleCancel} />
-            </Modal>
-
-            {selectMultiBirth && (
-                <Modal
-                title="Edit Multi Birth Classification"
-                open={isEditModalOpen}
-                onCancel={handleEditClose}
-                footer={null}
-                width="30%"
+                width="20%"
+                style={{ maxHeight: "80vh", overflowY: "auto" }} 
                 >
-                <EditMultiBirth multibirth={selectMultiBirth} onClose={handleEditClose} />
-                </Modal>
-            )}
+                <AddGroupAffiliation onClose={handleCancel} />
+            </Modal>
         </div>
     )
 }
 
-export default MultiBirth
+export default GroupAffiliation

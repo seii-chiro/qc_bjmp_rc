@@ -34,6 +34,7 @@ const Occupation = () => {
     const [occupation, setOccupation] = useState<OccupationProps | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['occupation'],
@@ -64,7 +65,7 @@ const Occupation = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.map((occupation, index) => (
+    const dataSource = data?.results?.map((occupation, index) => (
         {
             key: index + 1,
             id: occupation?.id ?? 'N/A',
@@ -90,38 +91,91 @@ const Occupation = () => {
     const columns: ColumnsType<OccupationProps> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Occupation',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => a.name.localeCompare(b.name),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.name))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(description => ({
+                    text: description,
+                    value: description,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: 'Remarks',
             dataIndex: 'remarks',
             key: 'remarks',
+            sorter: (a, b) => a.remarks.localeCompare(b.remarks),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.remarks))
+                ).map(remarks => ({
+                    text: remarks,
+                    value: remarks,
+                }))
+            ],
+            onFilter: (value, record) => record.remarks === value,
         },
         {
-            title: 'Updated At',
-            dataIndex: 'updated_at',
-            key: 'updated_at',
+            title: "Updated At",
+            dataIndex: "updated_at",
+            key: "updated_at",
+            render: (value) =>
+                value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
+            sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => moment(item.updated_at).format("MMMM D, YYYY h:mm A")))
+                ).map(dateTime => ({
+                    text: dateTime,
+                    value: dateTime,
+                }))
+            ],
+            onFilter: (value, record) =>
+                moment(record.updated_at).format("MMMM D, YYYY h:mm A") === value,
         },
         {
             title: 'Updated By',
-            dataIndex: 'updated',
-            key: 'updated',
+            dataIndex: 'updated_by',
+            key: 'updated_by',
+            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.updated_by))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.updated_by === value,
         },
         {
             title: "Actions",
             key: "actions",
             align: "center",
+            fixed: "right",
             render: (_: any, record: OccupationProps) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
                     <Button
@@ -292,7 +346,17 @@ return (
                             </button>
                         </div>
                     </div>
-                <Table columns={columns} dataSource={filteredData} />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
                 </div>
                 <Modal
                 title="Occupation Report"

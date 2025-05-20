@@ -31,6 +31,7 @@ const Nationality = () => {
   const [nationality, setNationality] = useState<NationalityProps | null>(null);
   const [pdfDataUrl, setPdfDataUrl] = useState(null);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
   const { data } = useQuery({
     queryKey: ["nationality"],
@@ -67,7 +68,7 @@ const Nationality = () => {
   };
 
   const dataSource =
-    data?.map((nationality, index) => ({
+    data?.results?.map((nationality, index) => ({
       key: index + 1,
       id: nationality?.id ?? "N/A",
       code: nationality?.code ?? "N/A",
@@ -85,18 +86,37 @@ const Nationality = () => {
   const columns: ColumnsType<NationalityProps> = [
     {
       title: "No.",
-      dataIndex: "key",
-      key: "key",
+      render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
       title: "Code",
       dataIndex: "code",
       key: "code",
+      sorter: (a, b) => a.code.localeCompare(b.code),
+      filters: [
+        ...Array.from(
+            new Set(filteredData.map(item => item.code))
+        ).map(code => ({
+            text: code,
+            value: code,
+        }))
+    ],
+    onFilter: (value, record) => record.code === value,
     },
     {
       title: "Nationality",
       dataIndex: "nationality",
       key: "nationality",
+      sorter: (a, b) => a.nationality.localeCompare(b.nationality),
+      filters: [
+        ...Array.from(
+            new Set(filteredData.map(item => item.nationality))
+        ).map(nationality => ({
+            text: nationality,
+            value: nationality,
+        }))
+    ],
+    onFilter: (value, record) => record.nationality === value,
     },
     {
       title: "Actions",
@@ -271,7 +291,17 @@ const menu = (
             </button>
           </div>
         </div>
-        <Table columns={columns} dataSource={filteredData} />
+          <Table
+              className="overflow-x-auto"
+              columns={columns}
+              dataSource={filteredData}
+              scroll={{ x: 'max-content' }} 
+              pagination={{
+                  current: pagination.current,
+                  pageSize: pagination.pageSize,
+                  onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+              }}
+          />
       </div>
       <Modal
                 title="Nationality Report"
@@ -294,7 +324,7 @@ const menu = (
         open={isModalOpen}
         onCancel={handleCancel}
         footer={null}
-        width="30%"
+        width="20%"
         style={{ maxHeight: "80vh", overflowY: "auto" }}
       >
         <AddNationality onClose={handleCancel} />

@@ -129,7 +129,7 @@ const EditOrganization = ({ organization, onClose }: { organization: any; onClos
                         optionFilterProp="label"
                         onChange={onOrganizationalTypeChange}
                         loading={organizationalTypeLoading}
-                        options={organizationalTypeData?.map(organizational_type => (
+                        options={organizationalTypeData?.results?.map(organizational_type => (
                             {
                                 value: organizational_type.id,
                                 label: organizational_type?.org_type
@@ -147,7 +147,7 @@ const EditOrganization = ({ organization, onClose }: { organization: any; onClos
                         optionFilterProp="label"
                         onChange={onOrganizationalLevelChange}
                         loading={organizationalLevelLoading}
-                        options={organizationalLevelData?.map(organizational_level => (
+                        options={organizationalLevelData?.results?.map(organizational_level => (
                             {
                                 value: organizational_level.id,
                                 label: organizational_level?.org_level

@@ -1,12 +1,10 @@
-import { getRecord_Status } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
-import { Button, Form, Input, message, Select } from "antd";
+import { useMutation } from "@tanstack/react-query";
+import { Button, Form, Input, message } from "antd";
 import { useEffect, useState } from "react";
 import { BASE_URL } from "@/lib/urls";
 
 type OccupationProps = {
-    record_status_id: number | null;
     name: string;
     description: string;
     remarks: string;
@@ -19,7 +17,6 @@ type OccupationProps = {
     const [isLoading, setIsLoading] = useState(false);
 
     const [occupationForm, setOccupationForm] = useState<OccupationProps>({
-        record_status_id: null,
         name: "",
         description: "",
         remarks: "",
@@ -28,7 +25,6 @@ type OccupationProps = {
     useEffect(() => {
         if (occupation) {
         setOccupationForm({
-            record_status_id: occupation.record_status_id,
             name: occupation.name,
             description: occupation.description,
             remarks: occupation.remarks,
@@ -56,17 +52,6 @@ type OccupationProps = {
 
         return response.json();
     };
-
-    const results = useQueries({
-        queries: [
-        {
-            queryKey: ["record-status"],
-            queryFn: () => getRecord_Status(token ?? ""),
-        },
-        ],
-    });
-
-    const recordStatusData = results[0].data;
 
     const updateMutation = useMutation({
         mutationFn: (updatedData: any) =>
@@ -119,25 +104,6 @@ type OccupationProps = {
                     remarks: e.target.value,
                 }))
                 }
-            />
-            </Form.Item>
-            <Form.Item label="Record Status">
-            <Select
-                className="h-[3rem] w-full"
-                showSearch
-                placeholder="Record Status"
-                optionFilterProp="label"
-                value={occupationForm.record_status_id ?? undefined}
-                onChange={(value) =>
-                setOccupationForm((prev) => ({
-                    ...prev,
-                    record_status_id: value,
-                }))
-                }
-                options={recordStatusData?.map((status) => ({
-                value: status.id,
-                label: status?.status,
-                }))}
             />
             </Form.Item>
             <Form.Item>

@@ -4,30 +4,30 @@ import { useMutation } from "@tanstack/react-query";
 import { message } from "antd";
 import { useState } from "react";
 
-type AddEthnicity = {
+type AddGroupAffiliationProps = {
     name: string;
     description: string;
-};
+}
 
-const AddEthnicity = ({ onClose }: { onClose: () => void }) => {
+const AddGroupAffiliation = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
-    const [selectEthnicity, setSelectEthnicity] = useState<AddEthnicity>({
+    const [selectGroupAffiliation, setSelectGroupAffiliation] = useState<AddGroupAffiliationProps>({
         name: '',
         description: '',
     });
 
-    async function AddEthnicity(ethnicity: AddEthnicity) {
-        const res = await fetch(`${BASE_URL}/api/codes/ethnicities/`, {
+    async function AddGroupAffiliation(group_affiliation: AddGroupAffiliationProps) {
+        const res = await fetch(`${BASE_URL}/api/service-providers/service-provider-group-affiliations/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Token ${token}`,
             },
-            body: JSON.stringify(ethnicity),
+            body: JSON.stringify(group_affiliation),
         });
         if (!res.ok) {
-            let errorMessage = "Error Adding Ethnicity";
+            let errorMessage = "Error Adding Group Affiliation";
             try {
                 const errorData = await res.json();
                 errorMessage =
@@ -42,9 +42,9 @@ const AddEthnicity = ({ onClose }: { onClose: () => void }) => {
         return res.json();
     }
 
-    const EthnicityMutation = useMutation({
-        mutationKey: ['ethnicity'],
-        mutationFn: AddEthnicity,
+    const GroupAffiliationMutation = useMutation({
+        mutationKey: ['group-affiliation'],
+        mutationFn: AddGroupAffiliation,
         onSuccess: (data) => {
             console.log(data);
             messageApi.success("Added successfully");
@@ -56,17 +56,16 @@ const AddEthnicity = ({ onClose }: { onClose: () => void }) => {
         },
     });
 
-
-    const handleEthnicitySubmit = (e: React.FormEvent) => {
+    const handleGroupAffiliationSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        EthnicityMutation.mutate(selectEthnicity);
+        GroupAffiliationMutation.mutate(selectGroupAffiliation);
     };
 
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
         ) => {
             const { name, value } = e.target;
-            setSelectEthnicity(prevForm => ({
+            setSelectGroupAffiliation(prevForm => ({
             ...prevForm,
             [name]: value,
             }));
@@ -74,11 +73,11 @@ const AddEthnicity = ({ onClose }: { onClose: () => void }) => {
     return (
         <div>
         {contextHolder}
-            <form onSubmit={handleEthnicitySubmit}>
+            <form onSubmit={handleGroupAffiliationSubmit}>
                 <div className="grid grid-cols-1 w-full gap-3">
                     <div>
-                        <p className="text-gray-500 font-bold">Ethnicity:</p>
-                        <input type="text" name="name" id="name" onChange={handleInputChange} placeholder="Ethnicity" className="h-12 border w-full border-gray-300 rounded-lg px-2" />
+                        <p className="text-gray-500 font-bold">Group Affiliation:</p>
+                        <input type="text" name="name" id="name" onChange={handleInputChange} placeholder="Group Affiliation" className="h-12 border w-full border-gray-300 rounded-lg px-2" />
                     </div>
                     <div>
                         <p className="text-gray-500 font-bold">Description:</p>
@@ -95,4 +94,4 @@ const AddEthnicity = ({ onClose }: { onClose: () => void }) => {
     )
 }
 
-export default AddEthnicity
+export default AddGroupAffiliation

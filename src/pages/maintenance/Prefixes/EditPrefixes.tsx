@@ -2,11 +2,9 @@ import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation} from "@tanstack/react-query";
 import { Button, Form, Input, message } from "antd";
 import { useEffect, useState } from "react";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { BASE_URL } from "@/lib/urls";
 
 type PrefixesProps = {
-    record_status_id: number | null,
     prefix: string,
     full_title: string,
     description: string
@@ -18,7 +16,6 @@ const EditPrefixes = ({ prefixes, onClose }: { prefixes: any; onClose: () => voi
     const [isLoading, setIsLoading] = useState(false);
 
     const [prefixForm, setPrefixForm] = useState<PrefixesProps>({
-        record_status_id: null,
         prefix: "",
         description: "",
         full_title: "",
@@ -27,7 +24,6 @@ const EditPrefixes = ({ prefixes, onClose }: { prefixes: any; onClose: () => voi
     useEffect(() => {
         if (prefixes) {
         setPrefixForm({
-            record_status_id: prefixes.record_status_id,
             prefix: prefixes.prefix,
             description: prefixes.description,
             full_title: prefixes.full_title,
@@ -41,7 +37,7 @@ const EditPrefixes = ({ prefixes, onClose }: { prefixes: any; onClose: () => voi
         updatedData: any
     ) => {
         const response = await fetch(`${BASE_URL}/api/standards/prefix/${id}/`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Token ${token}`,
@@ -81,12 +77,12 @@ const EditPrefixes = ({ prefixes, onClose }: { prefixes: any; onClose: () => voi
         {contextHolder}
         <Form form={form} layout="vertical" onFinish={handlePrefixSubmit}>
             <Form.Item label="Prefix" required>
-            <Input
-                value={prefixForm.prefix}
-                onChange={(e) =>
-                setPrefixForm((prev) => ({ ...prev, name: e.target.value }))
-                }
-            />
+                <Input
+                    value={prefixForm.prefix}
+                    onChange={(e) =>
+                        setPrefixForm((prev) => ({ ...prev, prefix: e.target.value }))
+                    }
+                />
             </Form.Item>
             <Form.Item label="Full Title">
             <Input

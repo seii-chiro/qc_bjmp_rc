@@ -15,6 +15,7 @@ const Maintenance = () => {
 
                         <GodotLink link="civil-status" title="Civil Status" />
                         <GodotLink link="id-types" title="ID Types" />
+                        <GodotLink link="group-affiliation" title="Group Affiliation" />
                         <GodotLink link="" title="Backup" />
                     </div>
                 </div>

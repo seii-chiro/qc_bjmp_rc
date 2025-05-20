@@ -35,6 +35,7 @@ const Ethnicity = () => {
   const [selectEthnicity, setSelectedEthnicity] = useState<EthnicityProps | null>(null);
   const [pdfDataUrl, setPdfDataUrl] = useState(null);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
   const { data } = useQuery({
     queryKey: ['ethinicity'],
@@ -91,7 +92,7 @@ const Ethnicity = () => {
       }
   };
 
-  const dataSource = data?.map((ethnicity, index) => ({
+  const dataSource = data?.results?.map((ethnicity, index) => ({
     key: index + 1,
     id: ethnicity?.id ?? 'N/A',
     name: ethnicity?.name ?? 'N/A',
@@ -109,9 +110,13 @@ const Ethnicity = () => {
   );
 
   const columns: ColumnsType<EthnicityProps> = [
-    { title: 'No.', dataIndex: 'key', key: 'key' },
-    { title: 'Ethnicity', dataIndex: 'name', key: 'name' },
-    { title: 'Description', dataIndex: 'description', key: 'description' },
+    {
+        title: 'No.',
+        render: (_: any, __: any, index: number) =>
+            (pagination.current - 1) * pagination.pageSize + index + 1,
+    },
+    { title: 'Ethnicity', dataIndex: 'name', key: 'name', sorter: (a, b) => a.name.localeCompare(b.name), },
+    { title: 'Description', dataIndex: 'description', key: 'description', sorter: (a, b) => a.description.localeCompare(b.description), },
     { title: 'Updated At', dataIndex: 'updated_at', key: 'updated_at' },
     { title: 'Updated By', dataIndex: 'updated_by', key: 'updated_by' },
     {
@@ -174,7 +179,7 @@ const Ethnicity = () => {
     const formattedDate = today.toISOString().split('T')[0];
     const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
-    const maxRowsPerPage = 29; 
+    const maxRowsPerPage = 27; 
 
     let startY = headerHeight;
 
@@ -273,15 +278,15 @@ const handleClosePdfModal = () => {
         </div>
         <div className="flex items-center justify-between gap-2 mt-2">
         <div className="flex gap-2">
-                        <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-                            <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
-                                <GoDownload /> Export
-                            </a>
-                        </Dropdown>
-                        <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
-                            Print Report
-                        </button>
-                    </div>
+          <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
+              <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
+                  <GoDownload /> Export
+              </a>
+          </Dropdown>
+          <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
+              Print Report
+          </button>
+        </div>
           <div className="flex gap-5">
             <div className="flex place-items-center">
               <input placeholder="Search" type="text" onChange={(e) => setSearchText(e.target.value)} className="border border-gray-400 h-10 w-96 rounded-md px-2"/>
@@ -291,9 +296,17 @@ const handleClosePdfModal = () => {
               <GoPlus /> Add Ethnic Group
             </button>
           </div>
-          
         </div>
-        <Table columns={columns} dataSource={filteredData} />
+        <Table
+          columns={columns}
+          dataSource={filteredData}
+          scroll={{ x: 700 }}
+          pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+          }}
+        />
         <Modal
                 title="Ethnicity Report"
                 open={isPdfModalOpen}

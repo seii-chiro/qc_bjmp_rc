@@ -1,4 +1,4 @@
-import { BASE_URL, NATIONALITY } from "@/lib/urls";
+import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation } from "@tanstack/react-query";
 import { message, Form, Input, Button } from "antd";

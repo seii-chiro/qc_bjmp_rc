@@ -1,12 +1,11 @@
-import { getRecord_Status } from "@/lib/queries";
+
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
-import {  message, Select } from "antd";
+import { useMutation } from "@tanstack/react-query";
+import {  message } from "antd";
 import { useState } from "react";
 
 type AddMultiBirthProps = {
-    record_status_id: number | null,
     classification: string,
     group_size: number| null,
     term_for_sibling_group: string,
@@ -17,23 +16,11 @@ const AddMultiBirth = ({ onClose }: { onClose: () => void }) => {
     const [messageApi, contextHolder] = message.useMessage();
     const [multiBirthForm, setMultiBirthForm] =
     useState<AddMultiBirthProps>({
-            record_status_id: null,
             classification: '',
             group_size: null,
             term_for_sibling_group: '',
             description: '',
         });
-
-    const results = useQueries({
-        queries: [
-            {
-                queryKey: ['record-status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            }
-        ]
-    });
-    
-        const recordStatusData = results[0].data;
 
     const AddMultiBirth = async (multibirth: AddMultiBirthProps) => {
         const res = await fetch(`${BASE_URL}/api/standards/multiple-birth-class/`, {
@@ -89,13 +76,6 @@ const AddMultiBirth = ({ onClose }: { onClose: () => void }) => {
             }));
         };
     
-        const onRecordStatusChange = (value: number) => {
-            setMultiBirthForm(prevForm => ({
-                ...prevForm,
-                record_status_id: value
-            }));
-        };
-    
     return (
         <div>
         {contextHolder}
@@ -116,22 +96,6 @@ const AddMultiBirth = ({ onClose }: { onClose: () => void }) => {
                     <div>
                         <p>Description:</p>
                         <input type="text" name="description" id="description" onChange={handleInputChange} placeholder="Description" className="w-full h-12 border border-gray-300 rounded-lg px-2" />
-                    </div>
-                    <div>
-                        <p>Record Status:</p>
-                        <Select
-                            className="h-[3rem] w-full"
-                            showSearch
-                            placeholder="Record Status"
-                            optionFilterProp="label"
-                            onChange={onRecordStatusChange}
-                            options={recordStatusData?.map(status => (
-                                {
-                                    value: status.id,
-                                    label: status?.status,
-                                }
-                            ))}
-                            />
                     </div>
                 </div>
                 <div className="w-full flex justify-end mt-10">

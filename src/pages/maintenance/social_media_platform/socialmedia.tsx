@@ -32,6 +32,7 @@ const SocialMedia = () => {
     const [platform, setPlatform] = useState<SocialMediaPlatform | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ['social-media-platform'],
@@ -62,7 +63,7 @@ const SocialMedia = () => {
         setIsModalOpen(false);
       };
 
-    const dataSource = data?.map((socialmedia, index) => (
+    const dataSource = data?.results?.map((socialmedia, index) => (
         {
             key: index + 1,
             id: socialmedia?.id,
@@ -81,19 +82,21 @@ const SocialMedia = () => {
 
     const columns: ColumnsType<SocialMediaPlatform> = [
         {
-            title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+        title: 'No.',
+        render: (_: any, __: any, index: number) =>
+            (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: 'Platforms',
             dataIndex: 'platform_name',
             key: 'platform_name',
+            sorter: (a, b) => a.platform_name.localeCompare(b.platform_name),
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
         },
         {
             title: "Actions",
@@ -276,6 +279,11 @@ const SocialMedia = () => {
                         columns={columns}
                         dataSource={filteredData}
                         scroll={{ x: 700 }}
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

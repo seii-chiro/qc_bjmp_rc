@@ -2,11 +2,9 @@ import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation} from "@tanstack/react-query";
 import { Button, Form, Input, message } from "antd";
 import { useEffect, useState } from "react";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { BASE_URL } from "@/lib/urls";
 
 type SuffixesProps = {
-    record_status_id: number | null,
     suffix: string,
     full_title: string,
     description: string
@@ -18,7 +16,6 @@ const EditSuffix = ({ suffix, onClose }: { suffix: any; onClose: () => void;}) =
     const [isLoading, setIsLoading] = useState(false);
 
     const [suffixForm, setsuffixForm] = useState<SuffixesProps>({
-        record_status_id: null,
         suffix: "",
         description: "",
         full_title: "",
@@ -27,7 +24,6 @@ const EditSuffix = ({ suffix, onClose }: { suffix: any; onClose: () => void;}) =
     useEffect(() => {
         if (suffix) {
         setsuffixForm({
-            record_status_id: suffix.record_status_id,
             suffix: suffix.suffix,
             description: suffix.description,
             full_title: suffix.full_title,

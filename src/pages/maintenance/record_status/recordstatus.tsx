@@ -63,9 +63,8 @@ const RecordStatus = () => {
             setIsModalOpen(false);
         };
 
-    const dataSource = data?.map((recordstatus, index) => (
+    const dataSource = data?.results?.map((recordstatus, index) => (
         {
-            key: index + 1,
             id: recordstatus?.id,
             status: recordstatus?.status ?? 'N/A',
             description: recordstatus?.description ?? 'N/A',
@@ -83,18 +82,19 @@ const RecordStatus = () => {
     const columns: ColumnsType<recordStatusReport> = [
         {
             title: 'No.',
-            dataIndex: 'key',
-            key: 'key',
+            render: (_, __, index) => index + 1,
         },
         {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
+            sorter: (a, b) => a.status.localeCompare(b.status), // Sorting
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description), // Sorting
         },
         {
             title: "Actions",
@@ -140,7 +140,7 @@ const RecordStatus = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     

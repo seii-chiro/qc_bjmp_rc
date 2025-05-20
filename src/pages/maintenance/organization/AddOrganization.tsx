@@ -124,7 +124,7 @@ const AddOrganization = ({ onClose }: { onClose: () => void }) => {
                         optionFilterProp="label"
                         onChange={onOrganizationalLevelChange}
                         loading={organizationalLevelLoading}
-                        options={organizationalLevelData?.map(organizational_level => (
+                        options={organizationalLevelData?.results?.map(organizational_level => (
                             {
                                 value: organizational_level.id,
                                 label: organizational_level?.org_level,
@@ -138,7 +138,7 @@ const AddOrganization = ({ onClose }: { onClose: () => void }) => {
                         optionFilterProp="label"
                         onChange={onOrganizationalTypeChange}
                         loading={organizationTypeLoading}
-                        options={organizationTypeData?.map(organizational_type => (
+                        options={organizationTypeData?.results?.map(organizational_type => (
                             {
                                 value: organizational_type.id,
                                 label: organizational_type?.org_type

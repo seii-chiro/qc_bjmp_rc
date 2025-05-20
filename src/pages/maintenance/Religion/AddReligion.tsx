@@ -1,9 +1,8 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import { message, Select } from "antd";
+import { message } from "antd";
 import { RELIGION } from "@/lib/urls";
-import { getRecord_Status } from "@/lib/queries";
 
 type AddReligion = {
     name: string;
@@ -19,17 +18,6 @@ const AddReligion = ({ onClose }: { onClose: () => void }) => {
         description: '',
         record_status: null,
     });
-
-    const results = useQueries({
-        queries: [
-            {
-                queryKey: ['status'],
-                queryFn: () => getRecord_Status(token ?? "")
-            }
-        ]
-    });
-
-    const recordStatusData = results[0].data;
 
     async function AddReligion (religion: AddReligion) {
         const res = await fetch(RELIGION.postRELIGION, {
@@ -86,13 +74,6 @@ const AddReligion = ({ onClose }: { onClose: () => void }) => {
         }));
     };
 
-    const recordStatusChange = (value: string) => {
-        setReligionForm(prevForm => ({
-            ...prevForm,
-            record_status: value
-        }));
-    };
-
     return (
         <div>
             {contextHolder}
@@ -120,23 +101,6 @@ const AddReligion = ({ onClose }: { onClose: () => void }) => {
                             className="w-full h-12 border border-gray-300 rounded-lg px-2"
                         />
                     </div>
-                    <div>
-                        <p>Record Status:</p>
-                        <Select
-                            className="h-[3rem] w-full"
-                            showSearch
-                            placeholder="Record Status"
-                            optionFilterProp="label"
-                            onChange={recordStatusChange}
-                            options={recordStatusData?.map(status => (
-                                {
-                                    value: status.id,
-                                    label: status?.status,
-                                }
-                            ))}
-                        />
-                    </div>
-                    
                 </div>
                 <div className="w-full flex justify-end mt-10">
                     <button

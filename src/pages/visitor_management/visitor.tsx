@@ -256,7 +256,7 @@ const Visitor = () => {
     const Info = ({ title, info }: { title: string; info: string | null }) => (
         <div className="flex items-center">
             <label className="w-28 text-[10px] text-[#8E8E8E]">{title}</label>
-            <p className="mt-1 w-full bg-[#F9F9F9] rounded-md px-2 py-[1px] text-[13px] h-5">{info || ""}</p>
+            <p className="mt-1 w-full bg-[#F9F9F9] rounded-md px-2 py-[1px] text-[13px] break-words">{info || ""}</p>
         </div>
     );
 
@@ -537,7 +537,7 @@ const Visitor = () => {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {visitorVisits.length > 0 ? (
+                                                            {visitorVisits?.length > 0 ? (
                                                                 (showAllVisits
                                                                     ? [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
                                                                     : [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(0, 3)
@@ -662,25 +662,25 @@ const Visitor = () => {
                                                         selectedVisitor?.pdls?.map((pdlItem: { pdl: { person: { id: any; last_name: any; first_name: any; middle_name: any; }; cell: { cell_name: any; floor: string; }; }; }, index: Key | null | undefined) => (
                                                             <tr key={index}>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.person.id || ""}
+                                                                    {pdlItem?.pdl?.person?.id || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.person.last_name || ""}
+                                                                    {pdlItem?.pdl?.person?.last_name || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.person.first_name || ""}
+                                                                    {pdlItem?.pdl?.person?.first_name || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.person.middle_name || ""}
+                                                                    {pdlItem?.pdl?.person?.middle_name || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.cell.cell_name || ""}
+                                                                    {pdlItem?.pdl?.cell?.cell_name || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.cell.floor?.split("(")[1]?.replace(")", "") || ""}
+                                                                    {pdlItem?.pdl?.cell?.floor?.split("(")[1]?.replace(")", "") || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem.pdl.cell.floor || ""}
+                                                                    {pdlItem?.pdl?.cell?.floor || ""}
                                                                 </td>
                                                             </tr>
                                                         ))
@@ -712,7 +712,7 @@ const Visitor = () => {
                                                         {waiverData?.direct_image ? (
                                                             <div className="w-[7.6rem]">
                                                                 <Image
-                                                                    src={`data:image/png;base64,${waiverData.direct_image}`}
+                                                                    src={`data:image/png;base64,${waiverData?.direct_image}`}
                                                                     alt="Waiver"
                                                                     className="w-full md:w-[7.6rem] h-full object-cover rounded-b-lg"
                                                                 />
@@ -737,7 +737,7 @@ const Visitor = () => {
                                                         {CohabitationData?.direct_image ? (
                                                             <div>
                                                                 <Image
-                                                                    src={`data:image/png;base64,${CohabitationData.direct_image}`}
+                                                                    src={`data:image/png;base64,${CohabitationData?.direct_image}`}
                                                                     alt="Waiver"
                                                                     className="w-full md:max-w-[7.76rem] h-full object-cover rounded-b-lg"
                                                                 />
@@ -759,7 +759,7 @@ const Visitor = () => {
                                                     <div className="rounded-b-lg bg-white flex-grow flex items-center justify-center overflow-hidden">
                                                         {RightThumb?.data ? (
                                                             <Image
-                                                                src={`data:image/bmp;base64,${RightThumb.data}`}
+                                                                src={`data:image/bmp;base64,${RightThumb?.data}`}
                                                                 alt="Right Thumb"
                                                                 className="w-full md:max-w-[7.76rem] h-full object-cover rounded-b-lg"
                                                             />
@@ -773,7 +773,7 @@ const Visitor = () => {
                                                     <div className="rounded-b-lg bg-white flex-grow flex items-center justify-center overflow-hidden">
                                                         {Signature?.media_binary ? (
                                                             <Image
-                                                                src={`data:image/bmp;base64,${Signature.media_binary}`}
+                                                                src={`data:image/bmp;base64,${Signature?.media_binary}`}
                                                                 alt="Signature"
                                                                 className="w-full md:max-w-[7.76rem] h-full object-cover rounded-b-lg"
                                                             />
@@ -799,7 +799,7 @@ const Visitor = () => {
                                                 <div className="rounded-b-lg bg-white flex-grow flex items-center justify-center overflow-hidden">
                                                     {ProfileImage?.media_binary ? (
                                                         <Image
-                                                            src={`data:image/bmp;base64,${ProfileImage.media_binary}`}
+                                                            src={`data:image/bmp;base64,${ProfileImage?.media_binary}`}
                                                             alt="Left side"
                                                             className="w-full h-full object-cover rounded-b-lg"
                                                         />
@@ -813,7 +813,7 @@ const Visitor = () => {
                                                 <div className="rounded-b-lg bg-white flex-grow flex items-center justify-center overflow-hidden">
                                                     {ProfileImage?.media_binary ? (
                                                         <Image
-                                                            src={`data:image/bmp;base64,${ProfileImage.media_binary}`}
+                                                            src={`data:image/bmp;base64,${ProfileImage?.media_binary}`}
                                                             alt="Left side"
                                                             className="w-full h-full object-cover rounded-b-lg"
                                                         />
@@ -827,7 +827,7 @@ const Visitor = () => {
                                                 <div className="rounded-b-lg bg-white flex-grow flex items-center justify-center overflow-hidden">
                                                     {leftSideImage?.media_binary ? (
                                                         <Image
-                                                            src={`data:image/bmp;base64,${leftSideImage.media_binary}`}
+                                                            src={`data:image/bmp;base64,${leftSideImage?.media_binary}`}
                                                             alt="Left side"
                                                             className="w-full h-full object-cover rounded-b-lg"
                                                         />
@@ -841,7 +841,7 @@ const Visitor = () => {
                                                 <div className="rounded-b-lg bg-white flex-grow flex items-center justify-center overflow-hidden">
                                                     {RightImage?.media_binary ? (
                                                         <Image
-                                                            src={`data:image/bmp;base64,${RightImage.media_binary}`}
+                                                            src={`data:image/bmp;base64,${RightImage?.media_binary}`}
                                                             alt="Right side"
                                                             className="w-full h-full object-cover rounded-b-lg"
                                                         />
