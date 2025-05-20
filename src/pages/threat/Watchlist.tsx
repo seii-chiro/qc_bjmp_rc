@@ -52,7 +52,7 @@ const Watchlist = () => {
         },
     });
 
-    const dataSource = WatchlistData?.map((watchlist, index) => (
+    const dataSource = WatchlistData?.results?.map((watchlist, index) => (
         {
             key: index + 1,
             id: watchlist?.id,

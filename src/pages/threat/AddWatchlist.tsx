@@ -250,7 +250,7 @@ const AddWatchlist = () => {
                             <Select
                                 value={personForm.gender_id}
                                 loading={gendersLoading}
-                                options={genders?.map(gender => ({
+                                options={genders?.results?.map(gender => ({
                                     label: gender?.gender_option,
                                     value: gender?.id
                                 }))}
@@ -269,7 +269,7 @@ const AddWatchlist = () => {
                                 value={personForm.nationality_id}
                                 loading={nationalitiesLoading}
                                 options={
-                                    nationalities
+                                    nationalities?.results
                                         ?.slice()
                                         .sort((a, b) => {
                                             if (a.nationality?.toLowerCase() === "filipino") return -1;
@@ -293,7 +293,7 @@ const AddWatchlist = () => {
                             <Select
                                 value={personForm.civil_status_id}
                                 loading={civilStatusesLoading}
-                                options={civilStatuses?.map(lvl => ({
+                                options={civilStatuses?.results?.map(lvl => ({
                                     label: lvl?.status,
                                     value: lvl?.id
                                 }))}
@@ -311,7 +311,7 @@ const AddWatchlist = () => {
                             <Select
                                 value={watchlistForm.white_listed_type_id}
                                 loading={typesLoading}
-                                options={types?.map(type => ({
+                                options={types?.results?.map(type => ({
                                     label: type?.name,
                                     value: type?.id
                                 }))}
@@ -327,7 +327,7 @@ const AddWatchlist = () => {
                             <Select
                                 value={watchlistForm.threat_level_id}
                                 loading={threatLevelsLoading}
-                                options={threatLevels?.map(lvl => ({
+                                options={threatLevels?.results?.map(lvl => ({
                                     label: lvl?.threat_level,
                                     value: lvl?.id
                                 }))}
@@ -343,7 +343,7 @@ const AddWatchlist = () => {
                             <Select
                                 value={watchlistForm.risk_level_id}
                                 loading={riskLevelsLoading}
-                                options={riskLevels?.map(lvl => ({
+                                options={riskLevels?.results?.map(lvl => ({
                                     label: lvl?.risk_severity,
                                     value: lvl?.id
                                 }))}

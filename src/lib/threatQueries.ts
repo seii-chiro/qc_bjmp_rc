@@ -152,7 +152,7 @@ export const enrollBiometrics = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> => {
   const response = await fetch(
-    `${BASE_URL_BIOMETRIC}/api/whitelist-biometric/enroll/`,
+    `${BASE_URL_BIOMETRIC}/api/biometric/whitelist-biometric/enroll/`,
     {
       method: "POST",
       headers: {
@@ -177,7 +177,7 @@ export const verifyFaceInWatchlist = async (verificationPayload: {
 }): Promise<any> => {
   try {
     const response = await fetch(
-      `${BASE_URL_BIOMETRIC}/api/whitelist-biometric/identify/`,
+      `${BASE_URL_BIOMETRIC}/api/biometric/whitelist-biometric/identify/`,
       {
         method: "POST",
         headers: {
