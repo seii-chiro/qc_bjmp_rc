@@ -183,7 +183,7 @@ const Personnel = () => {
                         )
                     )
                 )
-                    .filter(person => person) 
+                    .filter(person => person)
                     .map(person => ({
                         text: person,
                         value: person,
@@ -248,7 +248,7 @@ const Personnel = () => {
             key: "action",
             render: (_: any, record: any) => (
                 <div className="flex gap-2">
-                    <NavLink to={"update"} state={{ personnel: record }} className="text-blue-500 hover:text-blue-700 flex items-center">
+                    <NavLink to={"/jvms/personnels/personnel/update"} state={{ personnel: record }} className="text-blue-500 hover:text-blue-700 flex items-center">
                         <AiOutlineEdit />
                     </NavLink>
                     <Button

@@ -41,7 +41,7 @@ import Position from "./pages/personnel_management/position/position.tsx";
 import EmploymentType from "./pages/personnel_management/employment_type/EmploymentType.tsx";
 import AffiliationType from "./pages/personnel_management/affiliation-type/AffiliationType.tsx";
 import Home1 from "./pages/home/Home.tsx";
-import Personnels from "./pages/personnel_management/Personnel.tsx";
+import Personnels from "./pages/personnel_management/personnel/personnel.tsx";
 import Personnel from "./pages/personnel_management/personnel/personnel-backup.tsx";
 import Home2 from "./pages/home/Home2/Home.tsx";
 import Database from "./pages/database/database.tsx";
