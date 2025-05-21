@@ -531,7 +531,6 @@ const { data: dailysummarydata } = useQuery({
                                     count={summarydata?.success.jail_congestion_rates.total_congestion_rate === "Total capacity not set or zero" ? '0' : `${(parseFloat(summarydata?.success.jail_congestion_rates.total_congestion_rate) || 0).toFixed(2)}%`}
                                 />
                             </div>
-
                             {/* Gender Distribution */}
                             <div className="bg-white border flex-[2] w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
                                 <Title title="PDL Based on their Gender" />
@@ -579,7 +578,8 @@ const { data: dailysummarydata } = useQuery({
                                         <Pie data={pdlEnteredExitData} options={Options} />
                                     </div>
                                     <div className='flex-1 w-full h-[80%] flex flex-col justify-center gap-2'>
-                                        <Card4 image={pdl_enter} title='Entered' count={summarydata?.success.premises_logs.pdl_logs_today.Enter || 0} />
+                                        <Card4 image={pdl_enter} title='Entered' count={(summary?.pdl_station_visits ?? 0)} />
+                                        {/* summarydata?.success.premises_logs.pdl_logs_today.Enter || 0 */}
                                         <Card4 image={exited} title='Exited' count={summarydata?.success.premises_logs.pdl_logs_today.Exit ?? 0} />
                                     </div>
                                 </div>

@@ -1059,7 +1059,7 @@ const UpdatePDL = () => {
         });
 
         setPdlForm({
-            risk_classification: pdlData?.date_of_admission ?? "",
+            risk_classification: pdlData?.risk_classification ?? "",
             date_of_admission: pdlData?.date_of_admission ?? "2001-01-01",
             case_data: pdlData?.cases?.map((pdlCases: {
                 court_branch: any; case_number: string; offense: { id: number; crime_category: string; }; name: string; bail_recommended: number; law: string;
