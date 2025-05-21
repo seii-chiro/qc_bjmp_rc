@@ -187,7 +187,7 @@ const UpdatePDL = () => {
         org_id: 1,
         occupation_id: null,
         person_id: null,
-        status: "Under Trial",
+        status: "Commited",
         visitor_ids: [],
         pdl_alias: "",
         time_arrested: "",
@@ -1059,6 +1059,7 @@ const UpdatePDL = () => {
         });
 
         setPdlForm({
+            risk_classification: pdlData?.date_of_admission ?? "",
             date_of_admission: pdlData?.date_of_admission ?? "2001-01-01",
             case_data: pdlData?.cases?.map((pdlCases: {
                 court_branch: any; case_number: string; offense: { id: number; crime_category: string; }; name: string; bail_recommended: number; law: string;
