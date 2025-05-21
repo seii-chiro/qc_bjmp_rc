@@ -14,6 +14,7 @@ import support from '../../assets/support.png'
 import setting from '../../assets/settings.png'
 import cctv from '../../assets/cctv.png'
 import cctv_database from '../../assets/cctv-database.png'
+import cloud from '../../assets/cloud.png'
 import { NavLink } from 'react-router-dom'
 
 type CardTypes = {
@@ -72,7 +73,7 @@ const Incidentcard = ({ title, image, link }: CardTypes) => {
 
 const Home1 = () => {
     return (
-        <div className="flex flex-wrap gap-20 justify-center xl:mx-52">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-16 place-items-center xl:max-w-7xl mx-auto">
             <Cards link='/jvms/registration' title="Registration" image={registration} />
             <Cards link='/jvms/users' title="Administration" image={administration} />
             <Cards link='/jvms/dashboard' title='Statistic Dashboard' image={statistic} />
@@ -88,6 +89,7 @@ const Home1 = () => {
             <Incidentcard link='/jvms/incidents' title='Incidents' image={incident} />
             <Cards link='/jvms/users' title='Users' image={users} />
             <Cards link='' title='Support' image={support} />{/* /jvms/supports */}
+            <Cards link='' title='Cloud' image={cloud} />
             <Cards link='' title='Settings' image={setting} /> {/* /jvms/settings */}
         </div>
     )

@@ -1,6 +1,6 @@
 import { WatchlistPerson } from "@/lib/issues-difinitions";
 import { getUser } from "@/lib/queries";
-import { deleteWatchlistPerson, getWatchlistPerson } from "@/lib/query";
+import { deleteWatchlistPerson } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Menu, message, Modal } from "antd";
@@ -11,10 +11,10 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import moment from "moment";
 import { useEffect, useState } from "react";
-import { GoDownload, GoPlus } from "react-icons/go";
+import { GoDownload } from "react-icons/go";
 import { LuSearch } from "react-icons/lu";
 import bjmp from '../../assets/Logo/QCJMD.png'
-import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
+import { AiOutlineDelete } from "react-icons/ai";
 import { BASE_URL } from "@/lib/urls";
 // import { useNavigate } from "react-router-dom";
 
