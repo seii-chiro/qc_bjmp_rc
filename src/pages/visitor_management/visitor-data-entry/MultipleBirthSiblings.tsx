@@ -19,6 +19,8 @@ type Props = {
     birthClassTypesLoading: boolean;
     prefixes: Prefix[];
     suffixes: Suffix[];
+    setPersonSearch?: (value: string) => void;
+    setPersonPage?: (page: number) => void;
 }
 
 export type TableInfo = {
@@ -41,7 +43,9 @@ const MultipleBirthSiblings = ({
     personsLoading,
     prefixes,
     suffixes,
-    personForm
+    personForm,
+    setPersonSearch,
+    setPersonPage
 }: Props) => {
     const [idsModalOpen, setIdsModalOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
@@ -177,6 +181,8 @@ const MultipleBirthSiblings = ({
                 width="50%"
             >
                 <MultiBirthSiblingForm
+                    setPersonPage={setPersonPage}
+                    setPersonSearch={setPersonSearch}
                     personForm={personForm}
                     personLoading={personsLoading}
                     prefixes={prefixes}

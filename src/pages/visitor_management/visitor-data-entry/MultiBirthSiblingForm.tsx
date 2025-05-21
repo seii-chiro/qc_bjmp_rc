@@ -20,6 +20,8 @@ type Props = {
     isEditing: boolean;
     editIndex: number | null;
     handleEditMultipleBirthSibling: (index: number, updatedData: MultiBirthSiblingFormType) => void
+    setPersonSearch?: (value: string) => void;
+    setPersonPage?: (page: number) => void;
 }
 
 const MultiBirthSiblingForm = ({
@@ -34,7 +36,9 @@ const MultiBirthSiblingForm = ({
     personForm,
     isEditing = false,
     editIndex = null,
-    handleEditMultipleBirthSibling
+    setPersonSearch,
+    handleEditMultipleBirthSibling,
+    setPersonPage
 }: Props) => {
     const [chosenSibling, setChosenSibling] = useState<Person | null>(null)
     const [error, setError] = useState<string | null>(null)
@@ -45,8 +49,6 @@ const MultiBirthSiblingForm = ({
         remarks: "",
         sibling_person_id: null,
     })
-
-    console.log(multiBirthSiblingForm)
 
     // Load data when editing
     useEffect(() => {
@@ -175,6 +177,7 @@ const MultiBirthSiblingForm = ({
                                 value: person?.id,
                                 label: `${person?.first_name ?? ""} ${person?.middle_name ?? ""} ${person?.last_name ?? ""}`
                             }))}
+                            onSearch={setPersonSearch}
                             onChange={(value) => {
                                 // Check for duplicates when changing the selection
                                 const isDuplicate = checkForDuplicate(value);

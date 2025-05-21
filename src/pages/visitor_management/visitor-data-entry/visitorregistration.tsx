@@ -6,10 +6,11 @@ import { useEffect, useState } from "react";
 import VisitorProfile from "./visitorprofile";
 import PDLtovisit from "./PDLtovisit";
 import Issue from "./Issue";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import {
     getAffiliationTypes, getCivilStatus, getCountries, getCurrentUser, getGenders, getJail_Barangay,
     getJail_Municipality, getJail_Province, getJailRegion, getMultipleBirthClassTypes, getNationalities,
+    getPersonSearch,
     getPrefixes, getRealPerson, getSuffixes, getUsers, getVisitor_Type, getVisitorAppStatus
 } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -88,6 +89,9 @@ const VisitorRegistration = () => {
     const [editAddressIndex, setEditAddressIndex] = useState<number | null>(null);
     const [editContactIndex, setEditContactIndex] = useState<number | null>(null);
     const [editPdlToVisitIndex, setEditPdlToVisitIndex] = useState<number | null>(null);
+
+    const [personSearch, setPersonSearch] = useState("");
+    console.log(personSearch)
 
     const [personForm, setPersonForm] = useState<PersonForm>({
         first_name: "",
@@ -338,6 +342,12 @@ const VisitorRegistration = () => {
         }))
     }
 
+    const { data: persons, isLoading: personLoading } = useQuery({
+        queryKey: ['persons', personSearch],
+        queryFn: () => getPersonSearch(token ?? "", 10, personSearch),
+        staleTime: 10 * 60 * 1000,
+    });
+
     const dropdownOptions = useQueries({
         queries: [
             {
@@ -391,7 +401,7 @@ const VisitorRegistration = () => {
                 staleTime: 10 * 60 * 1000
             },
             {
-                queryKey: ['persons'],
+                queryKey: ['person'],
                 queryFn: () => getRealPerson(token ?? ""),
                 staleTime: 10 * 60 * 1000
             },
@@ -613,7 +623,7 @@ const VisitorRegistration = () => {
     const municipalities = dropdownOptions?.[7]?.data?.results;
     const barangays = dropdownOptions?.[8]?.data?.results;
     const countries = dropdownOptions?.[9]?.data?.results;
-    const persons = dropdownOptions?.[10]?.data?.results;
+    const personsNoSearch = dropdownOptions?.[10]?.data?.results;
     const personsLoading = dropdownOptions?.[10]?.isLoading;
     const users = dropdownOptions?.[11]?.data?.results;
     const userLoading = dropdownOptions?.[11]?.isLoading;
@@ -1066,6 +1076,7 @@ const VisitorRegistration = () => {
                         </div>
 
                         <MultipleBirthSiblings
+                            setPersonSearch={setPersonSearch}
                             handleDeleteMultipleBirthSibling={handleDeleteMultipleBirthSibling}
                             prefixes={prefixes || []}
                             suffixes={suffixes || []}
@@ -1074,7 +1085,7 @@ const VisitorRegistration = () => {
                             personForm={personForm}
                             birthClassTypes={birthClassTypes || []}
                             birthClassTypesLoading={birthClassTypesLoading}
-                            persons={persons || []}
+                            persons={persons?.results || []}
                             personsLoading={personsLoading}
                         />
 

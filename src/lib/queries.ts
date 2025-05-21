@@ -143,7 +143,11 @@ import {
   Visitor as NewVisitor,
 } from "./pdl-definitions";
 import { EducationalAttainment } from "./visitorFormDefinition";
-import { DailyVisitSummaryResponse, ReportingCategory, SeverityLevel } from "./issues-difinitions";
+import {
+  DailyVisitSummaryResponse,
+  ReportingCategory,
+  SeverityLevel,
+} from "./issues-difinitions";
 
 export type PaginatedResponse<T> = {
   count: number;
@@ -2575,8 +2579,35 @@ export async function getMultipleBirthSibling(
   return res.json();
 }
 
-export async function getRealPerson(token: string): Promise<NewPerson[]> {
-  const res = await fetch(PERSON.getPERSON, {
+export async function getRealPerson(
+  token: string,
+  limit = 10
+): Promise<NewPerson[]> {
+  const url = `${PERSON.getPERSON}?limit=${limit}`;
+  const res = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch Person data.");
+  }
+
+  return res.json();
+}
+
+export async function getPersonSearch(
+  token: string,
+  limit = 10,
+  search = ""
+): Promise<PaginatedResponse<NewPerson>> {
+  let url = `${PERSON.getPERSON}?limit=${limit}`;
+  if (search) {
+    url += `&search=${encodeURIComponent(search)}`;
+  }
+  const res = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -3759,14 +3790,17 @@ export async function getSeverityLevel(
 }
 
 export async function getSummaryDaily(
-  token: string,
+  token: string
 ): Promise<DailyVisitSummaryResponse> {
-  const res = await fetch(`${BASE_URL}/api/dashboard/summary-dashboard/get-daily-visit-summary`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/dashboard/summary-dashboard/get-daily-visit-summary`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Daily data.");
