@@ -125,6 +125,7 @@ const Personnel = () => {
     const dataSource = data?.results?.map((personnel, index) => ({
         key: index + 1,
         id: personnel?.id,
+        organization: personnel?.organization ?? '',
         personnel_reg_no: personnel?.personnel_reg_no ?? '',
         person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
         shortname: personnel?.person?.shortname ?? '',
@@ -162,13 +163,28 @@ const Personnel = () => {
                         allPersonnel.map(item => item.personnel_reg_no ?? '')
                     )
                 )
-                    .filter(personnel_reg_no => personnel_reg_no)
-                    .map(personnel_reg_no => ({
-                        text: personnel_reg_no,
-                        value: personnel_reg_no,
+                    .filter(regNo => regNo) // Remove empty values
+                    .map(regNo => ({
+                        text: regNo,
+                        value: regNo,
                     }))
             ],
             onFilter: (value, record) => record.personnel_reg_no === value,
+        },
+        {
+            title: 'Organization',
+            dataIndex: 'organization',
+            key: 'organization',
+            sorter: (a, b) => a.organization.localeCompare(b.organization),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.organization))
+                ).map(organization => ({
+                    text: organization,
+                    value: organization,
+                }))
+            ],
+            onFilter: (value, record) => record.organization === value,
         },
         {
             title: 'Personnel',
@@ -183,7 +199,7 @@ const Personnel = () => {
                         )
                     )
                 )
-                    .filter(person => person) 
+                    .filter(person => person) // Remove empty names
                     .map(person => ({
                         text: person,
                         value: person,

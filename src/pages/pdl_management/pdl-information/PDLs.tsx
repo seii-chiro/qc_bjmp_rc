@@ -15,7 +15,7 @@ import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
 import { NavLink, useLocation } from "react-router-dom";
 import { BASE_URL } from "@/lib/urls";
-import { PaginatedResponse } from "@/pages/personnel_management/personnel/personnel";
+import { PaginatedResponse } from "@/pages/personnel_management/personnel/personnel-backup";
 
 const PDLtable = () => {
     const location = useLocation();

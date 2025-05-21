@@ -21,7 +21,7 @@ import EditVisitor from "./edit-visitor/EditVisitor";
 import { useNavigate } from "react-router-dom";
 import { PiFolderUserDuotone } from "react-icons/pi";
 import { BASE_URL } from "@/lib/urls";
-import { PaginatedResponse } from "../personnel_management/personnel/personnel";
+import { PaginatedResponse } from "../personnel_management/personnel/personnel-backup";
 import { Visitor as NewVisitorType } from "@/lib/pdl-definitions";
 
 type Visitor = VisitorRecord;

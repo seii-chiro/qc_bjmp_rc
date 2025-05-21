@@ -316,7 +316,6 @@ const VisitorProfile = ({
     const [fingerprintVerificationResult9, setFingerprintVerificationResult9] = useState<any | null>(null)
     const [fingerprintVerificationResult10, setFingerprintVerificationResult10] = useState<any | null>(null)
 
-
     //Face Capture Related Functions
     const verifyFaceMutation = useMutation({
         mutationKey: ['biometric-enrollment'],
