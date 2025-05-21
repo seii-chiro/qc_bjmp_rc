@@ -1,6 +1,6 @@
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation} from "@tanstack/react-query";
+import { useMutation, useQueryClient} from "@tanstack/react-query";
 import { message } from "antd";
 import { useState } from "react";
 
@@ -11,9 +11,10 @@ type AddUserForm = {
     last_name: string;
 }
 
-const AddUser = ({ onClose }: { onClose: () => void }) => {
+const AddUser = ({ onClose }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectUser, setSelectUser] = useState<AddUserForm>({
         email: '',
         password: '',
@@ -21,40 +22,41 @@ const AddUser = ({ onClose }: { onClose: () => void }) => {
         last_name: '',
     });
 
-    const UserMutation = useMutation({
-        mutationKey: ['user'],
-        mutationFn: async (user: AddUserForm) => {
-            const res = await fetch(`${BASE_URL}/api/user/create/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Token ${token}`,
-                },
-                body: JSON.stringify(user),
-            });
-            if (!res.ok) {
-                let errorMessage = "Error Adding User";
-                try {
-                    const errorData = await res.json();
-                    errorMessage =
-                        errorData?.message ||
-                        errorData?.error ||
-                        JSON.stringify(errorData);
-                } catch {
-                    errorMessage = "Unexpected error occurred";
-                }
-                throw new Error(errorMessage);
+const UserMutation = useMutation({
+    mutationKey: ['user'],
+    mutationFn: async (user: AddUserForm) => {
+        const res = await fetch(`${BASE_URL}/api/user/create/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Token ${token}`,
+            },
+            body: JSON.stringify(user),
+        });
+        if (!res.ok) {
+            let errorMessage = "Error Adding User";
+            try {
+                const errorData = await res.json();
+                errorMessage =
+                    errorData?.message ||
+                    errorData?.error ||
+                    JSON.stringify(errorData);
+            } catch {
+                errorMessage = "Unexpected error occurred";
             }
-            return res.json();
-        },
-        onSuccess: () => {
-            messageApi.success("Added successfully");
-            onClose();
-        },
-        onError: (error) => {
-            messageApi.error(error.message);
-        },
-    });
+            throw new Error(errorMessage);
+        }
+        return res.json();
+    },
+    onSuccess: (newUser) => {
+        queryClient.invalidateQueries({ queryKey: ["users"] });
+        messageApi.success("User added successfully");
+        onClose(newUser.email); 
+    },
+    onError: (error) => {
+        messageApi.error(error.message);
+    },
+});
 
     const handleUserSubmit = (e: React.FormEvent) => {
         e.preventDefault();

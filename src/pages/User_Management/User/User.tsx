@@ -8,7 +8,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import Table, { ColumnsType } from "antd/es/table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineEdit } from "react-icons/ai";
 import { GoDownload, GoPlus } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
@@ -24,6 +24,7 @@ type UsersProps = {
 }
 
 const Users = () => {
+  const [scrollToEmail, setScrollToEmail] = useState<string | null>(null);
   const [searchText, setSearchText] = useState("");
   const token = useTokenStore().token;
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -108,6 +109,15 @@ const Users = () => {
       dataIndex: 'email',
       key: 'email',
       sorter: (a, b) => a.email.localeCompare(b.email),
+      filters: [
+        ...Array.from(
+            new Set(filteredData.map(item => item.email))
+        ).map(email => ({
+            text: email,
+            value: email,
+        }))
+    ],
+    onFilter: (value, record) => record.email === value,
     },
     {
       title: 'First Name',
@@ -133,6 +143,24 @@ const Users = () => {
       ),
     },
   ];
+
+const handleAddUserClose = (email?: string) => {
+    setIsModalOpen(false);
+    if (email) setScrollToEmail(email);
+};
+
+// After data refresh, scroll to the user
+useEffect(() => {
+    if (scrollToEmail && filteredData.length > 0) {
+        const rowIndex = filteredData.findIndex(user => user.email === scrollToEmail);
+        if (rowIndex !== -1) {
+            // Scroll to the row (if using AntD Table, you may need to use ref or just highlight)
+            const row = document.querySelectorAll('.ant-table-row')[rowIndex] as HTMLElement;
+            if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        setScrollToEmail(null);
+    }
+}, [filteredData, scrollToEmail]);
 
   const handleExportExcel = () => {
     const ws = XLSX.utils.json_to_sheet(dataSource);
@@ -329,7 +357,7 @@ const handleClosePdfModal = () => {
                 width="20%"
                 style={{ maxHeight: "80vh", overflowY: "auto" }} 
                 >
-                <AddUser onClose={handleCancel} />
+                <AddUser onClose={handleAddUserClose} />
             </Modal>
     </div>
   )
