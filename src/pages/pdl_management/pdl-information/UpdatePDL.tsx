@@ -1145,7 +1145,7 @@ const UpdatePDL = () => {
                     <h3 className="font-bold text-xl">PDL Information</h3>
                     <div className="flex flex-col w-full gap-2">
                         <div className="flex justify-end">
-                            <div className="flex gap-2 w-[30%] items-end">
+                            <div className="flex gap-2 w-[70%] items-end">
                                 <div className="flex flex-col mt-2 w-full">
                                     <div className="flex gap-1 font-semibold">Level</div>
                                     <Select
@@ -1189,6 +1189,44 @@ const UpdatePDL = () => {
                                 </div>
                                 <div className="flex flex-col mt-2 w-full">
                                     <div className="flex gap-1 font-semibold">Dorm</div>
+                                    <Select
+                                        value={pdlForm?.cell_id}
+                                        showSearch
+                                        optionFilterProp="label"
+                                        className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
+                                        options={dorms?.map((dorm) => ({
+                                            value: dorm?.id,
+                                            label: dorm?.cell_name,
+                                        }))}
+                                        onChange={(value) => {
+                                            setPdlForm((prev) => ({
+                                                ...prev,
+                                                cell_id: value,
+                                            }));
+                                        }}
+                                    />
+                                </div>
+                                <div className="flex flex-col mt-2 w-full">
+                                    <div className="flex gap-1 font-semibold">Status</div>
+                                    <Select
+                                        value={pdlForm?.cell_id}
+                                        showSearch
+                                        optionFilterProp="label"
+                                        className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
+                                        options={dorms?.map((dorm) => ({
+                                            value: dorm?.id,
+                                            label: dorm?.cell_name,
+                                        }))}
+                                        onChange={(value) => {
+                                            setPdlForm((prev) => ({
+                                                ...prev,
+                                                cell_id: value,
+                                            }));
+                                        }}
+                                    />
+                                </div>
+                                <div className="flex flex-col mt-2 w-full">
+                                    <div className="flex gap-1 font-semibold">Risk Classification</div>
                                     <Select
                                         value={pdlForm?.cell_id}
                                         showSearch
