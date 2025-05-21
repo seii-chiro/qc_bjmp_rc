@@ -122,8 +122,9 @@ const Personnel = () => {
         },
     });
 
-    const dataSource = data?.results?.map((personnel) => ({
-        key: personnel.id,
+    const dataSource = data?.results?.map((personnel, index) => ({
+        key: index + 1,
+        id: personnel?.id,
         organization: personnel?.organization ?? '',
         personnel_reg_no: personnel?.personnel_reg_no ?? '',
         person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
