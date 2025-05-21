@@ -1,4 +1,4 @@
-import { getJail_Barangay, getJail_Category, getJail_Municipality, getJail_Province, getJail_Security_Level, getJail_Type, getJailRegion, getRecord_Status, updateJail } from "@/lib/queries";
+import { getJail_Barangay, getJail_Category, getJail_Municipality, getJail_Province, getJail_Security_Level, getJail_Type, getJailRegion, updateJail } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries } from "@tanstack/react-query";
 import { Button, Form, Input, message, Select } from "antd";
@@ -16,6 +16,8 @@ type EditJailFacility = {
     jail_barangay_id: number| null;
     jail_postal_code: number| null;
     security_level_id: number | null;
+    jail_capacity: number | null;
+    jail_description: string;
 };
 
 const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
@@ -26,16 +28,18 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
     const [ selectjail, setSelectJail] = useState<EditJailFacility>(
         {
         jail_name: '',
-        jail_type_id: null,
-        jail_category_id: null,
+        jail_type_id: 0,
+        jail_category_id: 0,
         email_address: '',
         contact_number: '',
-        jail_province_id: null,
-        jail_city_municipality_id: null,
-        jail_region_id: null,
-        jail_barangay_id: null,
-        jail_postal_code: null,
-        security_level_id: null,
+        jail_province_id: 0,
+        jail_city_municipality_id: 0,
+        jail_region_id: 0,
+        jail_barangay_id: 0,
+        jail_postal_code: 0,
+        security_level_id: 0,
+        jail_capacity: 0,
+        jail_description: ''
         }
     )
 
@@ -108,6 +112,8 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                 jail_barangay_id: jail.jail_barangay_id,
                 jail_postal_code: jail.jail_postal_code,
                 security_level_id: jail.security_level_id,
+                jail_capacity: jail.jail_capacity,
+                jail_description: jail.jail_description
             });
         }
     }, [jail, form]);
@@ -123,10 +129,12 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
             jail_city_municipality_id: values.jail_city_municipality_id,
             jail_region_id: values.jail_region_id,
             jail_barangay_id: values.jail_barangay_id,
+            jail_street: values.jail_street, // <-- add this if you have it in your form
             jail_postal_code: values.jail_postal_code,
             security_level_id: values.security_level_id,
+            jail_capacity: values.jail_capacity,
+            jail_description: values.jail_description
         };
-        
         
             const cleanedPayload = Object.fromEntries(
             Object.entries(payload).filter(([_, v]) => v !== null)
@@ -200,42 +208,39 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
         }));
     };  
 
-    const onRecordStatusChange = (value: number) => {
-        setSelectJail(prevForm => ({
-            ...prevForm,
-            record_status_id: value,
-        }));
-    }; 
-
     return (
         <div>
             {contextHolder}
+            <h2 className="text-lg font-bold text-[#32507D]">Edit Jail Facility</h2>
             <Form
+                className="mt-5"
                 form={form}
                 layout="vertical"
                 onFinish={handleJailSubmit}
                 initialValues={{
-                    jail_name: jail?.jail_name ?? 'N/A',
-                    jail_type_id: jail?.jail_type_id ?? 'N/A',
-                    jail_category_id: jail.jail_category_id ?? 'N/A',
-                    email_address: jail.email_address ?? 'N/A',
-                    contact_number: jail.contact_number ?? 'N/A',
-                    jail_province_id: jail.jail_province_id ?? 'N/A',
-                    jail_city_municipality_id: jail.jail_city_municipality_id ?? 'N/A',
-                    jail_region_id: jail.jail_region_id ?? 'N/A',
-                    jail_barangay_id: jail.jail_barangay_id ?? 'N/A',
-                    jail_postal_code: jail.jail_postal_code ?? 'N/A',
-                    security_level_id: jail.security_level_id ?? 'N/A',
+                    jail_name: jail?.jail_name ?? '',
+                    jail_type_id: jail?.jail_type_id ?? '',
+                    jail_category_id: jail?.jail_category_id ?? '',
+                    email_address: jail?.email_address ?? '',
+                    contact_number: jail?.contact_number ?? '',
+                    jail_province_id: jail?.jail_province_id ?? '',
+                    jail_city_municipality_id: jail?.jail_city_municipality_id ?? '',
+                    jail_region_id: jail?.jail_region_id ?? '',
+                    jail_barangay_id: jail?.jail_barangay_id ?? '',
+                    jail_postal_code: jail?.jail_postal_code ?? '',
+                    security_level_id: jail?.security_level_id ?? '',
+                    jail_capacity: jail?.jail_capacity ?? '',
+                    jail_description: jail?.jail_description ?? ''
                 }}
             >
-                <div className="grid grid-cols-1 md:grid-cols-2 w-full gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 w-full gap-3">
                     <Form.Item
-                        label="Jail Name"
+                        label={<span className="font-semibold text-[#333] text-[16px]">Jail Name:</span>}
                         name="jail_name"
                     >
                         <Input className="h-12 border border-gray-300 rounded-lg px-2"/>
                     </Form.Item>
-                    <Form.Item name="jail_type_id" label="Jail Type" rules={[{ required: true, message: 'Please select a jail type' }]}>
+                    <Form.Item name="jail_type_id" label={<span className="font-semibold text-[#333] text-[16px]">Jail Type:</span>} rules={[{ required: true, message: 'Please select a jail type' }]}>
                         <Select className="h-[3rem] w-full"
                             showSearch
                             placeholder="Jail Type"
@@ -251,7 +256,7 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                     </Form.Item>
                     <Form.Item
                     name="jail_category_id"
-                    label="Jail Category"
+                    label={<span className="font-semibold text-[#333] text-[16px]">Jail Category:</span>}
                     rules={[{ required: true, message: 'Please select a jail type' }]}
                     >
                         <Select
@@ -263,77 +268,33 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                         options={jailCategoryData?.results?.map(jail_category => (
                             {
                                 value: jail_category.id,
-                                label: jail_category?.description,
+                                label: jail_category?.category_name,
                             }
                         ))}
                     />
                     </Form.Item>
                     <Form.Item
-                        label="Email Address"
+                        label={<span className="font-semibold text-[#333] text-[16px]">Email Address:</span>}
                         name="email_address"
                     >
                         <Input className="h-12 border border-gray-300 rounded-lg px-2"/>
                     </Form.Item>
                     <Form.Item
-                        label="Contact Number"
+                        label={<span className="font-semibold text-[#333] text-[16px]">Contact Number:</span>}
                         name="contact_number"
                     >
                         <Input type="number" className="h-12 border border-gray-300 rounded-lg px-2"/>
                     </Form.Item>
-                    <div className="flex flex-col gap-2">
-                        <p>Region</p>
-                    <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Jail Region"
-                        onChange={onRegionChange}
-                        options={jailRegionData?.results?.map(region => ({
-                            value: region.id,
-                            label: region?.desc,
-                        }))}
-                    />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                        <p>Province</p>
-                        <Select
-                            className="h-[3rem] w-full"
-                            showSearch
-                            placeholder="Jail Province"
-                            onChange={onJailProvinceChange}
-                            options={jailProvinceData?.results?.filter(province => province.region === selectjail.jail_region_id).map(province => ({
-                                value: province.id,
-                                label: province?.desc,
-                            }))}
-                        />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                        <p>City/ Municipality</p>
-                    <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Jail Municipality"
-                        onChange={onMunicipalityChange}
-                        options={jailMunicipalityData?.results?.filter(municipality => municipality.province === selectjail.jail_province_id).map(municipality => ({
-                            value: municipality.id,
-                            label: municipality?.desc,
-                        }))}
-                    />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                        <p>Barangay</p>
-                    <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Jail Barangay"
-                        onChange={onJailBarangayChange}
-                        options={jailBarangayData?.results?.filter(barangay => barangay.municipality === selectjail.jail_city_municipality_id).map(barangay => ({
-                            value: barangay.id,
-                            label: barangay?.desc,
-                        }))}
-                    />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                        <p>Security Level</p>
+                    <Form.Item
+                        label={<span className="font-semibold text-[#333] text-[16px]">Jail Capacity:</span>}
+                        name="jail_capacity"
+                    >
+                        <Input type="number" className="h-12 border border-gray-300 rounded-lg px-2"/>
+                    </Form.Item>
+                    <Form.Item 
+                    name="security_level_id"
+                    label={<span className="font-semibold text-[#333] text-[16px]">Security Level:</span>}
+                    rules={[{ required: true, message: 'Please select a jail type' }]}>
                         <Select
                             className="h-[3rem] w-full"
                             showSearch
@@ -347,10 +308,88 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                                 }
                             ))}
                         />
-                    </div>
+                    </Form.Item>
+                    <Form.Item
+                        label={<span className="font-semibold text-[#333] text-[16px]">Description:</span>}
+                        name="jail_description"
+                    >
+                        <Input type="text" className="h-12 border border-gray-300 rounded-lg px-2"/>
+                    </Form.Item>
+                </div>
+                <h2 className="text-xl font-bold text-[#32507D]">Address</h2>
+                <div className="border-2 p-4 border-gray-200 rounded-md grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <Form.Item name="jail_region_id" label={<span className="font-semibold text-[#333] text-[16px]">Region:</span>}>
+                        <Select
+                            className="h-[3rem] w-full"
+                            showSearch
+                            placeholder="Region"
+                            onChange={onRegionChange}
+                            options={jailRegionData?.results?.map(region => ({
+                                value: region.id,
+                                label: region?.desc,
+                            }))}
+                        />
+                    </Form.Item>
+
+                    <Form.Item name="jail_province_id" label={<span className="font-semibold text-[#333] text-[16px]">Province:</span>}>
+                        <Select
+                            className="h-[3rem] w-full"
+                            showSearch
+                            placeholder="Province"
+                            onChange={onJailProvinceChange}
+                            disabled={!selectjail.jail_region_id}
+                            options={jailProvinceData?.results
+                                ?.filter(province => province.region === selectjail.jail_region_id)
+                                .map(province => ({
+                                    value: province.id,
+                                    label: province?.desc,
+                                }))
+                            }
+                        />
+                    </Form.Item>
+
+                    <Form.Item name="jail_city_municipality_id" label={<span className="font-semibold text-[#333] text-[16px]">City/Municipality:</span>}>
+                        <Select
+                            className="h-[3rem] w-full"
+                            showSearch
+                            placeholder="Jail Municipality"
+                            onChange={onMunicipalityChange}
+                            disabled={!selectjail.jail_province_id}
+                            options={jailMunicipalityData?.results
+                                ?.filter(municipality => municipality.province === selectjail.jail_province_id)
+                                .map(municipality => ({
+                                    value: municipality.id,
+                                    label: municipality?.desc,
+                                }))
+                            }
+                        />
+                    </Form.Item>
+
+                    <Form.Item name="jail_barangay_id" label={<span className="font-semibold text-[#333] text-[16px]">Barangay:</span>}>
+                        <Select
+                            className="h-[3rem] w-full"
+                            showSearch
+                            placeholder="Barangay"
+                            onChange={onJailBarangayChange}
+                            disabled={!selectjail.jail_city_municipality_id}
+                            options={jailBarangayData?.results
+                                ?.filter(barangay => barangay.municipality === selectjail.jail_city_municipality_id)
+                                .map(barangay => ({
+                                    value: barangay.id,
+                                    label: barangay?.desc,
+                                }))
+                            }
+                        />
+                    </Form.Item>
+                        <Form.Item
+                            label={<span className="font-semibold text-[#333] text-[16px]">Postal Code:</span>}
+                            name="jail_postal_code"
+                        >
+                            <Input type="number" className="h-12 border border-gray-300 rounded-lg px-2"/>
+                        </Form.Item>
                 </div>
                 <Form.Item>
-                    <Button type="primary" className="mt-2 py-2 flex ml-auto" htmlType="submit" disabled={isLoading}>
+                    <Button type="primary" className="mt-2 py-4 flex ml-auto bg-[#32507D]" htmlType="submit" disabled={isLoading}>
                         {isLoading ? "Updating..." : "Update Jail Facility"}
                     </Button>
                 </Form.Item>

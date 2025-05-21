@@ -209,18 +209,18 @@ const PDLtable = () => {
             ],
             onFilter: (value, record) => record.name === value,
         },
-        {
-            title: 'Dorm No.',
-            dataIndex: 'cell_no',
-            key: 'cell_no',
-            sorter: (a, b) => a.cell_no.localeCompare(b.cell_no),
-            filters: [
-                ...Array.from(new Set(allPDLs.map(item => item.cell_no)))
-                    .filter(cell_no => cell_no)
-                    .map(cell_no => ({ text: cell_no, value: cell_no }))
-            ],
-            onFilter: (value, record) => record.cell_no === value,
-        },
+        // {
+        //     title: 'Dorm No.',
+        //     dataIndex: 'cell_no',
+        //     key: 'cell_no',
+        //     sorter: (a, b) => a.cell_no.localeCompare(b.cell_no),
+        //     filters: [
+        //         ...Array.from(new Set(allPDLs.map(item => item.cell_no)))
+        //             .filter(cell_no => cell_no)
+        //             .map(cell_no => ({ text: cell_no, value: cell_no }))
+        //     ],
+        //     onFilter: (value, record) => record.cell_no === value,
+        // },
         {
             title: 'Dorm Name',
             dataIndex: 'cell_name',
