@@ -167,6 +167,7 @@ const PDLtable = () => {
 
     const dataSource = filteredPDLs?.results?.map((pdl) => ({
         key: pdl.id,
+        id: pdl?.id,
         pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
         first_name: pdl?.person?.first_name ?? 'N/A',
         middle_name: pdl?.person?.middle_name ?? '',

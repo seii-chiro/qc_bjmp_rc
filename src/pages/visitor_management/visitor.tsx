@@ -167,6 +167,7 @@ const Visitor = () => {
     const dataSource = data?.results?.map((visitor) => ({
         ...visitor,
         key: visitor.id,
+        id: visitor?.id,
         visitor_reg_no: visitor?.visitor_reg_no,
         visitor_type: visitor?.visitor_type,
         nationality: visitor?.person?.nationality,
