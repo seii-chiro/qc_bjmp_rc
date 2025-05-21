@@ -21,7 +21,7 @@ const VisitorProfileSlider = () => {
     const { data: main_gate_logs, isLoading: main_gate_logs_loading } = useQuery({
         queryKey: ['main-gate-logs'],
         queryFn: async () => {
-            const res = await fetch(`${BASE_URL}/api/visit-logs/main-gate-visits/`, {
+            const res = await fetch(`${BASE_URL}/api/visit-logs/main-gate-visits/?filter_today=true`, {
                 headers: {
                     'Authorization': `Token ${token}`,
                     'Content-Type': 'application/json',

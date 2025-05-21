@@ -11,6 +11,7 @@ import { useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
+import moment from "moment";
 
 export type IssuesProps = {
     id: number | null;
@@ -225,6 +226,7 @@ const Issues = () => {
         {
             key: index + 1,
             id: issues?.id ?? 'N/A',
+            timestamp: issues?.created_at ?? '',
             issue_type: issues?.issue_type?.name ?? 'N/A',
             issue_category: issues?.issue_category?.name ?? 'N/A',
             risk: issues?.issue_type?.risk ?? 'N/A',
@@ -245,6 +247,23 @@ const Issues = () => {
             title: 'No.',
             render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
+         {
+        title: 'Timestamp',
+        dataIndex: 'timestamp',
+        key: 'timestamp',
+        render: (text) => moment(text).format('MMM DD, YYYY hh:mm A'), // Format using moment
+        sorter: (a, b) => moment(a.timestamp).unix() - moment(b.timestamp).unix(),
+        filters: [
+            ...Array.from(
+                new Set(filteredData.map(item => moment(item.timestamp).format('MMM DD, YYYY hh:mm A')))
+            ).map(name => ({
+                text: name,
+                value: name,
+            }))
+        ],
+        onFilter: (value, record) =>
+            moment(record.timestamp).format('MMM DD, YYYY hh:mm A') === value,
+    },
         {
             title: 'Issue Type',
             dataIndex: 'issue_type',

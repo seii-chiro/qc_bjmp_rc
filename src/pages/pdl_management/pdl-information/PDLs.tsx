@@ -177,6 +177,7 @@ const PDLtable = () => {
         cell_name: pdl?.cell?.cell_name ?? 'N/A',
         gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
         look: pdl?.look ?? 'N/A',
+        status: pdl?.status ?? 'N/A',
         date_of_admission: pdl?.date_of_admission ?? 'N/A',
         organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
@@ -243,6 +244,18 @@ const PDLtable = () => {
                     .map(gang => ({ text: gang, value: gang }))
             ],
             onFilter: (value, record) => record.gang_affiliation === value,
+        },
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'status',
+            sorter: (a, b) => a.status.localeCompare(b.status),
+            filters: [
+                ...Array.from(new Set(allPDLs.map(item => item.status)))
+                    .filter(gang => gang)
+                    .map(gang => ({ text: gang, value: gang }))
+            ],
+            onFilter: (value, record) => record.status === value,
         },
         {
             title: 'Look',
