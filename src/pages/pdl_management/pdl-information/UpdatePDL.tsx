@@ -200,6 +200,7 @@ const UpdatePDL = () => {
         cell_id: null,
         floor_id: null,
         visitation_status_id: null,
+        risk_classification: ""
     });
 
     const [icao, setIcao] = useState("");
@@ -1209,18 +1210,21 @@ const UpdatePDL = () => {
                                 <div className="flex flex-col mt-2 w-full">
                                     <div className="flex gap-1 font-semibold">Status</div>
                                     <Select
-                                        value={pdlForm?.cell_id}
+                                        value={pdlForm?.status}
                                         showSearch
                                         optionFilterProp="label"
                                         className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
-                                        options={dorms?.map((dorm) => ({
-                                            value: dorm?.id,
-                                            label: dorm?.cell_name,
-                                        }))}
+                                        options={[
+                                            { value: "Under Trial", label: "Under Trial" },
+                                            { value: "Convicted", label: "Convicted" },
+                                            { value: "Released", label: "Released" },
+                                            { value: "Hospitalized", label: "Hospitalized" },
+                                            { value: "Commited", label: "Commited" },
+                                        ]}
                                         onChange={(value) => {
                                             setPdlForm((prev) => ({
                                                 ...prev,
-                                                cell_id: value,
+                                                status: value,
                                             }));
                                         }}
                                     />
@@ -1228,18 +1232,19 @@ const UpdatePDL = () => {
                                 <div className="flex flex-col mt-2 w-full">
                                     <div className="flex gap-1 font-semibold">Risk Classification</div>
                                     <Select
-                                        value={pdlForm?.cell_id}
+                                        value={pdlForm?.risk_classification}
                                         showSearch
                                         optionFilterProp="label"
                                         className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
-                                        options={dorms?.map((dorm) => ({
-                                            value: dorm?.id,
-                                            label: dorm?.cell_name,
-                                        }))}
+                                        options={[
+                                            { value: "Low Risk", label: "Low Risk" },
+                                            { value: "Moderate Risk", label: "Moderate Risk" },
+                                            { value: "High Risk", label: "High Risk" },
+                                        ]}
                                         onChange={(value) => {
                                             setPdlForm((prev) => ({
                                                 ...prev,
-                                                cell_id: value,
+                                                risk_classification: value,
                                             }));
                                         }}
                                     />

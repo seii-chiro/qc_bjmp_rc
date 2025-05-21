@@ -129,7 +129,7 @@ const PdlRegistration = () => {
         org_id: 1,
         occupation_id: null,
         person_id: null,
-        status: "Under Trial",
+        status: "Convicted",
         visitor_ids: [],
         pdl_alias: "",
         time_arrested: "",
@@ -142,6 +142,7 @@ const PdlRegistration = () => {
         cell_id: null,
         floor_id: null,
         visitation_status_id: null,
+        risk_classification: ""
     })
 
     const [icao, setIcao] = useState("")
@@ -841,7 +842,7 @@ const PdlRegistration = () => {
                     <h3 className='font-bold text-xl'>PDL Information</h3>
                     <div className="flex flex-col w-full gap-2">
                         <div className="flex justify-end">
-                            <div className="flex gap-2 w-[30%] items-end">
+                            <div className="flex gap-2 w-[70%] items-end">
                                 <div className='flex flex-col mt-2 w-full'>
                                     <div className='flex gap-1 font-semibold'>Level</div>
                                     <Select
@@ -896,6 +897,48 @@ const PdlRegistration = () => {
                                                 ...prev,
                                                 cell_id: value
                                             }))
+                                        }}
+                                    />
+                                </div>
+                                <div className="flex flex-col mt-2 w-full">
+                                    <div className="flex gap-1 font-semibold">Status</div>
+                                    <Select
+                                        value={pdlForm?.status}
+                                        showSearch
+                                        optionFilterProp="label"
+                                        className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
+                                        options={[
+                                            { value: "Under Trial", label: "Under Trial" },
+                                            { value: "Convicted", label: "Convicted" },
+                                            { value: "Released", label: "Released" },
+                                            { value: "Hospitalized", label: "Hospitalized" },
+                                            { value: "Commited", label: "Commited" },
+                                        ]}
+                                        onChange={(value) => {
+                                            setPdlForm((prev) => ({
+                                                ...prev,
+                                                status: value,
+                                            }));
+                                        }}
+                                    />
+                                </div>
+                                <div className="flex flex-col mt-2 w-full">
+                                    <div className="flex gap-1 font-semibold">Risk Classification</div>
+                                    <Select
+                                        value={pdlForm?.risk_classification}
+                                        showSearch
+                                        optionFilterProp="label"
+                                        className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
+                                        options={[
+                                            { value: "Low Risk", label: "Low Risk" },
+                                            { value: "Moderate Risk", label: "Moderate Risk" },
+                                            { value: "High Risk", label: "High Risk" },
+                                        ]}
+                                        onChange={(value) => {
+                                            setPdlForm((prev) => ({
+                                                ...prev,
+                                                risk_classification: value,
+                                            }));
                                         }}
                                     />
                                 </div>

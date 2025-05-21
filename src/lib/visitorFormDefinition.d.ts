@@ -244,6 +244,7 @@ export type PDLForm = {
   building_id: number | null;
   date_of_admission: string | null;
   visitation_status_id: number | null;
+  risk_classification: string;
 };
 
 export type CasesDetailsForm = {
