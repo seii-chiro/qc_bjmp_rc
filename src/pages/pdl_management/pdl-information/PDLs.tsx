@@ -272,7 +272,7 @@ const PDLtable = () => {
         {
             title: "Action",
             key: "action",
-            render: (_: any, record: any, index) => (
+            render: (_: any, record: any,) => (
                 <div className="flex gap-2">
                     {/* <Button
                             type="link"
@@ -289,7 +289,7 @@ const PDLtable = () => {
                     <Button
                         type="link"
                         danger
-                        onClick={() => deleteMutation.mutate(data?.[index]?.id)}
+                        onClick={() => deleteMutation.mutate(record.id)}
                     >
                         <AiOutlineDelete />
                     </Button>
