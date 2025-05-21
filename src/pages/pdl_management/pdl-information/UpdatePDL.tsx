@@ -1034,7 +1034,7 @@ const UpdatePDL = () => {
                     (educ_bg: { educational_attainment: string }) => ({
                         ...educ_bg,
                         educational_attainment_id:
-                            attainments?.find(
+                            attainments?.results?.find(
                                 (attainment) =>
                                     attainment?.name === educ_bg?.educational_attainment
                             )?.id ?? null,
@@ -1095,7 +1095,7 @@ const UpdatePDL = () => {
             look_id: looks?.results?.find((look) => look?.name === pdlData?.look)?.id ?? 5,
             person_relationship_data: pdlData?.person_relationships?.map((relationship: { relationship: string; is_contact_person: boolean; remarks: string; person: string; }) => ({
                 ...relationship,
-                relationship_id: relationships?.find(relType => relType?.relationship_name === relationship?.relationship)?.id ?? null,
+                relationship_id: relationships?.results?.find(relType => relType?.relationship_name === relationship?.relationship)?.id ?? null,
                 is_contact_person: relationship?.is_contact_person,
                 remarks: relationship?.remarks ?? "",
                 person_id: persons?.find(person => `${person?.first_name ?? ""} ${person?.last_name ?? ""}` === relationship?.person)?.id ?? null,
