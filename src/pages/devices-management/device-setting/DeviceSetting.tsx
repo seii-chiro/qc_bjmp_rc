@@ -60,6 +60,7 @@ const DeviceSetting = () => {
 
     const dataSource = DeviceSettingData?.results?.map((device_setting) => ({
         key: device_setting.id,
+        id: device_setting?.id,
         device: device_setting?.device ?? '',
         settingKey: device_setting?.key ?? '',
         value: device_setting?.value ?? '',

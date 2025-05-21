@@ -118,6 +118,7 @@ const RecommendedAction = () => {
     const dataSource = data?.results?.map((recommeded) => (
         {
             key: recommeded?.id,
+            id: recommeded?.id,
             name: recommeded?.name ?? 'N/A',
             description: recommeded?.description ?? 'N/A',
             updated_at: recommeded?.updated_at ?? 'N/A',

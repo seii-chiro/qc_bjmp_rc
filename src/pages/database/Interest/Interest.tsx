@@ -65,6 +65,7 @@ const Interest = () => {
     const dataSource = data?.results?.map((interest) => (
         {
             key: interest.id,
+            id: interest?.id,
             name: interest?.name ?? 'N/A',
             description: interest?.description ?? 'N/A',
             organization: interest?.organization ?? 'Bureau of Jail Management and Penology',
