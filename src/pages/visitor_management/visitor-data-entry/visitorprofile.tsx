@@ -337,19 +337,19 @@ const VisitorProfile = ({
         mutationFn: verifyFaceInWatchlist,
         onSuccess: (data) => {
             messageApi.warning({
-                // content: `${data['message']}`,
-                content: `This Person is Found in the Watchlist Database!`,
+                content: `Watchlist: ${data['message']}`,
+                // content: `This Person is Found in the Watchlist Database!`,
                 duration: 30
             });
             setIsInWatchlist(true)
         },
         onError: (error) => {
-            // messageApi.info(error?.message);
-            messageApi.warning({
-                // content: `${data['message']}`,
-                content: `This Person is Found in the Watchlist Database!`,
-                duration: 30
-            });
+            messageApi.info(`Watchlist: ${error?.message}`);
+            // messageApi.warning({
+            //     // content: `${data['message']}`,
+            //     content: `This Person is Found in the Watchlist Database!`,
+            //     duration: 30
+            // });
         },
     });
 
