@@ -68,6 +68,7 @@ const Rank = () => {
 
     const dataSource = data?.results?.map((rank) => ({
         key: rank.id,
+        id: rank?.id,
         organization: rank?.organization ?? 'N/A',
         rank_code: rank?.rank_code ?? 'N/A',
         rank_name: rank?.rank_name ?? 'N/A',

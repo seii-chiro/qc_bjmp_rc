@@ -97,6 +97,7 @@ const handleUpdate = (values: any) => {
     const dataSource = data?.results?.map((issue_category) => (
         {
             key: issue_category?.id,
+            id: issue_category?.id,
             name: issue_category?.name ?? 'N/A',
             description: issue_category?.description ?? 'N/A',
             updated_at: issue_category?.updated_at ?? 'N/A',

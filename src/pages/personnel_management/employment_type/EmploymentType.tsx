@@ -65,6 +65,7 @@ const EmploymentType = () => {
 
     const dataSource = data?.results?.map((employmenttype) => ({
         key: employmenttype.id,
+        id: employmenttype?.id,
         employment_type: employmenttype?.employment_type ?? "N/A",
         description: employmenttype?.description ?? "N/A",
         organization: employmenttype?.organization ?? "Bureau of Jail Management and Penology",

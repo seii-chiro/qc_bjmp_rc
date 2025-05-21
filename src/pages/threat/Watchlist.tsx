@@ -123,6 +123,7 @@ useEffect(() => {
             // Transform the data for export
             const formattedData = data.results.map((watchlist) => ({
                 key: watchlist.id,
+                id: watchlist?.id,
                 person: watchlist?.person ?? '',
                 white_listed_type: watchlist?.white_listed_type ?? '',
                 risk_level: watchlist?.risk_level ?? '',

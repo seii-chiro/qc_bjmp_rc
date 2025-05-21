@@ -111,6 +111,7 @@ const Court = () => {
     const dataSource = data?.results?.map((court) => (
         {
             key: court.id,
+            id: court?.id,
             court: court?.court ?? 'N/A',
             description: court?.description ?? 'N/A',
             updated_by: court?.updated_by ?? 'N/A',

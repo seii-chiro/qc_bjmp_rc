@@ -71,7 +71,7 @@ const Device = () => {
 
     const dataSource = data?.results?.map((devices, index) => ({
         key: index + 1,
-        id: devices.id,
+        id: devices?.id,
         device_type: devices?.device_type ?? "N/A",
         jail: devices?.jail ?? "N/A",
         area: devices?.area ?? "N/A",

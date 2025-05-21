@@ -63,12 +63,12 @@ const DeviceUsage = () => {
       setIsModalOpen(false);
     };
 
-    const dataSource = data?.results?.map((building, index) => ({
+    const dataSource = data?.results?.map((device_usage, index) => ({
         key: index + 1,
-        id: building?.id,
-        usage: building?.usage ?? "N/A",
-        description: building?.description ?? "N/A",
-        organization: building?.organization ?? 'Bureau of Jail Management and Penology',
+        id: device_usage?.id,
+        usage: device_usage?.usage ?? "N/A",
+        description: device_usage?.description ?? "N/A",
+        organization: device_usage?.organization ?? 'Bureau of Jail Management and Penology',
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 

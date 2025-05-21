@@ -67,6 +67,7 @@ const Looks = () => {
     const dataSource = data?.results?.map((look) => (
         {
             key: look.id,
+            id: look.id,
             name: look?.name ?? 'N/A',
             description: look?.description ?? 'N/A',
             updated_by: look?.updated_by ?? 'N/A',

@@ -70,6 +70,7 @@ const EducationalAttainment = () => {
     const dataSource = data?.results?.map((educational_attainments) => (
         {
             key: educational_attainments?.id,
+            id: educational_attainments?.id,
             name: educational_attainments?.name ?? 'N/A',
             description: educational_attainments?.description ?? 'N/A',
             updated_at: educational_attainments?.updated_at
