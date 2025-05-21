@@ -1065,13 +1065,13 @@ const UpdatePDL = () => {
                 court_branch: any; case_number: string; offense: { id: number; crime_category: string; }; name: string; bail_recommended: number; law: string;
             }) => ({
                 judge: pdlCases?.court_branch?.judge ?? "",
-                court_branch_id: courtBranches?.find(court => court?.branch === pdlCases?.court_branch?.branch)?.id ?? null,
+                court_branch_id: courtBranches?.results?.find(court => court?.branch === pdlCases?.court_branch?.branch)?.id ?? null,
                 case_number: pdlCases?.case_number ?? "",
                 offense_id: pdlCases?.offense?.id ?? null,
-                crime_category_id: crimeCategories?.find(categories => categories?.crime_category_name === pdlCases?.offense?.crime_category)?.id ?? null,
+                crime_category_id: crimeCategories?.results?.find(categories => categories?.crime_category_name === pdlCases?.offense?.crime_category)?.id ?? null,
                 court_name: pdlCases?.court_branch?.court ?? "",
                 bail_recommended: pdlCases?.bail_recommended ?? "",
-                law_id: laws?.find(law => law?.name === pdlCases?.law)?.id ?? null,
+                law_id: laws?.results?.find(law => law?.name === pdlCases?.law)?.id ?? null,
             })) ?? [],
             gang_affiliation_id:
                 gangAffiliation?.results?.find(
