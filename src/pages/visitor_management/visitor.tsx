@@ -47,7 +47,7 @@ const Visitor = () => {
 
     useEffect(() => {
         const fetchAll = async () => {
-            const res = await fetch(`${BASE_URL}/api/visitors/visitor/?limit=100000`, {
+            const res = await fetch(`${BASE_URL}/api/visitors/visitor/?limit=10000`, {
                 headers: {
                     Authorization: `Token ${token}`,
                     "Content-Type": "application/json",

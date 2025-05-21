@@ -177,7 +177,10 @@ const MultiBirthSiblingForm = ({
                                 value: person?.id,
                                 label: `${person?.first_name ?? ""} ${person?.middle_name ?? ""} ${person?.last_name ?? ""}`
                             }))}
-                            onSearch={setPersonSearch}
+                            onSearch={value => {
+                                setPersonSearch?.(value);
+                                setPersonPage?.(1); // Reset to first page on new search
+                            }}
                             onChange={(value) => {
                                 // Check for duplicates when changing the selection
                                 const isDuplicate = checkForDuplicate(value);

@@ -167,6 +167,7 @@ const PDLtable = () => {
 
     const dataSource = filteredPDLs?.results?.map((pdl) => ({
         key: pdl.id,
+        id: pdl?.id,
         pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
         first_name: pdl?.person?.first_name ?? 'N/A',
         middle_name: pdl?.person?.middle_name ?? '',
@@ -202,59 +203,59 @@ const PDLtable = () => {
                 ...Array.from(new Set(allPDLs.map(item =>
                     `${item?.person?.first_name ?? ''} ${item?.person?.middle_name ?? ''} ${item?.person?.last_name ?? ''}`.trim()
                 )))
-                .filter(name => name)
-                .map(name => ({ text: name, value: name }))
+                    .filter(name => name)
+                    .map(name => ({ text: name, value: name }))
             ],
             onFilter: (value, record) => record.name === value,
         },
-    {
-        title: 'Dorm No.',
-        dataIndex: 'cell_no',
-        key: 'cell_no',
-        sorter: (a, b) => a.cell_no.localeCompare(b.cell_no),
-        filters: [
-            ...Array.from(new Set(allPDLs.map(item => item.cell_no)))
-                .filter(cell_no => cell_no)
-                .map(cell_no => ({ text: cell_no, value: cell_no }))
-        ],
-        onFilter: (value, record) => record.cell_no === value,
-    },
-    {
-        title: 'Dorm Name',
-        dataIndex: 'cell_name',
-        key: 'cell_name',
-        sorter: (a, b) => a.cell_name.localeCompare(b.cell_name),
-        filters: [
-            ...Array.from(new Set(allPDLs.map(item => item.cell_name)))
-                .filter(cell_name => cell_name)
-                .map(cell_name => ({ text: cell_name, value: cell_name }))
-        ],
-        onFilter: (value, record) => record.cell_name === value,
-    },
-    {
-        title: 'Gang Affiliation',
-        dataIndex: 'gang_affiliation',
-        key: 'gang_affiliation',
-        sorter: (a, b) => a.gang_affiliation.localeCompare(b.gang_affiliation),
-        filters: [
-            ...Array.from(new Set(allPDLs.map(item => item.gang_affiliation)))
-                .filter(gang => gang)
-                .map(gang => ({ text: gang, value: gang }))
-        ],
-        onFilter: (value, record) => record.gang_affiliation === value,
-    },
-    {
-        title: 'Look',
-        dataIndex: 'look',
-        key: 'look',
-        sorter: (a, b) => a.look.localeCompare(b.look),
-        filters: [
-            ...Array.from(new Set(allPDLs.map(item => item.look)))
-                .filter(look => look)
-                .map(look => ({ text: look, value: look }))
-        ],
-        onFilter: (value, record) => record.look === value,
-    },
+        {
+            title: 'Dorm No.',
+            dataIndex: 'cell_no',
+            key: 'cell_no',
+            sorter: (a, b) => a.cell_no.localeCompare(b.cell_no),
+            filters: [
+                ...Array.from(new Set(allPDLs.map(item => item.cell_no)))
+                    .filter(cell_no => cell_no)
+                    .map(cell_no => ({ text: cell_no, value: cell_no }))
+            ],
+            onFilter: (value, record) => record.cell_no === value,
+        },
+        {
+            title: 'Dorm Name',
+            dataIndex: 'cell_name',
+            key: 'cell_name',
+            sorter: (a, b) => a.cell_name.localeCompare(b.cell_name),
+            filters: [
+                ...Array.from(new Set(allPDLs.map(item => item.cell_name)))
+                    .filter(cell_name => cell_name)
+                    .map(cell_name => ({ text: cell_name, value: cell_name }))
+            ],
+            onFilter: (value, record) => record.cell_name === value,
+        },
+        {
+            title: 'Gang Affiliation',
+            dataIndex: 'gang_affiliation',
+            key: 'gang_affiliation',
+            sorter: (a, b) => a.gang_affiliation.localeCompare(b.gang_affiliation),
+            filters: [
+                ...Array.from(new Set(allPDLs.map(item => item.gang_affiliation)))
+                    .filter(gang => gang)
+                    .map(gang => ({ text: gang, value: gang }))
+            ],
+            onFilter: (value, record) => record.gang_affiliation === value,
+        },
+        {
+            title: 'Look',
+            dataIndex: 'look',
+            key: 'look',
+            sorter: (a, b) => a.look.localeCompare(b.look),
+            filters: [
+                ...Array.from(new Set(allPDLs.map(item => item.look)))
+                    .filter(look => look)
+                    .map(look => ({ text: look, value: look }))
+            ],
+            onFilter: (value, record) => record.look === value,
+        },
         {
             title: "Action",
             key: "action",
@@ -307,41 +308,41 @@ const PDLtable = () => {
         const footerHeight = 32;
 
         let printSource;
-    if (debouncedSearch) {
-        printSource = (searchData?.results || []).map((pdl, index) => ({
-        id: pdl?.id ?? 'N/A',
-        pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
-        first_name: pdl?.person?.first_name ?? 'N/A',
-        middle_name: pdl?.person?.middle_name ?? '',
-        last_name: pdl?.person?.last_name ?? '',
-        name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
-        cell_no: pdl?.cell?.cell_no ?? 'N/A',
-        cell_name: pdl?.cell?.cell_name ?? 'N/A',
-        gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
-        look: pdl?.look ?? 'N/A',
-        date_of_admission: pdl?.date_of_admission ?? 'N/A',
-        organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-        }));
-    } else {
-        // Fetch all personnel for printing
-        const allData = await fetchAllPDLs();
-        printSource = (allData?.results || []).map((pdl, index) => ({
-            id: pdl?.id ?? 'N/A',
-            pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
-            first_name: pdl?.person?.first_name ?? 'N/A',
-            middle_name: pdl?.person?.middle_name ?? '',
-            last_name: pdl?.person?.last_name ?? '',
-            name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
-            cell_no: pdl?.cell?.cell_no ?? 'N/A',
-            cell_name: pdl?.cell?.cell_name ?? 'N/A',
-            gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
-            look: pdl?.look ?? 'N/A',
-            date_of_admission: pdl?.date_of_admission ?? 'N/A',
-            organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
-            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-        }));
-    }
+        if (debouncedSearch) {
+            printSource = (searchData?.results || []).map((pdl, index) => ({
+                id: pdl?.id ?? 'N/A',
+                pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
+                first_name: pdl?.person?.first_name ?? 'N/A',
+                middle_name: pdl?.person?.middle_name ?? '',
+                last_name: pdl?.person?.last_name ?? '',
+                name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
+                cell_no: pdl?.cell?.cell_no ?? 'N/A',
+                cell_name: pdl?.cell?.cell_name ?? 'N/A',
+                gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
+                look: pdl?.look ?? 'N/A',
+                date_of_admission: pdl?.date_of_admission ?? 'N/A',
+                organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
+                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+            }));
+        } else {
+            // Fetch all personnel for printing
+            const allData = await fetchAllPDLs();
+            printSource = (allData?.results || []).map((pdl, index) => ({
+                id: pdl?.id ?? 'N/A',
+                pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
+                first_name: pdl?.person?.first_name ?? 'N/A',
+                middle_name: pdl?.person?.middle_name ?? '',
+                last_name: pdl?.person?.last_name ?? '',
+                name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
+                cell_no: pdl?.cell?.cell_no ?? 'N/A',
+                cell_name: pdl?.cell?.cell_name ?? 'N/A',
+                gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
+                look: pdl?.look ?? 'N/A',
+                date_of_admission: pdl?.date_of_admission ?? 'N/A',
+                organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
+                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+            }));
+        }
 
         const organizationName = dataSource[0]?.organization || "";
         const PreparedBy = dataSource[0]?.updated || '';

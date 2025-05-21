@@ -91,7 +91,7 @@ const VisitorRegistration = () => {
     const [editPdlToVisitIndex, setEditPdlToVisitIndex] = useState<number | null>(null);
 
     const [personSearch, setPersonSearch] = useState("");
-    console.log(personSearch)
+    const [personPage, setPersonPage] = useState(1);
 
     const [personForm, setPersonForm] = useState<PersonForm>({
         first_name: "",
@@ -343,8 +343,9 @@ const VisitorRegistration = () => {
     }
 
     const { data: persons, isLoading: personLoading } = useQuery({
-        queryKey: ['persons', personSearch],
-        queryFn: () => getPersonSearch(token ?? "", 10, personSearch),
+        queryKey: ['persons', personSearch, personPage],
+        queryFn: () => getPersonSearch(token ?? "", 10, personSearch, personPage),
+        keepPreviousData: true,
         staleTime: 10 * 60 * 1000,
     });
 
@@ -1076,6 +1077,7 @@ const VisitorRegistration = () => {
                         </div>
 
                         <MultipleBirthSiblings
+                            setPersonPage={setPersonPage}
                             setPersonSearch={setPersonSearch}
                             handleDeleteMultipleBirthSibling={handleDeleteMultipleBirthSibling}
                             prefixes={prefixes || []}

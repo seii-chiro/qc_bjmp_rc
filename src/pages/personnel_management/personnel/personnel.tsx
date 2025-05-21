@@ -36,7 +36,7 @@ const Personnel = () => {
     const [page, setPage] = useState(1);
     const limit = 10;
     const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+    // const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [allPersonnel, setAllPersonnel] = useState<PersonnelType[]>([]);
 
     useEffect(() => {
@@ -122,8 +122,9 @@ const Personnel = () => {
         },
     });
 
-    const dataSource = data?.results?.map((personnel) => ({
-        id: personnel.id,
+    const dataSource = data?.results?.map((personnel, index) => ({
+        key: index + 1,
+        id: personnel?.id,
         organization: personnel?.organization ?? '',
         personnel_reg_no: personnel?.personnel_reg_no ?? '',
         person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,

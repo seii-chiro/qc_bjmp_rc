@@ -2601,23 +2601,18 @@ export async function getRealPerson(
 export async function getPersonSearch(
   token: string,
   limit = 10,
-  search = ""
-): Promise<PaginatedResponse<NewPerson>> {
-  let url = `${PERSON.getPERSON}?limit=${limit}`;
-  if (search) {
-    url += `&search=${encodeURIComponent(search)}`;
-  }
+  search = "",
+  page = 1
+): Promise<{ results: NewPerson[]; count: number }> {
+  let url = `${PERSON.getPERSON}?limit=${limit}&offset=${(page - 1) * limit}`;
+  if (search) url += `&search=${encodeURIComponent(search)}`;
   const res = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
     },
   });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch Person data.");
-  }
-
+  if (!res.ok) throw new Error("Failed to fetch Person data.");
   return res.json();
 }
 
