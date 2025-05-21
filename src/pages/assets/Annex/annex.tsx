@@ -93,30 +93,75 @@ const Annex = () => {
             dataIndex: "building",
             key: "building",
             sorter: (a, b) => a.building.localeCompare(b.building),
+            filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.building))
+                    ).map(building => ({
+                        text: building,
+                        value: building,
+                    }))
+                ],
+                onFilter: (value, record) => record.building === value,
         },
         {
             title: "Annex Number",
             dataIndex: "floor_number",
             key: "floor_number",
             sorter: (a, b) => a.floor_number.localeCompare(b.floor_number),
+                    filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.floor_number))
+                    ).map(floor_number => ({
+                        text: floor_number,
+                        value: floor_number,
+                    }))
+                ],
+                onFilter: (value, record) => record.floor_number === value,
         },
         {
             title: "Annex Name",
             dataIndex: "floor_name",
             key: "floor_name",
             sorter: (a, b) => a.floor_name.localeCompare(b.floor_name),
+                    filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.floor_name))
+                    ).map(floor_name => ({
+                        text: floor_name,
+                        value: floor_name,
+                    }))
+                ],
+                onFilter: (value, record) => record.floor_name === value,
         },
         {
             title: "Security Level",
             dataIndex: "security_level",
             key: "security_level",
             sorter: (a, b) => a.security_level.localeCompare(b.security_level),
+                    filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.security_level))
+                    ).map(security_level => ({
+                        text: security_level,
+                        value: security_level,
+                    }))
+                ],
+                onFilter: (value, record) => record.security_level === value,
         },
         {
             title: "Description",
             dataIndex: "floor_description",
             key: "floor_description",
             sorter: (a, b) => a.floor_description.localeCompare(b.floor_description),
+            filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.floor_description))
+                    ).map(floor_description => ({
+                        text: floor_description,
+                        value: floor_description,
+                    }))
+                ],
+                onFilter: (value, record) => record.floor_description === value,
         },
         {
             title: "Actions",

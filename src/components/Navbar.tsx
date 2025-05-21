@@ -32,7 +32,7 @@ const Navbar = ({ isSidebarCollapsed }: NavbarProps) => {
         { path: "incidents", icon: PiWarningOctagon, label: "Incidents" },
         { path: "", icon: FaRegFileAlt, label: "Reports" },//reports
         { path: "", icon: FaWrench, label: "Supports" },//supports
-        { path: "", icon: VscSettings, label: "Settings" },//settings
+        { path: "settings", icon: VscSettings, label: "Settings" },//
     ];
 
     const administrationLinks = [

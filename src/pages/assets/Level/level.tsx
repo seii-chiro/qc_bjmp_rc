@@ -89,18 +89,45 @@ const Level = () => {
                 dataIndex: "jail",
                 key: "jail",
                 sorter: (a, b) => a.jail.localeCompare(b.jail),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.jail))
+                    ).map(jail => ({
+                        text: jail,
+                        value: jail,
+                    }))
+                ],
+                onFilter: (value, record) => record.jail === value,
             },
             {
                 title: "Level Name",
                 dataIndex: "bldg_name", 
                 key: "bldg_name",
                 sorter: (a, b) => a.bldg_name.localeCompare(b.bldg_name),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.bldg_name))
+                    ).map(bldg_name => ({
+                        text: bldg_name,
+                        value: bldg_name,
+                    }))
+                ],
+                onFilter: (value, record) => record.bldg_name === value,
             },
             {
                 title: "Level Status",
                 dataIndex: "bldg_status", 
                 key: "bldg_status",
                 sorter: (a, b) => a.bldg_status.localeCompare(b.bldg_status),
+                filters: [
+                    ...Array.from(
+                        new Set(filteredData.map(item => item.bldg_status))
+                    ).map(bldg_status => ({
+                        text: bldg_status,
+                        value: bldg_status,
+                    }))
+                ],
+                onFilter: (value, record) => record.bldg_status === value,
             },
             {
                 title: "Actions",

@@ -79,7 +79,7 @@ const Home1 = () => {
             <Cards link='/jvms/dashboard' title='Statistic Dashboard' image={statistic} />
             <Cards link='/jvms/alphalist' title='Alpha List' image={alpha} />
             <Cards link='/jvms/log-monitoring' title='Log Monitoring' image={log} />
-            <Cards link='' title='Status Reports' image={status} />{/* /jvms/reports */}
+            <Cards link='/jvms/reports' title='Status Reports' image={status} />
             <Cards link='/jvms/screening' title='Scanner' image={scanner} />
             <Cards link='/jvms/database' title='Databases' image={database} />
             <Cards link='' title='CCTV Monitor' image={cctv} />
@@ -90,7 +90,7 @@ const Home1 = () => {
             <Cards link='/jvms/users' title='Users' image={users} />
             <Cards link='' title='Support' image={support} />{/* /jvms/supports */}
             <Cards link='' title='Cloud' image={cloud} />
-            <Cards link='' title='Settings' image={setting} /> {/* /jvms/settings */}
+            <Cards link='/jvms/settings' title='Settings' image={setting} />
         </div>
     )
 }

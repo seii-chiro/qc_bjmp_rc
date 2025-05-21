@@ -26,6 +26,11 @@ const ScannerSelection = ({ open, onClose, selectedArea }: Props) => {
             { scanner: "Face Recognition", icon: faceqrScanImg },
             { scanner: "Iris", icon: irisqrScanImg },
         ];
+    } else if (selectedArea === "Main Gate") {
+        scannerSelection = [
+            { scanner: "RFID", icon: rfidScanImg },
+            { scanner: "QR", icon: qrScanImg },
+        ]
     } else {
         scannerSelection = [
             { scanner: "RFID", icon: rfidScanImg },
