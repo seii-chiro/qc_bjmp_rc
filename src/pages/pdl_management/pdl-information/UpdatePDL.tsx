@@ -144,6 +144,8 @@ const UpdatePDL = () => {
         enabled: !!pdl?.id && !!token,
     });
 
+    console.log(pdlData)
+
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 

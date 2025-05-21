@@ -36,7 +36,7 @@ const Personnel = () => {
     const [page, setPage] = useState(1);
     const limit = 10;
     const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+    // const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [allPersonnel, setAllPersonnel] = useState<PersonnelType[]>([]);
 
     useEffect(() => {
@@ -163,11 +163,11 @@ const Personnel = () => {
                         allPersonnel.map(item => item.personnel_reg_no ?? '')
                     )
                 )
-                .filter(regNo => regNo) // Remove empty values
-                .map(regNo => ({
-                    text: regNo,
-                    value: regNo,
-                }))
+                    .filter(regNo => regNo) // Remove empty values
+                    .map(regNo => ({
+                        text: regNo,
+                        value: regNo,
+                    }))
             ],
             onFilter: (value, record) => record.personnel_reg_no === value,
         },
@@ -199,11 +199,11 @@ const Personnel = () => {
                         )
                     )
                 )
-                .filter(person => person) // Remove empty names
-                .map(person => ({
-                    text: person,
-                    value: person,
-                }))
+                    .filter(person => person) // Remove empty names
+                    .map(person => ({
+                        text: person,
+                        value: person,
+                    }))
             ],
             onFilter: (value, record) => record.person === value,
         },
@@ -286,140 +286,140 @@ const Personnel = () => {
         XLSX.writeFile(wb, "Personnel.xlsx");
     };
 
-const fetchAllPersonnels = async () => {
-    const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=100000`, {
-        headers: {
-            Authorization: `Token ${token}`,
-            "Content-Type": "application/json",
-        },
-    });
-    if (!res.ok) throw new Error("Network error");
-    return res.json();
-};
-
-const handleExportPDF = async () => {
-    const doc = new jsPDF();
-    const headerHeight = 48;
-    const footerHeight = 32;
-
-    let printSource;
-    if (debouncedSearch) {
-        printSource = (searchData?.results || []).map((personnel, index) => ({
-            id: personnel?.id,
-            key: index + 1,
-            organization: personnel?.organization ?? '',
-            personnel_reg_no: personnel?.personnel_reg_no ?? '',
-            person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
-            shortname: personnel?.person?.shortname ?? '',
-            rank: personnel?.rank ?? '',
-            status: personnel?.status ?? '',
-            gender: personnel?.person?.gender?.gender_option ?? '',
-            date_joined: personnel?.date_joined ?? '',
-            record_status: personnel?.record_status ?? '',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-        }));
-    } else {
-        // Fetch all personnel for printing
-        const allData = await fetchAllPersonnels();
-        printSource = (allData?.results || []).map((personnel, index) => ({
-            id: personnel?.id,
-            key: index + 1,
-            organization: personnel?.organization ?? '',
-            personnel_reg_no: personnel?.personnel_reg_no ?? '',
-            person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
-            shortname: personnel?.person?.shortname ?? '',
-            rank: personnel?.rank ?? '',
-            status: personnel?.status ?? '',
-            gender: personnel?.person?.gender?.gender_option ?? '',
-            date_joined: personnel?.date_joined ?? '',
-            record_status: personnel?.record_status ?? '',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-        }));
-    }
-
-    const organizationName = printSource[0]?.organization || "";
-    const PreparedBy = printSource[0]?.updated_by || '';
-
-    const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-    const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-
-    const maxRowsPerPage = 26;
-    let startY = headerHeight;
-
-    const addHeader = () => {
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const imageWidth = 30;
-        const imageHeight = 30;
-        const margin = 10;
-        const imageX = pageWidth - imageWidth - margin;
-        const imageY = 12;
-
-        doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-        doc.setTextColor(0, 102, 204);
-        doc.setFontSize(16);
-        doc.text("Personnel Report", 10, 15);
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(10);
-        doc.text(`Organization Name: ${organizationName}`, 10, 25);
-        doc.text("Report Date: " + formattedDate, 10, 30);
-        doc.text("Prepared By: " + PreparedBy, 10, 35);
-        doc.text("Department/ Unit: IT", 10, 40);
-        doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
-    };
-
-    addHeader();
-
-    const tableData = printSource.map(item => [
-        item.key,
-        item.personnel_reg_no,
-        item.person,
-        item.rank,
-        item.date_joined,
-    ]);
-
-    for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
-        const pageData = tableData.slice(i, i + maxRowsPerPage);
-
-        autoTable(doc, {
-            head: [['No.', 'Personnel Reg. No.', 'Personnel', 'Rank', 'Date Joined']],
-            body: pageData,
-            startY: startY,
-            margin: { top: 0, left: 10, right: 10 },
-            didDrawPage: function () {
-                if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                    addHeader();
-                }
+    const fetchAllPersonnels = async () => {
+        const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=100000`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
             },
         });
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
 
-        if (i + maxRowsPerPage < tableData.length) {
-            doc.addPage();
-            startY = headerHeight;
+    const handleExportPDF = async () => {
+        const doc = new jsPDF();
+        const headerHeight = 48;
+        const footerHeight = 32;
+
+        let printSource;
+        if (debouncedSearch) {
+            printSource = (searchData?.results || []).map((personnel, index) => ({
+                id: personnel?.id,
+                key: index + 1,
+                organization: personnel?.organization ?? '',
+                personnel_reg_no: personnel?.personnel_reg_no ?? '',
+                person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
+                shortname: personnel?.person?.shortname ?? '',
+                rank: personnel?.rank ?? '',
+                status: personnel?.status ?? '',
+                gender: personnel?.person?.gender?.gender_option ?? '',
+                date_joined: personnel?.date_joined ?? '',
+                record_status: personnel?.record_status ?? '',
+                updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+            }));
+        } else {
+            // Fetch all personnel for printing
+            const allData = await fetchAllPersonnels();
+            printSource = (allData?.results || []).map((personnel, index) => ({
+                id: personnel?.id,
+                key: index + 1,
+                organization: personnel?.organization ?? '',
+                personnel_reg_no: personnel?.personnel_reg_no ?? '',
+                person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
+                shortname: personnel?.person?.shortname ?? '',
+                rank: personnel?.rank ?? '',
+                status: personnel?.status ?? '',
+                gender: personnel?.person?.gender?.gender_option ?? '',
+                date_joined: personnel?.date_joined ?? '',
+                record_status: personnel?.record_status ?? '',
+                updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+            }));
         }
-    }
 
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let page = 1; page <= pageCount; page++) {
-        doc.setPage(page);
-        const footerText = [
-            "Document Version: Version 1.0",
-            "Confidentiality Level: Internal use only",
-            "Contact Info: " + PreparedBy,
-            `Timestamp of Last Update: ${formattedDate}`
-        ].join('\n');
-        const footerX = 10;
-        const footerY = doc.internal.pageSize.height - footerHeight + 15;
-        const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
-        doc.setFontSize(8);
-        doc.text(footerText, footerX, footerY);
-        doc.text(`${page} / ${pageCount}`, pageX, footerY);
-    }
+        const organizationName = printSource[0]?.organization || "";
+        const PreparedBy = printSource[0]?.updated_by || '';
 
-    const pdfOutput = doc.output('datauristring');
-    setPdfDataUrl(pdfOutput);
-    setIsPdfModalOpen(true);
-};
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+
+        const maxRowsPerPage = 26;
+        let startY = headerHeight;
+
+        const addHeader = () => {
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const imageWidth = 30;
+            const imageHeight = 30;
+            const margin = 10;
+            const imageX = pageWidth - imageWidth - margin;
+            const imageY = 12;
+
+            doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
+            doc.setTextColor(0, 102, 204);
+            doc.setFontSize(16);
+            doc.text("Personnel Report", 10, 15);
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.text(`Organization Name: ${organizationName}`, 10, 25);
+            doc.text("Report Date: " + formattedDate, 10, 30);
+            doc.text("Prepared By: " + PreparedBy, 10, 35);
+            doc.text("Department/ Unit: IT", 10, 40);
+            doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
+        };
+
+        addHeader();
+
+        const tableData = printSource.map(item => [
+            item.key,
+            item.personnel_reg_no,
+            item.person,
+            item.rank,
+            item.date_joined,
+        ]);
+
+        for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
+            const pageData = tableData.slice(i, i + maxRowsPerPage);
+
+            autoTable(doc, {
+                head: [['No.', 'Personnel Reg. No.', 'Personnel', 'Rank', 'Date Joined']],
+                body: pageData,
+                startY: startY,
+                margin: { top: 0, left: 10, right: 10 },
+                didDrawPage: function () {
+                    if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+                        addHeader();
+                    }
+                },
+            });
+
+            if (i + maxRowsPerPage < tableData.length) {
+                doc.addPage();
+                startY = headerHeight;
+            }
+        }
+
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let page = 1; page <= pageCount; page++) {
+            doc.setPage(page);
+            const footerText = [
+                "Document Version: Version 1.0",
+                "Confidentiality Level: Internal use only",
+                "Contact Info: " + PreparedBy,
+                `Timestamp of Last Update: ${formattedDate}`
+            ].join('\n');
+            const footerX = 10;
+            const footerY = doc.internal.pageSize.height - footerHeight + 15;
+            const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+            doc.setFontSize(8);
+            doc.text(footerText, footerX, footerY);
+            doc.text(`${page} / ${pageCount}`, pageX, footerY);
+        }
+
+        const pdfOutput = doc.output('datauristring');
+        setPdfDataUrl(pdfOutput);
+        setIsPdfModalOpen(true);
+    };
 
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
