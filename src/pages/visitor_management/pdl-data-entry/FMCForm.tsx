@@ -17,6 +17,11 @@ type Props<T extends HasPersonRelationships> = {
     relationships: VisitortoPDLRelationship[] | null;
     relationshipsLoading: boolean;
     setEditIndex: React.Dispatch<SetStateAction<number | null>>;
+    personSearch: string;
+    setPersonSearch: (val: string) => void;
+    personPage: number;
+    setPersonPage: (page: number) => void;
+    personsCount: number;
 };
 
 const FMCForm = <T extends HasPersonRelationships>({
@@ -31,6 +36,11 @@ const FMCForm = <T extends HasPersonRelationships>({
     prefixes,
     suffixes,
     setEditIndex,
+    personPage,
+    personSearch,
+    personsCount,
+    setPersonPage,
+    setPersonSearch
 }: Props<T>) => {
     const [form, setForm] = useState<FamilyRelativesContactsForm>({
         address: "",
@@ -137,6 +147,27 @@ const FMCForm = <T extends HasPersonRelationships>({
         <div className="w-full p-5 flex justify-center items-center">
             <form className="w-full flex justify-center items-center">
                 <div className="flex flex-col gap-2 w-full justify-center items-center">
+                    {/* <div className="flex gap-2 mb-2 w-full">
+                        <Input
+                            placeholder="Search Person"
+                            value={personSearch}
+                            onChange={e => {
+                                setPersonSearch(e.target.value);
+                                setPersonPage(1);
+                            }}
+                            className="w-1/2 h-12"
+                        />
+                    </div> */}
+                    {/* {personsCount > 10 && (
+                            <Pagination
+                                className="mb-2"
+                                current={personPage}
+                                pageSize={10}
+                                total={personsCount}
+                                onChange={page => setPersonPage(page)}
+                                showSizeChanger={false}
+                            />
+                        )} */}
                     <div className="flex gap-2 w-full">
                         <label className="flex flex-col gap-2 flex-[2]">
                             <span className="font-semibold">Relationship <span className="text-red-600">*</span></span>
@@ -163,13 +194,24 @@ const FMCForm = <T extends HasPersonRelationships>({
                             <Select
                                 showSearch
                                 loading={personsLoading}
-                                className="h-12  flex-1"
+                                className="h-12 flex-1"
                                 optionFilterProp="label"
                                 value={form?.person_id}
-                                options={persons?.map(person => ({
-                                    value: person?.id,
-                                    label: person?.last_name,
-                                }))}
+                                options={
+                                    personsLoading
+                                        ? []
+                                        : persons?.length
+                                            ? persons.map(person => ({
+                                                value: person?.id,
+                                                label: person?.last_name,
+                                            }))
+                                            : []
+                                }
+                                notFoundContent={personsLoading ? "Loading..." : "No data found"}
+                                onSearch={value => {
+                                    setPersonSearch(value);
+                                    setPersonPage(1);
+                                }}
                                 onChange={handlePersonSelect}
                             />
                         </label>
@@ -178,14 +220,25 @@ const FMCForm = <T extends HasPersonRelationships>({
                             <span className="font-semibold">First Name <span className="text-red-600">*</span></span>
                             <Select
                                 showSearch
-                                className="h-12  flex-1"
+                                loading={personsLoading}
+                                className="h-12 flex-1"
                                 optionFilterProp="label"
                                 value={form?.person_id}
-                                loading={personsLoading}
-                                options={persons?.map(person => ({
-                                    value: person?.id,
-                                    label: person?.first_name,
-                                }))}
+                                options={
+                                    personsLoading
+                                        ? []
+                                        : persons?.length
+                                            ? persons.map(person => ({
+                                                value: person?.id,
+                                                label: person?.first_name,
+                                            }))
+                                            : []
+                                }
+                                notFoundContent={personsLoading ? "Loading..." : "No data found"}
+                                onSearch={value => {
+                                    setPersonSearch(value);
+                                    setPersonPage(1);
+                                }}
                                 onChange={handlePersonSelect}
                             />
                         </label>

@@ -10,8 +10,9 @@ import {
     getCivilStatus, getCountries, getCurrentUser, getDetention_Building, getDetention_Floor, getDetentionCell, getEthnicityProvinces, getGangAffiliation, getGenders, getInterests, getJail_Barangay,
     getJail_Municipality, getJail_Province, getJailRegion, getLooks, getMultipleBirthClassTypes, getNationalities,
     getOccupations,
+    getPersonSearch,
     getPrecincts,
-    getPrefixes, getRealPerson, getReligion, getSkills, getSuffixes, getTalents
+    getPrefixes, getReligion, getSkills, getSuffixes, getTalents
 } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { PDLForm, PersonForm } from "@/lib/visitorFormDefinition";
@@ -129,7 +130,7 @@ const PdlRegistration = () => {
         org_id: 1,
         occupation_id: null,
         person_id: null,
-        status: "Convicted",
+        status: "Commited",
         visitor_ids: [],
         pdl_alias: "",
         time_arrested: "",
@@ -144,6 +145,19 @@ const PdlRegistration = () => {
         visitation_status_id: null,
         risk_classification: ""
     })
+
+    const [personSearch, setPersonSearch] = useState("");
+    const [personPage, setPersonPage] = useState(1);
+
+    const {
+        data: personsPaginated,
+        isLoading: personsLoading,
+    } = useQuery({
+        queryKey: ['paginated-person', personSearch, personPage],
+        queryFn: () => getPersonSearch(token ?? "", 10, personSearch, personPage),
+        keepPreviousData: true,
+        staleTime: 10 * 60 * 1000,
+    });
 
     const [icao, setIcao] = useState("")
 
@@ -376,11 +390,6 @@ const PdlRegistration = () => {
             {
                 queryKey: ['countries'],
                 queryFn: () => getCountries(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['persons'],
-                queryFn: () => getRealPerson(token ?? ""),
                 staleTime: 10 * 60 * 1000
             },
             {
@@ -629,25 +638,26 @@ const PdlRegistration = () => {
     const municipalities = dropdownOptions?.[7]?.data?.results;
     const barangays = dropdownOptions?.[8]?.data?.results;
     const countries = dropdownOptions?.[9]?.data?.results;
-    const persons = dropdownOptions?.[10]?.data?.results;
-    const personsLoading = dropdownOptions?.[10]?.isLoading;
-    const talents = dropdownOptions?.[11]?.data?.results;
-    const talentsLoading = dropdownOptions?.[11]?.isLoading;
-    const skills = dropdownOptions?.[12]?.data?.results;
-    const skillsLoading = dropdownOptions?.[12]?.isLoading;
-    const currentUser = dropdownOptions?.[13]?.data;
-    const prefixes = dropdownOptions?.[14]?.data?.results;
-    const prefixesLoading = dropdownOptions?.[14]?.isLoading;
-    const suffixes = dropdownOptions?.[15]?.data?.results;
-    const suffixesLoading = dropdownOptions?.[15]?.isLoading;
-    const birthClassTypes = dropdownOptions?.[16]?.data?.results;
-    const birthClassTypesLoading = dropdownOptions?.[16]?.isLoading;
-    const interests = dropdownOptions?.[17]?.data?.results;
-    const interestsLoading = dropdownOptions?.[17]?.isLoading;
-    const levels = dropdownOptions?.[18]?.data?.results;
-    const levelsLoading = dropdownOptions?.[18]?.isLoading;
-    const annex = dropdownOptions?.[19]?.data?.results;
-    const annexLoading = dropdownOptions?.[19]?.isLoading;
+    const talents = dropdownOptions?.[10]?.data?.results;
+    const talentsLoading = dropdownOptions?.[10]?.isLoading;
+    const skills = dropdownOptions?.[11]?.data?.results;
+    const skillsLoading = dropdownOptions?.[11]?.isLoading;
+    const currentUser = dropdownOptions?.[12]?.data;
+    const prefixes = dropdownOptions?.[13]?.data?.results;
+    const prefixesLoading = dropdownOptions?.[13]?.isLoading;
+    const suffixes = dropdownOptions?.[14]?.data?.results;
+    const suffixesLoading = dropdownOptions?.[14]?.isLoading;
+    const birthClassTypes = dropdownOptions?.[15]?.data?.results;
+    const birthClassTypesLoading = dropdownOptions?.[15]?.isLoading;
+    const interests = dropdownOptions?.[16]?.data?.results;
+    const interestsLoading = dropdownOptions?.[16]?.isLoading;
+    const levels = dropdownOptions?.[17]?.data?.results;
+    const levelsLoading = dropdownOptions?.[17]?.isLoading;
+    const annex = dropdownOptions?.[18]?.data?.results;
+    const annexLoading = dropdownOptions?.[18]?.isLoading;
+
+    const persons = personsPaginated?.results || [];
+    const personsCount = personsPaginated?.count || 0;
 
     const addressDataSource = personForm?.address_data?.map((address, index) => {
         return ({
@@ -1446,6 +1456,11 @@ const PdlRegistration = () => {
                 personsLoading={personsLoading}
                 pdlForm={pdlForm}
                 setPdlForm={setPdlForm}
+                personSearch={personSearch}
+                setPersonSearch={setPersonSearch}
+                personPage={personPage}
+                setPersonPage={setPersonPage}
+                personsCount={personsCount}
             />
 
             <Modal

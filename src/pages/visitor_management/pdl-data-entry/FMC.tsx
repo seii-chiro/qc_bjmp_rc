@@ -22,6 +22,11 @@ type Props<T extends HasPersonRelationships> = {
     personsLoading: boolean;
     pdlForm: T;
     setPdlForm: React.Dispatch<SetStateAction<T>>;
+    personSearch: string;
+    setPersonSearch: (val: string) => void;
+    personPage: number;
+    setPersonPage: (page: number) => void;
+    personsCount: number;
 };
 
 const FMC = <T extends HasPersonRelationships>({
@@ -30,7 +35,12 @@ const FMC = <T extends HasPersonRelationships>({
     pdlForm,
     setPdlForm,
     prefixes,
-    suffixes
+    suffixes,
+    personPage,
+    personSearch,
+    personsCount,
+    setPersonPage,
+    setPersonSearch
 }: Props<T>) => {
 
     const token = useTokenStore()?.token
@@ -210,6 +220,11 @@ const FMC = <T extends HasPersonRelationships>({
                     relationshipsLoading={relationshipsLoading}
                     pdlForm={pdlForm}
                     setPdlForm={setPdlForm}
+                    personSearch={personSearch}
+                    setPersonSearch={setPersonSearch}
+                    personPage={personPage}
+                    setPersonPage={setPersonPage}
+                    personsCount={personsCount}
                 />
             </Modal>
         </div>
