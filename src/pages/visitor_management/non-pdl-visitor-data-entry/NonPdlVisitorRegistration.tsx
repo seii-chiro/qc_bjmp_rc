@@ -1104,7 +1104,7 @@ const NonPdlVisitorRegistration = () => {
                                         className='mt-2 h-10 rounded-md outline-gray-300'
                                     />
                                 </label>
-                                <label className="flex flex-col flex-[3]">
+                                {/* <label className="flex flex-col flex-[3]">
                                     <span className="font-semibold flex gap-1">Position<span className='text-red-600'>*</span></span>
                                     <Input
                                         value={personnel?.find(person => person?.id === nonPdlVisitorForm?.personnel_id)?.position}
@@ -1112,7 +1112,7 @@ const NonPdlVisitorRegistration = () => {
                                         placeholder="Position"
                                         className='mt-2 h-10 rounded-md outline-gray-300'
                                     />
-                                </label>
+                                </label> */}
                                 <label className="flex flex-col flex-[4]">
                                     <span className="font-semibold flex gap-1">Reason for Visit<span className='text-red-600'>*</span></span>
                                     <Select
