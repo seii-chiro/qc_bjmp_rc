@@ -10,10 +10,10 @@ const VisitLog = () => {
   const [view, setView] = useState<'Main Gate' | 'Visitor' | 'PDL'>('Main Gate');
   const token = useTokenStore().token;
 
-  const [mainGatePage] = useState(1);
-  const [visitorPage] = useState(1);
-  const [pdlPage] = useState(1);
-  const limit = 1000; // Increase limit to load more logs without pagination
+  const [mainGatePage, setMainGatePage] = useState(1);
+  const [visitorPage, setVisitorPage] = useState(1);
+  const [pdlPage, setPDLPage] = useState(1);
+  const limit = 10;
 
   useEffect(() => {
     const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
@@ -32,11 +32,12 @@ const VisitLog = () => {
   };
 
   const { data: mainGateData, isLoading: mainGateLogsLoading } = useQuery({
-    queryKey: ['main-gate', limit, debouncedSearch],
+    queryKey: ['main-gate', mainGatePage, limit, debouncedSearch],
     queryFn: async () => {
+      const offset = (mainGatePage - 1) * limit;
       const url = debouncedSearch
-        ? `${BASE_URL}/api/visit-logs/main-gate-visits/`
-        : `${BASE_URL}/api/visit-logs/main-gate-visits/`;
+        ? `${BASE_URL}/api/visit-logs/main-gate-visits/?search=${debouncedSearch}&limit=${limit}&offset=${offset}`
+        : `${BASE_URL}/api/visit-logs/main-gate-visits/?&limit=${limit}&offset=${offset}`;
       return fetchVisitLogs(url);
     },
     keepPreviousData: true,
@@ -44,11 +45,12 @@ const VisitLog = () => {
   });
 
   const { data: visitorData, isLoading: visitorLogsLoading } = useQuery({
-    queryKey: ['visitor', limit, debouncedSearch],
+    queryKey: ['visitor', visitorPage, limit, debouncedSearch],
     queryFn: async () => {
+      const offset = (visitorPage - 1) * limit;
       const url = debouncedSearch
-        ? `${BASE_URL}/api/visit-logs/visitor-station-visits/`
-        : `${BASE_URL}/api/visit-logs/visitor-station-visits/`;
+        ? `${BASE_URL}/api/visit-logs/visitor-station-visits/?search=${debouncedSearch}&limit=${limit}&offset=${offset}`
+        : `${BASE_URL}/api/visit-logs/visitor-station-visits/?&limit=${limit}&offset=${offset}`;
       return fetchVisitLogs(url);
     },
     keepPreviousData: true,
@@ -56,34 +58,41 @@ const VisitLog = () => {
   });
 
   const { data: pdlData, isLoading: pdlLogsLoading } = useQuery({
-    queryKey: ['pdl', limit, debouncedSearch],
+    queryKey: ['pdl', pdlPage, limit, debouncedSearch],
     queryFn: async () => {
+      const offset = (pdlPage - 1) * limit;
       const url = debouncedSearch
-        ? `${BASE_URL}/api/visit-logs/pdl-station-visits/`
-        : `${BASE_URL}/api/visit-logs/pdl-station-visits/`;
+        ? `${BASE_URL}/api/visit-logs/pdl-station-visits/?search=${debouncedSearch}&limit=${limit}&offset=${offset}`
+        : `${BASE_URL}/api/visit-logs/pdl-station-visits/?&limit=${limit}&offset=${offset}`;
       return fetchVisitLogs(url);
     },
     keepPreviousData: true,
     enabled: view === 'PDL',
   });
 
-  let activeData, tableIsLoading;
+  let activeData, tableIsLoading, page, setPage;
   if (view === 'Main Gate') {
     activeData = mainGateData;
     tableIsLoading = mainGateLogsLoading;
+    page = mainGatePage;
+    setPage = setMainGatePage;
   } else if (view === 'Visitor') {
     activeData = visitorData;
     tableIsLoading = visitorLogsLoading;
+    page = visitorPage;
+    setPage = setVisitorPage;
   } else {
     activeData = pdlData;
     tableIsLoading = pdlLogsLoading;
+    page = pdlPage;
+    setPage = setPDLPage;
   }
 
   const columns = [
     {
       title: 'No.',
       key: 'no',
-      render: (_: any, __: any, index: number) => index + 1,
+      render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
     },
     {
       title: 'Timestamp',
@@ -167,7 +176,12 @@ const VisitLog = () => {
         <Input
           placeholder="Search logs..."
           value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
+          onChange={(e) => {
+            setSearchText(e.target.value);
+            if (view === 'Main Gate') setMainGatePage(1);
+            if (view === 'Visitor') setVisitorPage(1);
+            if (view === 'PDL') setPDLPage(1);
+          }}
           className="py-2 w-full md:w-64"
         />
       </div>
@@ -177,8 +191,18 @@ const VisitLog = () => {
           columns={columns}
           dataSource={debouncedSearch ? filteredData : dataSource}
           scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
+          pagination={
+            debouncedSearch
+              ? false
+              : {
+                current: page,
+                pageSize: limit,
+                total: activeData?.count || 0,
+                onChange: (newPage) => setPage(newPage),
+                showSizeChanger: false,
+              }
+          }
           rowKey="key"
-          pagination={false} 
         />
       </div>
     </div>
@@ -186,4 +210,3 @@ const VisitLog = () => {
 };
 
 export default VisitLog;
-

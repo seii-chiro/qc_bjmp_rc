@@ -105,14 +105,6 @@ const PDLtable = () => {
         queryFn: () => getUser(token ?? "")
     })
 
-    const showModal = () => {
-        setIsModalOpen(true);
-    };
-
-    const handleCancel = () => {
-        setIsModalOpen(false);
-    };
-
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deletePDL(token ?? "", id),
         onSuccess: () => {
@@ -136,12 +128,6 @@ const PDLtable = () => {
             messageApi.error("Failed to update PDL");
         },
     });
-
-    const handleEdit = (record: PDLs) => {
-        setSelectedPDL(record);
-        form.setFieldsValue(record);
-        setIsEditModalOpen(true);
-    };
 
     const handleUpdate = (values: any) => {
         if (selectPDL?.id) {

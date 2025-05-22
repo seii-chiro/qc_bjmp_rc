@@ -36,8 +36,13 @@ const Personnel = () => {
     const [page, setPage] = useState(1);
     const limit = 10;
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const location = useLocation();
+    const filterOption = location.state?.filterOption;
     // const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [allPersonnel, setAllPersonnel] = useState<PersonnelType[]>([]);
+
+    const initialGenderFilter = location.state?.genderFilter || null;
+    const [genderFilter, setGenderFilter] = useState<string | null>(initialGenderFilter);
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -55,8 +60,7 @@ const Personnel = () => {
         fetchAll();
     }, [token]);
 
-    const location = useLocation();
-    const filterOption = location.state?.filterOption;
+
 
     const fetchPersonnels = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/codes/personnel/?search=${search}`, {
@@ -136,13 +140,14 @@ const Personnel = () => {
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
-    // Filter data based on search input and filter option
+    // Filter data based on search input, filter option, and gender filter
     const filteredData = dataSource.filter(personnel => {
         const matchesSearch = Object.values(personnel).some(value =>
             String(value).toLowerCase().includes(searchText.toLowerCase())
         );
         const matchesStatus = filterOption ? personnel.status === filterOption : true;
-        return matchesSearch && matchesStatus;
+        const matchesGender = genderFilter ? personnel.gender === genderFilter : true; // Updated to check gender
+        return matchesSearch && matchesStatus && matchesGender;
     });
 
     const columns: ColumnType<PersonnelForm> = [

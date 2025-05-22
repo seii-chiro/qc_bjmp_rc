@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from 'react';
+import { getJail, getPersonnel, getSummary_Card, getSummaryDaily } from "@/lib/queries";
+import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTokenStore } from "@/store/useTokenStore";
-import { getSummary_Card, getJail, getPersonnel, getSummaryDaily } from '@/lib/queries';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, BarElement, LinearScale, CategoryScale, PointElement, LineElement, Filler } from 'chart.js';
-import { RxEnterFullScreen } from "react-icons/rx";
+import { useNavigate } from "react-router-dom";
 import bjmp from '../../assets/Logo/bjmp.png';
 import bjmpro from '../../assets/Logo/BJMPRO.png';
 import bp from '../../assets/Logo/BP.png';
@@ -27,15 +26,17 @@ import malfunction from '../../assets/Icons/malfunction.png'
 import illegal from '../../assets/Icons/illegal.png'
 import on_duty from '../../assets/Icons/on-duty.png'
 import off_duty from '../../assets/Icons/off-duty.png'
-import { Title } from './components/SummaryCards';
-import { Pie } from 'react-chartjs-2';
-import { IoMdRefresh } from 'react-icons/io';
-import { RiShareBoxLine } from 'react-icons/ri';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
-import { NavLink, useNavigate } from 'react-router-dom';
-
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler);
+import personnel_male from '../../assets/Icons/personnel_male.png'
+import personnel_woman from '../../assets/Icons/personnel_woman.png'
+import visitor_male from '../../assets/Icons/visitor_male.png'
+import visitor_female from '../../assets/Icons/visitor_female.png'
+import { RiShareBoxLine } from "react-icons/ri";
+import { IoMdRefresh } from "react-icons/io";
+import { RxEnterFullScreen } from "react-icons/rx";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { getVisitor } from "@/lib/query";
+import { Title } from "./components/SummaryCards";
 
 const Dashboard = () => {
     const queryClient = useQueryClient();
@@ -56,7 +57,7 @@ const Dashboard = () => {
         queryFn: () => getSummary_Card(token ?? "")
     });
 
-const { data: dailysummarydata } = useQuery({
+    const { data: dailysummarydata } = useQuery({
         queryKey: ['daily-summary'],
         queryFn: () => getSummaryDaily(token ?? "")
     });
@@ -71,101 +72,115 @@ const { data: dailysummarydata } = useQuery({
         queryFn: () => getPersonnel(token ?? "")
     });
 
-    const exportDashboard = () => {
-        const element = document.getElementById('dashboard');
+    const { data: visitorData } = useQuery({
+        queryKey: ['visitor'],
+        queryFn: () => getVisitor(token ?? "")
+    });
 
-        if (element) {
-            html2canvas(element, {
-                backgroundColor: '#F6F7FB',
-                scale: 2
-            }).then((canvas) => {
-                const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF('l', 'pt', 'a4');
-                const imgWidth = pdf.internal.pageSize.getWidth();
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+const totalJailCapacity = Array.isArray(jail?.results)
+    ? jail.results.reduce((sum, item) => sum + (item.jail_capacity || 0), 0)
+    : 0;
 
-                const position = (pdf.internal.pageSize.getHeight() - imgHeight) / 2;
+    const latestDate = Object.keys(dailysummarydata?.success.daily_visit_summary || {})[0];
+    const summary = dailysummarydata?.success.daily_visit_summary[latestDate];
 
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                pdf.save('male_dashboard.pdf');
-            });
-        } else {
-            console.error("Dashboard element not found.");
-        }
-    };
 
-    const Card = ({ title, image, count, linkto }: { title: string, image: string, count: number | string, linkto?: string }) => {
-        return (
-            <div className='rounded-lg flex items-center gap-2 p-2 w-full bg-[#F6F7FB] hover:cursor-pointer' onClick={() => linkto && navigate(linkto)}>
-                <div className='bg-[#D3DFF0] p-1 rounded-full'>
-                    <img src={image} className='w-10' alt={title} />
-                </div>
-                <div>
-                    <div className='text-[#1E365D] font-extrabold text-3xl'>{count}</div>
-                    <p className='text-[#121D26] text-lg font-semibold'>{title}</p>
-                </div>
-            </div>
-        )
-    }
+    const personnelResults = personnelData?.results || [];
+    const personnelMaleCount = personnelResults.filter(
+        p => p?.person?.gender?.gender_option === "Male"
+    ).length;
+    const personnelFemaleCount = personnelResults.filter(
+        p => p?.person?.gender?.gender_option === "Female"
+    ).length;
+    const personnelOtherCount = personnelResults.filter(
+        p => p?.person?.gender?.gender_option !== "Male" &&
+            p?.person?.gender?.gender_option !== "Female"
+    ).length;
 
-    const Card2 = ({ title, image, count }: { title: string, image: string, count: number | string }) => {
-        return (
-            <div className={`rounded-lg flex items-center gap-2 p-2 w-full bg-[#F6F7FB] flex-grow`}>
-                <div className='p-1 rounded-full'>
-                    <img src={image} className='w-8' alt={title} />
-                </div>
-                <div>
-                    <div className='text-[#1E365D] font-extrabold text-xl'>{count}</div>
-                    <p className='text-[#121D26] text-sm font-semibold'>{title}</p>
-                </div>
-            </div>
-        )
-    }
+    const visitorResults = visitorData?.results || [];
+    const visitorMaleCount = visitorResults.filter(
+        p => p?.person?.gender?.gender_option === "Male"
+    ).length;
+    const visitorFemaleCount = visitorResults.filter(
+        p => p?.person?.gender?.gender_option === "Female"
+    ).length;
+    const visitorOtherCount = visitorResults.filter(
+        p => p?.person?.gender?.gender_option !== "Male" &&
+            p?.person?.gender?.gender_option !== "Female"
+    ).length;
 
-    const Card3 = ({ title, image, count, linkto, state }: { title: string; image: string; count: number | string; linkto?: string; state?: any }) => {
-        const navigate = useNavigate();
+    const visitorGenderData = [
+        { name: 'Male', value: visitorMaleCount ?? 0 },
+        { name: 'Female', value: visitorFemaleCount ?? 0 },
+        { name: 'Other', value: visitorOtherCount ?? 0 },
+    ];
+    const personnelGenderData = [
+        { name: 'Male', value: personnelMaleCount ?? 0 },
+        { name: 'Female', value: personnelFemaleCount ?? 0 },
+        { name: 'Other', value: personnelOtherCount ?? 0 },
+    ];
+    const genderData = [
+        { name: 'Male', value: summarydata?.success.pdls_based_on_gender?.Active?.Male || 0 },
+        { name: 'Gay', value: summarydata?.success.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0 },
+        { name: 'Transgender', value: summarydata?.success.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0 },
+    ];
+    // Define separate color arrays
+    const PDL_COLORS = ['#3471EC', '#7ED26C', '#FE319D'];
+    const COLORS = ['#3471EC', '#FE319D', '#AF4BCE'];
 
-        const handleClick = () => {
-            if (linkto) {
-                navigate(linkto, { state });
-            }
-        };
 
-        const cardContent = (
-            <div className='p-1 rounded-full'>
-                <img src={image} className='w-10' alt={title} />
-            </div>
-        );
+    const PDLEnteredExitData = [
+        { name: 'Entered', value: summary?.pdl_station_visits || 0 },
+        { name: 'Exited', value: 0 },
+    ];
 
-        return (
-            <div
-                className={`rounded-lg flex items-center gap-2 p-2 w-full bg-[#F6F7FB] flex-grow ${linkto ? 'hover:cursor-pointer' : ''}`}
-                onClick={linkto ? handleClick : undefined} // Only attach click handler if linkto is provided
-            >
-                {cardContent}
-                <div>
-                    <div className='text-[#1E365D] font-extrabold text-3xl'>{count}</div>
-                    <p className='text-[#121D26] text-lg font-semibold'>{title}</p>
-                </div>
-            </div>
-        );
-    };
+    const VisitorEnteredExitData = [
+        { name: 'Entered', value: (summary?.main_gate_tracking ?? 0) + (summary?.visitor_station_visits ?? 0)},
+        { name: 'Exited', value: 0 },
+    ];
 
-    const Card4 = ({ title, image, count }: { title: string, image: string, count: number | string }) => {
-        return (
-            <div className={`rounded-lg flex items-center gap-2 p-2 w-full bg-[#F6F7FB] flex-grow`}>
-                <div className='p-1 rounded-full'>
-                    <img src={image} className='w-10' alt={title} />
-                </div>
-                <div>
-                    <div className='text-[#1E365D] font-extrabold text-3xl'>{count}</div>
-                    <p className='text-[#121D26] text-lg font-semibold'>{title}</p>
-                </div>
-            </div>
-        )
-    }
+    const PersonnelEnteredExitData = [
+        { name: 'Entered', value: summarydata?.success.premises_logs.personnel_logs_today["Time In"] || 0},
+        { name: 'Exited', value: summarydata?.success.premises_logs.personnel_logs_today["Time Out"] || 0 },
+    ];
 
-    const Card5 = (props: {
+    const ServiceEnteredExitData = [
+        { name: 'Entered', value: 0},
+        { name: 'Exited', value: 0 },
+    ];
+
+    const NonRegisterEnteredExitData = [
+        { name: 'Entered', value: 0},
+        { name: 'Exited', value: 0 },
+    ];
+
+    const onOffDutyPersonnelData = [
+        { name: 'Entered', value: summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0},
+        { name: 'Exited', value: summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0,},
+    ];
+
+    const EmergencyMalfunctionData = [
+        { name: 'Emergency', value: 0},
+        { name: 'Malfunction of System', value: 0,},
+        { name: 'Illegal Entry/Exit', value: 0,},
+    ];
+
+    const ActionTakenData = [
+        { name: 'Action Taken Emergency', value: 0},
+        { name: 'Malfunction of System', value: 0,},
+        { name: 'Illegal Entry/Exit', value: 0,},
+    ];
+
+    const PDLEnteredExitCOLORS = ['#00B21B', '#97A5BB'];
+    const VisitorEnteredExitCOLORS = ['#FE8F04', '#97A5BB'];
+    const PersonnelEnteredExitCOLORS = ['#E73D34', '#97A5BB'];
+    const ServiceProviderEnteredExitCOLORS = ['#1CBEDB', '#97A5BB'];
+    const NonRegisterEnteredExitCOLORS = ['#E847D8', '#97A5BB'];
+    const onOffDutyPersonnelEnteredExitCOLORS = ['#0D5ACF', '#739EDF'];
+    const EmergencyMalfunctionEnteredExitCOLORS = ['#F63554', '#F7EA39', '#1EE9E4'];
+    const ActionTakenEnteredExitCOLORS = ['#843EEE', '#F7C439', '#20B1EF'];
+    
+    const Card2 = (props: {
         title: string;
         image: string;
         count: number | string;
@@ -197,302 +212,109 @@ const { data: dailysummarydata } = useQuery({
         );
     };
 
-    const genderData = {
-        labels: ['Male', 'Gay', 'Transgender'],
-        datasets: [
-            {
-                label: 'PDL Gender',
-                data: [
-                    summarydata?.success?.pdls_based_on_gender?.Active.Male || 0,
-                    summarydata?.success?.pdls_based_on_gender?.Active["LGBTQ + GAY / BISEXUAL"] || 0,
-                    summarydata?.success?.pdls_based_on_gender?.Active["LGBTQ + TRANSGENDER"] || 0,
+        const Card3 = (props: {
+        title: string;
+        image: string;
+        count: number | string;
+        linkto?: string;
+        state?: any;
+    }) => {
+        const navigate = useNavigate();
+        const { title, image, count, linkto, state } = props;
 
-                ],
-                backgroundColor: ['#3471EC', '#7ED26C', '#FE319D'],
-                borderColor: '#ffffff',
-                borderWidth: 2,
-            },
-        ],
+        const handleClick = () => {
+            if (linkto) {
+                navigate(linkto, { state });
+            }
+        };
+
+        return (
+            <div
+                className='rounded-lg flex flex-grow items-center gap-2 p-2 w-full bg-[#F6F7FB] hover:cursor-pointer'
+                onClick={handleClick}
+            >
+                <div className='bg-[#D3DFF0] p-1 rounded-full'>
+                    <img src={image} className='w-10' alt={title} />
+                </div>
+                <div className='flex flex-col'>
+                    <div className='text-[#1E365D] font-extrabold text-3xl'>{count}</div>
+                    <p className='text-[#121D26] text-lg font-semibold'>{title}</p>
+                </div>
+            </div>
+        );
     };
 
-    // const Option = {
-    //     responsive: true,
-    //     plugins: {
-    //         legend: {
-    //             position: 'right' as const,
-    //             labels: {
-    //                 usePointStyle: true,
-    //                 pointStyle: 'circle',
-    //                 padding: 12,
-    //                 boxWidth: 12,
-    //             },
-    //         },
-    //         tooltip: {
-    //             callbacks: {
-    //                 label: function (context: any) {
-    //                     const label = context.label || '';
-    //                     const value = context.parsed;
-    //                     return `${label}: ${value}`;
-    //                 },
-    //             },
-    //         },
-    //         padding: 5,
-    //     },
-    //     cutout: '60%',
-    // };
+    const exportDashboard = async () => {
+        const input = document.getElementById("dashboard");
+        if (!input) return;
 
-    const latestDate = Object.keys(dailysummarydata?.success.daily_visit_summary || {})[0];
-    const summary = dailysummarydata?.success.daily_visit_summary[latestDate];
+        const canvas = await html2canvas(input, {
+            scale: 2, // Higher scale for better resolution
+            width: 1280, // Force width
+            useCORS: true,
+        });
 
+        const imgData = canvas.toDataURL("image/png");
 
-    const pdlEnteredExitData = {
-        labels: ['Entered', 'Exited'],
-        datasets: [
-            {
-                label: 'Entry/Exits to Jail Premises of PDLs',
-                data: [
-                    summary?.pdl_station_visits,
-                    0
-                    // summarydata?.success.premises_logs.pdl_logs_today["Time In"] || 0,
-                    // summarydata?.success.premises_logs.pdl_logs_today["Time Out"] || 0,
-                ],
-                backgroundColor: ['#20BA22', '#', '#97A5BB'],
-                borderColor: '#ffffff',
-                borderWidth: 2,
-            },
-        ],
+        const pdf = new jsPDF({
+            orientation: "landscape",
+            unit: "px",
+            format: [canvas.width, canvas.height],
+        });
+
+        pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+        pdf.save("dashboard.pdf");
+        };
+
+        const exportInFullscreen = async () => {
+        if (!handle.active) {
+            await handle.enter(); // Enter fullscreen
+            setTimeout(() => exportDashboard(), 500); // Wait for layout to stabilize
+        } else {
+            exportDashboard();
+        }
+        };
+
+    const renderLegendCircle = (props: any) => {
+        const { payload } = props;
+        return (
+            <ul className="flex flex-wrap gap-2 items-center justify-center">
+                {payload.map((entry: any, index: number) => (
+                    <li key={`item-${index}`} className="flex items-center gap-2">
+                        <span
+                            style={{
+                                display: 'inline-block',
+                                width: 14,
+                                height: 14,
+                                borderRadius: '50%',
+                                backgroundColor: entry.color,
+                            }}
+                        />
+                        <span className="text-sm">{entry.value}</span>
+                    </li>
+                ))}
+            </ul>
+        );
     };
-
-    const visitorEnteredExitData = {
-        labels: ['Entered', 'Exited'],
-        datasets: [
-            {
-                label: 'Entry/Exits to Jail Premises of Visitors',
-                data: [
-                    (summary?.visitor_station_visits ?? 0) + (summary?.main_gate_visits ?? 0),
-                    0
-                    // summarydata?.success.premises_logs.visitor_logs_today["Time In"] || 0,
-                    // summarydata?.success.premises_logs.visitor_logs_today["Time Out"] || 0,
-                ],
-                backgroundColor: ['#FE8D06', '#', '#97A5BB'],
-                borderColor: '#ffffff',
-                borderWidth: 2,
-            },
-        ],
-    };
-
-    const PersonelEnteredExitData = {
-        labels: ['Entered', 'Exited'],
-        datasets: [
-            {
-                label: 'Entry/Exits to Jail Premises of Visitors',
-                data: [
-                    summarydata?.success.premises_logs.personnel_logs_today["Time In"] || 0,
-                    summarydata?.success.premises_logs.personnel_logs_today["Time Out"] || 0,
-                ],
-                backgroundColor: ['#E73D34', '#', '#97A5BB'],
-                borderColor: '#ffffff',
-                borderWidth: 2,
-            },
-        ],
-    };
-
-    const ServiceEnteredExitData = {
-        labels: ['Entered', 'Exited'],
-        datasets: [
-            {
-                label: 'Entry/Exits to Jail Premises of Visitors',
-                data: [
-                    0,0
-                    // summarydata?.success.premises_logs.visitor_logs_today.Enter || 0,
-                    // summarydata?.success.premises_logs.visitor_logs_today.Exit || 0,
-                ],
-                backgroundColor: ['#1CBEDB', '#', '#97A5BB'],
-                borderColor: '#ffffff',
-                borderWidth: 2,
-            },
-        ],
-    };
-
-    const NonRegisterEnteredExitData = {
-        labels: ['Entered', 'Exited'],
-        datasets: [
-            {
-                label: 'Entry/Exits to Jail Premises of Visitors',
-                data: [
-                    0,0
-                    // summarydata?.success.premises_logs.visitor_logs_today.Enter || 0,
-                    // summarydata?.success.premises_logs.visitor_logs_today.Exit || 0,
-                ],
-                backgroundColor: ['#E847D8', '#', '#97A5BB'],
-                borderColor: '#ffffff',
-                borderWidth: 2,
-            },
-        ],
-    };
-
-    const Options = {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom' as const,
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: 'circle',
-                    padding: 10,
-                    boxWidth: 12,
-                },
-            },
-            tooltip: {
-                callbacks: {
-                    label: function (context: any) {
-                        const label = context.label || '';
-                        const value = context.parsed;
-                        return `${label}: ${value}`;
-                    },
-                },
-            },
-            padding: 10,
-        },
-        cutout: '60%',
-    };
-
-    const EntryExitVisitorOptions = {
-        responsive: true,
-        layout: {
-            padding: {
-                top: 30,
-            },
-        },
-        plugins: {
-            legend: {
-                position: 'bottom' as const,
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: 'circle',
-                    padding: 20,
-                    boxWidth: 12,
-                },
-            },
-            tooltip: {
-                callbacks: {
-                    label: function (context: any) {
-                        const label = context.label || '';
-                        const value = context.parsed;
-                        return `${label}: ${value}`;
-                    },
-                },
-            },
-        },
-        cutout: '60%',
-    };
-
-
-    const OptionsWith3Labels = {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom' as const,
-                align: 'start' as const,
-                labels: {
-                    usePointStyle: true,
-                    pointStyle: 'circle',
-                    padding: 10,
-                    boxWidth: 12,
-                },
-            },
-            tooltip: {
-                callbacks: {
-                    label: function (context: any) {
-                        const label = context.label || '';
-                        const value = context.parsed;
-                        return `${label}: ${value}`;
-                    },
-                },
-            },
-            padding: 10,
-        },
-        cutout: '60%',
-    };
-
-    {/**No Emergency Malfunction */ }
-    const EmergencyMalfunctionData = {
-        labels: ['Emergency', 'Malfunction of System', 'Illegal Entry/Exit'],
-        datasets: [
-            {
-                label: 'Emergency/Malfunction of System/Illegal Entry/Exit Without Registration',
-                data: [
-                    0,
-                    0,
-                    0,
-                ],
-                backgroundColor: ['#F63554', '#F7EA39', '#1EE9E4'],
-                borderColor: '#ffffff',
-                borderWidth: 2,
-            },
-        ],
-    };
-    {/**No Action Taken */ }
-    const ActionTakenData = {
-        labels: ['Action Taken Emergency', 'Malfunction of System', 'Illegal Entry/Exit'],
-        datasets: [
-            {
-                label: 'Action Taken Emergency/Malfunction of System/Illegal Entry/Exit Without Registration',
-                data: [
-                    0,
-                    0,
-                    0,
-                ],
-                backgroundColor: ['#843EEE', '#F7C439', '#20B1EF'],
-                borderColor: '#ffffff',
-                borderWidth: 2,
-            },
-        ],
-    };
-
-    const onOffDutyPersonnelData = {
-        labels: ['On Duty', 'Off Duty'],
-        datasets: [
-            {
-                label: 'BJMP Personnel On and Off Duty',
-                data: [
-                    summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0,
-                    summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0,
-                ],
-                backgroundColor: ['#0D5ACF', '#', '#739EDF'],
-                borderColor: '#ffffff',
-                borderWidth: 2,
-            },
-        ],
-    };
-
-    const onDutyCount = personnelData?.results?.filter(person => person.status === "On Duty").length || 0;
-    const offDutyCount = personnelData?.results?.filter(person => person.status === "Off Duty").length || 0;
-
     const handleReset = () => {
-        // Example: Reset any local state here (if you have date filters, etc.)
         setTime(new Date().toLocaleTimeString());
-
-        // Example: Clear all React Query cache (optional)
         queryClient.clear();
-
-        // Optionally, refetch specific queries
         queryClient.invalidateQueries({ queryKey: ['summary-card'] });
         queryClient.invalidateQueries({ queryKey: ['jail'] });
         queryClient.invalidateQueries({ queryKey: ['personnel'] });
-
         console.log("Dashboard reset triggered.");
     };
     return (
         <div>
             <div id="dashboard">
-                <div className='flex justify-end'>
-                    <NavLink to='/jvms/dashboard2'>
-                        <button className="hover:bg-gray-100 text-white px-1">.</button>
-                    </NavLink>
-                </div>
                 <FullScreen handle={handle}>
-                    <div className={`w-full space-y-2 ${handle.active ? "h-screen bg-[#F6F7FB] text-sm p-4" : ""}`}>
+                    <div  className={`w-full ${isFullscreen ? "h-screen bg-[#F6F7FB]" : ""} space-y-2  text-sm`}
+                        style={{
+                            minHeight: isFullscreen ? "100vh" : undefined,
+                            height: isFullscreen ? "100vh" : undefined,
+                            overflowY: isFullscreen ? "auto" : undefined,
+                            padding: isFullscreen ? "0.5rem" : undefined,
+                        }}>
                         <div className="bg-white border flex flex-wrap items-center justify-center md:justify-between border-[#1E7CBF]/25 shadow-sm rounded-lg p-5">
                             <div className='flex flex-wrap gap-2'>
                                 <img src={bjmp} className='w-16' />
@@ -508,212 +330,720 @@ const { data: dailysummarydata } = useQuery({
                                 <p className="text-sm">{currentDate} at {time}</p>
                             </div>
                         </div>
+
                         {/* 1ST ROW */}
-                        <div className={`w-full flex flex-wrap lg:flex-row gap-2 ${handle.active ? "flex gap-2" : ""}`}>
-                            <div className="bg-white border shadow-[#1e7cbf]/25 flex-1 flex flex-col gap-2 justify-center border-[#1E7CBF]/25 shadow-md rounded-lg w-full p-4">
-                                <Card
+                        <div className="w-full flex flex-col lg:flex-row gap-2 mt-2">
+                            {/* Cards Column */}
+                            <div className="bg-white border shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col gap-2
+                                max-w-full md:max-w-sm lg:max-w-[16rem] w-full
+                                flex-[1.2]">
+                                <Card3
                                     image={population}
                                     title='Jail Population'
                                     count={summarydata?.success?.current_pdl_population?.Active}
                                     linkto='/jvms/pdls/pdl'
                                 />
-                                <Card
+                                <Card3
                                     image={rate}
                                     title='Jail Capacity'
-                                    count={jail?.jail_capacity ?? 0}
+                                    count={totalJailCapacity}
+                                    linkto="/jvms/assets/jail-facility"
                                 />
-                                <Card
+                                <Card3
                                     image={release}
                                     title='Congestion Rate'
                                     count={summarydata?.success.jail_congestion_rates.total_congestion_rate === "Total capacity not set or zero" ? '0' : `${(parseFloat(summarydata?.success.jail_congestion_rates.total_congestion_rate) || 0).toFixed(2)}%`}
                                 />
                             </div>
-                            {/* Gender Distribution */}
-                            <div className="bg-white border flex-[2] w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
-                                <Title title="PDL Based on their Gender" />
-                                <div className='flex flex-col lg:flex-row gap-2'>
-                                    <div className='flex-1 flex items-center justify-center bg-[#F6F7FB] w-full  lg:w-[260px] lg:h-[209px] rounded-lg'>
-                                        <Pie data={genderData} options={Options} />
+                            {isFullscreen && (
+                                <div className="bg-white border shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col gap-2
+                                max-w-full md:max-w-sm lg:max-w-[16rem] w-full
+                                flex-[1.2]">
+                                    <Card3 
+                                    image={release_pdl} 
+                                    title='Released PDL' 
+                                    count={summarydata?.success.total_released_pdls.Active ?? 0} 
+                                    linkto="/jvms/pdls/pdl"
+                                    state={{ filterOption: "Release" }}/>
+                                    <Card3 image={prison} title='Committed PDL' count={summarydata?.success.total_pdl_by_status.Commited.Active ?? 0} />
+                                    <Card3 image={hospital} title='Hospitalized PDL' count={summarydata?.success.total_hospitalized_pdls.Active || 0} />
+                                </div>
+                            )}
+                            <div className="w-full flex flex-col md:flex-row flex-1 gap-2">
+                                <div className="bg-white border flex-1 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                    <div className="my-1">
+                                        <Title title="PDL Based on their Gender" />
                                     </div>
-                                    <div className='flex-1 w-full flex flex-col justify-center gap-2'>
-                                        <Card5
-                                            image={male}
-                                            title='Male'
-                                            count={summarydata?.success.pdls_based_on_gender.Active.Male || 0}
-                                            linkto='/jvms/pdls/pdl'
-                                            state={{ filterOption: "Male" }}
-                                        />
-                                        <Card5
-                                            image={gay}
-                                            title='Gay'
-                                            count={summarydata?.success.pdls_based_on_gender.Active["LGBTQ + GAY / BISEXUAL"] ?? 0}
-                                            linkto='/jvms/pdls/pdl'
-                                            state={{ filterOption: "LGBTQ + GAY / BISEXUAL" }}
-                                        />
-                                        <Card5
-                                            image={trans}
-                                            title='Transgender'
-                                            count={summarydata?.success.pdls_based_on_gender.Active["LGBTQ + TRANSGENDER"] || 0}
-                                            linkto='/jvms/pdls/pdl'
-                                            state={{ filterOption: "LGBTQ + TRANSGENDER" }}
-                                        />
+                                    <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                        <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-64 min-h-[180px]">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={genderData}
+                                                        dataKey="value"
+                                                        nameKey="name"
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius="50%"
+                                                        outerRadius="90%"
+                                                    >
+                                                        {genderData.map((entry, index) => (
+                                                            <Cell key={`cell-pdl-${index}`} fill={PDL_COLORS[index % PDL_COLORS.length]} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip />
+                                                    <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                            <Card3
+                                                image={male}
+                                                title='Male'
+                                                count={summarydata?.success.pdls_based_on_gender?.Active?.Male || 0}
+                                                linkto='/jvms/pdls/pdl'
+                                                state={{ filterOption: "Male" }}
+                                            />
+                                            <Card3
+                                                image={gay}
+                                                title='Gay'
+                                                count={summarydata?.success.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0}
+                                                linkto='/jvms/pdls/pdl'
+                                                state={{ filterOption: "LGBTQ + GAY / BISEXUAL" }}
+                                            />
+                                            <Card3
+                                                image={trans}
+                                                title='Transgender'
+                                                count={summarydata?.success.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0}
+                                                linkto='/jvms/pdls/pdl'
+                                                state={{ filterOption: "LGBTQ + TRANSGENDER" }}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="bg-white border shadow-[#1e7cbf]/25 flex-1 flex flex-col gap-2 justify-center border-[#1E7CBF]/25 shadow-md rounded-lg w-full p-4">
-                                <Card image={release_pdl} title='Released PDL' count={summarydata?.success.total_released_pdls.Active ?? 0} />
-                                {/*Committed PDL */}
-                                <Card image={prison} title='Committed PDL' count={summarydata?.success.total_pdl_by_status.Commited.Active ?? 0} />
-                                <Card image={hospital} title='Hospitalized PDL' count={summarydata?.success.total_hospitalized_pdls.Active || 0} />
-                            </div>
-
-                            <div className="bg-white border flex-[2] w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
-                                <Title title="Entry/Exits to Jail Premises of PDLs" />
-                                <div className='h-full flex flex-col md:flex-row gap-2'>
-                                    <div className='flex-1 bg-[#F6F7FB] rounded-lg w-full md:w-[200px] md:h-[205px]'>
-                                        <Pie data={pdlEnteredExitData} options={Options} />
+                                <div className="bg-white border flex-1 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                    <div className="my-1">
+                                        <Title title="Visitor Based on their Gender" />
                                     </div>
-                                    <div className='flex-1 w-full h-[80%] flex flex-col justify-center gap-2'>
-                                        <Card4 image={pdl_enter} title='Entered' count={(summary?.pdl_station_visits ?? 0)} />
-                                        {/* summarydata?.success.premises_logs.pdl_logs_today.Enter || 0 */}
-                                        <Card4 image={exited} title='Exited' count={summarydata?.success.premises_logs.pdl_logs_today.Exit ?? 0} />
+                                    <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                        <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-64 min-h-[180px]">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={visitorGenderData}
+                                                        dataKey="value"
+                                                        nameKey="name"
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius="50%"
+                                                        outerRadius="90%"
+                                                    >
+                                                        {visitorGenderData.map((entry, index) => (
+                                                            <Cell key={`cell-pdl-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip />
+                                                    <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                            <Card3
+                                                image={visitor_male}
+                                                title='Male'
+                                                count={visitorMaleCount}
+                                                linkto='/jvms/visitors/visitor'
+                                                state={{ genderFilter: "Male" }}
+                                            />
+                                            <Card3
+                                                image={visitor_female}
+                                                title='Female'
+                                                count={visitorFemaleCount}
+                                                linkto='/jvms/visitors/visitor'
+                                                state={{ genderFilter: "Female" }}
+                                            />
+                                            <Card3
+                                                image={trans}
+                                                title='Others'
+                                                count={visitorOtherCount}
+                                                linkto='/jvms/visitors/visitor'
+                                                state={{ genderFilter: "Other" }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white border flex-1 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                    <div className="my-1">
+                                        <Title title="Personnel Based on their Gender" />
+                                    </div>
+                                    <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                        <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-64 min-h-[180px]">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={personnelGenderData}
+                                                        dataKey="value"
+                                                        nameKey="name"
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius="50%"
+                                                        outerRadius="90%"
+                                                    >
+                                                        {personnelGenderData.map((entry, index) => (
+                                                            <Cell key={`cell-pdl-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip />
+                                                    <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                            <Card3
+                                                image={personnel_male}
+                                                title='Male'
+                                                count={personnelMaleCount}
+                                                linkto='/jvms/personnels/personnel'
+                                                state={{ genderFilter: "Male" }}
+                                            />
+                                            <Card3
+                                                image={personnel_woman}
+                                                title='Female'
+                                                count={personnelFemaleCount}
+                                                linkto='/jvms/personnels/personnel'
+                                                state={{ genderFilter: "Female" }}
+                                            />
+                                            <Card3
+                                                image={trans}
+                                                title='Other'
+                                                count={personnelOtherCount}
+                                                linkto='/jvms/personnels/personnel'
+                                                state={{ genderFilter: "Other" }}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        {/* 2ND ROW */}
-                        <div className={`w-full flex flex-wrap lg:flex-row gap-2 mt-3 ${handle.active ? "flex gap-3 mt-3" : ""}`}>
-                            {/* Entry/Exits to Jail Premises of Visitors */}
-                            <div className="bg-white border flex-1 w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
-                                <Title title="Entry/Exits to Jail Premises of Visitors" />
-                                <div className='flex h-full flex-wrap lg:flex-row gap-2'>
-                                    <div className={`flex-1 bg-[#F6F7FB] rounded-lg w-full lg:w-[200px] ${isFullscreen ? "lg:h-[205px]" : "lg:h-[227px]"}`}>
-                                        <Pie data={visitorEnteredExitData} options={EntryExitVisitorOptions} />
+                        <div className="w-full flex flex-col lg:flex-row gap-2 mt-2">
+                            {!isFullscreen && (
+                                <div className="bg-white border shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col gap-2
+                                    max-w-full md:max-w-sm lg:max-w-[16rem] w-full flex-[1.2]">
+                                    <Card3 image={release_pdl} title='Released PDL' count={summarydata?.success.total_released_pdls.Active ?? 0} />
+                                    <Card3 image={prison} title='Committed PDL' count={summarydata?.success.total_pdl_by_status.Commited.Active ?? 0} />
+                                    <Card3 image={hospital} title='Hospitalized PDL' count={summarydata?.success.total_hospitalized_pdls.Active || 0} />
+                                </div>
+                            )}
+                            <div className="w-full flex flex-col md:flex-row flex-1 gap-2">
+                                {/* PDLs */}
+                                <div className="bg-white border flex-1 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                    <div className="my-1">
+                                        <Title title="Entry/Exits to Jail Premises of PDLs" />
                                     </div>
-                                    <div className='flex-1 w-full h-[82%] flex flex-col justify-center gap-2'>
-                                        <Card4
-                                            image={pdl_enter}
-                                            title='Entered'
-                                            count={
-                                                (summary?.main_gate_tracking ?? 0) + (summary?.visitor_station_visits ?? 0)
-                                            }
-                                        />
-                                        {/* summarydata?.success.premises_logs.visitor_logs_today.Enter || 0 */}
-                                        <Card4 image={exited} title='Exited' count={summarydata?.success.premises_logs.visitor_logs_today.Exit ?? 0} />
+                                    <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                        <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-[12.5rem] min-h-[100px]" : "h-64 min-h-[180px]"}`}>
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={PDLEnteredExitData}
+                                                        dataKey="value"
+                                                        nameKey="name"
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius="50%"
+                                                        outerRadius="90%"
+                                                    >
+                                                        {PDLEnteredExitData.map((entry, index) => (
+                                                            <Cell key={`cell-pdl-${index}`} fill={PDLEnteredExitCOLORS[index % PDLEnteredExitCOLORS.length]} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip />
+                                                    <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                            <Card3
+                                                image={pdl_enter}
+                                                title='Entered'
+                                                count={summarydata?.pdl_station_visits || 0}
+                                            />
+                                            <Card3
+                                                image={exited}
+                                                title='Exited'
+                                                count={0}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            {/*Entry/Exits to Jail Premises of BJMP Personnel */}
-                            <div className="bg-white border flex-1 w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
-                                <Title title="Entry/Exits to Jail Premises of BJMP Personnel" />
-                                <div className='flex h-full flex-wrap lg:flex-row gap-2'>
-                                    <div className={`flex-1 bg-[#F6F7FB] rounded-lg w-full lg:w-[200px] lg:h-[205px]`}>
-                                        <Pie data={PersonelEnteredExitData} options={Options} />
+                                {/* Visitors */}
+                                <div className="bg-white border flex-1 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                    <div className="my-1">
+                                        <Title title="Entry/Exits to Jail Premises of Visitors" />
                                     </div>
-                                    <div className={`flex-1 w-full flex flex-col justify-center gap-2 ${isFullscreen ? "h-[82%]" : "h-[73%]"}`}>
-                                        <Card4 image={pdl_enter} title='Entered' count={summarydata?.success.premises_logs.personnel_logs_today.Enter || 0} />
-                                        <Card4 image={exited} title='Exited' count={summarydata?.success.premises_logs.personnel_logs_today.Exit ?? 0} />
+                                    <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                        <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-[12.5rem] min-h-[100px]" : "h-64 min-h-[180px]"}`}>
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={VisitorEnteredExitData}
+                                                        dataKey="value"
+                                                        nameKey="name"
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius="50%"
+                                                        outerRadius="90%"
+                                                    >
+                                                        {VisitorEnteredExitData.map((entry, index) => (
+                                                            <Cell key={`cell-pdl-${index}`} fill={VisitorEnteredExitCOLORS[index % VisitorEnteredExitCOLORS.length]} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip />
+                                                    <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                            <Card3
+                                                image={pdl_enter}
+                                                title='Entered'
+                                                count={(summary?.main_gate_tracking ?? 0) + (summary?.visitor_station_visits ?? 0)}
+                                            />
+                                            <Card3
+                                                image={exited}
+                                                title='Exited'
+                                                count={0}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/*Entry/Exits to Jail Premises of Service Provider */}
-                            <div className="bg-white border flex-1 w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
-                                <Title title="Entry/Exits to Jail Premises of Service Provider" />
-                                <div className='flex h-full flex-wrap lg:flex-row gap-2'>
-                                    <div className='flex-1 bg-[#F6F7FB] rounded-lg w-full xl:w-[200px] xl:h-[205px]'>
-                                        <Pie data={ServiceEnteredExitData} options={Options} />
+                                {/* BJMP Personnel */}
+                                <div className="bg-white border flex-1 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                    <div className="my-1.5">
+                                        <Title title="Entry/Exits to Jail Premises of BJMP Personnel" />
                                     </div>
-                                    {/*No service Provider */}
-                                    <div className={`flex-1 w-full flex flex-col justify-center gap-2 ${isFullscreen ? "h-[82%]" : "h-[73%]"}`}>
-                                        <Card4 image={pdl_enter} title='Entered' count={summarydata?.success.premises_logs.pdl_logs_today.Enter || 0} />
-                                        <Card4 image={exited} title='Exited' count={summarydata?.success.premises_logs.pdl_logs_today.Exit ?? 0} />
+                                    <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                        <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-[11rem] min-h-[100px]" : "h-64 min-h-[180px]"}`}>
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={PersonnelEnteredExitData}
+                                                        dataKey="value"
+                                                        nameKey="name"
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius="50%"
+                                                        outerRadius="90%"
+                                                    >
+                                                        {PersonnelEnteredExitData.map((entry, index) => (
+                                                            <Cell key={`cell-pdl-${index}`} fill={PersonnelEnteredExitCOLORS[index % PersonnelEnteredExitCOLORS.length]} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip />
+                                                    <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                        <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                            <Card2
+                                                image={pdl_enter}
+                                                title='Entered'
+                                                count={summarydata?.success.premises_logs.personnel_logs_today.Enter || 0}
+                                            />
+                                            <Card2
+                                                image={exited}
+                                                title='Exited'
+                                                count={summarydata?.success.premises_logs.personnel_logs_today.Exit ?? 0}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/*Entry/Exits to Jail Premises of Non Register Visitor  */}
-                            <div className="bg-white border flex-1 w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
-                                <Title title="Entry/Exits to Jail Premises of Non Register Visitor" />
-                                <div className='flex h-full flex-wrap lg:flex-row gap-2'>
-                                    <div className='flex-1 bg-[#F6F7FB] rounded-lg w-full xl:w-[200px] xl:h-[205px]'>
-                                        <Pie data={NonRegisterEnteredExitData} options={Options} />
+                                {/* Service Provider (fullscreen only) */}
+                                {isFullscreen && (
+                                    <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                        <div className="my-1.5">
+                                            <Title title="Entry/Exits to Jail Premises of Service Providers" />
+                                        </div>
+                                        <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                            <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-[11rem] min-h-[100px]">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={ServiceEnteredExitData}
+                                                            dataKey="value"
+                                                            nameKey="name"
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius="50%"
+                                                            outerRadius="90%"
+                                                        >
+                                                            {ServiceEnteredExitData.map((entry, index) => (
+                                                                <Cell key={`cell-sp-${index}`} fill={ServiceProviderEnteredExitCOLORS[index % ServiceProviderEnteredExitCOLORS.length]} />
+                                                            ))}
+                                                        </Pie>
+                                                        <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                            <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                                <Card2
+                                                    image={pdl_enter}
+                                                    title='Entered'
+                                                    count={0}
+                                                />
+                                                <Card2
+                                                    image={exited}
+                                                    title='Exited'
+                                                    count={0}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className={`flex-1 w-full flex flex-col justify-center gap-2 ${isFullscreen ? "h-[82%]" : "h-[73%]"}`}>
-                                        <Card4 image={pdl_enter} title='Entered' count={summarydata?.success.premises_logs.pdl_logs_today.Enter || 0} />
-                                        <Card4 image={exited} title='Exited' count={summarydata?.success.premises_logs.pdl_logs_today.Exit ?? 0} />
+                                )}
+                                {/* Non Service Provider (fullscreen only) */}
+                                {isFullscreen && (
+                                    <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                        <div className="my-1.5">
+                                            <Title title="Entry/Exits to Jail Premises of Non Service Providers" />
+                                        </div>
+                                        <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                            <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-[11rem] min-h-[100px]">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={NonRegisterEnteredExitData}
+                                                            dataKey="value"
+                                                            nameKey="name"
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius="50%"
+                                                            outerRadius="90%"
+                                                        >
+                                                            {NonRegisterEnteredExitData.map((entry, index) => (
+                                                                <Cell key={`cell-nsp-${index}`} fill={NonRegisterEnteredExitCOLORS[index % NonRegisterEnteredExitCOLORS.length]} />
+                                                            ))}
+                                                        </Pie>
+                                                        <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                            <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                                <Card2
+                                                    image={pdl_enter}
+                                                    title='Entered'
+                                                    count={0}
+                                                />
+                                                <Card2
+                                                    image={exited}
+                                                    title='Exited'
+                                                    count={0}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
 
-                        {/*3RD ROW */}
-                        <div className={`w-full flex flex-col lg:flex-row gap-2 mt-3 ${handle.active ? "flex gap-3 mt-3" : ""}`}>
-                            {/*NOTE: No Emergency/Malfunction of System/Illegal Entry/Exit Without Registration */}
-                            <div className="bg-white border w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
-                                <Title title="Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
-                                <div className='flex flex-wrap lg:flex-row gap-2'>
-                                    <div className='flex-1 lg:w-1/2 px-2 bg-[#F6F7FB] rounded-lg w-full'>
-                                        <Pie data={EmergencyMalfunctionData} options={OptionsWith3Labels} />
-                                    </div>
-                                    <div className='flex-1 lg:w-1/2 w-full flex flex-col justify-center gap-2'>
-                                        <Card2 image={emergency} title='Emergency' count={0} />
-                                        <Card2 image={malfunction} title='Malfunction of System' count={0} />
-                                        <Card2 image={illegal} title='Illegal Entry/Exit' count={0} />
-                                    </div>
-                                </div>
-                            </div>
 
-                            {/*NOTE: No Action Taken Emergency/Malfunction of System/Illegal Entry/Exit Without Registration*/}
-                            <div className="bg-white border w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
-                                <Title title="Action Taken Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
-                                <div className='flex flex-wrap lg:flex-row gap-2'>
-                                    <div className='flex-1 lg:w-1/2 px-2 bg-[#F6F7FB] rounded-lg w-full'>
-                                        <Pie data={ActionTakenData} options={OptionsWith3Labels} />
+                        {/* 3RD ROW */}
+                        <div className="w-full flex flex-col md:flex-row gap-2 mt-2">
+                            {/* Only show these two when NOT fullscreen */}
+                            {!isFullscreen && (
+                                <>
+                                    <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                        <div>
+                                            <Title title="Entry/Exits to Jail Premises of Service Provider" />
+                                        </div>
+                                        <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                            <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-60 min-h-[100px]" : "h-56 min-h-[160px]"}`}>
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={ServiceEnteredExitData}
+                                                            dataKey="value"
+                                                            nameKey="name"
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius="50%"
+                                                            outerRadius="90%"
+                                                        >
+                                                            {ServiceEnteredExitData.map((entry, index) => (
+                                                                <Cell key={`cell-pdl-${index}`} fill={ServiceProviderEnteredExitCOLORS[index % ServiceProviderEnteredExitCOLORS.length]} />
+                                                            ))}
+                                                        </Pie>
+                                                        <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                            <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                                <Card3
+                                                    image={pdl_enter}
+                                                    title='Entered'
+                                                    count={0}
+                                                />
+                                                <Card3
+                                                    image={exited}
+                                                    title='Exited'
+                                                    count={0}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className='flex-1 lg:w-1/2 w-full flex flex-col justify-center gap-2'>
-                                        <Card2 image={emergency} title='Action Taken Emergency' count={0} />
-                                        <Card2 image={malfunction} title='Malfunction of System' count={0} />
-                                        <Card2 image={illegal} title='Illegal Entry/Exit' count={0} />
+                                    <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                        <div className="my-1">
+                                            <Title title="Entry/Exits to Jail Premises of Non Register Visitor" />
+                                        </div>
+                                        <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                            <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-60 min-h-[100px]" : "h-56 min-h-[160px]"}`}>
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={NonRegisterEnteredExitData}
+                                                            dataKey="value"
+                                                            nameKey="name"
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius="50%"
+                                                            outerRadius="90%"
+                                                        >
+                                                            {NonRegisterEnteredExitData.map((entry, index) => (
+                                                                <Cell key={`cell-pdl-${index}`} fill={NonRegisterEnteredExitCOLORS[index % NonRegisterEnteredExitCOLORS.length]} />
+                                                            ))}
+                                                        </Pie>
+                                                        <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            </div>
+                                            <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                                <Card3
+                                                    image={pdl_enter}
+                                                    title='Entered'
+                                                    count={(summary?.main_gate_tracking ?? 0) + (summary?.visitor_station_visits ?? 0)}
+                                                />
+                                                <Card3
+                                                    image={exited}
+                                                    title='Exited'
+                                                    count={0}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
+                                </>
+                            )}
+                            
+                            {/* Personnel section always visible */}
+                            <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                <div className="my-1">
+                                    <Title title="BJMP Personnel On and Off Duty" />
                                 </div>
-                            </div>
-
-                            {/* BJMP Personnel On and Off Duty */}
-                            <div className="bg-white border w-full shadow-[#1e7cbf]/25 space-y-2 border-[#1E7CBF]/25 shadow-md rounded-lg p-5">
-                                <Title title="BJMP Personnel On and Off Duty" />
-                                <div className='flex h-[85%] flex-wrap lg:flex-row gap-2'>
-                                    <div className='flex-1 lg:w-1/2 p-2 bg-[#F6F7FB] rounded-lg w-full'>
-                                        <Pie data={onOffDutyPersonnelData} options={Options} />
+                                <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                    <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-60 min-h-[100px]" : "h-56 min-h-[160px]"}`}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={onOffDutyPersonnelData}
+                                                    dataKey="value"
+                                                    nameKey="name"
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius="50%"
+                                                    outerRadius="90%"
+                                                >
+                                                    {onOffDutyPersonnelData.map((entry, index) => (
+                                                        <Cell key={`cell-pdl-${index}`} fill={onOffDutyPersonnelEnteredExitCOLORS[index % onOffDutyPersonnelEnteredExitCOLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                            </PieChart>
+                                        </ResponsiveContainer>
                                     </div>
-                                    <div className='flex-1 lg:w-1/2 w-full flex flex-col justify-center gap-2'>
+                                    <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
                                         <Card3
                                             image={on_duty}
                                             title='On Duty'
-                                            count={onDutyCount}
+                                            count={summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0}
                                             linkto='/jvms/personnels/personnel'
                                             state={{ filterOption: "On Duty" }}
                                         />
                                         <Card3
                                             image={off_duty}
                                             title='Off Duty'
-                                            count={offDutyCount}
+                                            count={summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0}
                                             linkto='/jvms/personnels/personnel'
                                             state={{ filterOption: "Off Duty" }}
                                         />
                                     </div>
                                 </div>
                             </div>
+                            {isFullscreen && (
+                                <>
+                                <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                <div className="my-1">
+                                    <Title title="Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
+                                </div>
+                                <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                    <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-[13.6rem] min-h-[100px]" : "h-56 min-h-[160px]"}`}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={EmergencyMalfunctionData}
+                                                    dataKey="value"
+                                                    nameKey="name"
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius="50%"
+                                                    outerRadius="90%"
+                                                >
+                                                    {EmergencyMalfunctionData.map((entry, index) => (
+                                                        <Cell key={`cell-pdl-${index}`} fill={EmergencyMalfunctionEnteredExitCOLORS[index % EmergencyMalfunctionEnteredExitCOLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                    <div className="flex-1 w-full flex flex-col justify-center gap-1 h-full">
+                                        <Card2
+                                            image={emergency}
+                                            title='Emergency'
+                                            count={0}
+                                        />
+                                        <Card2
+                                            image={malfunction}
+                                            title='Malfunction of System'
+                                            count={0}
+                                        />
+                                        <Card2
+                                            image={illegal}
+                                            title='Illegal Entry/Exit'
+                                            count={0}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                <div className="my-1">
+                                    <Title title="Action Taken Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
+                                </div>
+                                <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                    <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-[13.6rem] min-h-[100px]" : "h-56 min-h-[160px]"}`}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={ActionTakenData}
+                                                    dataKey="value"
+                                                    nameKey="name"
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius="50%"
+                                                    outerRadius="90%"
+                                                >
+                                                    {ActionTakenData.map((entry, index) => (
+                                                        <Cell key={`cell-pdl-${index}`} fill={ActionTakenEnteredExitCOLORS[index % ActionTakenEnteredExitCOLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                    <div className="flex-1 w-full flex flex-col justify-center gap-1 h-full">
+                                        <Card2 image={emergency} title='Action Taken Emergency' count={0} />
+                                        <Card2 image={malfunction} title='Malfunction of System' count={0} />
+                                        <Card2 image={illegal} title='Illegal Entry/Exit' count={0} />
+                                    </div>
+                                </div>
+                            </div>
+                                </>
+                            )}
                         </div>
+                        {!isFullscreen && (
+                        <div className="flex gap-2">
+                            <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                <div className="my-1">
+                                    <Title title="Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
+                                </div>
+                                <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                    <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-64 min-h-[180px]">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={EmergencyMalfunctionData}
+                                                    dataKey="value"
+                                                    nameKey="name"
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius="50%"
+                                                    outerRadius="90%"
+                                                >
+                                                    {EmergencyMalfunctionData.map((entry, index) => (
+                                                        <Cell key={`cell-pdl-${index}`} fill={EmergencyMalfunctionEnteredExitCOLORS[index % EmergencyMalfunctionEnteredExitCOLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                    <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                        <Card3
+                                            image={emergency}
+                                            title='Emergency'
+                                            count={0}
+                                        />
+                                        <Card3
+                                            image={malfunction}
+                                            title='Malfunction of System'
+                                            count={0}
+                                        />
+                                        <Card3
+                                            image={illegal}
+                                            title='Illegal Entry/Exit'
+                                            count={0}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                <div className="my-1">
+                                    <Title title="Entry/Exits to Jail Premises of BJMP Personnel" />
+                                </div>
+                                <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                    <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-64 min-h-[180px]">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={PersonnelEnteredExitData}
+                                                    dataKey="value"
+                                                    nameKey="name"
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius="50%"
+                                                    outerRadius="90%"
+                                                >
+                                                    {PersonnelEnteredExitData.map((entry, index) => (
+                                                        <Cell key={`cell-pdl-${index}`} fill={PersonnelEnteredExitCOLORS[index % PersonnelEnteredExitCOLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                    <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                        <Card3 image={emergency} title='Action Taken Emergency' count={0} />
+                                        <Card3 image={malfunction} title='Malfunction of System' count={0} />
+                                        <Card3 image={illegal} title='Illegal Entry/Exit' count={0} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        )}
                     </div>
-
                 </FullScreen>
             </div>
-
             <div className="flex justify-center md:justify-end gap-4 my-2">
-                <button className='gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full' onClick={exportDashboard}>
+                <button className='gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full' onClick={exportInFullscreen}>
                     <RiShareBoxLine /> Export
                 </button>
                 <button className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full" onClick={handleReset}>
@@ -724,7 +1054,7 @@ const { data: dailysummarydata } = useQuery({
                 </button>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default Dashboard;
+export default Dashboard
