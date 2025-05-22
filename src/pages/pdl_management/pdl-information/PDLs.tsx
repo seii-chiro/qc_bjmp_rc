@@ -393,8 +393,9 @@ const PDLtable = () => {
 
         addHeader();
 
-        const tableData = printSource.map(item => [
-            item.key,
+    const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.name,
             item.gang_affiliation,
             item.cell_no,
