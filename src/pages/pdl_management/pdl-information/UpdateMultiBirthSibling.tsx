@@ -76,14 +76,13 @@ const UpdateMultipleBirthSiblings = ({
         });
     };
 
-    // Generate data source directly from personForm.multiple_birth_sibling_data
     const IdentifierDataSource = personForm.multiple_birth_sibling_data?.map((siblingData, index) => {
         const chosenSibling = persons?.find(person => person?.id === (siblingData.sibling_person_id_display || siblingData.sibling_person_id));
 
         return {
             key: index,
-            siblingGroup: chosenSibling?.multiple_birth_siblings?.[0]?.multiple_birth_class || "N/A",
-            shortName: chosenSibling?.shortname || "N/A",
+            siblingGroup: siblingData?.multiple_birth_class_id || "Single",
+            shortName: siblingData?.person || "N/A",
             gender: chosenSibling?.gender?.gender_option || "N/A",
             identical: siblingData?.is_identical ? "Yes" : "No",
             verified: siblingData?.is_verified ? "Yes" : "No",

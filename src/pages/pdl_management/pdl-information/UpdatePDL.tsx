@@ -1054,6 +1054,7 @@ const UpdatePDL = () => {
                     ...sibling,
                     sibling_person_id: +sibling?.sibling_person_id_display,
                     person_id: pdlData?.person?.id ?? null,
+                    multiple_birth_sibling_id: birthClassTypes?.find(type => type?.term_for_sibling_group === sibling?.multiple_birth_class)?.id
                 })) ?? [],
             ethnicity_province: pdlData?.person?.ethnicity_province,
         });
@@ -1137,7 +1138,9 @@ const UpdatePDL = () => {
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
 
     console.log("PDL Data:", pdlData)
-    // console.log("PDL Form:", pdlForm)
+    console.log("PDL Form:", pdlForm)
+    console.log(birthClassTypes?.find(type => type?.term_for_sibling_group === "Triplet")?.term_for_sibling_group)
+
     // console.log("Person Form:", personForm)
 
     return (

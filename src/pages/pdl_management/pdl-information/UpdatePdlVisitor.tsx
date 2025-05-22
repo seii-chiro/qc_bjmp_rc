@@ -146,7 +146,7 @@ const UpdatePdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
         };
 
         fetchVisitorDetails();
-    }, [pdlForm?.visitor, visitorToPdlRelationship, token, handleDelete]);
+    }, [pdlForm?.visitor, visitorToPdlRelationship, token]);
 
 
     const visitorToPdlRelationshipColumns: ColumnsType<{
