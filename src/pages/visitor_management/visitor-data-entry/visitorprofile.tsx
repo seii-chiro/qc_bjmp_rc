@@ -37,7 +37,7 @@ type Props = {
 }
 
 const captureLeftFingersPayload = {
-    TimeOut: 50,
+    TimeOut: 10,
     Slap: 0,
     FingerPosition: {
         LEFT_LITTLE: false,
@@ -55,7 +55,7 @@ const captureLeftFingersPayload = {
 }
 
 const captureRightFingersPayload = {
-    TimeOut: 50,
+    TimeOut: 10,
     Slap: 1,
     FingerPosition: {
         LEFT_LITTLE: true,
@@ -73,7 +73,7 @@ const captureRightFingersPayload = {
 }
 
 const captureThumbsPayload = {
-    TimeOut: 50,
+    TimeOut: 10,
     Slap: 2,
     FingerPosition: {
         LEFT_LITTLE: true,
@@ -604,29 +604,63 @@ const VisitorProfile = ({
         },
     });
 
-    const handleThumbFingers = (img0: string, img1: string) => {
-        verifyFingerprintMutation1.mutate({ template: img0 ?? "", type: "fingerprint" })
-        verifyFingerprintMutation6.mutate({ template: img1 ?? "", type: "fingerprint" })
-    }
+    const handleThumbFingers = (img0: string | null, img1: string | null) => {
+        if (!img0 && !img1) {
+            message.warning("Fingerprint samples cannot be null.");
+            return;
+        }
 
-    const handleVerifyRightFingers = (img0: string, img1: string, img2: string, img3: string,) => {
-        verifyFingerprintMutation7.mutate({ template: img0 ?? "", type: "fingerprint" })
-        verifyFingerprintMutation8.mutate({ template: img1 ?? "", type: "fingerprint" })
-        verifyFingerprintMutation9.mutate({ template: img2 ?? "", type: "fingerprint" })
-        verifyFingerprintMutation10.mutate({ template: img3 ?? "", type: "fingerprint" })
-    }
+        if (img0) {
+            verifyFingerprintMutation1.mutate({ template: img0, type: "fingerprint" });
+        }
 
-    const handleVerifyLeftFingers = (img0: string, img1: string, img2: string, img3: string,) => {
-        verifyFingerprintMutation2.mutate({ template: img0 ?? "", type: "fingerprint" })
-        verifyFingerprintMutation3.mutate({ template: img1 ?? "", type: "fingerprint" })
-        verifyFingerprintMutation4.mutate({ template: img2 ?? "", type: "fingerprint" })
-        verifyFingerprintMutation5.mutate({ template: img3 ?? "", type: "fingerprint" })
-    }
+        if (img1) {
+            verifyFingerprintMutation6.mutate({ template: img1, type: "fingerprint" });
+        }
+    };
+
+    const handleVerifyRightFingers = (
+        img0: string | null,
+        img1: string | null,
+        img2: string | null,
+        img3: string | null
+    ) => {
+        if (!img0 && !img1 && !img2 && !img3) {
+            message.warning("Fingerprint samples cannot be null.");
+            return;
+        }
+
+        if (img0) verifyFingerprintMutation7.mutate({ template: img0, type: "fingerprint" });
+        if (img1) verifyFingerprintMutation8.mutate({ template: img1, type: "fingerprint" });
+        if (img2) verifyFingerprintMutation9.mutate({ template: img2, type: "fingerprint" });
+        if (img3) verifyFingerprintMutation10.mutate({ template: img3, type: "fingerprint" });
+    };
+
+    const handleVerifyLeftFingers = (
+        img0: string | null,
+        img1: string | null,
+        img2: string | null,
+        img3: string | null
+    ) => {
+        if (!img0 && !img1 && !img2 && !img3) {
+            message.warning("Fingerprint samples cannot be null.");
+            return;
+        }
+
+        if (img0) verifyFingerprintMutation2.mutate({ template: img0, type: "fingerprint" });
+        if (img1) verifyFingerprintMutation3.mutate({ template: img1, type: "fingerprint" });
+        if (img2) verifyFingerprintMutation4.mutate({ template: img2, type: "fingerprint" });
+        if (img3) verifyFingerprintMutation5.mutate({ template: img3, type: "fingerprint" });
+    };
 
     const fingerScannerCaptureLeftMutation = useMutation({
         mutationKey: ['finger-scanner-init'],
         mutationFn: () => captureFingerprints(captureLeftFingersPayload),
         onSuccess: (data) => {
+            if (data?.ErrorDescription === "Device not connected.") {
+                message.error(data?.ErrorDescription)
+            }
+
             setLeftFingerResponse(prev => ({
                 ...prev,
                 CapturedFingers: data?.CaptureData?.CapturedFingers,
@@ -640,6 +674,7 @@ const VisitorProfile = ({
             )
         },
         onError: (error) => {
+            message.error(error.message)
             console.error(error.message);
         }
     });
@@ -648,6 +683,10 @@ const VisitorProfile = ({
         mutationKey: ['finger-scanner-init'],
         mutationFn: () => captureFingerprints(captureRightFingersPayload),
         onSuccess: (data) => {
+            if (data?.ErrorDescription === "Device not connected.") {
+                message.error(data?.ErrorDescription)
+            }
+
             setRightFingerResponse(prev => ({
                 ...prev,
                 CapturedFingers: data?.CaptureData?.CapturedFingers,
@@ -670,6 +709,10 @@ const VisitorProfile = ({
         mutationKey: ['finger-scanner-init'],
         mutationFn: () => captureFingerprints(captureThumbsPayload),
         onSuccess: (data) => {
+            if (data?.ErrorDescription === "Device not connected.") {
+                message.error(data?.ErrorDescription)
+            }
+
             setThumbFingerResponse(prev => ({
                 ...prev,
                 CapturedFingers: data?.CaptureData?.CapturedFingers,
@@ -1048,7 +1091,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LL</p>
                                             {
-                                                fingerprintVerificationResult2 && (
+                                                fingerprintVerificationResult2 && LeftFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult2?.message === "Match found." ?
                                                         <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
@@ -1067,7 +1110,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LR</p>
                                             {
-                                                fingerprintVerificationResult3 && (
+                                                fingerprintVerificationResult3 && LeftFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult3?.message === "Match found." ?
                                                         <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
@@ -1086,7 +1129,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LM</p>
                                             {
-                                                fingerprintVerificationResult4 && (
+                                                fingerprintVerificationResult4 && LeftFingerResponse?.CapturedFingers?.[2]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult4?.message === "Match found." ?
                                                         <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
@@ -1105,7 +1148,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LI</p>
                                             {
-                                                fingerprintVerificationResult5 && (
+                                                fingerprintVerificationResult5 && LeftFingerResponse?.CapturedFingers?.[3]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult5?.message === "Match found." ?
                                                         <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
@@ -1146,7 +1189,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RI</p>
                                             {
-                                                fingerprintVerificationResult7 && (
+                                                fingerprintVerificationResult7 && RightFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult7?.message === "Match found." ?
                                                         <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
@@ -1165,7 +1208,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RM</p>
                                             {
-                                                fingerprintVerificationResult8 && (
+                                                fingerprintVerificationResult8 && RightFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult8?.message === "Match found." ?
                                                         <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
@@ -1184,7 +1227,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RI</p>
                                             {
-                                                fingerprintVerificationResult9 && (
+                                                fingerprintVerificationResult9 && RightFingerResponse?.CapturedFingers?.[2]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult9?.message === "Match found." ?
                                                         <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
@@ -1203,7 +1246,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RL</p>
                                             {
-                                                fingerprintVerificationResult10 && (
+                                                fingerprintVerificationResult10 && RightFingerResponse?.CapturedFingers?.[3]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult10?.message === "Match found." ?
                                                         <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
@@ -1245,7 +1288,7 @@ const VisitorProfile = ({
                                             <div className="w-32 h-32 border rounded-md relative">
                                                 <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LT</p>
                                                 {
-                                                    fingerprintVerificationResult1 && (
+                                                    fingerprintVerificationResult1 && ThumbFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
                                                         fingerprintVerificationResult1?.message === "Match found." ?
                                                             <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
                                                             <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
@@ -1264,7 +1307,7 @@ const VisitorProfile = ({
                                             <div className="w-32 h-32 border rounded-md relative">
                                                 <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RT</p>
                                                 {
-                                                    fingerprintVerificationResult6 && (
+                                                    fingerprintVerificationResult6 && ThumbFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
                                                         fingerprintVerificationResult6?.message === "Match found." ?
                                                             <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
                                                             <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
