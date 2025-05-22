@@ -19,6 +19,10 @@ type Props = {
     editIndex: number | null;
     handleEditMultipleBirthSibling: (index: number, updatedData: MultiBirthSiblingFormType) => void
     currentPersonId: number | null;
+    setPersonSearch?: (value: string) => void;
+    setPersonPage?: (page: number) => void;
+    personPage?: number;
+    personsCount?: number;
 }
 
 const UpdateMultiBirthSiblingForm = ({
@@ -33,7 +37,9 @@ const UpdateMultiBirthSiblingForm = ({
     isEditing = false,
     editIndex = null,
     currentPersonId,
-    handleEditMultipleBirthSibling
+    handleEditMultipleBirthSibling,
+    setPersonPage,
+    setPersonSearch
 }: Props) => {
     const [chosenSibling, setChosenSibling] = useState<Person | null>(null)
     const [error, setError] = useState<string | null>(null)
@@ -152,18 +158,27 @@ const UpdateMultiBirthSiblingForm = ({
         <div className="p-5">
             <form className="flex flex-col gap-4">
                 <div>
-                    <label className="flex flex-col gap-1 w-[30%]">
+                    <label className="flex flex-col gap-1 w-[40%]">
                         <span className="font-semibold">Person</span>
                         <Select
                             value={multiBirthSiblingForm.sibling_person_id ?? undefined}
                             loading={personLoading}
                             showSearch
                             optionFilterProp="label"
-                            className='mt-2 h-10 rounded'
-                            options={persons?.map(person => ({
-                                value: person?.id,
-                                label: `${person?.first_name ?? ""} ${person?.middle_name ?? ""} ${person?.last_name ?? ""}`
-                            }))}
+                            className='mt-2 h-10 rounded w-full'
+                            options={
+                                persons?.length
+                                    ? persons.map(person => ({
+                                        value: person?.id,
+                                        label: `${person?.first_name ?? ""} ${person?.middle_name ?? ""} ${person?.last_name ?? ""}`
+                                    }))
+                                    : []
+                            }
+                            notFoundContent={personLoading ? "Loading..." : "No data found"}
+                            onSearch={value => {
+                                setPersonSearch?.(value);
+                                setPersonPage?.(1); // Reset to first page on new search
+                            }}
                             onChange={(value) => {
                                 // Check for duplicates when changing the selection
                                 const isDuplicate = checkForDuplicate(value);

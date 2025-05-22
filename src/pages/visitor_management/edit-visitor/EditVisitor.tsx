@@ -10,6 +10,7 @@ import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import {
     getAffiliationTypes, getCivilStatus, getCountries, getCurrentUser, getGenders, getJail_Barangay,
     getJail_Municipality, getJail_Province, getJailRegion, getMultipleBirthClassTypes, getNationalities,
+    getPersonSearch,
     getPrefixes, getRealPerson, getSuffixes, getUsers, getVisitor_to_PDL_Relationship, getVisitor_Type, getVisitorAppStatus,
 } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -90,6 +91,10 @@ const VisitorRegistration = () => {
     const [editAddressIndex, setEditAddressIndex] = useState<number | null>(null);
     const [editContactIndex, setEditContactIndex] = useState<number | null>(null);
     const [editPdlToVisitIndex, setEditPdlToVisitIndex] = useState<number | null>(null);
+
+    const [personSearch, setPersonSearch] = useState("");
+    const [personPage, setPersonPage] = useState(1);
+
     const [personForm, setPersonForm] = useState<PersonForm>({
         first_name: "",
         middle_name: "",
@@ -344,6 +349,16 @@ const VisitorRegistration = () => {
         }))
     }
 
+    const {
+        data: personsPaginated,
+        isLoading: personsLoading,
+    } = useQuery({
+        queryKey: ['paginated-person', personSearch, personPage],
+        queryFn: () => getPersonSearch(token ?? "", 10, personSearch, personPage),
+        keepPreviousData: true,
+        staleTime: 10 * 60 * 1000,
+    });
+
     const dropdownOptions = useQueries({
         queries: [
             {
@@ -398,7 +413,7 @@ const VisitorRegistration = () => {
             },
             {
                 queryKey: ['persons'],
-                queryFn: () => getRealPerson(token ?? ""),
+                queryFn: () => getRealPerson(token ?? "", 1),
                 staleTime: 10 * 60 * 1000
             },
             {
@@ -540,8 +555,8 @@ const VisitorRegistration = () => {
     const municipalities = dropdownOptions?.[7]?.data?.results;
     const barangays = dropdownOptions?.[8]?.data?.results;
     const countries = dropdownOptions?.[9]?.data?.results;
-    const persons = dropdownOptions?.[10]?.data?.results;
-    const personsLoading = dropdownOptions?.[10]?.isLoading;
+    // const persons = dropdownOptions?.[10]?.data?.results;
+    // const personsLoading = dropdownOptions?.[10]?.isLoading;
     const users = dropdownOptions?.[11]?.data?.results;
     const userLoading = dropdownOptions?.[11]?.isLoading;
     const visitorAppStatus = dropdownOptions?.[12]?.data?.results;
@@ -553,6 +568,9 @@ const VisitorRegistration = () => {
     const suffixesLoading = dropdownOptions?.[15]?.isLoading;
     const birthClassTypes = dropdownOptions?.[16]?.data?.results;
     const birthClassTypesLoading = dropdownOptions?.[16]?.isLoading;
+
+    const persons = personsPaginated?.results || [];
+    const personsCount = personsPaginated?.count || 0;
 
     const { data: visitorData, isLoading } = useQuery({
         queryKey: ['visitor', visitor?.id],
@@ -1157,7 +1175,13 @@ const VisitorRegistration = () => {
                             birthClassTypesLoading={birthClassTypesLoading}
                             persons={persons || []}
                             personsLoading={personsLoading}
-                            currentPersonId={visitorData?.person?.id} />
+                            currentPersonId={visitorData?.person?.id}
+                            setPersonPage={setPersonPage}
+                            setPersonSearch={setPersonSearch}
+                            personPage={personPage}
+                            personsCount={personsCount}
+                        />
+
                         <div className="flex flex-col gap-5 mt-10">
                             <div className="flex justify-between">
                                 <h1 className='font-bold text-xl'>Addresses</h1>

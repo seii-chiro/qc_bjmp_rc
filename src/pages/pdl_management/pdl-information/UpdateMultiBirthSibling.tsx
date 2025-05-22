@@ -20,6 +20,10 @@ type Props = {
     prefixes: Prefix[];
     suffixes: Suffix[];
     currentPersonId: number | null;
+    setPersonSearch?: (value: string) => void;
+    personPage: number;
+    setPersonPage: (page: number) => void;
+    personsCount: number;
 }
 
 const UpdateMultipleBirthSiblings = ({
@@ -33,7 +37,11 @@ const UpdateMultipleBirthSiblings = ({
     prefixes,
     suffixes,
     personForm,
-    currentPersonId
+    currentPersonId,
+    personPage,
+    personsCount,
+    setPersonPage,
+    setPersonSearch
 }: Props) => {
     const [idsModalOpen, setIdsModalOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
@@ -167,6 +175,10 @@ const UpdateMultipleBirthSiblings = ({
                     isEditing={isEditing}
                     editIndex={editIndex}
                     handleEditMultipleBirthSibling={handleEditMultipleBirthSibling}
+                    personPage={personPage}
+                    setPersonPage={setPersonPage}
+                    personsCount={personsCount}
+                    setPersonSearch={setPersonSearch}
                 />
             </Modal>
 
