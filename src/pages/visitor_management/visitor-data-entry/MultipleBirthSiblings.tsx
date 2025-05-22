@@ -10,9 +10,7 @@ import { MultipleBirthClassType, Prefix, Suffix } from "@/lib/definitions"
 
 type Props = {
     handleDeleteMultipleBirthSibling: (index: number) => void;
-    persons: Person[];
     genders: Gender[]
-    personsLoading: boolean;
     setPersonForm: Dispatch<SetStateAction<PersonForm>>;
     personForm: PersonForm;
     birthClassTypes: MultipleBirthClassType[];
@@ -20,7 +18,11 @@ type Props = {
     prefixes: Prefix[];
     suffixes: Suffix[];
     setPersonSearch?: (value: string) => void;
-    setPersonPage?: (page: number) => void;
+    persons: Person[];
+    personsLoading: boolean;
+    personPage: number;
+    setPersonPage: (page: number) => void;
+    personsCount: number;
 }
 
 export type TableInfo = {
@@ -45,7 +47,9 @@ const MultipleBirthSiblings = ({
     suffixes,
     personForm,
     setPersonSearch,
-    setPersonPage
+    setPersonPage,
+    personPage,
+    personsCount
 }: Props) => {
     const [idsModalOpen, setIdsModalOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
@@ -181,7 +185,9 @@ const MultipleBirthSiblings = ({
                 width="50%"
             >
                 <MultiBirthSiblingForm
+                    personPage={personPage}
                     setPersonPage={setPersonPage}
+                    personsCount={personsCount}
                     setPersonSearch={setPersonSearch}
                     personForm={personForm}
                     personLoading={personsLoading}

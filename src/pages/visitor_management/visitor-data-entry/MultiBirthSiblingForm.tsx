@@ -1,7 +1,7 @@
 import { MultipleBirthClassType, Prefix, Suffix } from "@/lib/definitions"
 import { Gender, Person } from "@/lib/pdl-definitions"
 import { MultiBirthSiblingForm as MultiBirthSiblingFormType, PersonForm } from "@/lib/visitorFormDefinition"
-import { Input, Select } from "antd"
+import { Input, Pagination, Select } from "antd"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import { MultiBirthSibling } from "./MultipleBirthSiblings"
 
@@ -22,6 +22,8 @@ type Props = {
     handleEditMultipleBirthSibling: (index: number, updatedData: MultiBirthSiblingFormType) => void
     setPersonSearch?: (value: string) => void;
     setPersonPage?: (page: number) => void;
+    personPage?: number;
+    personsCount?: number;
 }
 
 const MultiBirthSiblingForm = ({
@@ -38,7 +40,9 @@ const MultiBirthSiblingForm = ({
     editIndex = null,
     setPersonSearch,
     handleEditMultipleBirthSibling,
-    setPersonPage
+    setPersonPage,
+    personPage,
+    personsCount
 }: Props) => {
     const [chosenSibling, setChosenSibling] = useState<Person | null>(null)
     const [error, setError] = useState<string | null>(null)
@@ -173,10 +177,17 @@ const MultiBirthSiblingForm = ({
                             showSearch
                             optionFilterProp="label"
                             className='mt-2 h-10 rounded'
-                            options={persons?.map(person => ({
-                                value: person?.id,
-                                label: `${person?.first_name ?? ""} ${person?.middle_name ?? ""} ${person?.last_name ?? ""}`
-                            }))}
+                            options={
+                                personLoading
+                                    ? [{ value: undefined, label: "Loading...", disabled: true }]
+                                    : persons?.length
+                                        ? persons.map(person => ({
+                                            value: person?.id,
+                                            label: `${person?.first_name ?? ""} ${person?.middle_name ?? ""} ${person?.last_name ?? ""}`
+                                        }))
+                                        : [{ value: undefined, label: "No data found", disabled: true }]
+                            }
+                            notFoundContent={personLoading ? "Loading..." : "No data found"}
                             onSearch={value => {
                                 setPersonSearch?.(value);
                                 setPersonPage?.(1); // Reset to first page on new search
@@ -198,6 +209,20 @@ const MultiBirthSiblingForm = ({
                         />
                         {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
                     </label>
+                    {personLoading ? (
+                        <div className="mt-2 text-gray-500">Loading persons...</div>
+                    ) : (
+                        personsCount && personsCount > 10 && setPersonPage && (
+                            <Pagination
+                                className="mt-2"
+                                current={personPage}
+                                pageSize={10}
+                                total={personsCount}
+                                onChange={page => setPersonPage(page)}
+                                showSizeChanger={false}
+                            />
+                        )
+                    )}
                 </div>
                 <div className="flex gap-2">
                     <label htmlFor="" className="flex-1">

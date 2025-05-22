@@ -2,6 +2,7 @@
 import { calculateAge } from "@/functions/calculateAge"
 import { VisitorRecord } from "@/lib/definitions";
 import { useEffect, useState } from "react";
+import no_img from "@/assets/noimg.png"
 
 //All errors are linter errors, please ignore. Me too lazy write long type huhu
 type Visitor = VisitorRecord;
