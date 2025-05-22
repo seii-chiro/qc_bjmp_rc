@@ -342,7 +342,7 @@ const VisitorRegistration = () => {
         }))
     }
 
-    const { data: persons, isLoading: personLoading } = useQuery({
+    const { data: persons } = useQuery({
         queryKey: ['persons', personSearch, personPage],
         queryFn: () => getPersonSearch(token ?? "", 10, personSearch, personPage),
         keepPreviousData: true,
