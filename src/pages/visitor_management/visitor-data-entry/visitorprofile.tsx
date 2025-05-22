@@ -90,7 +90,7 @@ const captureThumbsPayload = {
     NFIQ_Quality: 20
 }
 
-const captureIrisPayload = { TimeOut: 120, IrisSide: 0 }
+const captureIrisPayload = { TimeOut: 10, IrisSide: 0 }
 
 const { Dragger } = Upload;
 
@@ -422,15 +422,30 @@ const VisitorProfile = ({
     });
 
 
-    const handleVerifyIris = (leftIris: string, rightIris: string) => {
-        verifyLeftIrisMutation.mutate({ template: leftIris ?? "", type: "iris" })
-        verifyRightIrisMutation.mutate({ template: rightIris ?? "", type: "iris" })
-    }
+    const handleVerifyIris = (leftIris: string | null, rightIris: string | null) => {
+        if (!leftIris && !rightIris) {
+            message.warning("At least one iris sample must be provided.");
+            return;
+        }
+
+        if (leftIris) {
+            verifyLeftIrisMutation.mutate({ template: leftIris, type: "iris" });
+        }
+
+        if (rightIris) {
+            verifyRightIrisMutation.mutate({ template: rightIris, type: "iris" });
+        }
+    };
 
     const irisScannerCaptureMutation = useMutation({
         mutationKey: ['finger-scanner-init'],
         mutationFn: () => captureIris(captureIrisPayload),
         onSuccess: (data) => {
+            if (data?.ErrorDescription === "Device not initialized.") {
+                message.error(data?.ErrorDescription)
+                return
+            }
+
             setEnrollFormLeftIris(prev => ({
                 ...prev,
                 upload_data: data.ImgDataLeft
@@ -982,7 +997,7 @@ const VisitorProfile = ({
                                         {/* Left Iris Box */}
                                         <div className="border border-gray-200 bg-gray-100 w-full flex-1 rounded-md overflow-hidden relative">
                                             {
-                                                leftIrisVerificationResponse && (
+                                                leftIrisVerificationResponse && enrollFormLeftIris?.upload_data && (
                                                     leftIrisVerificationResponse?.message === "Match found." ?
                                                         <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
@@ -1007,7 +1022,7 @@ const VisitorProfile = ({
                                         {/* Right Iris Box */}
                                         <div className="border border-gray-200 bg-gray-100 w-full flex-1 rounded-md overflow-hidden relative">
                                             {
-                                                rightIrisVerificationResponse && (
+                                                rightIrisVerificationResponse && enrollFormRightIris?.upload_data && (
                                                     rightIrisVerificationResponse?.message === "Match found." ?
                                                         <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
