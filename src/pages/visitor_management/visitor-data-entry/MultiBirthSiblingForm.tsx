@@ -178,14 +178,12 @@ const MultiBirthSiblingForm = ({
                             optionFilterProp="label"
                             className='mt-2 h-10 rounded'
                             options={
-                                personLoading
-                                    ? [{ value: undefined, label: "Loading...", disabled: true }]
-                                    : persons?.length
-                                        ? persons.map(person => ({
-                                            value: person?.id,
-                                            label: `${person?.first_name ?? ""} ${person?.middle_name ?? ""} ${person?.last_name ?? ""}`
-                                        }))
-                                        : [{ value: undefined, label: "No data found", disabled: true }]
+                                persons?.length
+                                    ? persons.map(person => ({
+                                        value: person?.id,
+                                        label: `${person?.first_name ?? ""} ${person?.middle_name ?? ""} ${person?.last_name ?? ""}`
+                                    }))
+                                    : []
                             }
                             notFoundContent={personLoading ? "Loading..." : "No data found"}
                             onSearch={value => {
@@ -230,6 +228,7 @@ const MultiBirthSiblingForm = ({
                         <Input
                             value={prefixes?.find(prefix => prefix?.id === chosenSibling?.prefix)?.prefix}
                             className="h-12"
+                            readOnly
                         />
                     </label>
                     <label htmlFor="" className="flex-[2]">
@@ -237,6 +236,7 @@ const MultiBirthSiblingForm = ({
                         <Input
                             className="h-12"
                             value={chosenSibling?.last_name}
+                            readOnly
                         />
                     </label>
                     <label htmlFor="" className="flex-[2]">
@@ -244,6 +244,7 @@ const MultiBirthSiblingForm = ({
                         <Input
                             className="h-12"
                             value={chosenSibling?.first_name}
+                            readOnly
                         />
 
                     </label>
@@ -252,6 +253,7 @@ const MultiBirthSiblingForm = ({
                         <Input
                             className="h-12"
                             value={chosenSibling?.middle_name}
+                            readOnly
                         />
                     </label>
                     <label htmlFor="" className="flex-1">
@@ -259,6 +261,7 @@ const MultiBirthSiblingForm = ({
                         <Input
                             className="h-12"
                             value={suffixes?.find(suffix => suffix?.id === chosenSibling?.prefix)?.suffix}
+                            readOnly
                         />
                     </label>
                 </div>
@@ -269,6 +272,7 @@ const MultiBirthSiblingForm = ({
                         <Input
                             className="h-12"
                             value={chosenSibling?.shortname}
+                            readOnly
                         />
                     </label>
                     <label htmlFor="" className="flex-[2]">
@@ -276,6 +280,7 @@ const MultiBirthSiblingForm = ({
                         <Input
                             className="h-12"
                             value={chosenSibling?.gender?.gender_option}
+                            readOnly
                         />
                     </label>
                     <label htmlFor="" className="flex-[2]">
@@ -283,6 +288,7 @@ const MultiBirthSiblingForm = ({
                         <Input
                             className="h-12"
                             value={chosenSibling?.multiple_birth_siblings?.[0]?.multiple_birth_class ?? ""}
+                            readOnly
                         />
                     </label>
                     <label htmlFor="" className="flex-1 flex items-center gap-2 mt-2">
