@@ -28,6 +28,7 @@ import FMC from "./FMC";
 import CaseDetails from "./CaseDetails";
 import PdlVisitor from "./PdlVisitor";
 import { getPDLVisitStatuses } from "@/lib/additionalQueries";
+import { EthnicityProvince } from "@/lib/definitions";
 
 const addPerson = async (payload: PersonForm, token: string) => {
 
@@ -849,6 +850,7 @@ const PdlRegistration = () => {
 
     // console.log("PDL Form: ", pdlForm)
     // console.log("Person Form: ", personForm)
+    // console.log("Mutibirth", personForm?.multiple_birth_sibling_data)
 
     return (
         <div className='bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5'>
@@ -1263,9 +1265,9 @@ const PdlRegistration = () => {
                                     showSearch
                                     optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={ethnicitiesProvinces?.results?.map(ethnicity => ({
+                                    options={ethnicitiesProvinces?.results?.map((ethnicity: EthnicityProvince) => ({
                                         value: ethnicity?.id,
-                                        label: `${ethnicity?.ethnicity}`
+                                        label: `${ethnicity?.ethnicity} - ${ethnicity?.province}`,
                                     }))}
                                     onChange={(value) => {
                                         setPersonForm(prev => (
