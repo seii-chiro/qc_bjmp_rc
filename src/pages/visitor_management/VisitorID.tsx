@@ -19,13 +19,13 @@ const VisitorID = () => {
     const [totalVisitors, setTotalVisitors] = useState(0)
 
     // Function to fetch paginated visitors with search
-    const fetchVisitors = async ({ pageParam = 1 }) => {
+    const fetchVisitors = async () => {
+        const offset = (currentPage - 1) * pageSize;
         const searchParams = new URLSearchParams({
-            page: pageParam.toString(),
-            page_size: pageSize.toString(),
+            limit: pageSize.toString(),
+            offset: offset.toString(),
         });
 
-        // Add search query if available
         if (searchQuery) {
             searchParams.append('search', searchQuery);
         }
@@ -43,17 +43,16 @@ const VisitorID = () => {
         if (!res.ok) throw new Error("Failed to fetch visitors");
         const data = await res.json();
 
-        // Update total count for pagination
         setTotalVisitors(data.count || 0);
 
         return data;
     };
 
     // Query for paginated visitors with search
-    const { data: visitors, isLoading: visitorsLoading, refetch: refetchVisitors } = useQuery({
+    const { data: visitors, isLoading: visitorsLoading } = useQuery({
         queryKey: ['visitors', 'visitorID', currentPage, pageSize, searchQuery],
-        queryFn: () => fetchVisitors({ pageParam: currentPage }),
-        keepPreviousData: true,
+        queryFn: fetchVisitors,
+        placeholderData: 'keep',
     });
 
     // Fetch visitor-specific logs when a visitor is chosen
