@@ -2,8 +2,8 @@
 import { BASE_URL } from '@/lib/urls'
 import { useTokenStore } from '@/store/useTokenStore'
 import { useQuery } from '@tanstack/react-query'
-import { Select, Pagination, Input } from 'antd'
-import { useState } from 'react'
+import { Select } from 'antd'
+import { useEffect, useState } from 'react'
 import img_placeholder from "@/assets/img_placeholder.jpg"
 import { toPng } from 'html-to-image';
 import JSZip from "jszip";
@@ -14,9 +14,15 @@ const VisitorID = () => {
     const token = useTokenStore()?.token
     const [chosenVisitor, setChosenVisitor] = useState<string>("")
     const [currentPage, setCurrentPage] = useState(1)
-    const [pageSize, setPageSize] = useState(10)
+    const pageSize = 10
     const [searchQuery, setSearchQuery] = useState("")
-    const [totalVisitors, setTotalVisitors] = useState(0)
+    // const [totalVisitors, setTotalVisitors] = useState(0)
+    const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
+
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedSearch(searchQuery), 400)
+        return () => clearTimeout(handler)
+    }, [searchQuery])
 
     // Function to fetch paginated visitors with search
     const fetchVisitors = async () => {
@@ -26,8 +32,8 @@ const VisitorID = () => {
             offset: offset.toString(),
         });
 
-        if (searchQuery) {
-            searchParams.append('search', searchQuery);
+        if (debouncedSearch) {
+            searchParams.append('search', debouncedSearch);
         }
 
         const res = await fetch(
@@ -43,14 +49,14 @@ const VisitorID = () => {
         if (!res.ok) throw new Error("Failed to fetch visitors");
         const data = await res.json();
 
-        setTotalVisitors(data.count || 0);
+        // setTotalVisitors(data.count || 0);
 
         return data;
     };
 
     // Query for paginated visitors with search
     const { data: visitors, isLoading: visitorsLoading } = useQuery({
-        queryKey: ['visitors', 'visitorID', currentPage, pageSize, searchQuery],
+        queryKey: ['visitors', 'visitorID', currentPage, pageSize, debouncedSearch],
         queryFn: fetchVisitors,
         placeholderData: 'keep',
     });
@@ -76,29 +82,29 @@ const VisitorID = () => {
     });
 
     // Handle page change
-    const handlePageChange = (page, pageSize) => {
-        setCurrentPage(page);
-        setPageSize(pageSize);
-    };
+    // const handlePageChange = (page, pageSize) => {
+    //     setCurrentPage(page);
+    //     setPageSize(pageSize);
+    // };
 
     // Handle search input
-    const handleSearch = (value) => {
-        setSearchQuery(value);
-        setCurrentPage(1); // Reset to first page on new search
-    };
+    // const handleSearch = (value) => {
+    //     setSearchQuery(value);
+    //     setCurrentPage(1); // Reset to first page on new search
+    // };
 
     // Debounced search to prevent excessive API calls
-    const handleSearchInput = (e) => {
-        const value = e.target.value;
-        // Clear existing timeout
-        if (window.searchTimeout) {
-            clearTimeout(window.searchTimeout);
-        }
-        // Set new timeout
-        window.searchTimeout = setTimeout(() => {
-            handleSearch(value);
-        }, 500); // 500ms debounce
-    };
+    // const handleSearchInput = (e) => {
+    //     const value = e.target.value;
+    //     // Clear existing timeout
+    //     if (window.searchTimeout) {
+    //         clearTimeout(window.searchTimeout);
+    //     }
+    //     // Set new timeout
+    //     window.searchTimeout = setTimeout(() => {
+    //         handleSearch(value);
+    //     }, 500); // 500ms debounce
+    // };
 
     const handleDownloadAll = async () => {
         const zip = new JSZip();
@@ -145,7 +151,7 @@ const VisitorID = () => {
                         placeholder='Select Visitor'
                         className='w-72 h-10'
                         value={chosenVisitor}
-                        options={visitors?.results?.map((visitor) => ({
+                        options={visitors?.results?.map((visitor: { id_number: any; person: { first_name: any; middle_name: any; last_name: any } }) => ({
                             value: visitor.id_number,
                             label: `${visitor?.person?.first_name ?? ""} ${visitor?.person?.middle_name ?? ""} ${visitor?.person?.last_name ?? ""}`,
                         })) ?? []}
@@ -157,6 +163,7 @@ const VisitorID = () => {
                         }}
                         filterOption={false} // Let backend handle filtering
                     />
+
                 </div>
 
                 {/* Pagination component */}
@@ -185,7 +192,7 @@ const VisitorID = () => {
                                 <div className='custom-shape4 bg-black absolute w-[50%] pl-0 py-5 pr-8 h-16 top-[12.5%] z-10 flex items-center justify-center'>
                                     <p className='text-center text-white text-xl font-semibold'>QUEZON CITY JAIL MALE DORM</p>
                                 </div>
-                                <div className='custom-shape3 bg-gray-400 absolute w-full h-8 top-[21%] flex items-center justify-end pr-[15%]'>
+                                <div className='custom-shape3 bg-gray-400 absolute w-full h-8 top-[21%] flex items-center justify-end pr-[12%]'>
                                     <p className='text-white text-right font-semibold'>
                                         {specificVisitor?.person?.first_name ?? ""} &nbsp;
                                         {specificVisitor?.person?.middle_name ? specificVisitor.person.middle_name.charAt(0) : ""} &nbsp;
@@ -210,7 +217,7 @@ const VisitorID = () => {
                                         alt="visitor face photo"
                                     />
                                 </div>
-                                <div className="flex flex-col justify-between h-[70%] w-10 pt-24">
+                                <div className="flex flex-col justify-between h-[70%] w-10 pt-28">
                                     <span
                                         className="text-sm font-semibold tracking-widest"
                                         style={{ transform: "rotate(-90deg)", display: "inline-block", letterSpacing: "0.4em" }}
@@ -286,7 +293,7 @@ const VisitorID = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex flex-col justify-between h-[70%] w-10 pt-24">
+                                <div className="flex flex-col justify-between h-[70%] w-10 pt-28">
                                     <span
                                         className="text-sm font-semibold tracking-widest"
                                         style={{ transform: "rotate(-90deg)", display: "inline-block", letterSpacing: "0.4em" }}
