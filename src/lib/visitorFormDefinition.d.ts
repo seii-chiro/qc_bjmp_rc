@@ -48,6 +48,7 @@ export type MultiBirthSiblingForm = {
   multiple_birth_class_id: number | null;
   person_id_display?: number | null;
   sibling_person_id_display?: number | null;
+  person?: string;
 };
 
 export type DiagnosisForm = {
