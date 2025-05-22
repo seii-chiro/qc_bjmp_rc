@@ -36,8 +36,8 @@ const VisitLog = () => {
     queryFn: async () => {
       const offset = (mainGatePage - 1) * limit;
       const url = debouncedSearch
-        ? `${BASE_URL}/api/visit-logs/main-gate-visits/?search=${debouncedSearch}&page=${mainGatePage}&limit=${limit}&offset=${offset}`
-        : `${BASE_URL}/api/visit-logs/main-gate-visits/?page=${mainGatePage}&limit=${limit}&offset=${offset}`;
+        ? `${BASE_URL}/api/visit-logs/main-gate-visits/?search=${debouncedSearch}&limit=${limit}&offset=${offset}`
+        : `${BASE_URL}/api/visit-logs/main-gate-visits/?&limit=${limit}&offset=${offset}`;
       return fetchVisitLogs(url);
     },
     keepPreviousData: true,
@@ -49,8 +49,8 @@ const VisitLog = () => {
     queryFn: async () => {
       const offset = (visitorPage - 1) * limit;
       const url = debouncedSearch
-        ? `${BASE_URL}/api/visit-logs/visitor-station-visits/?search=${debouncedSearch}&page=${visitorPage}&limit=${limit}&offset=${offset}`
-        : `${BASE_URL}/api/visit-logs/visitor-station-visits/?page=${visitorPage}&limit=${limit}&offset=${offset}`;
+        ? `${BASE_URL}/api/visit-logs/visitor-station-visits/?search=${debouncedSearch}&limit=${limit}&offset=${offset}`
+        : `${BASE_URL}/api/visit-logs/visitor-station-visits/?&limit=${limit}&offset=${offset}`;
       return fetchVisitLogs(url);
     },
     keepPreviousData: true,
@@ -62,8 +62,8 @@ const VisitLog = () => {
     queryFn: async () => {
       const offset = (pdlPage - 1) * limit;
       const url = debouncedSearch
-        ? `${BASE_URL}/api/visit-logs/pdl-station-visits/?search=${debouncedSearch}&page=${pdlPage}&limit=${limit}&offset=${offset}`
-        : `${BASE_URL}/api/visit-logs/pdl-station-visits/?page=${pdlPage}&limit=${limit}&offset=${offset}`;
+        ? `${BASE_URL}/api/visit-logs/pdl-station-visits/?search=${debouncedSearch}&limit=${limit}&offset=${offset}`
+        : `${BASE_URL}/api/visit-logs/pdl-station-visits/?&limit=${limit}&offset=${offset}`;
       return fetchVisitLogs(url);
     },
     keepPreviousData: true,
@@ -125,12 +125,13 @@ const VisitLog = () => {
 
   const dataSource = (activeData?.results || []).map((entry) => ({
     key: entry.id,
+    id: entry?.id,
     timestamp: entry?.tracking_logs?.[0]?.created_at ?? '',
     visitor: entry?.person || '',
     visitor_type: entry?.visitor_type || '',
     pdl_name: entry?.pdl_name || '',
     pdl_type: entry?.pdl_type || '',
-  })).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()); // Sort by timestamp descending
+  })).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   const filteredData = dataSource.filter((log) => {
     const visitorMatch = (log.visitor || '').toLowerCase().includes(searchText.toLowerCase());
