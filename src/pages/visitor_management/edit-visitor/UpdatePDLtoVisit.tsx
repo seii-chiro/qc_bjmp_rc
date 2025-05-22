@@ -1,6 +1,6 @@
 import { getPDLs, getVisitor_to_PDL_Relationship } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { Table, Modal } from "antd";
 import { Plus } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
@@ -44,12 +44,33 @@ const UpdatePDLtoVisit = ({
     const [pdlToVisitModalOpen, setPdlToVisitModalOpen] = useState(false)
     const [pdlToVisitTableInfo, setPdlToVisitTableInfo] = useState<PdlToVisitTable>([])
 
+    const [pdlPage, setPdlPage] = useState(1);
+    const [pdlFirstName, setPdlFirstName] = useState("");
+    const [debouncedPdlFirstName, setDebouncedPdlFirstName] = useState("");
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedPdlFirstName(pdlFirstName);
+        }, 500); // 400ms debounce
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [pdlFirstName]);
+
+    const {
+        data: pdlsPaginated,
+        isLoading: pdlsLoading,
+    } = useQuery({
+        queryKey: ['pdls-edit', pdlPage, debouncedPdlFirstName],
+        queryFn: () => getPDLs(token ?? "", 10, pdlPage, debouncedPdlFirstName),
+        keepPreviousData: true,
+        staleTime: 10 * 60 * 1000,
+    });
+
+
     const results = useQueries({
         queries: [
-            {
-                queryKey: ['pdls'],
-                queryFn: () => getPDLs(token ?? "")
-            },
             {
                 queryKey: ['realtionship-to-pdl'],
                 queryFn: () => getVisitor_to_PDL_Relationship(token ?? "")
@@ -62,8 +83,8 @@ const UpdatePDLtoVisit = ({
         ]
     })
 
-    const pdls = results?.[0]?.data?.results
-    const pdlsLoading = results?.[0]?.isLoading
+    const pdls = pdlsPaginated?.results || [];
+    const pdlsCount = pdlsPaginated?.count || 0;
     const visitorToPdlRelationship = results?.[1]?.data?.results
     const visitortoPDLRelationshipLoading = results?.[1]?.isLoading
 
@@ -213,6 +234,11 @@ const UpdatePDLtoVisit = ({
                     visitorToPdlRelationship={visitorToPdlRelationship || []}
                     pdls={pdls || []}
                     pdlsLoading={pdlsLoading}
+                    pdlPage={pdlPage}
+                    setPdlPage={setPdlPage}
+                    pdlsCount={pdlsCount}
+                    pdlFirstName={pdlFirstName}
+                    setPdlFirstName={setPdlFirstName}
                 />
             </Modal>
             <div className="w-full">
