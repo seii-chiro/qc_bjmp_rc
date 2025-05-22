@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { JAIL_CATEGORY } from "@/lib/urls";
@@ -12,6 +12,7 @@ type AddJailCategory = {
 const AddJailCategory = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [jailCategoryForm, setJailCategoryForm] = useState<AddJailCategory>({
         description: '',
         category_name: '',
@@ -47,10 +48,10 @@ const AddJailCategory = ({ onClose }: { onClose: () => void }) => {
     }
 
     const jailTypeMutation = useMutation({
-        mutationKey: ['jail-type'],
+        mutationKey: ['jail-category'],
         mutationFn: registerjailCategory,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['jail-category'] });
             messageApi.success("Added successfully");
             onClose();
         },

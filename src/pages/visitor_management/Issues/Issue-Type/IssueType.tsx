@@ -25,6 +25,7 @@ type IssueTypes = {
     updated_by: string;
     issue_category: IssueCategory;
     updated_at: string; 
+    risk: string;
     name: string;
     description: string;
 };
@@ -63,7 +64,7 @@ const IssueType = () => {
     const deleteMutation = useMutation({
             mutationFn: (id: number) => deleteIssue_Type(token ?? "", id),
             onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ["risk"] });
+                queryClient.invalidateQueries({ queryKey: ["issue-type"] });
                 messageApi.success("Issue Type deleted successfully");
             },
             onError: (error: any) => {
@@ -123,12 +124,14 @@ const IssueType = () => {
     const dataSource = data?.results?.map((issue_type, index) => (
         {
             key: index + 1,
-            id: issue_type?.id ?? 'N/A',
-            name: issue_type?.name ?? 'N/A',
-            description: issue_type?.description ?? 'N/A',
-            updated_at: issue_type?.updated_at ?? 'N/A',
-            updated_by: issue_type?.updated_by ?? 'N/A',
-            issue_category: issue_type?.issue_category?.name ?? 'N/A',
+            id: issue_type?.id ?? '',
+            name: issue_type?.name ?? '',
+            description: issue_type?.description ?? '',
+            updated_at: issue_type?.updated_at ?? '',
+            updated_by: issue_type?.updated_by ?? '',
+            issue_category: issue_type?.issue_category?.name ?? '',
+            issue_category_description: issue_type?.issue_category?.description ?? '',
+            risk: issue_type?.risk ?? '',
             organization: issue_type?.organization ?? 'Bureau of Jail Management and Penology',
             updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
@@ -191,11 +194,41 @@ const IssueType = () => {
             onFilter: (value, record) => record.issue_category === value,
         },
         {
+            title: 'Issue Category Description',
+            dataIndex: 'issue_category_description',
+            key: 'issue_category_description',
+            sorter: (a, b) => a.issue_category_description.localeCompare(b.issue_category_description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.issue_category_description))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.issue_category_description === value,
+        },
+        {
+            title: 'Risk',
+            dataIndex: 'risk',
+            key: 'risk',
+            sorter: (a, b) => a.risk.localeCompare(b.risk),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.risk))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.risk === value,
+        },
+        {
             title: "Updated At",
             dataIndex: "updated_at",
             key: "updated_at",
             render: (value) =>
-                value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
+                value !== '' ? moment(value).format("MMMM D, YYYY h:mm A") : "",
             sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
             filters: [
                 ...Array.from(
@@ -289,8 +322,9 @@ const IssueType = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.name,
             item.issue_category,
         ]);

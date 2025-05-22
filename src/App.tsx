@@ -41,8 +41,8 @@ import Position from "./pages/personnel_management/position/position.tsx";
 import EmploymentType from "./pages/personnel_management/employment_type/EmploymentType.tsx";
 import AffiliationType from "./pages/personnel_management/affiliation-type/AffiliationType.tsx";
 import Home1 from "./pages/home/Home.tsx";
-import Personnels from "./pages/personnel_management/personnel/personnel.tsx";
-import Personnel from "./pages/personnel_management/personnel/personnel-backup.tsx";
+import Personnels from "./pages/personnel_management/Personnel.tsx";
+import Personnel from "./pages/personnel_management/personnel/personnel.tsx";
 import Home2 from "./pages/home/Home2/Home.tsx";
 import Database from "./pages/database/database.tsx";
 import VisitorRegistration from "./pages/visitor_management/visitor-data-entry/visitorregistration.tsx";
@@ -111,11 +111,13 @@ import Level from "./pages/assets/level/Level.tsx";
 import Annex from "./pages/assets/annex/Annex.tsx";
 import Dorm from "./pages/assets/dorm/Dorm.tsx";
 import GroupAffiliation from "./pages/maintenance/group-affiliation/GroupAffiliation.tsx";
+import IncidentCategory from "./pages/Incidents/incident-category/IncidentCategory.tsx";
+import IncidentType from "./pages/Incidents/incident-type/IncidentType.tsx";
 
 // Lazy-loaded components
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
 /*const Login = React.lazy(() => import("./pages/Login")); */
-const RootLayout = React.lazy(() => import("./layout/RootLayout"));
+const RootLayout = React.lazy(() => import("./layout/RootLayout.tsx"));
 
 function App() {
     const isAuthenticated = useAuthStore().isAuthenticated
@@ -332,6 +334,18 @@ function App() {
                 },
                 {
                     path: "incidents",
+                    element: <Incidents />
+                },
+                {
+                    path: "incidents/incident-category",
+                    element: <IncidentCategory />
+                },
+                {
+                    path: "incidents/incident-type",
+                    element: <IncidentType />
+                },
+                {
+                    path: "incidents/incident-type",
                     element: <Incidents />
                 },
                 {

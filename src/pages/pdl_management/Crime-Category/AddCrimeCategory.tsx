@@ -1,6 +1,6 @@
 import { BASE_URL} from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
 import { useState } from "react";
 
@@ -12,6 +12,7 @@ type AddCrimeCategoryProps = {
 const AddCrimeCategory = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectCrimeCategory, setSelectCrimeCategory] = useState<AddCrimeCategoryProps>({
         crime_category_name: '',
         description: '',
@@ -45,8 +46,8 @@ const AddCrimeCategory = ({ onClose }: { onClose: () => void }) => {
     const CrimeCategoryMutation = useMutation({
         mutationKey: ['crime-category'],
         mutationFn: AddCrimeCategory,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['crime-category'] });
             messageApi.success("Added successfully");
             onClose();
         },

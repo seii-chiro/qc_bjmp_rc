@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { SKILLS } from "@/lib/urls";
@@ -12,6 +12,7 @@ type AddSkills = {
 const AddSkills = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [skillsForm, setSkillsForm] = useState<AddSkills>({
         name: '',
         description: '',
@@ -42,8 +43,8 @@ const AddSkills = ({ onClose }: { onClose: () => void }) => {
     const skillsMutation = useMutation({
         mutationKey: ['skills'],
         mutationFn: addSkills,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['skill'] });
             messageApi.success("Added successfully");
             onClose(); 
         },

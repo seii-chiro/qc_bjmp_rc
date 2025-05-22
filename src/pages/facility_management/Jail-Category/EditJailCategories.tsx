@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message } from "antd";
 import { updateJail_Category } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -8,12 +8,14 @@ const EditJailCategories = ({ category, onClose }: { category: any; onClose: () 
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [isLoading, setIsLoading] = useState(false); 
 
     const updateMutation = useMutation({
         mutationFn: (updatedData: any) =>
             updateJail_Category(token ?? "", category.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['jail-category'] });
             setIsLoading(true); 
             messageApi.success("Jail Category updated successfully");
             onClose();

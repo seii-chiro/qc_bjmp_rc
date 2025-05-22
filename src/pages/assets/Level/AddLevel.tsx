@@ -1,7 +1,7 @@
 import { getJail, getJail_Security_Level } from "@/lib/queries";
 import { DETENTION_BUILDING } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { message, Select } from "antd";
 import { useState } from "react";
 
@@ -16,6 +16,7 @@ type AddLevelResponse = {
 const AddLevel = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
 
     const [formData, setFormData] = useState<AddLevelResponse>({
         jail: null,
@@ -75,6 +76,7 @@ async function addLevel(level: AddLevelResponse) {
         mutationKey: ['level'],
         mutationFn: addLevel,
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['level'] });
             messageApi.success("Level added successfully");
             onClose();
         },

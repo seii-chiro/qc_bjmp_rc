@@ -64,7 +64,7 @@ const JailCategory = () => {
     };
 
     const dataSource = data?.results?.map((category, index) => ({
-        key: index + 1,
+        key: category?.id,
         id: category.id,
         description: category?.description ?? "N/A",
         category: category?.category ?? "N/A",
@@ -168,8 +168,9 @@ const JailCategory = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+    const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.category,
             item.description,
         ]);
@@ -272,9 +273,15 @@ const JailCategory = () => {
             <div className="w-full">
                 <div id="printable-table">
                     <Table
+                        className="overflow-x-auto"
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{x: 800}}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

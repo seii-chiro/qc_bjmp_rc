@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation} from "@tanstack/react-query";
+import { useMutation, useQueryClient} from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { TALENTS } from "@/lib/urls";
@@ -12,6 +12,7 @@ type AddTalents = {
 const AddTalents = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [talentForm, setTalentForm] = useState<AddTalents>({
         name: '',
         description: '',
@@ -42,8 +43,8 @@ const AddTalents = ({ onClose }: { onClose: () => void }) => {
     const talentMutation = useMutation({
         mutationKey: ['talent'],
         mutationFn: addTalents,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['talent'] });
             messageApi.success("Added successfully");
             onClose(); 
         },

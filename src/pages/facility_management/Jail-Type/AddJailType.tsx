@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { JAIL_TYPE } from "@/lib/urls";
@@ -12,6 +12,7 @@ type AddJailType = {
 const AddJailType = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [jailTypeForm, setJailTypeForm] = useState<AddJailType>({
         type_name: '',
         description: '',
@@ -49,8 +50,8 @@ const AddJailType = ({ onClose }: { onClose: () => void }) => {
     const jailTypeMutation = useMutation({
         mutationKey: ['jail-type'],
         mutationFn: registerjailType,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['jail-type'] });
             messageApi.success("Added successfully");
             onClose();
         },

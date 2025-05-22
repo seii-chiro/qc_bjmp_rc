@@ -928,3 +928,25 @@ export interface EditResponse {
   name: string;
   description: string;
 }
+
+export interface IncidentCategoryResponse {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  created_at: string; // or Date if you're parsing to Date objects
+  updated_at: string; // or Date
+  category_name: string;
+  description: string;
+}
+
+export interface IncidentTypeResponse {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  created_at: string; // or Date if you're parsing to Date objects
+  updated_at: string; // or Date
+  name: string;
+  description: string;
+}

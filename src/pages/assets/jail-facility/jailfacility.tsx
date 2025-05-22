@@ -43,6 +43,7 @@ const jailfacility = () => {
     const [selectjail, setSelectJail] = useState<Jail | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
         queryKey: ["jail"],
@@ -79,8 +80,8 @@ const jailfacility = () => {
         queryClient.invalidateQueries({ queryKey: ["jail"] });
     };
 
-    const dataSource = data?.results?.map((jail: Jail, index: any) => ({
-        key: index + 1,
+    const dataSource = data?.results?.map((jail: Jail) => ({
+        key: jail?.id,
         id: jail?.id,
         jail_name: jail?.jail_name ?? "",
         jail_type: jail?.jail_type ?? "",
@@ -108,9 +109,10 @@ const jailfacility = () => {
 
     const columns = [
         {
-            title: "No.",
-            dataIndex: "key",
-            key: "key",
+            title: 'No.',
+            key: 'no',
+            render: (_: any, __: any, index: number) =>
+                (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
             title: "Jail Name",
@@ -365,7 +367,7 @@ const jailfacility = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 27; 
     
         let startY = headerHeight;
     
@@ -394,8 +396,9 @@ const jailfacility = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map((item: { key: any; jail_name: any; email_address: any; contact_number: any;}) => [
-            item.key,
+const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.jail_name,
             item.email_address,
             item.contact_number,
@@ -496,11 +499,17 @@ const jailfacility = () => {
                     </button>
                 </div>
                 </div>
-            <Table
-                columns={columns}
-                dataSource={filteredData}
-                scroll={{ x: 'max-content' }} 
-            />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             <Modal
                 title="Jail Facility Report"
                 open={isPdfModalOpen}

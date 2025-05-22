@@ -1,6 +1,6 @@
 import { getOrganization } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message, Select } from "antd";
 import { RANK } from "@/lib/urls";
@@ -16,6 +16,7 @@ type AddRank = {
 const AddRank = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectrank, setSelectRank] = useState<AddRank>({
         organization_id: null,
         rank_code: '',
@@ -68,8 +69,8 @@ const AddRank = ({ onClose }: { onClose: () => void }) => {
     const rankMutation = useMutation({
         mutationKey: ['rank'],
         mutationFn: AddRank,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['rank'] });
             messageApi.success("Added successfully");
             onClose();
         },

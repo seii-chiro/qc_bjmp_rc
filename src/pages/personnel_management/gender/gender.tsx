@@ -192,8 +192,9 @@ const Gender = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+    const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.gender_option,
             item.description,
         ]);
@@ -334,7 +335,10 @@ const Gender = () => {
                 height={"80%"}
                 footer={null}
             >
-                <AddGender />
+                <AddGender onClose={() => {
+                    setIsModalOpen(false);
+                    queryClient.invalidateQueries({ queryKey: ["gender"] });
+                    }}/>
             </Modal>
             <Modal
                 title="Edit Gender"

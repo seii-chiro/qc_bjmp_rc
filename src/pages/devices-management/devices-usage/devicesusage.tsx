@@ -64,7 +64,7 @@ const DeviceUsage = () => {
     };
 
     const dataSource = data?.results?.map((device_usage, index) => ({
-        key: index + 1,
+        key: device_usage?.id,
         id: device_usage?.id,
         usage: device_usage?.usage ?? "N/A",
         description: device_usage?.description ?? "N/A",
@@ -168,8 +168,9 @@ const DeviceUsage = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.usage,
             item.description,
         ]);

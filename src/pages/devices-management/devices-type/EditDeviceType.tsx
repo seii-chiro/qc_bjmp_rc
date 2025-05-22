@@ -1,4 +1,4 @@
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message, Select } from "antd";
 import { updateDevice_Types, getDevice_Usage } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -16,6 +16,7 @@ const EditDevicesTypes = ({ devicetype, onClose }: { devicetype: any; onClose: (
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false); 
+    const queryClient = useQueryClient();
     const [deviceTypes, setDeviceTypes] = useState<EditDevicesTypes>({
         device_type: '',
         purpose: '',
@@ -27,6 +28,7 @@ const EditDevicesTypes = ({ devicetype, onClose }: { devicetype: any; onClose: (
         mutationFn: (updatedData: any) =>
             updateDevice_Types(token ?? "", devicetype.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['device-type'] });
             setIsLoading(true); 
             messageApi.success("Device Type updated successfully");
             onClose();

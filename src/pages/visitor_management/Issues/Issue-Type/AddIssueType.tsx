@@ -1,13 +1,14 @@
-import { getIssueCategories, getRecord_Status } from "@/lib/queries";
+import { getIssueCategories, getRisks } from "@/lib/queries";
 import { ISSUE_TYPE } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { message, Select } from "antd";
 import { useState } from "react";
 
 type AddIssueType = {
     name: string;
     description: string;
+    risk_id: number | null;
     remarks: string;
     issue_category_id: number | null;
 }
@@ -15,11 +16,13 @@ type AddIssueType = {
 const AddIssueType = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectIssueType, setSelectIssueType] = useState<AddIssueType>({
         name: '',
         description: '',
         remarks: '',
         issue_category_id: null,
+        risk_id: null,
     });
 
     const results = useQueries({
@@ -27,11 +30,16 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
             {
                 queryKey: ['issue_category'],
                 queryFn: () => getIssueCategories(token ?? "")
+            },
+            {
+                queryKey: ['risk'],
+                queryFn: () => getRisks(token ?? "")
             }
         ]
     });
 
     const issueCategoryData = results[0].data;
+    const riskData = results[1].data;
 
     async function AddIssueType(issue_type: AddIssueType) {
         const res = await fetch(ISSUE_TYPE.getISSUE_TYPE, {
@@ -59,10 +67,10 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
     }
 
     const issueTypekMutation = useMutation({
-        mutationKey: ['issue-category'],
+        mutationKey: ['issue-type'],
         mutationFn: AddIssueType,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['issue-type'] });
             messageApi.success("Added successfully");
             onClose();
         },
@@ -91,6 +99,13 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
         setSelectIssueType(prevForm => ({
             ...prevForm,
             issue_category_id: value
+        }));
+    };
+
+    const onRiskChange = (value: number) => {
+        setSelectIssueType(prevForm => ({
+            ...prevForm,
+            risk_id: value
         }));
     };
 
@@ -127,7 +142,22 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
                         ))}
                         />
                     </div>
-                    
+                    <div>
+                        <p className="text-gray-500 font-bold">Risk:</p>
+                        <Select
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Risk"
+                        optionFilterProp="label"
+                        onChange={onRiskChange}
+                        options={riskData?.results?.map(risk => (
+                            {
+                                value: risk.id,
+                                label: risk?.name,
+                            }
+                        ))}
+                        />
+                    </div>
                 </div>
                 <div className="w-full flex justify-end mt-10">
                     <button type="submit" className="bg-blue-500 text-white w-36 px-3 py-2 rounded font-semibold text-base">

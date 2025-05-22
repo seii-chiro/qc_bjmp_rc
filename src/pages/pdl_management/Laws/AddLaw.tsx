@@ -1,7 +1,7 @@
-import { getCrimeCategories, getRecord_Status } from "@/lib/queries";
+import { getCrimeCategories } from "@/lib/queries";
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { message, Select } from "antd";
 import { useState } from "react";
 
@@ -15,6 +15,7 @@ type LawForm = {
 const AddLaw = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectLaw, setSelectedLaw] = useState<LawForm>({
         name: '',
         title: '',
@@ -37,13 +38,6 @@ const AddLaw = ({ onClose }: { onClose: () => void }) => {
         setSelectedLaw(prevForm => ({
             ...prevForm,
             crime_category_id: value,
-        }));
-    };
-
-    const onRecordStatusChange = (value: number) => {
-        setSelectedLaw(prevForm => ({
-            ...prevForm,
-            record_status_id: value,
         }));
     };
 
@@ -73,8 +67,8 @@ const AddLaw = ({ onClose }: { onClose: () => void }) => {
     const lawMutation = useMutation({
         mutationKey: ["law"],
         mutationFn: addLaw,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['law'] });
             messageApi.success("Added successfully");
             onClose();
         },

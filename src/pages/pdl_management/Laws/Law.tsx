@@ -222,77 +222,81 @@ const Law = () => {
         XLSX.utils.book_append_sheet(wb, ws, "Law");
         XLSX.writeFile(wb, "Law.xlsx");
     };
+    
+const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const pageHeight = doc.internal.pageSize.height;
+    const pageWidth = doc.internal.pageSize.width;
+    const headerHeight = 45;
+    const footerHeight = 32;
+    const margin = 10;
+    const tableTopY = headerHeight + margin;
 
-    const handleExportPDF = () => {
-        const doc = new jsPDF();
-        const pageHeight = doc.internal.pageSize.height;
-        const pageWidth = doc.internal.pageSize.width;
-        const headerHeight = 45;
-        const footerHeight = 32;
-        const margin = 10;
-        const tableTopY = headerHeight + margin;
-    
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-        const organizationName = dataSource[0]?.organization || '';
-        const PreparedBy = dataSource[0]?.updated || '';
-        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-    
-        const addHeader = (doc) => {
-            doc.addImage(bjmp, 'PNG', pageWidth - 40, 12, 30, 30);
-            doc.setFontSize(16);
-            doc.setTextColor(0, 102, 204);
-            doc.text("Law Report", 10, 10);
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Organization Name: ${organizationName}`, 10, 25);
-            doc.text("Report Date: " + formattedDate, 10, 30);
-            doc.text("Prepared By: " + PreparedBy, 10, 35);
-            doc.text("Department/ Unit: IT", 10, 40);
-            doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
-        };
-    
-        const addFooter = (doc) => {
-            const pageCount = doc.internal.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                const footerText = [
-                    "Document Version: Version 1.0",
-                    "Confidentiality Level: Internal use only",
-                    "Contact Info: " + PreparedBy,
-                    `Timestamp of Last Update: ${formattedDate}`
-                ].join('\n');
-                doc.setFontSize(8);
-                doc.text(footerText, 10, pageHeight - footerHeight + 15);
-                const pageNumber = `${i} / ${pageCount}`;
-                doc.text(pageNumber, pageWidth - doc.getTextWidth(pageNumber) - 10, pageHeight - footerHeight + 15);
-            }
-        };
-    
-        autoTable(doc, {
-            head: [['No.', 'Law', 'Title', 'Crime Category', 'Description']],
-            body: dataSource.map(item => [
-                item.key,
-                item.name,
-                item.title,
-                item.crime_category,
-                item.description,
-            ]),
-            startY: tableTopY,
-            margin: { top: tableTopY, bottom: footerHeight + margin,left: 10, right: 10 }, 
-            pageBreak: 'avoid',
-            didDrawPage: (data) => {
-                addHeader(doc);
-            },
-        });
-    
-        addFooter(doc);
-    
-        const pdfOutput = doc.output('datauristring');
-        setPdfDataUrl(pdfOutput);
-        setIsPdfModalOpen(true);
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    const organizationName = dataSource[0]?.organization || '';
+    const PreparedBy = dataSource[0]?.updated || '';
+    const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+
+    const addHeader = (doc) => {
+        doc.addImage(bjmp, 'PNG', pageWidth - 40, 12, 30, 30);
+        doc.setFontSize(16);
+        doc.setTextColor(0, 102, 204);
+        doc.text("Law Report", 10, 10);
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Organization Name: ${organizationName}`, 10, 25);
+        doc.text("Report Date: " + formattedDate, 10, 30);
+        doc.text("Prepared By: " + PreparedBy, 10, 35);
+        doc.text("Department/ Unit: IT", 10, 40);
+        doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
     };
-    
+
+    const addFooter = (doc) => {
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            const footerText = [
+                "Document Version: Version 1.0",
+                "Confidentiality Level: Internal use only",
+                "Contact Info: " + PreparedBy,
+                `Timestamp of Last Update: ${formattedDate}`
+            ].join('\n');
+            doc.setFontSize(8);
+            doc.text(footerText, 10, pageHeight - footerHeight + 15);
+            const pageNumber = `${i} / ${pageCount}`;
+            doc.text(pageNumber, pageWidth - doc.getTextWidth(pageNumber) - 10, pageHeight - footerHeight + 15);
+        }
+    };
+
+    // --- THIS IS THE PART YOU ASKED ABOUT ---
+    const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+        idx + 1,
+        item.name,
+        item.title,
+        item.crime_category,
+        item.description,
+    ]);
+    // ----------------------------------------
+
+    autoTable(doc, {
+        head: [['No.', 'Law', 'Title', 'Crime Category', 'Description']],
+        body: tableData,
+        startY: tableTopY,
+        margin: { top: tableTopY, bottom: footerHeight + margin, left: 10, right: 10 }, 
+        pageBreak: 'avoid',
+        didDrawPage: () => {
+            addHeader(doc);
+        },
+    });
+
+    addFooter(doc);
+
+    const pdfOutput = doc.output('datauristring');
+    setPdfDataUrl(pdfOutput);
+    setIsPdfModalOpen(true);
+};
 
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);

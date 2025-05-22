@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { AFFILIATION_TYPES } from "@/lib/urls";
@@ -12,6 +12,7 @@ type AddAffiliationType = {
 const AddAffiliationType = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [affiliationType, setAffiliationType] = useState<AddAffiliationType>({
         affiliation_type: '',
         description: '',
@@ -49,8 +50,8 @@ const AddAffiliationType = ({ onClose }: { onClose: () => void }) => {
     const affiliationTypeMutation = useMutation({
         mutationKey: ['affiliation-type'],
         mutationFn: AddAffiliationType,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['affiliation-type'] });
             messageApi.success("Added successfully");
             onClose();
         },

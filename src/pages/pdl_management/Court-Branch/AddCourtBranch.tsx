@@ -1,7 +1,7 @@
 import { getCourt, getJail_Province, getJailRegion, getRecord_Status } from "@/lib/queries";
 import { BRANCH } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Input, message, Select } from "antd";
 import { useState } from "react";
 
@@ -16,6 +16,7 @@ type AddCourtBranch = {
 const AddCourtBranch = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [branchForm, setBranchForm] = useState<AddCourtBranch>({
         province_id: null,
         region_id: null,
@@ -71,8 +72,8 @@ const AddCourtBranch = ({ onClose }: { onClose: () => void }) => {
     const branchMutation = useMutation({
         mutationKey: ["branch"],
         mutationFn: addCourtBranch,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['branch'] });
             messageApi.success("Added successfully");
             onClose();
         },

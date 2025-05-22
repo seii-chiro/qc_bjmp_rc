@@ -1,6 +1,6 @@
 import { BASE_URL} from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation} from "@tanstack/react-query";
+import { useMutation, useQueryClient} from "@tanstack/react-query";
 import { message } from "antd";
 import { useState } from "react";
 
@@ -12,6 +12,7 @@ type AddImpactLevelProps = {
 const AddImpactLevel = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectImpactLevel, setSelectImpactLevel] = useState<AddImpactLevelProps>({
         name: '',
         description: '',
@@ -43,10 +44,10 @@ const AddImpactLevel = ({ onClose }: { onClose: () => void }) => {
     }
 
     const ImpactMutation = useMutation({
-        mutationKey: ['impact'],
+        mutationKey: ['impact-level'],
         mutationFn: AddImpactLevel,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['impact-level'] });
             messageApi.success("Added successfully");
             onClose();
         },

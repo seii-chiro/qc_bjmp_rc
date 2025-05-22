@@ -1,4 +1,4 @@
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message, Select } from "antd";
 import { updateDevice, getDevice_Types, getJail } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -19,12 +19,14 @@ const EditDevices = ({ devices, onClose }: { devices: any; onClose: () => void }
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [isLoading, setIsLoading] = useState(false); 
 
     const updateMutation = useMutation({
         mutationFn: (updatedData: any) =>
             updateDevice(token ?? "", devices.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['devices'] });
             setIsLoading(false); 
             messageApi.success("Devices updated successfully");
             onClose();

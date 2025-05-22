@@ -1,6 +1,6 @@
 import { getJail_Security_Level, getJail, getDetention_Building, getDetention_Floor } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useQueries, useMutation } from "@tanstack/react-query";
+import { useQueries, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react"
 import { Select, message } from "antd";
 import { JAIL_AREA } from "@/lib/urls";
@@ -16,6 +16,7 @@ type AddJailArea = {
 const AddJailArea = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [jailAreaForm, setJailAreaForm] = useState<AddJailArea>({
         jail_id: null,
         building_id :null,
@@ -90,8 +91,8 @@ const AddJailArea = ({ onClose }: { onClose: () => void }) => {
     const jailAreaMutation = useMutation({
         mutationKey: ['jail-area'],
         mutationFn: registerJailArea,
-        onSuccess: (data) => {
-            console.log(data)
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['jail-area'] });
             messageApi.success("added successfully")
             onClose();
         },

@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore"
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from 'antd';
 import { CIVIL_STATUS } from "@/lib/urls";
@@ -12,6 +12,7 @@ type CivilStatus = {
 
 const AddCivilStatus = ({ onClose }: { onClose: () => void }) => {
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [CivilStatusForm, setCivilStatusForm] = useState<CivilStatus>({
         status: '',
         description: '',
@@ -40,8 +41,8 @@ const AddCivilStatus = ({ onClose }: { onClose: () => void }) => {
     const CivilStatusMutation = useMutation({
         mutationKey: ['civil-status'],
         mutationFn: registerCivilStatus,
-        onSuccess: (data) => {
-            console.log(data)
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['civil-status'] });
             messageApi.success("added successfully");
             onClose();
         },

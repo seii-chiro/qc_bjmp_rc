@@ -188,8 +188,9 @@ const VisitorType = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.visitor_type,
             item.description,
         ]);
@@ -292,10 +293,15 @@ const VisitorType = () => {
             <div className="w-full bg-white">
                 <div id="printable-table" className="overflow-auto h-full">
                     <Table
+                        className="overflow-x-auto"
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{x: 800}}
-                        tableLayout="fixed"
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
                     />
                 </div>
             </div>

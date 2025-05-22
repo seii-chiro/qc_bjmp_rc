@@ -37,7 +37,7 @@ const DeviceType = () => {
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
-        queryKey: ["devices-type"],
+        queryKey: ["device-type"],
         queryFn: () => getDevice_Types(token ?? ""),
     });
 
@@ -49,7 +49,7 @@ const DeviceType = () => {
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteDevice_Types(token ?? "", id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["devices-type"] });
+            queryClient.invalidateQueries({ queryKey: ["device-type"] });
             messageApi.success("Devices Type deleted successfully");
         },
         onError: (error: any) => {
@@ -59,14 +59,14 @@ const DeviceType = () => {
 
     const showModal = () => {
         setIsModalOpen(true);
-      };
-    
-      const handleCancel = () => {
-        setIsModalOpen(false);
-      };
+        };
+        
+        const handleCancel = () => {
+            setIsModalOpen(false);
+        };
 
     const dataSource = data?.results?.map((devicestypes, index) => ({
-        key: index + 1,
+        key: devicestypes?.id,
         id: devicestypes.id,
         device_type: devicestypes?.device_type ?? "N/A",
         purpose: devicestypes?.purpose ?? "N/A",
@@ -222,8 +222,9 @@ const DeviceType = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.device_type,
             item.device_usage,
             item.purpose,

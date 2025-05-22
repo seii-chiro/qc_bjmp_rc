@@ -1,6 +1,6 @@
 import { getJail, getJail_Area, getDevice_Types } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message, Select } from "antd";
 import { DEVICE } from "@/lib/urls";
@@ -20,6 +20,7 @@ type AddDevices = {
 const AddDevices = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [devices, setDevices] = useState<AddDevices>({
         device_type_id: null,
         jail_id: null,
@@ -93,7 +94,7 @@ const AddDevices = ({ onClose }: { onClose: () => void }) => {
         mutationKey: ['devices'],
         mutationFn: AddDevices,
         onSuccess: (data) => {
-            console.log(data);
+            queryClient.invalidateQueries({ queryKey: ['devices'] });
             messageApi.success("Added successfully");
             onClose();
         },

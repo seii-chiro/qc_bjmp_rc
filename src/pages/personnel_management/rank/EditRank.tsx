@@ -1,4 +1,4 @@
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message, Select } from "antd";
 import { updateRank, getOrganization } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -16,6 +16,7 @@ const EditRank = ({ rank, onClose }: { rank: any; onClose: () => void }) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [isLoading, setIsLoading] = useState(false); 
     const [rankForm, setRankForm] = useState<EditRank>({
         organization_id: null,
@@ -29,6 +30,7 @@ const EditRank = ({ rank, onClose }: { rank: any; onClose: () => void }) => {
         mutationFn: (updatedData: any) =>
             updateRank(token ?? "", rank.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['rank'] });
             setIsLoading(false); 
             messageApi.success("Rank updated successfully");
             onClose();

@@ -1,7 +1,7 @@
 import { getDevice, getRecord_Status } from "@/lib/queries";
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Input, message, Select } from "antd";
 import { useState } from "react";
 
@@ -15,6 +15,7 @@ type DeviceSettingAdd = {
 const AddDeviceSetting = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [deviceSettingForm, setDeviceSettingForm] = useState<DeviceSettingAdd>({
         device_id: null,
         key: '',
@@ -60,7 +61,7 @@ const AddDeviceSetting = ({ onClose }: { onClose: () => void }) => {
         mutationKey: ["device-setting"],
         mutationFn: addDevice,
         onSuccess: (data) => {
-            console.log(data);
+            queryClient.invalidateQueries({ queryKey: ['device-setting'] });
             messageApi.success("Added successfully");
             onClose();
         },
@@ -86,13 +87,6 @@ const AddDeviceSetting = ({ onClose }: { onClose: () => void }) => {
         setDeviceSettingForm(prevForm => ({
             ...prevForm,
             device_id: value,
-        }));
-    };
-
-    const onRecordStatusChange = (value: number) => {
-        setDeviceSettingForm(prevForm => ({
-            ...prevForm,
-            record_status_id: value,
         }));
     };
 

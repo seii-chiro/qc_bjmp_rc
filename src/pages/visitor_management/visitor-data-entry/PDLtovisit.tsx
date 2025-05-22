@@ -1,6 +1,6 @@
 import { getIdTypes, getPDLs, getVisitor_to_PDL_Relationship } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { Table, Modal, Image } from "antd";
 import { Plus } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -66,12 +66,22 @@ const PDLtovisit = ({
     const [requirementIndexToEdit, setRequirementIndexToEdit] = useState<number | null>(null);
     const [idIndexToEdit, setIdIndexToEdit] = useState<number | null>(null);
 
+    const [pdlPage, setPdlPage] = useState(1);
+    const [pdlFirstName, setPdlFirstName] = useState("");
+    const [pdlLastName, setPdlLastName] = useState("");
+
+    const {
+        data: pdlsPaginated,
+        isLoading: pdlsLoading,
+    } = useQuery({
+        queryKey: ['pdls', pdlPage, pdlFirstName, pdlLastName],
+        queryFn: () => getPDLs(token ?? "", 10, pdlPage, pdlFirstName, pdlLastName),
+        keepPreviousData: true,
+        staleTime: 10 * 60 * 1000,
+    });
+
     const results = useQueries({
         queries: [
-            {
-                queryKey: ['pdls'],
-                queryFn: () => getPDLs(token ?? "")
-            },
             {
                 queryKey: ['realtionship-to-pdl'],
                 queryFn: () => getVisitor_to_PDL_Relationship(token ?? "")
@@ -83,10 +93,11 @@ const PDLtovisit = ({
         ]
     })
 
-    const pdls = results?.[0]?.data?.results
-    const pdlsLoading = results?.[0]?.isLoading
-    const visitorToPdlRelationship = results?.[1]?.data?.results
-    const idTypes = results?.[2]?.data?.results
+    const visitorToPdlRelationship = results?.[0]?.data?.results
+    const idTypes = results?.[1]?.data?.results
+
+    const pdls = pdlsPaginated?.results || [];
+    const pdlsCount = pdlsPaginated?.count || 0;
 
     const handlePdlToVisitModalOpen = () => {
         setPdlToVisitModalOpen(true)
@@ -141,7 +152,7 @@ const PDLtovisit = ({
             lastname: pdl?.lastName,
             firstName: pdl?.firstName,
             middleName: pdl?.middleName,
-            relationship: visitorToPdlRelationship?.find(relation => relation?.id === pdl?.relationship)?.relationship_name ?? "N/A",
+            relationship: visitorToPdlRelationship?.find((relation: { id: number | null; }) => relation?.id === pdl?.relationship)?.relationship_name ?? "N/A",
             level: pdl?.level,
             annex: pdl?.annex,
             dorm: pdl?.dorm,
@@ -332,7 +343,7 @@ const PDLtovisit = ({
     const IdentifierDataSource = personForm?.media_identifier_data?.map((identififier, index) => {
         return ({
             key: index,
-            requirement: idTypes?.find(id => id?.id === identififier?.id_type_id)?.id_type,
+            requirement: idTypes?.find((id: { id: number | null; }) => id?.id === identififier?.id_type_id)?.id_type,
             description: identififier?.media_data?.media_description,
             image: (
                 identififier?.media_data?.media_base64 ? (
@@ -445,6 +456,13 @@ const PDLtovisit = ({
                     visitorToPdlRelationship={visitorToPdlRelationship || []}
                     pdls={pdls || []}
                     pdlsLoading={pdlsLoading}
+                    pdlPage={pdlPage}
+                    setPdlPage={setPdlPage}
+                    pdlsCount={pdlsCount}
+                    pdlFirstName={pdlFirstName}
+                    setPdlFirstName={setPdlFirstName}
+                    pdlLastName={pdlLastName}
+                    setPdlLastName={setPdlLastName}
                 />
             </Modal>
 
@@ -487,7 +505,7 @@ const PDLtovisit = ({
                 {/* PDL to Visit */}
                 <div className="flex flex-col gap-5 mt-10">
                     <div className="flex justify-between items-center">
-                        <h1 className='font-bold text-xl'>PDL to Visit</h1>
+                        <h1 className='font-bold text-xl'>PDL to Visits</h1>
                         <button
                             className="flex gap-2 px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-400"
                             type="button"

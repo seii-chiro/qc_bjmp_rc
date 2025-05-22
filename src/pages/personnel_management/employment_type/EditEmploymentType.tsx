@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message } from "antd";
 import { updateEmployment_Type } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -13,12 +13,14 @@ const EditEmploymentType = ({ employmenttype, onClose }: { employmenttype: any; 
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [isLoading, setIsLoading] = useState(false); 
 
     const updateMutation = useMutation({
         mutationFn: (updatedData: any) =>
             updateEmployment_Type(token ?? "", employmenttype.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employment-type'] });
             setIsLoading(true); 
             messageApi.success("Employment Type updated successfully");
             onClose();

@@ -66,7 +66,7 @@ const Dorm = () => {
     };
 
     const dataSource = data?.results?.map((dorm, index) => ({
-        key: index + 1,
+        key: dorm?.id,
         id: dorm?.id,
         floor: dorm?.floor,
         cell_no: dorm?.cell_no,
@@ -223,8 +223,9 @@ const Dorm = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map((item: { key: any; cell_no: any; cell_name: any; floor: any; cell_description: any; }) => [
-            item.key,
+    const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.cell_no,
             item.cell_name,
             item.floor,

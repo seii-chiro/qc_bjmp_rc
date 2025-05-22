@@ -95,13 +95,13 @@ const ImpactLevel = () => {
         }
     };
 
-    const dataSource = data?.results?.map((impact_level, index) => ({
-        key: index + 1,
-        id: impact_level?.id ?? 'N/A',
-        impact_level: impact_level?.impact_level ?? 'N/A',
-        description: impact_level?.description ?? 'N/A',
-        updated_at: impact_level?.updated_at ?? 'N/A',
-        updated_by: impact_level?.updated_by ?? 'N/A',
+    const dataSource = data?.results?.map((impact_level) => ({
+        key: impact_level?.id,
+        id: impact_level?.id ?? '',
+        impact_level: impact_level?.impact_level ?? '',
+        description: impact_level?.description ?? '',
+        updated_at: impact_level?.updated_at ?? '',
+        updated_by: impact_level?.updated_by ?? '',
         organization: impact_level?.organization ?? 'Bureau of Jail Management and Penology',
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
@@ -124,12 +124,30 @@ const ImpactLevel = () => {
             dataIndex: 'impact_level',
             key: 'impact_level',
             sorter: (a, b) => a.impact_level.localeCompare(b.impact_level),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.impact_level))
+                ).map(impact_level => ({
+                    text: impact_level,
+                    value: impact_level,
+                }))
+            ],
+            onFilter: (value, record) => record.impact_level === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(description => ({
+                    text: description,
+                    value: description,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Updated At",
@@ -230,8 +248,9 @@ const ImpactLevel = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.impact_level,
             item.description,
         ]);

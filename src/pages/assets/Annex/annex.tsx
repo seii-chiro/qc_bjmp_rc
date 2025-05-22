@@ -66,7 +66,7 @@ const Annex = () => {
     };
 
     const dataSource = data?.results?.map((annex, index) => ({
-        key: index + 1,
+        key: annex?.id,
         id: annex?.id,
         building: annex?.building,
         floor_number: annex?.floor_number,
@@ -235,8 +235,9 @@ const handleExportExcel = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+    const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.floor_number,
             item.floor_name,
             item.building,

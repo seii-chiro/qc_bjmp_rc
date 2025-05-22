@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message } from "antd";
 import { updateVisitor_Req_Docs } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 const EditVisitorReq = ({ visitorreqdocs, onClose }: { visitorreqdocs: any; onClose: () => void }) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false); 
 
@@ -14,6 +15,7 @@ const EditVisitorReq = ({ visitorreqdocs, onClose }: { visitorreqdocs: any; onCl
         mutationFn: (updatedData: any) =>
             updateVisitor_Req_Docs(token ?? "", visitorreqdocs.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['visitor-req-docs'] });
             setIsLoading(true); 
             messageApi.success("Visitor Requirements updated successfully");
             onClose();

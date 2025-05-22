@@ -14,6 +14,7 @@ import bjmp from '../../../assets/Logo/QCJMD.png'
 import moment from "moment";
 
 export type IssuesProps = {
+    created_at: any;
     id: number | null;
     module: string;
     sub_module: string;
@@ -67,7 +68,9 @@ const Issues = () => {
         resolution: '',
         resolution_date: '', 
         notes: '',
-        updated_by: null,}
+        updated_by: null,
+        created_at: null,
+    }
     );
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
@@ -81,10 +84,6 @@ const Issues = () => {
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
     })
-
-    const showModal = () => {
-        setIsModalOpen(true);
-    };
 
     const handleCancel = () => {
         setIsModalOpen(false);
@@ -222,19 +221,18 @@ const Issues = () => {
         }));
     }; 
 
-    const dataSource = data?.results?.map((issues, index) => (
-        {
-            key: index + 1,
-            id: issues?.id ?? 'N/A',
-            timestamp: issues?.created_at ?? '',
-            issue_type: issues?.issue_type?.name ?? 'N/A',
-            issue_category: issues?.issue_category?.name ?? 'N/A',
-            risk: issues?.issue_type?.risk ?? 'N/A',
-            status: issues?.status?.name ?? 'N/A',
-            organization: issues?.organization ?? 'Bureau of Jail Management and Penology',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-        }
-    )) || [];
+    const dataSource = data?.results?.map((issues) => ({
+        key: issues?.id,
+        id: issues?.id ?? '',
+        created_at: issues?.created_at ?? '', // <-- fix here
+        issue_type: issues?.issue_type?.name ?? '',
+        issue_category: issues?.issue_category?.name ?? '',
+        categorization_rule: issues?.issue_category?.categorization_rule ?? '',
+        status: issues?.status?.name ?? '',
+        description: issues?.status?.description ?? '',
+        organization: issues?.organization ?? 'Bureau of Jail Management and Penology',
+        updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+    })) || [];
 
     const filteredData = dataSource?.filter((issues) =>
         Object.values(issues).some((value) =>
@@ -247,23 +245,22 @@ const Issues = () => {
             title: 'No.',
             render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
-         {
-        title: 'Timestamp',
-        dataIndex: 'timestamp',
-        key: 'timestamp',
-        render: (text) => moment(text).format('MMM DD, YYYY hh:mm A'), // Format using moment
-        sorter: (a, b) => moment(a.timestamp).unix() - moment(b.timestamp).unix(),
-        filters: [
-            ...Array.from(
-                new Set(filteredData.map(item => moment(item.timestamp).format('MMM DD, YYYY hh:mm A')))
-            ).map(name => ({
-                text: name,
-                value: name,
-            }))
-        ],
-        onFilter: (value, record) =>
-            moment(record.timestamp).format('MMM DD, YYYY hh:mm A') === value,
-    },
+        {
+            title: 'Timestamp',
+            dataIndex: 'created_at',
+            key: 'created_at',
+            sorter: (a, b) => a.created_at.localeCompare(b.created_at),
+            render: (value) => value ? moment(value).format("YYYY-MM-DD hh:mm:ss A") : "",
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.created_at))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.created_at === value,
+        },
         {
             title: 'Issue Type',
             dataIndex: 'issue_type',
@@ -295,19 +292,19 @@ const Issues = () => {
             onFilter: (value, record) => record.issue_category === value,
         },
         {
-            title: 'Risk',
-            dataIndex: 'risk',
-            key: 'risk',
-            sorter: (a, b) => a.risk.localeCompare(b.risk),
+            title: 'Categorization Rule',
+            dataIndex: 'categorization_rule',
+            key: 'categorization_rule',
+            sorter: (a, b) => a.categorization_rule.localeCompare(b.categorization_rule),
             filters: [
                 ...Array.from(
-                    new Set(filteredData.map(item => item.risk))
+                    new Set(filteredData.map(item => item.categorization_rule))
                 ).map(name => ({
                     text: name,
                     value: name,
                 }))
             ],
-            onFilter: (value, record) => record.risk === value,
+            onFilter: (value, record) => record.categorization_rule === value,
         },
         {
             title: 'Status',
@@ -323,6 +320,21 @@ const Issues = () => {
                 }))
             ],
             onFilter: (value, record) => record.status === value,
+        },
+        {
+            title: 'Status Description',
+            dataIndex: 'description',
+            key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+            filters: [
+                ...Array.from(
+                    new Set(filteredData.map(item => item.description))
+                ).map(name => ({
+                    text: name,
+                    value: name,
+                }))
+            ],
+            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",
@@ -390,11 +402,12 @@ const Issues = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.issue_type || '',
             item.issue_category || '',
-            item.risk || '',
+            item.categorization_rule || '',
             item.status || '',
         ]);
     
@@ -402,7 +415,7 @@ const Issues = () => {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
     
             autoTable(doc, { 
-                head: [['No.', 'Issue Type', 'Issue Category', 'Risk', 'Status']],
+                head: [['No.', 'Issue Type', 'Issue Category', 'Categorization Rule', 'Status']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
@@ -482,7 +495,17 @@ const Issues = () => {
                 />
             </div>
         </div>
-        <Table columns={columns} dataSource={filteredData} />
+                            <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
         <Modal
                 title="Issues Report"
                 open={isPdfModalOpen}
@@ -504,15 +527,9 @@ const Issues = () => {
                 onCancel={() => setIsEditModalOpen(false)}
                 onOk={() => form.submit()}
                 confirmLoading={isUpdating}
+                width="60%"
             >
                 <Form form={form} layout="vertical" className="grid grid-cols-1 md:grid-cols-2 md:space-x-2" onFinish={handleUpdate}>
-                <Form.Item
-                    name="name"
-                    label="Issues Name"
-                    rules={[{ required: true, message: "Please input the Issues name" }]}
-                >
-                    <Input className="h-[3rem] w-full"/>
-                </Form.Item>
                 <Form.Item
                     name="description"
                     label="Description"

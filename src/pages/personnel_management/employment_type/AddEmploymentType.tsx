@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore"
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from 'antd';
 import { EMPLOYMENT_TYPE } from "@/lib/urls";
@@ -12,6 +12,7 @@ type EmploymentForm = {
 
 const AddEmploymentType = ({ onClose }: { onClose: () => void }) => {
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [EmploymentForm, setEmploymentForm] = useState<EmploymentForm>({
         employment_type: '',
         description: '',
@@ -39,8 +40,8 @@ const AddEmploymentType = ({ onClose }: { onClose: () => void }) => {
     const employmentTypeMutation = useMutation({
         mutationKey: ['employment-type'],
         mutationFn: registerEmploymentType,
-        onSuccess: (data) => {
-            console.log(data)
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employment-type'] });
             messageApi.success("added successfully");
             onClose();
         },

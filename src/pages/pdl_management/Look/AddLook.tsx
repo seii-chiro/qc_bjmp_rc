@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { LOOK } from "@/lib/urls";
@@ -13,6 +13,7 @@ type LookProps = {
 const AddLook = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectLook, setSelectLook] = useState<LookProps>({
         name: '',
         description: '',
@@ -43,8 +44,8 @@ const AddLook = ({ onClose }: { onClose: () => void }) => {
     const lookMutation = useMutation({
         mutationKey: ['look'],
         mutationFn: addLook,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['look'] });
             messageApi.success("Added successfully");
             onClose(); 
         },

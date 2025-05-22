@@ -155,7 +155,7 @@ const jailFacilityMutation = useMutation({
                         name="contact_number"
                         rules={[{ required: true, message: 'Please enter contact number' }]}
                     >
-                        <Input className="h-12 border border-gray-300 rounded-lg px-2" />
+                        <Input type="number" className="h-12 border border-gray-300 rounded-lg px-2" />
                     </Form.Item>
                     <Form.Item
                         label={<span className="font-semibold text-[#333] text-[16px]">Jail Type:</span>}

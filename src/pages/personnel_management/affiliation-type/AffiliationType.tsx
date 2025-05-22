@@ -37,7 +37,7 @@ const AffiliationType = () => {
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data, isLoading, error } = useQuery({
-        queryKey: ['affiliation-types'],
+        queryKey: ['affiliation-type'],
         queryFn: () => getAffiliationTypes(token ?? "")
     })
 
@@ -192,8 +192,9 @@ const AffiliationType = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.affiliation_type,
             item.description,
         ]);

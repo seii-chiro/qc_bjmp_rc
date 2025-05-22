@@ -1,7 +1,7 @@
 import { getRisks } from "@/lib/queries";
 import { BASE_URL} from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { message, Select } from "antd";
 import { useState } from "react";
 
@@ -14,6 +14,7 @@ type AddRecommededActionProps = {
 const AddRecommededAction = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectRecommeded, setSelectRecommeded] = useState<AddRecommededActionProps>({
         name: '',
         description: '',
@@ -59,8 +60,8 @@ const AddRecommededAction = ({ onClose }: { onClose: () => void }) => {
     const RecommededActionMutation = useMutation({
         mutationKey: ['recommended-action'],
         mutationFn: AddRecommededAction,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['recommended-action'] });
             messageApi.success("Added successfully");
             onClose();
         },

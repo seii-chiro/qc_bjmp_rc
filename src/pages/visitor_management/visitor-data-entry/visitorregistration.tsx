@@ -1215,6 +1215,7 @@ const VisitorRegistration = () => {
                 personForm={personForm}
                 setVisitorForm={setVisitorForm}
             />
+
             <Issue />
 
             <Remarks

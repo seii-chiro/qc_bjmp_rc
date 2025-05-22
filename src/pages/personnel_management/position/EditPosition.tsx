@@ -1,4 +1,4 @@
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message, Select } from "antd";
 import { updatePosition, getRank, getOrganization } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -17,6 +17,7 @@ const EditPosition = ({ position, onClose }: { position: any; onClose: () => voi
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [isLoading, setIsLoading] = useState(false); 
     const [positionForm, setPositionForm] = useState<Position>({
         position_code: '',
@@ -31,6 +32,7 @@ const EditPosition = ({ position, onClose }: { position: any; onClose: () => voi
         mutationFn: (updatedData: any) =>
             updatePosition(token ?? "", position.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['position'] });
             setIsLoading(true); 
             messageApi.success("Position updated successfully");
             onClose();

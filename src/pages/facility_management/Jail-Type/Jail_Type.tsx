@@ -35,7 +35,7 @@ const JailType = () => {
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
-        queryKey: ['jailtype'],
+        queryKey: ['jail-type'],
         queryFn: () => getJail_Type(token ?? ""),
     })
 
@@ -63,9 +63,9 @@ const JailType = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.results?.map((jailtype, index) => (
+    const dataSource = data?.results?.map((jailtype) => (
         {
-            key: index + 1,
+            key: jailtype?.id,
             id: jailtype.id,
             type_name: jailtype?.type_name?? 'N/A',
             description: jailtype?.description ?? 'N/A',
@@ -171,8 +171,9 @@ const JailType = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.type_name,
             item.description,
         ]);

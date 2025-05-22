@@ -70,7 +70,7 @@ const Device = () => {
     };
 
     const dataSource = data?.results?.map((devices, index) => ({
-        key: index + 1,
+        key: devices?.id,
         id: devices?.id,
         device_type: devices?.device_type ?? "N/A",
         jail: devices?.jail ?? "N/A",
@@ -291,8 +291,9 @@ const Device = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+    const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.serial_no,
             item.device_name,
             item.device_type,

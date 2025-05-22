@@ -1,6 +1,6 @@
 import { BASE_URL} from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
 import { useState } from "react";
 
@@ -12,6 +12,7 @@ type AddImpactProps = {
 const AddImpact = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectImpact, setSelectImpact] = useState<AddImpactProps>({
         name: '',
         description: '',
@@ -45,8 +46,8 @@ const AddImpact = ({ onClose }: { onClose: () => void }) => {
     const ImpactMutation = useMutation({
         mutationKey: ['impact'],
         mutationFn: AddImpact,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['impact'] });
             messageApi.success("Added successfully");
             onClose();
         },

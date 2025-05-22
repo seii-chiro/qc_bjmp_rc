@@ -1,6 +1,6 @@
-import { ISSUE_CATEGORIES } from "@/lib/urls";
+import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message} from "antd";
 import { useState } from "react";
 
@@ -12,13 +12,14 @@ type AddIssueCategory = {
 const AddIssueCategory = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectIssueCategory, setSelectIssueCategory] = useState<AddIssueCategory>({
         name: '',
         description: '',
     });
 
     async function AddIssueCategory(issue_category: AddIssueCategory) {
-        const res = await fetch(ISSUE_CATEGORIES.getISSUE_CATEGORIES, {
+        const res = await fetch(`${BASE_URL}/api/issues/issue-categories/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -43,10 +44,10 @@ const AddIssueCategory = ({ onClose }: { onClose: () => void }) => {
     }
 
     const issueCategoryMutation = useMutation({
-        mutationKey: ['issue-category'],
+        mutationKey: ['issue-categories'],
         mutationFn: AddIssueCategory,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['issue-categories'] });
             messageApi.success("Added successfully");
             onClose();
         },

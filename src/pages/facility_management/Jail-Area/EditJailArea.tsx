@@ -1,6 +1,6 @@
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message, Select } from "antd";
-import { getDetention_Building, getDetention_Floor, getJail, getRecord_Status, updateJailArea} from "@/lib/queries";
+import { getDetention_Building, getDetention_Floor, getJail, updateJailArea} from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useEffect, useState } from "react";
 
@@ -14,6 +14,7 @@ type EditJailArea = {
 const EditJailArea = ({ jailarea, onClose }: { jailarea: any; onClose: () => void }) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false); 
     const [jailArea, setJailArea] = useState<EditJailArea>({
@@ -27,6 +28,7 @@ const EditJailArea = ({ jailarea, onClose }: { jailarea: any; onClose: () => voi
         mutationFn: (updatedData: any) =>
             updateJailArea(token ?? "", jailarea.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['jail-area'] });
             setIsLoading(true); 
             messageApi.success("Jail Area updated successfully");
             onClose();

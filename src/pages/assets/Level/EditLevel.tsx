@@ -1,6 +1,6 @@
 import { getJail, getJail_Security_Level, updateDetention_Building } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, message, Select } from "antd";
 import { useState } from "react";
 
@@ -15,6 +15,7 @@ const EditLevel = ({ level, onClose }: { level: any; onClose: () => void }) => {
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false); 
+    const queryClient = useQueryClient();
     const [selectLevel, setSelectedLevel] = useState<EditLevelResponse>({
         bldg_name: '',
         jail_id: null,
@@ -25,6 +26,7 @@ const EditLevel = ({ level, onClose }: { level: any; onClose: () => void }) => {
         mutationFn: (updatedData: any) =>
             updateDetention_Building(token ?? "", level.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['level'] });
             setIsLoading(true); 
             messageApi.success("Level updated successfully");
             onClose();

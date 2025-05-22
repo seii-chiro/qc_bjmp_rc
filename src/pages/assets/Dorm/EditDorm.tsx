@@ -1,4 +1,4 @@
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message, Select } from "antd";
 import { updateDetentionCell, getDetention_Floor } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -12,6 +12,7 @@ type EditDormProps = {
 const EditDorm = ({ dorm, onClose }: EditDormProps) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -19,6 +20,7 @@ const EditDorm = ({ dorm, onClose }: EditDormProps) => {
         mutationFn: (updatedData: any) =>
             updateDetentionCell(token ?? "", dorm.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['dorm'] });
             setIsLoading(false);
             messageApi.success("Dorm updated successfully");
             onClose();

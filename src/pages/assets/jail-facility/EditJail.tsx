@@ -1,6 +1,6 @@
 import { getJail_Barangay, getJail_Category, getJail_Municipality, getJail_Province, getJail_Security_Level, getJail_Type, getJailRegion, updateJail } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, message, Select } from "antd";
 import { useEffect, useState } from "react";
 
@@ -23,6 +23,7 @@ type EditJailFacility = {
 const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false);
     const [ selectjail, setSelectJail] = useState<EditJailFacility>(
@@ -47,6 +48,7 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
         mutationFn: (updatedData: any) =>
             updateJail(token ?? "", jail.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['jail'] });
             setIsLoading(true); 
             messageApi.success("Jail Facility updated successfully");
             onClose();

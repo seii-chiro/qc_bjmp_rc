@@ -55,7 +55,7 @@ const IssueCategory = () => {
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteIssue_Category(token ?? "", id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["issue-category"] });
+            queryClient.invalidateQueries({ queryKey: ["issue-categories"] });
             messageApi.success("Issue Category deleted successfully");
         },
         onError: (error: any) => {
@@ -67,7 +67,7 @@ const { mutate: editIssueCategory, isLoading: isUpdating } = useMutation({
     mutationFn: (updated: IssueCategory) =>
     patchIssue_Category(token ?? "", updated.id, updated),
     onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ["issue-category"] });
+    queryClient.invalidateQueries({ queryKey: ["issue-categories"] });
     messageApi.success("Issue Category updated successfully");
     setIsEditModalOpen(false);
     },
@@ -249,8 +249,9 @@ const handleUpdate = (values: any) => {
     
         addHeader(); 
     
-        const tableData = dataSource.map((item, index) => [
-    index + 1,
+const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+    idx + 1,
             item.name,
             item.description,
         ]);

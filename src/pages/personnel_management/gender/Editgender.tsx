@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message } from "antd";
 import { updateGender } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -9,12 +9,14 @@ const EditGender = ({ gender, onClose }: { gender: any; onClose: () => void }) =
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false); 
+    const queryClient = useQueryClient(); // <-- add this
 
     const updateMutation = useMutation({
         mutationFn: (updatedData: any) =>
             updateGender(token ?? "", gender.id, updatedData),
         onSuccess: () => {
-            setIsLoading(true); 
+            queryClient.invalidateQueries({ queryKey: ['gender'] }); // <-- auto refresh
+            setIsLoading(false); 
             messageApi.success("Gender updated successfully");
             onClose();
         },

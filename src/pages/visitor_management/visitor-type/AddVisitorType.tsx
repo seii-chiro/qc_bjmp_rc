@@ -1,12 +1,13 @@
 import { VISITOR_TYPE } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message } from "antd";
 
 const AddVisitorType = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
 
     const addVisitorTypeMutation = useMutation({
         mutationFn: async (newVisitorType: { visitor_type: string; description: string }) => {
@@ -26,6 +27,7 @@ const AddVisitorType = ({ onClose }: { onClose: () => void }) => {
             return res.json();
         },
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['visitor-type'] });
             messageApi.success("Visitor Type added successfully");
             form.resetFields();
             onClose();

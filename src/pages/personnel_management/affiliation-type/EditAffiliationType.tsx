@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message } from "antd";
 import { updateAffiliationType } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 const EditAffiliationType = ({ affiliationtype, onClose }: { affiliationtype: any; onClose: () => void }) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false); 
 
@@ -15,6 +16,7 @@ const EditAffiliationType = ({ affiliationtype, onClose }: { affiliationtype: an
         mutationFn: (updatedData: any) =>
             updateAffiliationType(token ?? "", affiliationtype.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['affiliation-type'] });
             setIsLoading(true); 
             messageApi.success("Affiliation Type updated successfully");
             onClose();

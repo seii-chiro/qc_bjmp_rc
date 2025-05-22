@@ -173,18 +173,38 @@ export async function getVisitors(
   return res.json();
 }
 
-export async function getPDLs(token: string): Promise<PDLs[]> {
-  const res = await fetch(PDL.getPDL, {
+// export async function getPDLs(token: string): Promise<PDLs[]> {
+//   const res = await fetch(PDL.getPDL, {
+//     headers: {
+//       "Content-Type": "application/json",
+//       Authorization: `Token ${token}`,
+//     },
+//   });
+
+//   if (!res.ok) {
+//     throw new Error("Failed to fetch PDLs data.");
+//   }
+
+//   return res.json();
+// }
+
+export async function getPDLs(
+  token: string,
+  limit = 10,
+  page = 1,
+  firstName = ""
+) {
+  let url = `${BASE_URL}/api/pdls/pdl/?limit=${limit}&offset=${
+    (page - 1) * limit
+  }`;
+  if (firstName) url += `&search=${encodeURIComponent(firstName)}`;
+  const res = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
     },
   });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch PDLs data.");
-  }
-
+  if (!res.ok) throw new Error("Failed to fetch PDLs");
   return res.json();
 }
 

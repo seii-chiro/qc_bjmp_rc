@@ -1,12 +1,13 @@
 import { updateSkills } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, message } from "antd";
 import { useEffect, useState } from "react";
 
 const EditSkill = ({ skill, onClose }: { skill: any; onClose: () => void }) => {
     const token = useTokenStore().token;
     const [isLoading, setIsLoading] = useState(false);
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [form] = Form.useForm();
 
@@ -14,6 +15,7 @@ const EditSkill = ({ skill, onClose }: { skill: any; onClose: () => void }) => {
         mutationFn: (updatedData: any) =>
             updateSkills(token ?? "", skill.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['skill'] });
             setIsLoading(true); 
             messageApi.success("Skills updated successfully");
             onClose();

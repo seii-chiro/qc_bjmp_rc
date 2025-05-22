@@ -1,7 +1,7 @@
-import { getCrimeCategories, getLaws, getRecord_Status } from "@/lib/queries";
+import { getCrimeCategories, getLaws } from "@/lib/queries";
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { message, Select } from "antd";
 import { useState } from "react";
 
@@ -17,6 +17,7 @@ type OffenseFormValues = {
 const AddOffenses = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectOffenses, setSelectedOffenses] = useState<OffenseFormValues>({
         crime_category_id: 0,
         law_id: 0,
@@ -82,8 +83,8 @@ const AddOffenses = ({ onClose }: { onClose: () => void }) => {
     const OffensesMutation = useMutation({
         mutationKey: ["offenses"],
         mutationFn: addOffenses,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['offenses'] });
             messageApi.success("Added successfully");
             onClose();
         },

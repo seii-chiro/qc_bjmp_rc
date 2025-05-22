@@ -1,6 +1,6 @@
 import { getDevice_Usage } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message, Select } from "antd";
 import { DEVICE_TYPE } from "@/lib/urls";
@@ -15,6 +15,7 @@ type AddDeviceType = {
 const AddDeviceType = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [devicesType, setDevicesType] = useState<AddDeviceType>({
         device_type: '',
         purpose: '',
@@ -69,8 +70,8 @@ const AddDeviceType = ({ onClose }: { onClose: () => void }) => {
     const devicesTypeMutation = useMutation({
         mutationKey: ['devices-type'],
         mutationFn: AddDeviceType,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['device-type'] });
             messageApi.success("Added successfully");
             onClose();
         },
@@ -127,7 +128,7 @@ const AddDeviceType = ({ onClose }: { onClose: () => void }) => {
                         optionFilterProp="label"
                         onChange={onDeviceUsageChange}
                         loading={deviceUsageLoading}
-                        options={deviceUsageData?.results?.map(deviceusage => (
+                        options={deviceUsageData?.results?.map((deviceusage: { id: any; usage: any; }) => (
                             {
                                 value: deviceusage.id,
                                 label: deviceusage?.usage,

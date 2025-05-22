@@ -172,21 +172,6 @@ const Position = () => {
             onFilter: (value, record) => record.rank_required === value,
         },
         {
-            title: 'Organization',
-            dataIndex: 'organization',
-            key: 'organization',
-            sorter: (a, b) => a.organization.localeCompare(b.organization),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.organization))
-                ).map(organization => ({
-                    text: organization,
-                    value: organization,
-                }))
-            ],
-            onFilter: (value, record) => record.organization === value,
-        },
-        {
             title: "Actions",
             key: "actions",
             align: "center",
@@ -259,8 +244,9 @@ const Position = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+    const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            index + 1,
             item.position_code,
             item.position_title,
             item.position_type,

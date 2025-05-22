@@ -65,7 +65,7 @@ const JailSecurityLevel = () => {
 
     const dataSource = data?.results?.map((jailsecurity, index) => (
         {
-            key: index + 1,
+            key:jailsecurity?.id,
             id: jailsecurity?.id,
             category_name: jailsecurity?.category_name ?? 'N/A',
             description: jailsecurity?.description ?? 'N/A',
@@ -170,8 +170,9 @@ const JailSecurityLevel = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map((item: { key: any; category_name: any; description: any; }) => [
-            item.key,
+    const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.category_name,
             item.description,
         ]);

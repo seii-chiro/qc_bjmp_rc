@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message } from "antd";
 import { updateJail_Type } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 const EditJailType = ({ jailtype, onClose }: { jailtype: any; onClose: () => void }) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false); 
 
@@ -14,6 +15,7 @@ const EditJailType = ({ jailtype, onClose }: { jailtype: any; onClose: () => voi
         mutationFn: (updatedData: any) =>
             updateJail_Type(token ?? "", jailtype.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['jail-type'] });
             setIsLoading(true); 
             messageApi.success("Jail Type updated successfully");
             onClose();

@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore"
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { getRank, getOrganization } from "@/lib/queries";
 import { message, Select } from 'antd';
@@ -17,6 +17,7 @@ type Position = {
 
 const AddPosition = ({ onClose }: { onClose: () => void }) => {
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [PositionForm, setPositionForm] = useState<Position>({
         position_code: '',
         position_title: '',
@@ -69,8 +70,8 @@ const AddPosition = ({ onClose }: { onClose: () => void }) => {
     const PositionMutation = useMutation({
         mutationKey: ['position'],
         mutationFn: registerPosition,
-        onSuccess: (data) => {
-            console.log(data)
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['position'] });
             messageApi.success("added successfully");
             onClose();
         },

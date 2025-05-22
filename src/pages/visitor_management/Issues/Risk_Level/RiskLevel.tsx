@@ -114,8 +114,8 @@ const RiskLevel = () => {
         }
     };
 
-    const dataSource = data?.results?.map((risk_level, index) => ({
-        key: index + 1,
+    const dataSource = data?.results?.map((risk_level) => ({
+        key: risk_level?.id,
         id: risk_level?.id ?? '',
         name: risk_level?.name ?? '',
         description: risk_level?.description ?? '',
@@ -267,8 +267,9 @@ const RiskLevel = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.name,
             item.description,
         ]);
@@ -364,10 +365,17 @@ const RiskLevel = () => {
                     </button>
                 </div>
             </div>
-            <Table
-                dataSource={filteredData}
-                columns={columns}
-            />
+                    <Table
+                        className="overflow-x-auto"
+                        columns={columns}
+                        dataSource={filteredData}
+                        scroll={{ x: 'max-content' }} 
+                        pagination={{
+                            current: pagination.current,
+                            pageSize: pagination.pageSize,
+                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                        }}
+                    />
             <Modal
                 title="Risk Level Report"
                 open={isPdfModalOpen}

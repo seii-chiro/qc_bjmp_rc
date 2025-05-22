@@ -1,6 +1,6 @@
 import { getDetention_Floor } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message, Select } from "antd";
 import { DETENTION_CELL } from "@/lib/urls";
@@ -14,6 +14,7 @@ type AddDormResponse = {
 const AddDorm = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectDorm, setselectDorm] = useState<AddDormResponse>({
         floor_id: null,
         cell_name: '',
@@ -67,7 +68,7 @@ const AddDorm = ({ onClose }: { onClose: () => void }) => {
         mutationKey: ['dorm'],
         mutationFn: AddDorm,
         onSuccess: (data) => {
-            console.log(data);
+            queryClient.invalidateQueries({ queryKey: ['dorm'] });
             messageApi.success("Added successfully");
             onClose();
         },

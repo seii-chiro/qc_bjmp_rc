@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { DEVICE_USAGE } from "@/lib/urls";
@@ -12,6 +12,7 @@ type AddDeviceUsage = {
 const AddDeviceUsage = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [devicesUsage, setDevicesUsage] = useState<AddDeviceUsage>({
         usage: '',
         description: '',
@@ -49,8 +50,8 @@ const AddDeviceUsage = ({ onClose }: { onClose: () => void }) => {
     const devicesUsageMutation = useMutation({
         mutationKey: ['devices-usage'],
         mutationFn: AddDeviceUsage,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['device-usage'] });
             messageApi.success("Added successfully");
             onClose();
         },

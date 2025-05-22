@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore"
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from 'antd';
 import { ID_TYPE } from "@/lib/urls";
@@ -12,6 +12,7 @@ type IDType = {
 
 const AddIDType = ({ onClose }: { onClose: () => void }) => {
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [IDTypeForm, setIDTypeForm] = useState<IDType>({
         id_type: '',
         description: '',
@@ -38,10 +39,10 @@ const AddIDType = ({ onClose }: { onClose: () => void }) => {
     }
 
     const idTypeMutation = useMutation({
-        mutationKey: ['id-type'],
+        mutationKey: ['id-types'],
         mutationFn: registerIDType,
-        onSuccess: (data) => {
-            console.log(data)
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['id-types'] });
             messageApi.success("added successfully");
             onClose();
         },

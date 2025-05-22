@@ -1,6 +1,6 @@
 import { BASE_URL} from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
 import { useState } from "react";
 
@@ -13,6 +13,7 @@ type AddGangAffiliationProps = {
 const AddGangAffiliation = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectGangAffiliation, setSelectGangAffiliation] = useState<AddGangAffiliationProps>({
         name: '',
         description: '',
@@ -47,8 +48,8 @@ const AddGangAffiliation = ({ onClose }: { onClose: () => void }) => {
     const GangAffiliationMutation = useMutation({
         mutationKey: ['gang-affiliation'],
         mutationFn: AddGangAffiliation,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['gang-affiliation'] });
             messageApi.success("Added successfully");
             onClose();
         },

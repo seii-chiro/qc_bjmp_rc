@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import {  useMutation } from "@tanstack/react-query";
+import {  useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { JAIL_SECURITY_LEVEL } from "@/lib/urls";
@@ -12,6 +12,7 @@ type AddSecurityLevel = {
 const AddSecurityLevel = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [jailSecurityLevelForm, setJailSecurityLevelForm] = useState<AddSecurityLevel>({
         description: '',
         category_name: '',
@@ -47,10 +48,10 @@ const AddSecurityLevel = ({ onClose }: { onClose: () => void }) => {
     }
 
     const jailSecurityLevelMutation = useMutation({
-        mutationKey: ['jail-type'],
+        mutationKey: ['security-level'],
         mutationFn: addSecurityLevel,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['security-level'] });
             messageApi.success("Added successfully");
             onClose();
         },

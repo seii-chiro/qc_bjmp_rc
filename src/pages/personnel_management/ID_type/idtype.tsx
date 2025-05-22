@@ -91,6 +91,7 @@ const ID_Types = () => {
             dataIndex: 'id_type',
             key: 'id_type',
             sorter: (a, b) => a.id_type.localeCompare(b.id_type),
+            defaultSortOrder: 'descend',
             filters: [
                 ...Array.from(
                     new Set(filteredData.map(item => item.id_type))
@@ -190,8 +191,9 @@ const ID_Types = () => {
     
         addHeader(); 
     
-        const tableData = dataSource.map(item => [
-            item.key,
+const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            idx + 1,
             item.id_type,
             item.description,
         ]);

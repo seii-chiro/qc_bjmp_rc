@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message } from "antd";
 import { updateSecurity_Level } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -8,12 +8,14 @@ const EditSecurityLevel = ({ securitylevel, onClose }: { securitylevel: any; onC
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [isLoading, setIsLoading] = useState(false); 
 
     const updateMutation = useMutation({
         mutationFn: (updatedData: any) =>
             updateSecurity_Level(token ?? "", securitylevel.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['security-level'] });
             setIsLoading(true); 
             messageApi.success("Jail Security updated successfully");
             onClose();

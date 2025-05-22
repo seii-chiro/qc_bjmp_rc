@@ -16,7 +16,7 @@ import {
   EditDeviceSettingRecord,
   EditResponse,
   GroupAffiliationResponse,
-  GroupRecord,
+  IncidentCategoryResponse,
   MainGateLog,
   NonPDLVisitorPayload,
   OTPAccount,
@@ -813,4 +813,68 @@ export const patchGroupAffiliation = async (
     });
     if (!res.ok) throw new Error("Failed to update Group Affiliation");
     return res.json();
+};
+
+export async function getIncidentCategory(
+    token: string
+    ): Promise<IncidentCategoryResponse[]> {
+    const res = await fetch(`${BASE_URL}/api/incidents/incident-categories/`, {
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+        },
+    });
+    if (!res.ok) {
+        throw new Error("Failed to fetch Incident Category data.");
+    }
+    return res.json();
+}
+
+export const deleteIncidentCategory = async (token: string, id: number) => {
+    const response = await fetch(
+        `${BASE_URL}/api/incidents/incident-categories/${id}/`,
+        {
+        method: "DELETE",
+        headers: {
+            Authorization: `Token ${token}`,
+        },
+        }
+    );
+    if (!response.ok) {
+        throw new Error("Failed to delete Incident Category");
+    }
+    const text = await response.text();
+    return text ? JSON.parse(text) : {};
+};
+
+export async function getIncidentType(
+    token: string
+    ): Promise<IncidentCategoryResponse[]> {
+    const res = await fetch(`${BASE_URL}/api/incidents/incident-types/`, {
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+        },
+    });
+    if (!res.ok) {
+        throw new Error("Failed to fetch Incident Type data.");
+    }
+    return res.json();
+}
+
+export const deleteIncidentType = async (token: string, id: number) => {
+    const response = await fetch(
+        `${BASE_URL}/api/incidents/incident-types/${id}/`,
+        {
+        method: "DELETE",
+        headers: {
+            Authorization: `Token ${token}`,
+        },
+        }
+    );
+    if (!response.ok) {
+        throw new Error("Failed to delete Incident Type");
+    }
+    const text = await response.text();
+    return text ? JSON.parse(text) : {};
 };

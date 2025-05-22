@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message } from "antd";
 import { updateVisitor_Type } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -8,12 +8,14 @@ const EditVisitorType = ({ visitorType, onClose }: { visitorType: any; onClose: 
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [isLoading, setIsLoading] = useState(false); 
 
     const updateMutation = useMutation({
         mutationFn: (updatedData: any) =>
             updateVisitor_Type(token ?? "", visitorType.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['visitor-type'] });
             setIsLoading(true); 
             messageApi.success("Visitor Type updated successfully");
             onClose();

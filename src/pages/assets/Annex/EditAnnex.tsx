@@ -1,4 +1,4 @@
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message, Select } from "antd";
 import { updateDetention_Floor, getDetention_Building, getJail_Security_Level} from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 const EditAnnex = ({ annex, onClose }: { annex: any; onClose: () => void }) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false); 
 
@@ -14,6 +15,7 @@ const EditAnnex = ({ annex, onClose }: { annex: any; onClose: () => void }) => {
         mutationFn: (updatedData: any) =>
             updateDetention_Floor(token ?? "", annex.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['annex'] });
             setIsLoading(true); 
             messageApi.success("Annex updated successfully");
             onClose();

@@ -1,7 +1,7 @@
 import { getDetention_Building, getJail_Security_Level } from "@/lib/queries";
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { message, Select } from "antd";
 import { useState } from "react";
 
@@ -15,6 +15,7 @@ type AddAnnexValue = {
 
 const AddAnnex = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [selectAnnex, setSelectAnnex] = useState<AddAnnexValue>({
         building_id: null,
@@ -68,8 +69,8 @@ const AddAnnex = ({ onClose }: { onClose: () => void }) => {
     const Annexmutation = useMutation({
         mutationKey: ['annex'],
         mutationFn: AddAnnex,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['annex'] });
             messageApi.success("Added successfully");
             onClose();
         },

@@ -514,10 +514,7 @@ const { data: dailysummarydata } = useQuery({
                                 <Card
                                     image={population}
                                     title='Jail Population'
-                                    count={`${(summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0) +
-                                        (summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0) +
-                                        (summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0)
-                                        }`}
+                                    count={summarydata?.success?.current_pdl_population?.Active}
                                     linkto='/jvms/pdls/pdl'
                                 />
                                 <Card

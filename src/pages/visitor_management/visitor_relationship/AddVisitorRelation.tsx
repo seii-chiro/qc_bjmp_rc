@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { VISITOR_TO_PDL_RELATIONSHIP } from "@/lib/urls";
@@ -12,6 +12,7 @@ type AddVisitorRelation = {
 const AddVisitorRelation = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [visitorrelation, setVisitorRelation] = useState<AddVisitorRelation>({
         relationship_name: '',
         description: '',
@@ -47,10 +48,10 @@ const AddVisitorRelation = ({ onClose }: { onClose: () => void }) => {
     }
 
     const visitorMutation = useMutation({
-        mutationKey: ['visitor-of-pdl'],
+        mutationKey: ['visitor-relation'],
         mutationFn: AddVisitorRelation,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['visitor-relation'] });
             messageApi.success("Added successfully");
             onClose();
         },

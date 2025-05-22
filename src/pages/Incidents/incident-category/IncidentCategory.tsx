@@ -1,101 +1,97 @@
-import {  Talent } from "@/lib/definitions"
-import { deleteTalent, getTalents, getUser } from "@/lib/queries";
+import { IncidentCategoryResponse } from "@/lib/issues-difinitions";
+import { getUser } from "@/lib/queries";
+import { deleteIncidentCategory, getIncidentCategory } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Menu, message, Modal } from "antd";
-import Table, { ColumnsType } from "antd/es/table";
-import { useState } from "react";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import Table, { ColumnsType } from "antd/es/table";
+import { useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
+import bjmp from '../../../assets/Logo/QCJMD.png'
+import AddIncidentCategory from "./AddIncidentCategory";
 import { GoDownload, GoPlus } from "react-icons/go";
 import { LuSearch } from "react-icons/lu";
-import AddTalents from "./AddTalents";
-import EditTalents from "./EditTalents";
-import bjmp from '../../../assets/Logo/QCJMD.png'
 
-type TalentProps = Talent;
 
-const Talents = () => {
+const IncidentCategory = () => {
     const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [talents, setTalents] = useState<TalentProps | null>(null);
+    const [IncidentCategory, setIncidentCategory] = useState<IncidentCategoryResponse | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const { data } = useQuery({
-        queryKey: ['talents'],
-        queryFn: () => getTalents(token ?? ""),
-    })
+        queryKey: ["incident-category"],
+        queryFn: () => getIncidentCategory(token ?? ""),
+    });
 
     const { data: UserData } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
     })
 
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => deleteIncidentCategory(token ?? "", id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["incident-category"] });
+            messageApi.success("Incident Category deleted successfully");
+        },
+        onError: (error: any) => {
+            messageApi.error(error.message || "Failed to delete Incident Category");
+        },
+    });
+
     const showModal = () => {
         setIsModalOpen(true);
     };
-
+    
     const handleCancel = () => {
         setIsModalOpen(false);
     };
 
-    const deleteMutation = useMutation({
-        mutationFn: (id: number) => deleteTalent(token ?? "", id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["talent"] });
-            messageApi.success("Talent deleted successfully");
-        },
-        onError: (error: any) => {
-            messageApi.error(error.message || "Failed to delete Talent");
-        },
-    });
+    const dataSource = data?.results?.map((incident_category, index) => ({
+        key: index + 1,
+        id: incident_category?.id,
+        category_name: incident_category?.category_name ?? "N/A",
+        description: incident_category?.description ?? "N/A",
+        organization: incident_category?.organization ?? 'Bureau of Jail Management and Penology',
+        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+    })) || [];
 
-    const dataSource = data?.results?.map((talents) => (
-        {
-            key: talents.id,
-            name: talents?.name ?? 'N/A',
-            description: talents?.description ?? 'N/A',
-            organization: talents?.organization ?? 'Bureau of Jail Management and Penology',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-        }
-    )) || [];
-
-    const filteredData = dataSource?.filter((talents) =>
-        Object.values(talents).some((value) =>
+    const filteredData = dataSource?.filter((incident_category) =>
+        Object.values(incident_category).some((value) =>
             String(value).toLowerCase().includes(searchText.toLowerCase())
         )
     );
 
-    const columns: ColumnsType<TalentProps> = [
+    const columns: ColumnsType<IncidentCategoryResponse> = [
         {
             title: 'No.',
-            key: 'no',
-            render: (_: any, __: any, index: number) =>
-                (pagination.current - 1) * pagination.pageSize + index + 1,
+            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
-            title: 'Talents',
-            dataIndex: 'name',
-            key: 'name',
-            sorter: (a, b) => a.name.localeCompare(b.name),
+            title: 'Category Name',
+            dataIndex: 'category_name',
+            key: 'category_name',
+            sorter: (a, b) => a.category_name.localeCompare(b.category_name),
             filters: [
                 ...Array.from(
-                    new Set(filteredData.map(item => item.name))
-                ).map(name => ({
-                    text: name,
-                    value: name,
+                    new Set(filteredData.map(item => item.category_name))
+                ).map(category_name => ({
+                    text: category_name,
+                    value: category_name,
                 }))
             ],
-            onFilter: (value, record) => record.name === value,
+            onFilter: (value, record) => record.category_name === value,
         },
         {
             title: 'Description',
@@ -105,9 +101,9 @@ const Talents = () => {
             filters: [
                 ...Array.from(
                     new Set(filteredData.map(item => item.description))
-                ).map(name => ({
-                    text: name,
-                    value: name,
+                ).map(description => ({
+                    text: description,
+                    value: description,
                 }))
             ],
             onFilter: (value, record) => record.description === value,
@@ -115,11 +111,11 @@ const Talents = () => {
         {
             title: "Actions",
             key: "actions",
-            fixed: "right",
-            render: (_: any, record: TalentProps) => (
+            align: "center",
+            render: (_: any, record: IncidentCategoryResponse) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
                     <Button type="link" onClick={() => {
-                    setTalents(record);
+                    setIncidentCategory(record);
                     setIsEditModalOpen(true);
                 }}>
                     <AiOutlineEdit />
@@ -131,11 +127,12 @@ const Talents = () => {
             ),
         },
     ]
+
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(dataSource);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Talents");
-        XLSX.writeFile(wb, "Talents.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "IncidentCategory");
+        XLSX.writeFile(wb, "IncidentCategory.xlsx");
     };
 
     const handleExportPDF = () => {
@@ -165,7 +162,7 @@ const Talents = () => {
         
             doc.setTextColor(0, 102, 204);
             doc.setFontSize(16);
-            doc.text("Talents Report", 10, 15); 
+            doc.text("Incident Category Report", 10, 15); 
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(10);
             doc.text(`Organization Name: ${organizationName}`, 10, 25);
@@ -178,9 +175,8 @@ const Talents = () => {
     
         addHeader(); 
     
-const isSearching = searchText.trim().length > 0;
-    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
-            idx + 1,
+        const tableData = dataSource.map((item, index) => [
+            index + 1,
             item.name,
             item.description,
         ]);
@@ -189,7 +185,7 @@ const isSearching = searchText.trim().length > 0;
             const pageData = tableData.slice(i, i + maxRowsPerPage);
     
             autoTable(doc, { 
-                head: [['No.', 'Talents', 'Description']],
+                head: [['No.', 'Incident Category', 'Description']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
@@ -239,18 +235,19 @@ const isSearching = searchText.trim().length > 0;
                 <a onClick={handleExportExcel}>Export Excel</a>
             </Menu.Item>
             <Menu.Item>
-                <CSVLink data={dataSource} filename="Talents.csv">
+                <CSVLink data={dataSource} filename="IncidentCategory.csv">
                     Export CSV
                 </CSVLink>
             </Menu.Item>
         </Menu>
     );
+
     return (
         <div>
             {contextHolder}
-            <h1 className="text-3xl font-bold text-[#1E365D]">Talents</h1>
-                <div className="flex justify-between items-center gap-2 my-4">
-                    <div className="flex gap-2">
+            <h1 className="text-3xl font-bold text-[#1E365D]">Incident Category</h1>
+            <div className="flex justify-between items-center gap-2 my-4">
+            <div className="flex gap-2">
                         <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
                             <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
                                 <GoDownload /> Export
@@ -260,28 +257,25 @@ const isSearching = searchText.trim().length > 0;
                             Print Report
                         </button>
                     </div>
-                <div>
-                <div className="flex gap-2 items-center">
+                <div className="flex gap-2">
                     <div className="flex-1 relative flex items-center justify-end">
-                        <input
-                            placeholder="Search"
-                            type="text"
-                            onChange={(e) => setSearchText(e.target.value)}
-                            className="border border-gray-400 h-10 w-80 rounded-md px-2 active:outline-none focus:outline-none"
-                        />
-                        <LuSearch className="absolute right-[1%] text-gray-400" />
-                    </div>
-                    <button type="button" className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center" onClick={showModal}>
-                        <GoPlus />
-                        Add Talents
-                    </button>
+                    <input
+                        placeholder="Search"
+                        type="text"
+                        onChange={(e) => setSearchText(e.target.value)}
+                        className="border border-gray-400 h-10 w-80 rounded-md px-2 active:outline-none focus:outline-none"
+                    />
+                    <LuSearch className="absolute right-[1%] text-gray-400" />
+                </div>
+                <button type="button" className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center" onClick={showModal}>
+                    <GoPlus />
+                    Add Interest
+                </button>
                 </div>
                 
             </div>
-            </div>
-            
             <div>
-                    <Table
+                <Table
                         className="overflow-x-auto"
                         columns={columns}
                         dataSource={filteredData}
@@ -294,7 +288,7 @@ const isSearching = searchText.trim().length > 0;
                     />
             </div>
             <Modal
-                title="Talents Report"
+                title="Incident Category Report"
                 open={isPdfModalOpen}
                 onCancel={handleClosePdfModal}
                 footer={null}
@@ -310,28 +304,17 @@ const isSearching = searchText.trim().length > 0;
             </Modal>
             <Modal
                 className="overflow-y-auto rounded-lg scrollbar-hide"
-                title="Add Talents"
+                title="Add Incident Category"
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
                 width="30%"
                 style={{ maxHeight: "80vh", overflowY: "auto" }} 
-                >
-                <AddTalents onClose={handleCancel} />
-            </Modal>
-            <Modal
-                title="Edit Talents"
-                open={isEditModalOpen}
-                onCancel={() => setIsEditModalOpen(false)}
-                footer={null}
             >
-                <EditTalents
-                    talents={talents}
-                    onClose={() => setIsEditModalOpen(false)}
-                />
+                <AddIncidentCategory onClose={handleCancel} />
             </Modal>
         </div>
     )
 }
 
-export default Talents
+export default IncidentCategory

@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { VISITOR_REQ_DOCS } from "@/lib/urls";
@@ -12,6 +12,7 @@ type AddVisitorReq = {
 const AddVisitorReq = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [visitorReqDocs, setVisitorReqDocs] = useState<AddVisitorReq>({
         document_name: '',
         description: '',
@@ -49,8 +50,8 @@ const AddVisitorReq = ({ onClose }: { onClose: () => void }) => {
     const visitorMutation = useMutation({
         mutationKey: ['visitor-req-docs'],
         mutationFn: AddVisitorReq,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['visitor-req-docs'] });
             messageApi.success("Added successfully");
             onClose();
         },

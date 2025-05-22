@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message } from "antd";
 import { updateID_Type } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 const EditIDType = ({ idtypes, onClose }: { idtypes: any; onClose: () => void }) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false); 
 
@@ -14,6 +15,7 @@ const EditIDType = ({ idtypes, onClose }: { idtypes: any; onClose: () => void })
         mutationFn: (updatedData: any) =>
             updateID_Type(token ?? "", idtypes.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['id-types'] });
             setIsLoading(true); 
             messageApi.success("ID Type updated successfully");
             onClose();

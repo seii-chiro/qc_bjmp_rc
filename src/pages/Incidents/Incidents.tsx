@@ -7,6 +7,8 @@ const Incidents = () => {
                 <Header title="INCIDENTS" />
                 <div className="ml-8 mt-2">
                     <GodotLink link="incidents_list" title="Incident" />
+                    <GodotLink link="incident-category" title="Incident Category" />
+                    <GodotLink link="incident-type" title="Incident Type" />
                     <GodotLink link="" title="Incident Commanders" />
                     <GodotLink link="report" title="Report" />
                     <GodotLink link="" title="Reporters" />

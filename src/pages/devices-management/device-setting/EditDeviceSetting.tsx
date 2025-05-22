@@ -1,7 +1,7 @@
 import { getDevice } from "@/lib/queries";
 import { patchDeviceSetting } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, message, Select } from "antd";
 import { useEffect, useState } from "react";
 
@@ -16,12 +16,14 @@ const EditDeviceSetting = ({ devicesSetting, onClose }: { devicesSetting: any; o
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [isLoading, setIsLoading] = useState(false); 
 
     const updateMutation = useMutation({
         mutationFn: (updatedData: any) =>
             patchDeviceSetting(token ?? "", devicesSetting.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['device-setting'] });
             setIsLoading(false); 
             messageApi.success("Devices Setting updated successfully");
             onClose();

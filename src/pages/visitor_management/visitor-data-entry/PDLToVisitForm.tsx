@@ -1,7 +1,7 @@
 import { VisitortoPDLRelationship } from '@/lib/definitions';
 import { PDLs } from '@/lib/pdl-definitions';
 import { VisitorForm } from '@/lib/visitorFormDefinition';
-import { Input, Select, message } from 'antd';
+import { Input, Pagination, Select, message } from 'antd';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { PdlToVisitForm } from './PDLtovisit';
 
@@ -16,6 +16,13 @@ type Props = {
     pdls: PDLs[];
     pdlsLoading: boolean;
     handlePdlToVisitModalCancel: () => void;
+    pdlPage: number;
+    setPdlPage: (page: number) => void;
+    pdlsCount: number;
+    pdlFirstName: string;
+    setPdlFirstName: (val: string) => void;
+    pdlLastName: string;
+    setPdlLastName: (val: string) => void;
 }
 
 const PDLToVisitForm = ({
@@ -27,7 +34,13 @@ const PDLToVisitForm = ({
     pdlToVisitTableInfo,
     handlePdlToVisitModalCancel,
     editPdlToVisitIndex,
-    visitorForm
+    visitorForm,
+    pdlFirstName,
+    pdlLastName,
+    pdlPage,
+    pdlsCount,
+    setPdlFirstName,
+    setPdlPage
 }: Props) => {
     const [pdlToVisitID, setPdlToVisitID] = useState<number | null>(() => {
         if (editPdlToVisitIndex !== null && visitorForm?.pdl_data?.[editPdlToVisitIndex]) {
@@ -211,6 +224,28 @@ const PDLToVisitForm = ({
             >
                 <div className='flex gap-8'>
                     <div className='flex-1'>
+                        <div className="flex gap-2 mb-2">
+                            <Input
+                                placeholder="Search by PDL"
+                                value={pdlFirstName}
+                                onChange={e => {
+                                    setPdlFirstName(e.target.value);
+                                    setPdlPage(1);
+                                }}
+                                className="w-1/2 h-12"
+                            />
+                        </div>
+                        {pdlsCount > 10 && (
+                            <Pagination
+                                className="mb-2"
+                                current={pdlPage}
+                                pageSize={10}
+                                total={pdlsCount}
+                                onChange={page => setPdlPage(page)}
+                                showSizeChanger={false}
+                            />
+                        )}
+
                         <div className='flex w-full justify-between gap-4'>
                             <label htmlFor="last-name" className='flex-1 flex flex-col gap-1'>
                                 <span className='font-semibold'>Last Name <span className='text-red-500'>*</span></span>

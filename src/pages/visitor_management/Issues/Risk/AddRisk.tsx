@@ -1,7 +1,7 @@
-import { getRecord_Status, getRiskLevels } from "@/lib/queries";
+import { getRiskLevels } from "@/lib/queries";
 import { RISK } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { message, Select } from "antd";
 import { useState } from "react";
 
@@ -13,6 +13,7 @@ type AddRisks = {
 const AddRisk = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [selectRisks, setSelectRisks] = useState<AddRisks>({
         name: '',
         description: '',
@@ -58,8 +59,8 @@ const AddRisk = ({ onClose }: { onClose: () => void }) => {
     const riskMutation = useMutation({
         mutationKey: ['risk'],
         mutationFn: addRisk,
-        onSuccess: (data) => {
-            console.log(data);
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['risk'] });
             messageApi.success("Added successfully");
             onClose();
         },
