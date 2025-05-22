@@ -148,13 +148,19 @@ const PdlRegistration = () => {
 
     const [personSearch, setPersonSearch] = useState("");
     const [personPage, setPersonPage] = useState(1);
+    const [debouncedSearch, setDebouncedSearch] = useState(personSearch);
+
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedSearch(personSearch), 400);
+        return () => clearTimeout(handler);
+    }, [personSearch]);
 
     const {
         data: personsPaginated,
         isLoading: personsLoading,
     } = useQuery({
-        queryKey: ['paginated-person', personSearch, personPage],
-        queryFn: () => getPersonSearch(token ?? "", 10, personSearch, personPage),
+        queryKey: ['paginated-person', debouncedSearch, personPage],
+        queryFn: () => getPersonSearch(token ?? "", 10, debouncedSearch, personPage),
         keepPreviousData: true,
         staleTime: 10 * 60 * 1000,
     });
@@ -1385,6 +1391,10 @@ const PdlRegistration = () => {
                         </div>
 
                         <MultipleBirthSiblings
+                            setPersonPage={setPersonPage}
+                            setPersonSearch={setPersonSearch}
+                            personPage={personPage}
+                            personsCount={personsCount}
                             handleDeleteMultipleBirthSibling={handleDeleteMultipleBirthSibling}
                             prefixes={prefixes || []}
                             suffixes={suffixes || []}
