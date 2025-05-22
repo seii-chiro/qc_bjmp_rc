@@ -1,7 +1,7 @@
 import { MultipleBirthClassType, Prefix, Suffix } from "@/lib/definitions"
 import { Gender, Person } from "@/lib/pdl-definitions"
 import { MultiBirthSiblingForm as MultiBirthSiblingFormType, PersonForm } from "@/lib/visitorFormDefinition"
-import { Input, Pagination, Select } from "antd"
+import { Input, Select } from "antd"
 import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import { MultiBirthSibling } from "./MultipleBirthSiblings"
 
@@ -169,14 +169,14 @@ const MultiBirthSiblingForm = ({
         <div className="p-5">
             <form className="flex flex-col gap-4">
                 <div>
-                    <label className="flex flex-col gap-1 w-[30%]">
+                    <label className="flex flex-col gap-1 w-[40%]">
                         <span className="font-semibold">Person</span>
                         <Select
                             value={multiBirthSiblingForm.sibling_person_id ?? undefined}
                             loading={personLoading}
                             showSearch
                             optionFilterProp="label"
-                            className='mt-2 h-10 rounded'
+                            className='mt-2 h-10 rounded w-full'
                             options={
                                 persons?.length
                                     ? persons.map(person => ({
@@ -207,7 +207,7 @@ const MultiBirthSiblingForm = ({
                         />
                         {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
                     </label>
-                    {personLoading ? (
+                    {/* {personLoading ? (
                         <div className="mt-2 text-gray-500">Loading persons...</div>
                     ) : (
                         personsCount && personsCount > 10 && setPersonPage && (
@@ -220,7 +220,7 @@ const MultiBirthSiblingForm = ({
                                 showSizeChanger={false}
                             />
                         )
-                    )}
+                    )} */}
                 </div>
                 <div className="flex gap-2">
                     <label htmlFor="" className="flex-1">
