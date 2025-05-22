@@ -14,6 +14,11 @@ type Props = {
     handlePdlToVisitModalCancel: () => void;
     pdlVisitors: Visitor[];
     pdlVisitorsLoading: boolean;
+    visitorSearch: string;
+    setVisitorSearch: (val: string) => void;
+    visitorPage: number;
+    setVisitorPage: (page: number) => void;
+    pdlVisitorsCount: number;
 };
 
 const PDLVisitorForm = ({
@@ -26,6 +31,8 @@ const PDLVisitorForm = ({
     editPdlToVisitIndex,
     pdlVisitors,
     pdlVisitorsLoading,
+    setVisitorPage,
+    setVisitorSearch,
 }: Props) => {
     const [pdlToVisitID, setPdlToVisitID] = useState<number | null>(null);
     const [relationshipId, setRelationshipId] = useState<number | null>(null);
@@ -129,11 +136,24 @@ const PDLVisitorForm = ({
                                     value={pdlToVisitID}
                                     optionFilterProp="label"
                                     className="h-12 rounded-md outline-gray-300 !bg-gray-100"
-                                    options={pdlVisitors?.map(pdl => ({
-                                        value: pdl?.id,
-                                        label: pdl?.person?.last_name
-                                    }))}
-                                    onChange={(value) => setPdlToVisitID(value)}
+                                    options={
+                                        pdlVisitorsLoading
+                                            ? []
+                                            : pdlVisitors?.length
+                                                ? pdlVisitors
+                                                    .filter(pdl => typeof pdl?.id === 'number' && typeof pdl?.person?.last_name === 'string')
+                                                    .map(pdl => ({
+                                                        value: pdl.id as number,
+                                                        label: pdl.person!.last_name as string
+                                                    }))
+                                                : []
+                                    }
+                                    notFoundContent={pdlVisitorsLoading ? "Loading..." : "No data found"}
+                                    onSearch={value => {
+                                        setVisitorSearch(value);
+                                        setVisitorPage(1);
+                                    }}
+                                    onChange={value => setPdlToVisitID(value)}
                                 />
                             </label>
                             <label htmlFor="first-name" className='flex-1 flex flex-col gap-1'>
@@ -144,11 +164,24 @@ const PDLVisitorForm = ({
                                     value={pdlToVisitID}
                                     optionFilterProp="label"
                                     className="h-12 rounded-md outline-gray-300 !bg-gray-100"
-                                    options={pdlVisitors?.map(pdl => ({
-                                        value: pdl?.id,
-                                        label: pdl?.person?.first_name
-                                    }))}
-                                    onChange={(value) => setPdlToVisitID(value)}
+                                    options={
+                                        pdlVisitorsLoading
+                                            ? []
+                                            : pdlVisitors?.length
+                                                ? pdlVisitors
+                                                    .filter(pdl => typeof pdl?.id === 'number' && typeof pdl?.person?.first_name === 'string')
+                                                    .map(pdl => ({
+                                                        value: pdl.id as number,
+                                                        label: pdl.person!.first_name as string
+                                                    }))
+                                                : []
+                                    }
+                                    notFoundContent={pdlVisitorsLoading ? "Loading..." : "No data found"}
+                                    onSearch={value => {
+                                        setVisitorSearch(value);
+                                        setVisitorPage(1);
+                                    }}
+                                    onChange={value => setPdlToVisitID(value)}
                                 />
                             </label>
                         </div>

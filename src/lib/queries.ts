@@ -173,6 +173,26 @@ export async function getVisitors(
   return res.json();
 }
 
+export async function getVisitorsPaginated(
+  token: string,
+  limit = 10,
+  search = "",
+  page = 1
+): Promise<PaginatedResponse<NewVisitor>> {
+  let url = `${BASE_URL}/api/visitors/visitor/?limit=${limit}&offset=${
+    (page - 1) * limit
+  }`;
+  if (search) url += `&search=${encodeURIComponent(search)}`;
+  const res = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error("Failed to fetch Visitors");
+  return res.json();
+}
+
 // export async function getPDLs(token: string): Promise<PDLs[]> {
 //   const res = await fetch(PDL.getPDL, {
 //     headers: {

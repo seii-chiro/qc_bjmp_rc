@@ -144,7 +144,7 @@ const UpdatePDL = () => {
         enabled: !!pdl?.id && !!token,
     });
 
-    console.log(pdlData)
+    // console.log(pdlData)
 
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -1089,7 +1089,7 @@ const UpdatePDL = () => {
             time_arrested: "",
             remarks_data: pdlData?.remarks?.map((remark: any) => ({
                 remarks: remark?.remarks ?? "N/A",
-                created_by: `${users?.find(user => user?.id === remark?.personnel)?.first_name ?? ""} ${users?.find(user => user?.id === remark?.personnel)?.last_name ?? ""}`,
+                created_by: `${users?.results?.find(user => user?.id === remark?.personnel)?.first_name ?? ""} ${users?.results?.find(user => user?.id === remark?.personnel)?.last_name ?? ""}`,
                 created_at: pdlData?.updated_at ?? "",
             })) ?? [],
             look_id: looks?.results?.find((look) => look?.name === pdlData?.look)?.id ?? 5,
@@ -1136,8 +1136,9 @@ const UpdatePDL = () => {
     if (isLoading) return <div><Spinner /></div>;
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
 
-    console.log("PDL Form:", pdlForm)
-    console.log("Person Form:", personForm)
+    console.log("PDL Data:", pdlData)
+    // console.log("PDL Form:", pdlForm)
+    // console.log("Person Form:", personForm)
 
     return (
         <div className="bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5">

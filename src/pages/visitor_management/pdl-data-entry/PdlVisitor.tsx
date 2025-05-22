@@ -1,13 +1,13 @@
 import { Modal, Table } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { Plus } from "lucide-react";
-import { SetStateAction, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import PDLVisitorForm from "./PdlVisitorForm";
 import { PDLForm } from "@/lib/visitorFormDefinition";
 import { useQuery } from "@tanstack/react-query";
 import { Sibling } from "@/lib/pdl-definitions";
-import { getVisitor_to_PDL_Relationship, getVisitors } from "@/lib/queries";
+import { getVisitor_to_PDL_Relationship, getVisitorsPaginated } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 
 export type PdlVisitorForm = {
@@ -33,10 +33,27 @@ const PdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editIndex, setEditIndex] = useState<number | null>(null)
 
-    const { data: pdlVisitors, isLoading: pdlVisitorsLoading } = useQuery({
-        queryKey: ['pdl-visitors'],
-        queryFn: () => getVisitors(token ?? "")
-    })
+    const [visitorSearch, setVisitorSearch] = useState("");
+    const [visitorPage, setVisitorPage] = useState(1);
+    const [debouncedVisitorSearch, setDebouncedVisitorSearch] = useState(visitorSearch);
+
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedVisitorSearch(visitorSearch), 400);
+        return () => clearTimeout(handler);
+    }, [visitorSearch]);
+
+    const {
+        data: visitorsPaginated,
+        isLoading: visitorsLoading,
+    } = useQuery({
+        queryKey: ['pdl-visitors', debouncedVisitorSearch, visitorPage],
+        queryFn: () => getVisitorsPaginated(token ?? "", 10, debouncedVisitorSearch, visitorPage),
+        keepPreviousData: true,
+        staleTime: 10 * 60 * 1000,
+    });
+
+    const pdlVisitors = visitorsPaginated?.results || [];
+    const pdlVisitorsCount = visitorsPaginated?.count || 0;
 
     const { data: visitorToPdlRelationship, isLoading: visitorToPdlRelationshipLoading } = useQuery({
         queryKey: ['visitors-pdl-realtionship'],
@@ -188,8 +205,13 @@ const PdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
                 width="40%"
             >
                 <PDLVisitorForm
-                    pdlVisitors={pdlVisitors?.results || []}
-                    pdlVisitorsLoading={pdlVisitorsLoading}
+                    pdlVisitors={pdlVisitors}
+                    pdlVisitorsLoading={visitorsLoading}
+                    visitorSearch={visitorSearch}
+                    setVisitorSearch={setVisitorSearch}
+                    visitorPage={visitorPage}
+                    setVisitorPage={setVisitorPage}
+                    pdlVisitorsCount={pdlVisitorsCount}
                     editPdlToVisitIndex={editIndex}
                     setEditPdlToVisitIndex={setEditIndex}
                     handlePdlToVisitModalCancel={handleModalClose}
