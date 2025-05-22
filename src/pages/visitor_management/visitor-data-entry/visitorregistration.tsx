@@ -342,8 +342,11 @@ const VisitorRegistration = () => {
         }))
     }
 
-    const { data: persons } = useQuery({
-        queryKey: ['persons', personSearch, personPage],
+    const {
+        data: personsPaginated,
+        isLoading: personsLoading,
+    } = useQuery({
+        queryKey: ['paginated-person', personSearch, personPage],
         queryFn: () => getPersonSearch(token ?? "", 10, personSearch, personPage),
         keepPreviousData: true,
         staleTime: 10 * 60 * 1000,
@@ -402,9 +405,8 @@ const VisitorRegistration = () => {
                 staleTime: 10 * 60 * 1000
             },
             {
-                queryKey: ['person'],
-                queryFn: () => getRealPerson(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                queryKey: ['paginated-person'],
+                queryFn: () => getRealPerson(token ?? "", 1),
             },
             {
                 queryKey: ['users'],
@@ -612,8 +614,6 @@ const VisitorRegistration = () => {
         },
     });
 
-
-
     const visitorTypes = dropdownOptions?.[0]?.data?.results;
     const genders = dropdownOptions?.[1]?.data?.results;
     const nationalities = dropdownOptions?.[2]?.data?.results;
@@ -624,8 +624,8 @@ const VisitorRegistration = () => {
     const municipalities = dropdownOptions?.[7]?.data?.results;
     const barangays = dropdownOptions?.[8]?.data?.results;
     const countries = dropdownOptions?.[9]?.data?.results;
-    const personsNoSearch = dropdownOptions?.[10]?.data?.results;
-    const personsLoading = dropdownOptions?.[10]?.isLoading;
+    // const persons = dropdownOptions?.[10]?.data?.results;
+    // const personsLoading = dropdownOptions?.[10]?.isLoading;
     const users = dropdownOptions?.[11]?.data?.results;
     const userLoading = dropdownOptions?.[11]?.isLoading;
     const visitorAppStatus = dropdownOptions?.[12]?.data?.results;
@@ -637,6 +637,9 @@ const VisitorRegistration = () => {
     const suffixesLoading = dropdownOptions?.[15]?.isLoading;
     const birthClassTypes = dropdownOptions?.[16]?.data?.results;
     const birthClassTypesLoading = dropdownOptions?.[16]?.isLoading;
+
+    const persons = personsPaginated?.results || [];
+    const personsCount = personsPaginated?.count || 0;
 
     const addressDataSource = personForm?.address_data?.map((address, index) => {
         return ({
@@ -1087,8 +1090,10 @@ const VisitorRegistration = () => {
                             personForm={personForm}
                             birthClassTypes={birthClassTypes || []}
                             birthClassTypesLoading={birthClassTypesLoading}
-                            persons={persons?.results || []}
+                            persons={persons}
                             personsLoading={personsLoading}
+                            personPage={personPage}
+                            personsCount={personsCount}
                         />
 
                         <div className="flex flex-col gap-5 mt-10">
