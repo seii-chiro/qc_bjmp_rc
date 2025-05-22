@@ -513,7 +513,7 @@ const PDLtovisit = ({
                 {/* PDL to Visit */}
                 <div className="flex flex-col gap-5 mt-10">
                     <div className="flex justify-between items-center">
-                        <h1 className='font-bold text-xl'>PDL to Visits</h1>
+                        <h1 className='font-bold text-xl'>PDL to Visit</h1>
                         <button
                             className="flex gap-2 px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-400"
                             type="button"

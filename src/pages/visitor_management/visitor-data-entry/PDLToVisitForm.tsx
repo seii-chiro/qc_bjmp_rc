@@ -221,28 +221,6 @@ const PDLToVisitForm = ({
             >
                 <div className='flex gap-8'>
                     <div className='flex-1'>
-                        <div className="flex gap-2 mb-2">
-                            <Input
-                                placeholder="Search by PDL"
-                                value={pdlFirstName}
-                                onChange={e => {
-                                    setPdlFirstName(e.target.value);
-                                    setPdlPage(1);
-                                }}
-                                className="w-1/2 h-12"
-                            />
-                        </div>
-                        {pdlsCount > 10 && (
-                            <Pagination
-                                className="mb-2"
-                                current={pdlPage}
-                                pageSize={10}
-                                total={pdlsCount}
-                                onChange={page => setPdlPage(page)}
-                                showSizeChanger={false}
-                            />
-                        )}
-
                         <div className='flex w-full justify-between gap-4'>
                             <label htmlFor="last-name" className='flex-1 flex flex-col gap-1'>
                                 <span className='font-semibold'>Last Name <span className='text-red-500'>*</span></span>
@@ -252,13 +230,22 @@ const PDLToVisitForm = ({
                                     value={pdlToVisitID}
                                     optionFilterProp="label"
                                     className="h-12 rounded-md outline-gray-300 !bg-gray-100"
-                                    options={pdls?.map(pdl => ({
-                                        value: pdl?.id,
-                                        label: pdl?.person?.last_name
-                                    }))}
-                                    onChange={(value) =>
-                                        setPdlToVisitID(value)
+                                    options={
+                                        pdlsLoading
+                                            ? []
+                                            : pdls?.length
+                                                ? pdls.map(pdl => ({
+                                                    value: pdl?.id,
+                                                    label: pdl?.person?.last_name
+                                                }))
+                                                : []
                                     }
+                                    notFoundContent={pdlsLoading ? "Loading..." : "No data found"}
+                                    onSearch={value => {
+                                        setPdlFirstName(value); // This will trigger your debounced search logic
+                                        setPdlPage(1);
+                                    }}
+                                    onChange={value => setPdlToVisitID(value)}
                                 />
                             </label>
                             <label htmlFor="first-name" className='flex-1 flex flex-col gap-1'>
@@ -269,13 +256,22 @@ const PDLToVisitForm = ({
                                     value={pdlToVisitID}
                                     optionFilterProp="label"
                                     className="h-12 rounded-md outline-gray-300 !bg-gray-100"
-                                    options={pdls?.map(pdl => ({
-                                        value: pdl?.id,
-                                        label: pdl?.person?.first_name
-                                    }))}
-                                    onChange={(value) =>
-                                        setPdlToVisitID(value)
+                                    options={
+                                        pdlsLoading
+                                            ? []
+                                            : pdls?.length
+                                                ? pdls.map(pdl => ({
+                                                    value: pdl?.id,
+                                                    label: pdl?.person?.first_name
+                                                }))
+                                                : []
                                     }
+                                    notFoundContent={pdlsLoading ? "Loading..." : "No data found"}
+                                    onSearch={value => {
+                                        setPdlFirstName(value);
+                                        setPdlPage(1);
+                                    }}
+                                    onChange={value => setPdlToVisitID(value)}
                                 />
                             </label>
                         </div>

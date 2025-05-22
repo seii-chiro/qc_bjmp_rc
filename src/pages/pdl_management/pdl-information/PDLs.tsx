@@ -70,14 +70,14 @@ const PDLtable = () => {
     }, [searchText]);
 
     const { data: searchData, isLoading: searchLoading } = useQuery({
-        queryKey: ["visitors", debouncedSearch],
+        queryKey: ["pdls", debouncedSearch],
         queryFn: () => fetchPdls(debouncedSearch),
         behavior: keepPreviousData(),
         enabled: debouncedSearch.length > 0,
     });
 
     const { data: pdlData, isFetching } = useQuery({
-        queryKey: ['visitors', 'visitor-table', page],
+        queryKey: ['pdls', 'pdls-table', page],
         queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
             // Add offset parameter for Django REST Framework's pagination
             const offset = (page - 1) * limit;
@@ -393,8 +393,8 @@ const PDLtable = () => {
 
         addHeader();
 
-    const isSearching = searchText.trim().length > 0;
-    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+        const isSearching = searchText.trim().length > 0;
+        const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
             idx + 1,
             item.name,
             item.gang_affiliation,
