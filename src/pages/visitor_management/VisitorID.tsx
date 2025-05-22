@@ -129,14 +129,14 @@ const VisitorID = () => {
         <div>
             <div className='w-full h-full flex flex-col gap-10 mt-10'>
                 <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-                    <div className="relative w-72">
+                    {/* <div className="relative w-72">
                         <Input
                             placeholder="Search visitors..."
                             prefix={<SearchOutlined />}
                             onChange={handleSearchInput}
                             className="h-10"
                         />
-                    </div>
+                    </div> */}
 
                     <Select
                         loading={visitorsLoading}
@@ -144,17 +144,23 @@ const VisitorID = () => {
                         optionFilterProp='label'
                         placeholder='Select Visitor'
                         className='w-72 h-10'
+                        value={chosenVisitor}
                         options={visitors?.results?.map((visitor) => ({
                             value: visitor.id_number,
                             label: `${visitor?.person?.first_name ?? ""} ${visitor?.person?.middle_name ?? ""} ${visitor?.person?.last_name ?? ""}`,
                         })) ?? []}
-                        onChange={value => { setChosenVisitor(value) }}
+                        onChange={value => setChosenVisitor(value)}
                         notFoundContent={visitorsLoading ? 'Loading...' : 'No visitors found'}
+                        onSearch={value => {
+                            setSearchQuery(value);
+                            setCurrentPage(1);
+                        }}
+                        filterOption={false} // Let backend handle filtering
                     />
                 </div>
 
                 {/* Pagination component */}
-                <div className="mb-4">
+                {/* <div className="mb-4">
                     <Pagination
                         current={currentPage}
                         pageSize={pageSize}
@@ -163,7 +169,7 @@ const VisitorID = () => {
                         showSizeChanger
                         showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} visitors`}
                     />
-                </div>
+                </div> */}
 
                 <div className='w-full flex flex-col lg:flex-row lg:gap-12'>
                     <div className='flex-1 flex flex-col gap-4'>
