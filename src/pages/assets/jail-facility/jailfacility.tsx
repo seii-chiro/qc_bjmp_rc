@@ -327,6 +327,7 @@ const jailfacility = () => {
         {
             title: "Actions",
             key: "actions",
+            fixed: 'right',
             render: (_: any, record: Jail) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
                     <Button
