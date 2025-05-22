@@ -77,12 +77,12 @@ const UpdateMultipleBirthSiblings = ({
     };
 
     const IdentifierDataSource = personForm.multiple_birth_sibling_data?.map((siblingData, index) => {
-        const chosenSibling = persons?.find(person => person?.id === (siblingData.sibling_person_id_display || siblingData.sibling_person_id));
-
+        const chosenSibling = persons?.find(person => person?.id === (siblingData.sibling_person_id_display || siblingData.sibling_person_id || siblingData.person_id));
+        const siblingGroup = birthClassTypes?.find(type => type?.id === siblingData?.multiple_birth_class_id)?.term_for_sibling_group
         return {
             key: index,
-            siblingGroup: siblingData?.multiple_birth_class_id || "Single",
-            shortName: siblingData?.person || "N/A",
+            siblingGroup: siblingGroup || "",
+            shortName: chosenSibling?.shortname || "N/A",
             gender: chosenSibling?.gender?.gender_option || "N/A",
             identical: siblingData?.is_identical ? "Yes" : "No",
             verified: siblingData?.is_verified ? "Yes" : "No",

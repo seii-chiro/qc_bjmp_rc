@@ -24,6 +24,7 @@ import {
     getMultipleBirthClassTypes,
     getNationalities,
     getOccupations,
+    getPersonSearch,
     getPrecincts,
     getPrefixes,
     getRealPerson,
@@ -144,8 +145,6 @@ const UpdatePDL = () => {
         enabled: !!pdl?.id && !!token,
     });
 
-    // console.log(pdlData)
-
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
@@ -201,6 +200,26 @@ const UpdatePDL = () => {
         floor_id: null,
         visitation_status_id: null,
         risk_classification: ""
+    });
+
+
+    const [personSearch, setPersonSearch] = useState("");
+    const [personPage, setPersonPage] = useState(1);
+    const [debouncedSearch, setDebouncedSearch] = useState(personSearch);
+
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedSearch(personSearch), 400);
+        return () => clearTimeout(handler);
+    }, [personSearch]);
+
+    const {
+        data: personsPaginated,
+        isLoading: personsLoading,
+    } = useQuery({
+        queryKey: ['paginated-person', debouncedSearch, personPage],
+        queryFn: () => getPersonSearch(token ?? "", 10, debouncedSearch, personPage),
+        keepPreviousData: true,
+        staleTime: 10 * 60 * 1000,
     });
 
     const [icao, setIcao] = useState("");
@@ -394,108 +413,28 @@ const UpdatePDL = () => {
 
     const dropdownOptions = useQueries({
         queries: [
-            {
-                queryKey: ["detention-cell-dorm"],
-                queryFn: () => getDetentionCell(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["person-gender"],
-                queryFn: () => getGenders(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["person-nationality"],
-                queryFn: () => getNationalities(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["person-civil-status"],
-                queryFn: () => getCivilStatus(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["religion"],
-                queryFn: () => getReligion(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["regions"],
-                queryFn: () => getJailRegion(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["provinces"],
-                queryFn: () => getJail_Province(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["city/municipality"],
-                queryFn: () => getJail_Municipality(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["barangays"],
-                queryFn: () => getJail_Barangay(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["countries"],
-                queryFn: () => getCountries(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["persons"],
-                queryFn: () => getRealPerson(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["talents"],
-                queryFn: () => getTalents(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["skills"],
-                queryFn: () => getSkills(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["current-user"],
-                queryFn: () => getCurrentUser(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["prefix"],
-                queryFn: () => getPrefixes(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["suffix"],
-                queryFn: () => getSuffixes(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["multiple-birth-class-types"],
-                queryFn: () => getMultipleBirthClassTypes(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["interests"],
-                queryFn: () => getInterests(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["detention-building-level"],
-                queryFn: () => getDetention_Building(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
-            {
-                queryKey: ["detention-floor-annex"],
-                queryFn: () => getDetention_Floor(token ?? ""),
-                staleTime: 10 * 60 * 1000,
-            },
+            { queryKey: ["detention-cell-dorm"], queryFn: () => getDetentionCell(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["person-gender"], queryFn: () => getGenders(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["person-nationality"], queryFn: () => getNationalities(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["person-civil-status"], queryFn: () => getCivilStatus(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["religion"], queryFn: () => getReligion(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["regions"], queryFn: () => getJailRegion(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["provinces"], queryFn: () => getJail_Province(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["city/municipality"], queryFn: () => getJail_Municipality(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["barangays"], queryFn: () => getJail_Barangay(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["countries"], queryFn: () => getCountries(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["talents"], queryFn: () => getTalents(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["skills"], queryFn: () => getSkills(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["current-user"], queryFn: () => getCurrentUser(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["prefix"], queryFn: () => getPrefixes(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["suffix"], queryFn: () => getSuffixes(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["multiple-birth-class-types"], queryFn: () => getMultipleBirthClassTypes(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["interests"], queryFn: () => getInterests(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["detention-building-level"], queryFn: () => getDetention_Building(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ["detention-floor-annex"], queryFn: () => getDetention_Floor(token ?? ""), staleTime: 10 * 60 * 1000 },
         ],
     });
+
 
     const toExclude = ["Female", "LGBTQ + LESBIAN / BISEXUAL"]
 
@@ -513,25 +452,26 @@ const UpdatePDL = () => {
     const municipalities = dropdownOptions?.[7]?.data?.results;
     const barangays = dropdownOptions?.[8]?.data?.results;
     const countries = dropdownOptions?.[9]?.data?.results;
-    const persons = dropdownOptions?.[10]?.data?.results;
-    const personsLoading = dropdownOptions?.[10]?.isLoading;
-    const talents = dropdownOptions?.[11]?.data?.results;
-    const talentsLoading = dropdownOptions?.[11]?.isLoading;
-    const skills = dropdownOptions?.[12]?.data?.results;
-    const skillsLoading = dropdownOptions?.[12]?.isLoading;
-    const currentUser = dropdownOptions?.[13]?.data;
-    const prefixes = dropdownOptions?.[14]?.data?.results;
-    const prefixesLoading = dropdownOptions?.[14]?.isLoading;
-    const suffixes = dropdownOptions?.[15]?.data?.results;
-    const suffixesLoading = dropdownOptions?.[15]?.isLoading;
-    const birthClassTypes = dropdownOptions?.[16]?.data?.results;
-    const birthClassTypesLoading = dropdownOptions?.[16]?.isLoading;
-    const interests = dropdownOptions?.[17]?.data?.results;
-    const interestsLoading = dropdownOptions?.[17]?.isLoading;
-    const levels = dropdownOptions?.[18]?.data?.results;
-    const levelsLoading = dropdownOptions?.[18]?.isLoading;
-    const annex = dropdownOptions?.[19]?.data?.results;
-    const annexLoading = dropdownOptions?.[19]?.isLoading;
+    const talents = dropdownOptions?.[10]?.data?.results;
+    const talentsLoading = dropdownOptions?.[10]?.isLoading;
+    const skills = dropdownOptions?.[11]?.data?.results;
+    const skillsLoading = dropdownOptions?.[11]?.isLoading;
+    const currentUser = dropdownOptions?.[12]?.data;
+    const prefixes = dropdownOptions?.[13]?.data?.results;
+    const prefixesLoading = dropdownOptions?.[13]?.isLoading;
+    const suffixes = dropdownOptions?.[14]?.data?.results;
+    const suffixesLoading = dropdownOptions?.[14]?.isLoading;
+    const birthClassTypes = dropdownOptions?.[15]?.data?.results;
+    const birthClassTypesLoading = dropdownOptions?.[15]?.isLoading;
+    const interests = dropdownOptions?.[16]?.data?.results;
+    const interestsLoading = dropdownOptions?.[16]?.isLoading;
+    const levels = dropdownOptions?.[17]?.data?.results;
+    const levelsLoading = dropdownOptions?.[17]?.isLoading;
+    const annex = dropdownOptions?.[18]?.data?.results;
+    const annexLoading = dropdownOptions?.[18]?.isLoading;
+
+    const persons = personsPaginated?.results || [];
+    const personsCount = personsPaginated?.count || 0;
 
     const { data: ethnicitiesProvinces, isLoading: ethnicitiesProvincesLoading } =
         useQuery({
@@ -1137,11 +1077,8 @@ const UpdatePDL = () => {
     if (isLoading) return <div><Spinner /></div>;
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
 
-    console.log("PDL Data:", pdlData)
-    console.log("PDL Form:", pdlForm)
-    console.log(birthClassTypes?.find(type => type?.term_for_sibling_group === "Triplet")?.term_for_sibling_group)
-
-    // console.log("Person Form:", personForm)
+    // console.log("PDL Data:", pdlData)
+    // console.log("PDL Form:", pdlForm)
 
     return (
         <div className="bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5">
@@ -1758,6 +1695,10 @@ const UpdatePDL = () => {
                             persons={persons || []}
                             personsLoading={personsLoading}
                             currentPersonId={pdlData?.person?.id}
+                            setPersonPage={setPersonPage}
+                            setPersonSearch={setPersonSearch}
+                            personPage={personPage}
+                            personsCount={personsCount}
                         />
 
                         <div className="flex flex-col gap-5 mt-10">
