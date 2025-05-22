@@ -41,8 +41,6 @@ const MultiBirthSiblingForm = ({
     setPersonSearch,
     handleEditMultipleBirthSibling,
     setPersonPage,
-    personPage,
-    personsCount
 }: Props) => {
     const [chosenSibling, setChosenSibling] = useState<Person | null>(null)
     const [error, setError] = useState<string | null>(null)
