@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Input, message, Modal, Select, Table } from "antd";
 import { Plus } from "lucide-react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
@@ -860,7 +861,7 @@ const VisitorRegistration = () => {
                                     showSearch
                                     optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={visitorTypes?.map(type => ({
+                                    options={visitorTypes?.map((type: { id: any; visitor_type: any; }) => ({
                                         value: type?.id,
                                         label: type?.visitor_type
                                     }))}
@@ -880,11 +881,11 @@ const VisitorRegistration = () => {
                                     showSearch
                                     optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={nationalities?.map(nationality => ({
+                                    options={nationalities?.map((nationality: { id: any; nationality: any; }) => ({
                                         value: nationality?.id,
                                         label: nationality?.nationality
                                     }))
-                                        .sort((a, b) => {
+                                        .sort((a: { label: string; }, b: { label: string; }) => {
                                             if (a.label === "Filipino") return -1;
                                             if (b.label === "Filipino") return 1;
                                             return 0;
@@ -909,7 +910,7 @@ const VisitorRegistration = () => {
                                     showSearch
                                     optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={prefixes?.map(prefix => ({
+                                    options={prefixes?.map((prefix: { id: any; prefix: any; }) => ({
                                         value: prefix?.id,
                                         label: prefix?.prefix
                                     }))}
@@ -962,7 +963,7 @@ const VisitorRegistration = () => {
                                     showSearch
                                     optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={suffixes?.map(suffix => ({
+                                    options={suffixes?.map((suffix: { id: any; suffix: any; }) => ({
                                         value: suffix?.id,
                                         label: suffix?.suffix
                                     }))}
@@ -1045,7 +1046,7 @@ const VisitorRegistration = () => {
                                     showSearch
                                     optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={civilStatuses?.map(civilStatus => ({
+                                    options={civilStatuses?.map((civilStatus: { id: any; status: any; }) => ({
                                         value: civilStatus?.id,
                                         label: civilStatus?.status
                                     }))}
@@ -1064,7 +1065,7 @@ const VisitorRegistration = () => {
                                 <Select
                                     value={personForm?.affiliation_id}
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={affiliations?.map(affiliation => ({
+                                    options={affiliations?.map((affiliation: { id: any; affiliation_type: any; }) => ({
                                         value: affiliation?.id,
                                         label: affiliation?.affiliation_type
                                     }))}
@@ -1235,7 +1236,7 @@ const VisitorRegistration = () => {
                                 <Select
                                     loading={visitorAppStatusLoading}
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={visitorAppStatus?.map((status) => ({
+                                    options={visitorAppStatus?.map((status: { id: any; status: any; }) => ({
                                         value: status?.id,
                                         label: status?.status,
                                     }))}
@@ -1265,7 +1266,7 @@ const VisitorRegistration = () => {
                                 <Select
                                     loading={userLoading}
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    options={users?.map((user) => ({
+                                    options={users?.map((user: { id: any; first_name: any; last_name: any; }) => ({
                                         value: user?.id,
                                         label: `${user?.first_name ?? ""} ${user?.last_name ?? ""}`,
                                     }))}
