@@ -3,7 +3,7 @@ import { useTokenStore } from "@/store/useTokenStore";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { Table, Modal, Image } from "antd";
 import { Plus } from "lucide-react";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import PDLToVisitForm from "./PDLToVisitForm";
 import RequirementsForm from "./RequirementsForm";
@@ -68,14 +68,24 @@ const PDLtovisit = ({
 
     const [pdlPage, setPdlPage] = useState(1);
     const [pdlFirstName, setPdlFirstName] = useState("");
-    const [pdlLastName, setPdlLastName] = useState("");
+    const [debouncedPdlFirstName, setDebouncedPdlFirstName] = useState("");
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedPdlFirstName(pdlFirstName);
+        }, 500); // 400ms debounce
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [pdlFirstName]);
 
     const {
         data: pdlsPaginated,
         isLoading: pdlsLoading,
     } = useQuery({
-        queryKey: ['pdls', pdlPage, pdlFirstName, pdlLastName],
-        queryFn: () => getPDLs(token ?? "", 10, pdlPage, pdlFirstName, pdlLastName),
+        queryKey: ['pdls', pdlPage, debouncedPdlFirstName],
+        queryFn: () => getPDLs(token ?? "", 10, pdlPage, debouncedPdlFirstName),
         keepPreviousData: true,
         staleTime: 10 * 60 * 1000,
     });
@@ -461,8 +471,6 @@ const PDLtovisit = ({
                     pdlsCount={pdlsCount}
                     pdlFirstName={pdlFirstName}
                     setPdlFirstName={setPdlFirstName}
-                    pdlLastName={pdlLastName}
-                    setPdlLastName={setPdlLastName}
                 />
             </Modal>
 

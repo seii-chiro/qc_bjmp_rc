@@ -21,8 +21,6 @@ type Props = {
     pdlsCount: number;
     pdlFirstName: string;
     setPdlFirstName: (val: string) => void;
-    pdlLastName: string;
-    setPdlLastName: (val: string) => void;
 }
 
 const PDLToVisitForm = ({
@@ -36,7 +34,6 @@ const PDLToVisitForm = ({
     editPdlToVisitIndex,
     visitorForm,
     pdlFirstName,
-    pdlLastName,
     pdlPage,
     pdlsCount,
     setPdlFirstName,
