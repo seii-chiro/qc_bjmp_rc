@@ -18,7 +18,7 @@ import html2canvas from 'html2canvas';
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../assets/Logo/QCJMD.png'
 import EditVisitor from "./edit-visitor/EditVisitor";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { PiFolderUserDuotone } from "react-icons/pi";
 import { BASE_URL } from "@/lib/urls";
 import { PaginatedResponse } from "../personnel_management/personnel/personnel-backup";
@@ -44,6 +44,9 @@ const Visitor = () => {
     const [page, setPage] = useState(1);
     const limit = 10;
     const [allVisitor, setAllVisitor] = useState<VisitorRecord[]>([]);
+    const location = useLocation();
+    const initialGenderFilter = location.state?.genderFilter || null;
+    const [genderFilter, setGenderFilter] = useState<string | null>(initialGenderFilter);
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -175,11 +178,15 @@ const Visitor = () => {
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
-    const filteredData = dataSource?.filter((visitor: any) =>
-        Object.values(visitor).some((value) =>
+    const filteredData = dataSource?.filter((visitor: any) => {
+        // Search filter
+        const matchesSearch = Object.values(visitor).some((value) =>
             String(value).toLowerCase().includes(searchText.toLowerCase())
-        )
-    );
+        );
+        // Gender filter (from dashboard card or table filter)
+        const matchesGender = genderFilter ? (visitor?.person?.gender?.gender_option === genderFilter) : true;
+        return matchesSearch && matchesGender;
+    });
 
     const columns: ColumnsType<Visitor> = [
         {
@@ -565,13 +572,16 @@ const handleExportPDF = async () => {
                         pagination={
                             debouncedSearch
                                 ? false // Hide pagination when searching
-                                : {
-                                    current: page,
-                                    pageSize: limit,
-                                    total: data?.count || 0,
-                                    onChange: (newPage) => setPage(newPage),
-                                    showSizeChanger: false,
-                                }
+                                : (filteredData.length > 0
+                                    ? {
+                                        current: page,
+                                        pageSize: limit,
+                                        total: filteredData.length, // <-- Use filteredData length!
+                                        onChange: (newPage) => setPage(newPage),
+                                        showSizeChanger: false,
+                                    }
+                                    : false // Hide pagination if no data
+                                )
                         }
                         rowKey="id"
                     />

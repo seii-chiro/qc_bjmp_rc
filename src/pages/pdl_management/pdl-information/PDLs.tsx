@@ -509,13 +509,16 @@ const PDLtable = () => {
                 pagination={
                     debouncedSearch
                         ? false // Hide pagination when searching
-                        : {
-                            current: page,
-                            pageSize: limit,
-                            total: pdlData?.count || 0,
-                            onChange: (newPage) => setPage(newPage),
-                            showSizeChanger: false,
-                        }
+                        : (filteredData.length > 0
+                            ? {
+                                current: page,
+                                pageSize: limit,
+                                total: filteredData.length, // <-- Use filteredData length!
+                                onChange: (newPage) => setPage(newPage),
+                                showSizeChanger: false,
+                            }
+                            : false // Hide pagination if no data
+                        )
                 }
                 rowKey="id"
             />
