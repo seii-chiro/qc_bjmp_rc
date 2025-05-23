@@ -319,7 +319,7 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
                       inWatchList && (
                         <span className='flex items-center gap-1'>
                           <IoIosWarning color='orange' size={25} />
-                          {inWatchList}
+                          <span className='text-red-600'>{inWatchList}</span>
                         </span>
                       )
                     }
@@ -390,7 +390,7 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
                                 inWatchList && (
                                   <span className='w-full flex items-center gap-1 text-base'>
                                     <IoIosWarning color='orange' size={25} />
-                                    {inWatchList}
+                                    <span className='text-red-600'>{inWatchList}</span>
                                   </span>
                                 )
                               }
