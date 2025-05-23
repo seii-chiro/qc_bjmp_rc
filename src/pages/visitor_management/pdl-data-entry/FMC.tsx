@@ -68,6 +68,7 @@ const FMC = <T extends HasPersonRelationships>({
 
     const handleDelete = (index: number) => {
         Modal.confirm({
+            centered: true,
             title: "Are you sure you want to delete this case?",
             content: "This action cannot be undone.",
             okText: "Delete",
@@ -78,7 +79,7 @@ const FMC = <T extends HasPersonRelationships>({
                     ...prev,
                     person_relationship_data: prev.person_relationship_data?.filter((_, i) => i !== index) || []
                 }));
-            }
+            },
         });
     };
 
