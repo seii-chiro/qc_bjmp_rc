@@ -5,11 +5,11 @@ import AddAddress from "../visitor-data-entry/AddAddress";
 import { useEffect, useState } from "react";
 import VisitorProfile from "../visitor-data-entry/visitorprofile";
 import Issue from "../visitor-data-entry/Issue";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import {
     getCivilStatus, getCountries, getCurrentUser, getEthnicityProvinces, getGenders, getJail_Barangay,
     getJail_Municipality, getJail_Province, getJailRegion, getNationalities,
-    getPersonnelAppStatus, getPositions, getPrefixes, getRanks, getRealPerson, getReligion, getSuffixes, getUsers
+    getPersonnelAppStatus, getPersonSearch, getPositions, getPrefixes, getRanks, getReligion, getSuffixes, getUsers
 } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { PersonForm, PersonnelForm } from "@/lib/visitorFormDefinition";
@@ -90,6 +90,25 @@ const PersonnelRegistration = () => {
 
     const [editAddressIndex, setEditAddressIndex] = useState<number | null>(null);
     const [editContactIndex, setEditContactIndex] = useState<number | null>(null);
+
+    const [personSearch, setPersonSearch] = useState("");
+    const [personPage, setPersonPage] = useState(1);
+    const [debouncedPersonSearch, setDebouncedPersonSearch] = useState(personSearch)
+
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedPersonSearch(personSearch), 500);
+        return () => clearTimeout(handler)
+    }, [personSearch])
+
+    const {
+        data: personsPaginated,
+        isLoading: personsLoading,
+    } = useQuery({
+        queryKey: ['paginated-person', debouncedPersonSearch, personPage],
+        queryFn: () => getPersonSearch(token ?? "", 10, debouncedPersonSearch, personPage),
+        keepPreviousData: true,
+        staleTime: 10 * 60 * 1000,
+    });
 
     const [personForm, setPersonForm] = useState<PersonForm>({
         first_name: "",
@@ -394,11 +413,6 @@ const PersonnelRegistration = () => {
                 staleTime: 10 * 60 * 1000
             },
             {
-                queryKey: ['persons'],
-                queryFn: () => getRealPerson(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
                 queryKey: ['ethnicity'],
                 queryFn: () => getEthnicityProvinces(token ?? ""),
                 staleTime: 10 * 60 * 1000
@@ -608,14 +622,15 @@ const PersonnelRegistration = () => {
     const ranksLoading = dropdownOptions?.[14]?.isLoading;
     const positions = dropdownOptions?.[15]?.data?.results;
     const positionsLoading = dropdownOptions?.[15]?.isLoading;
-    const persons = dropdownOptions?.[16]?.data?.results;
-    const personsLoading = dropdownOptions?.[16]?.isLoading;
-    const ethnicities = dropdownOptions?.[17]?.data?.results;
-    const ethnicitiesLoading = dropdownOptions?.[17]?.isLoading;
-    const personnelTypes = dropdownOptions?.[18]?.data?.results;
-    const personnelTypesLoading = dropdownOptions?.[18]?.isLoading;
-    const personnelStatus = dropdownOptions?.[19]?.data?.results;
-    const personnelStatusLoading = dropdownOptions?.[19]?.isLoading;
+    const ethnicities = dropdownOptions?.[16]?.data?.results;
+    const ethnicitiesLoading = dropdownOptions?.[16]?.isLoading;
+    const personnelTypes = dropdownOptions?.[17]?.data?.results;
+    const personnelTypesLoading = dropdownOptions?.[17]?.isLoading;
+    const personnelStatus = dropdownOptions?.[18]?.data?.results;
+    const personnelStatusLoading = dropdownOptions?.[18]?.isLoading;
+
+    const persons = personsPaginated?.results || [];
+    const personsCount = personsPaginated?.count || 0;
 
     const addressDataSource = personForm?.address_data?.map((address, index) => {
         return ({
@@ -1210,6 +1225,11 @@ const PersonnelRegistration = () => {
             />
 
             <FMC
+                personPage={personPage}
+                personSearch={personSearch}
+                personsCount={personsCount}
+                setPersonPage={setPersonPage}
+                setPersonSearch={setPersonSearch}
                 persons={persons || []}
                 personsLoading={personsLoading}
                 prefixes={prefixes || []}
