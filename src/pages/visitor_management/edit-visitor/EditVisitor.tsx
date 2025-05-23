@@ -549,7 +549,7 @@ const VisitorRegistration = () => {
     const genders = dropdownOptions?.[1]?.data?.results;
     const nationalities = dropdownOptions?.[2]?.data?.results;
     const civilStatuses = dropdownOptions?.[3]?.data?.results;
-    const affiliations = dropdownOptions?.[4]?.data?.results;
+    // const affiliations = dropdownOptions?.[4]?.data?.results;
     const regions = dropdownOptions?.[5]?.data?.results;
     const provinces = dropdownOptions?.[6]?.data?.results;
     const municipalities = dropdownOptions?.[7]?.data?.results;
@@ -575,7 +575,7 @@ const VisitorRegistration = () => {
     const { data: visitorData, isLoading } = useQuery({
         queryKey: ['visitor', visitor?.id],
         queryFn: async () => {
-            const response = await fetch(`${BASE_URL}/api/visitors/visitor/${visitor.id}`, {
+            const response = await fetch(`${BASE_URL}/api/visitors/visitor/${visitor?.id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -896,7 +896,7 @@ const VisitorRegistration = () => {
             id_number: visitorData?.id_number ?? null,
             verified_at: visitorData?.verified_at ?? null,
             approved_at: visitorData?.approved_at
-                ? new Date(visitorData.approved_at).toISOString()
+                ? new Date(visitorData?.approved_at)?.toISOString()
                 : null,
         }));
     }, [visitorData, barangays, civilStatuses, countries, currentUser?.id, municipalities, nationalities, provinces, regions, relationships, users]);
@@ -906,7 +906,7 @@ const VisitorRegistration = () => {
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""}`;
         setPersonForm((prev) => ({ ...prev, shortname: short.toUpperCase() }));
-    }, [personForm.first_name, personForm.last_name]);
+    }, [personForm?.first_name, personForm?.last_name]);
 
     if (isLoading) return (
         <div className="flex justify-center items-center h-[90vh]">
