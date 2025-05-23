@@ -15,6 +15,7 @@ interface Address {
   country: string;
   is_current: boolean;
   record_status: RecordStatus;
+  full_address?: string | null;
 }
 
 interface Contact {
