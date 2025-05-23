@@ -60,6 +60,7 @@ import Spinner from "@/components/loaders/Spinner";
 import UpdateMultipleBirthSiblings from "./UpdateMultiBirthSibling";
 import UpdatePdlVisitor from "./UpdatePdlVisitor";
 import { EthnicityProvince } from "@/lib/definitions";
+import { Person } from "@/lib/pdl-definitions";
 
 const patchPerson = async (payload: PersonForm, token: string, id: string) => {
     const res = await fetch(`${PERSON.postPERSON}${id}/`, {
@@ -928,7 +929,8 @@ const UpdatePDL = () => {
                 )?.id ?? null,
             civil_status_id:
                 civilStatuses?.find(
-                    (civilStatus) => civilStatus?.status === pdlData?.person?.civil_status
+                    (civilStatus) =>
+                        civilStatus?.status === pdlData?.person?.civil_status
                 )?.id ?? null,
             address_data:
                 pdlData?.person.addresses?.map(
@@ -994,7 +996,10 @@ const UpdatePDL = () => {
                     ...sibling,
                     sibling_person_id: +sibling?.sibling_person_id_display,
                     person_id: pdlData?.person?.id ?? null,
-                    multiple_birth_sibling_id: birthClassTypes?.find(type => type?.term_for_sibling_group === sibling?.multiple_birth_class)?.id
+                    multiple_birth_sibling_id: birthClassTypes?.find(
+                        (type) =>
+                            type?.term_for_sibling_group === sibling?.multiple_birth_class
+                    )?.id,
                 })) ?? [],
             ethnicity_province: pdlData?.person?.ethnicity_province,
         });
@@ -1002,18 +1007,36 @@ const UpdatePDL = () => {
         setPdlForm({
             risk_classification: pdlData?.risk_classification ?? "",
             date_of_admission: pdlData?.date_of_admission ?? "2001-01-01",
-            case_data: pdlData?.cases?.map((pdlCases: {
-                court_branch: any; case_number: string; offense: { id: number; crime_category: string; }; name: string; bail_recommended: number; law: string;
-            }) => ({
-                judge: pdlCases?.court_branch?.judge ?? "",
-                court_branch_id: courtBranches?.results?.find(court => court?.branch === pdlCases?.court_branch?.branch)?.id ?? null,
-                case_number: pdlCases?.case_number ?? "",
-                offense_id: pdlCases?.offense?.id ?? null,
-                crime_category_id: crimeCategories?.results?.find(categories => categories?.crime_category_name === pdlCases?.offense?.crime_category)?.id ?? null,
-                court_name: pdlCases?.court_branch?.court ?? "",
-                bail_recommended: pdlCases?.bail_recommended ?? "",
-                law_id: laws?.results?.find(law => law?.name === pdlCases?.law)?.id ?? null,
-            })) ?? [],
+            case_data:
+                pdlData?.cases?.map(
+                    (pdlCases: {
+                        court_branch: any;
+                        case_number: string;
+                        offense: { id: number; crime_category: string };
+                        name: string;
+                        bail_recommended: number;
+                        law: string;
+                    }) => ({
+                        judge: pdlCases?.court_branch?.judge ?? "",
+                        court_branch_id:
+                            courtBranches?.results?.find(
+                                (court) => court?.branch === pdlCases?.court_branch?.branch
+                            )?.id ?? null,
+                        case_number: pdlCases?.case_number ?? "",
+                        offense_id: pdlCases?.offense?.id ?? null,
+                        crime_category_id:
+                            crimeCategories?.results?.find(
+                                (categories) =>
+                                    categories?.crime_category_name ===
+                                    pdlCases?.offense?.crime_category
+                            )?.id ?? null,
+                        court_name: pdlCases?.court_branch?.court ?? "",
+                        bail_recommended: pdlCases?.bail_recommended ?? "",
+                        law_id:
+                            laws?.results?.find((law) => law?.name === pdlCases?.law)?.id ??
+                            null,
+                    })
+                ) ?? [],
             gang_affiliation_id:
                 gangAffiliation?.results?.find(
                     (affiliation) => affiliation?.name === pdlData?.gang_affiliation
@@ -1028,24 +1051,54 @@ const UpdatePDL = () => {
             visitor_ids: [],
             pdl_alias: pdlData?.shortname ?? "",
             time_arrested: "",
-            remarks_data: pdlData?.remarks?.map((remark: any) => ({
-                remarks: remark?.remarks ?? "N/A",
-                created_by: `${users?.results?.find(user => user?.id === remark?.personnel)?.first_name ?? ""} ${users?.results?.find(user => user?.id === remark?.personnel)?.last_name ?? ""}`,
-                created_at: pdlData?.updated_at ?? "",
-            })) ?? [],
-            look_id: looks?.results?.find((look) => look?.name === pdlData?.look)?.id ?? null,
-            person_relationship_data: pdlData?.person_relationships?.map((relationship: { relationship: string; is_contact_person: boolean; remarks: string; person: string; }) => ({
-                ...relationship,
-                relationship_id: relationships?.results?.find(relType => relType?.relationship_name === relationship?.relationship)?.id ?? null,
-                is_contact_person: relationship?.is_contact_person,
-                remarks: relationship?.remarks ?? "",
-                person_id: persons?.find(person => `${person?.first_name ?? ""} ${person?.last_name ?? ""}` === relationship?.person)?.id ?? null,
-            })) ?? [],
+            remarks_data:
+                pdlData?.remarks?.map((remark: any) => ({
+                    remarks: remark?.remarks ?? "N/A",
+                    created_by: `${users?.results?.find((user) => user?.id === remark?.personnel)
+                        ?.first_name ?? ""
+                        } ${users?.results?.find((user) => user?.id === remark?.personnel)
+                            ?.last_name ?? ""
+                        }`,
+                    created_at: pdlData?.updated_at ?? "",
+                })) ?? [],
+            look_id:
+                looks?.results?.find((look) => look?.name === pdlData?.look)?.id ??
+                null,
+            person_relationship_data:
+                pdlData?.person_relationships?.map(
+                    (relationship: {
+                        relationship: string;
+                        is_contact_person: boolean;
+                        remarks: string;
+                        person: Person;
+                    }) => ({
+                        relationship_id:
+                            relationships?.results?.find(
+                                (relType) =>
+                                    relType?.relationship_name === relationship?.relationship
+                            )?.id ?? null,
+                        is_contact_person: relationship?.is_contact_person,
+                        remarks: relationship?.remarks ?? "",
+                        person_id: relationship?.person?.id ?? "",
+                        first_name: relationship?.person?.first_name ?? "",
+                        middle_name: relationship?.person?.middle_name ?? "",
+                        last_name: relationship?.person?.last_name,
+                        address: `
+                            ${relationship?.person?.addresses?.[0]?.region ?? ""}
+                            ${relationship?.person?.addresses?.[0]?.province ?? ""} 
+                            ${relationship?.person?.addresses?.[0]?.city_municipality ?? ""} 
+                            ${relationship?.person?.addresses?.[0]?.barangay ?? ""}
+                            ${relationship?.person?.addresses?.[0]?.street ?? ""}
+                        `,
+                        mobile_number: relationship?.person?.contacts?.[0]?.value
+                    })
+                ) ?? [],
             person_id: pdlData?.person?.id ?? null,
-            visitor: pdlData?.visitor?.map((pdlVisitor: { id: any; }) => ({
-                ...pdlVisitor,
-                visitor: pdlVisitor?.id,
-            })) ?? [],
+            visitor:
+                pdlData?.visitor?.map((pdlVisitor: { id: any }) => ({
+                    ...pdlVisitor,
+                    visitor: pdlVisitor?.id,
+                })) ?? [],
             precinct_id:
                 precincts?.results?.find(
                     (precinct) =>
@@ -1066,7 +1119,30 @@ const UpdatePDL = () => {
                     (status) => status?.name === pdlData?.visitation_status
                 )?.id ?? 1,
         });
-    }, [pdlData, courtBranches, regions, provinces, municipalities, barangays, countries, annex, attainments, civilStatuses, crimeCategories, gangAffiliation, laws, levels, looks, nationalities, occupations, pdlVisitStatuses, precincts, users, persons, relationships]);
+    }, [
+        pdlData,
+        courtBranches,
+        regions,
+        provinces,
+        municipalities,
+        barangays,
+        countries,
+        annex,
+        attainments,
+        civilStatuses,
+        crimeCategories,
+        gangAffiliation,
+        laws,
+        levels,
+        looks,
+        nationalities,
+        occupations,
+        pdlVisitStatuses,
+        precincts,
+        users,
+        persons,
+        relationships,
+    ]);
 
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""
@@ -1077,8 +1153,8 @@ const UpdatePDL = () => {
     if (isLoading) return <div><Spinner /></div>;
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
 
-    // console.log("PDL Data:", pdlData)
-    // console.log("PDL Form:", pdlForm)
+    console.log("PDL Data:", pdlData)
+    console.log("PDL Form:", pdlForm)
 
     return (
         <div className="bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5">
