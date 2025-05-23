@@ -37,7 +37,7 @@ type Props = {
 }
 
 const captureLeftFingersPayload = {
-    TimeOut: 10,
+    TimeOut: 60,
     Slap: 0,
     FingerPosition: {
         LEFT_LITTLE: false,
@@ -55,7 +55,7 @@ const captureLeftFingersPayload = {
 }
 
 const captureRightFingersPayload = {
-    TimeOut: 10,
+    TimeOut: 60,
     Slap: 1,
     FingerPosition: {
         LEFT_LITTLE: true,
@@ -73,7 +73,7 @@ const captureRightFingersPayload = {
 }
 
 const captureThumbsPayload = {
-    TimeOut: 10,
+    TimeOut: 60,
     Slap: 2,
     FingerPosition: {
         LEFT_LITTLE: true,
