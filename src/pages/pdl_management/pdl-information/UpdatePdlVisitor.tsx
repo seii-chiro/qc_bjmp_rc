@@ -75,7 +75,6 @@ const UpdatePdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
         }));
     };
 
-    // console.log("Visitor: ", pdlForm?.visitor)
 
     // Create table data source directly from pdlForm.visitor
     useEffect(() => {
@@ -85,14 +84,14 @@ const UpdatePdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
             const responses = await Promise.all(
                 pdlForm.visitor.map(async (entry, index) => {
                     try {
-                        const res = await fetch(`${BASE_URL}/api/visitors/visitor/?search=${entry.id_number}`, {
+                        const res = await fetch(`${BASE_URL}/api/visitors/visitor/${entry.visitor}`, {
                             headers: {
                                 Authorization: `Token ${token}`,
                                 "Content-Type": "application/json",
                             },
                         });
-                        const json = await res.json();
-                        const visitor = json?.results?.[0];
+                        const visitor = await res.json();
+                        // const visitor = json?.results?.[0];
 
                         const relationship = visitorToPdlRelationship?.results?.find(
                             r => r.id === entry.relationship_to_visitor
