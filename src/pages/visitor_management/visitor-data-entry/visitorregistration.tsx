@@ -343,12 +343,19 @@ const VisitorRegistration = () => {
         }))
     }
 
+    const [debouncedPersonSearch, setDebouncedPersonSearch] = useState(personSearch)
+
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedPersonSearch(personSearch));
+        return () => clearTimeout(handler)
+    }, [personSearch])
+
     const {
         data: personsPaginated,
         isLoading: personsLoading,
     } = useQuery({
         queryKey: ['paginated-person', personSearch, personPage],
-        queryFn: () => getPersonSearch(token ?? "", 10, personSearch, personPage),
+        queryFn: () => getPersonSearch(token ?? "", 10, debouncedPersonSearch, personPage),
         keepPreviousData: true,
         staleTime: 10 * 60 * 1000,
     });
