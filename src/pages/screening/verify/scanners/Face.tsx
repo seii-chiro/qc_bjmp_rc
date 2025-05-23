@@ -12,6 +12,7 @@ import { BASE_URL } from '@/lib/urls'
 import { Device } from '@/lib/definitions'
 import { verifyFaceInWatchlist } from '@/lib/threatQueries'
 import clsx from 'clsx'
+import { IoIosWarning } from "react-icons/io";
 
 type Props = {
   devices: Device[];
@@ -31,6 +32,8 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+
+  const [inWatchList, setInWatchlist] = useState<string | null>(null)
 
   useEffect(() => {
     if (!deviceLoading && devices && devices.length > 0) {
@@ -184,7 +187,7 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
     mutationFn: verifyFace,
     onSuccess: (data) => {
       // setVerificationResult(data);
-      message.warning("Match Found");
+      message.info("Match Found");
       // Process visitor log after successful verification
       processVisitorLog(data);
       setVerificationResult(data)
@@ -202,11 +205,12 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
     onSuccess: (data) => {
       message.warning({
         content: `Watchlist: ${data['message']}`,
-        duration: 10
+        duration: 20
       });
+      setInWatchlist("Warning: This individual has a match in the watchlist database.")
     },
     onError: (error) => {
-      message.info(error.message);
+      message.info(`Watchlist: ${error.message}`);
     },
   });
 
@@ -239,6 +243,8 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
   if (error) {
     message.error(`Error: ${error.message}`);
   }
+
+  console.log(inWatchList)
 
   return (
     <div>
@@ -301,7 +307,23 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
                       )
                     }
                   </div>
-                  <h1 className="text-4xl">{`${verificationResult?.data?.[0]?.biometric?.person_data?.first_name ?? ""} ${verificationResult?.data?.[0]?.biometric?.person_data?.middle_name ?? ""} ${verificationResult?.data?.[0]?.biometric?.person_data?.last_name ?? ""}`}</h1>
+                  <h1 className="text-4xl">
+                    {`
+                  ${verificationResult?.data?.[0]?.biometric?.person_data?.first_name ?? ""} 
+                  ${verificationResult?.data?.[0]?.biometric?.person_data?.middle_name ?? ""} 
+                  ${verificationResult?.data?.[0]?.biometric?.person_data?.last_name ?? ""}
+                  `}
+                  </h1>
+                  <span>
+                    {
+                      inWatchList && (
+                        <span className='flex items-center gap-1'>
+                          <IoIosWarning color='orange' size={25} />
+                          {inWatchList}
+                        </span>
+                      )
+                    }
+                  </span>
                 </div>
                 {
                   lastScanned && (
@@ -343,24 +365,36 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
                 <div className="w-full flex items-center justify-center">
                   {
                     lastScanned ? (
-                      <div className="w-[60%] text-3xl flex">
+                      <div className="w-[70%] text-3xl flex">
                         <div className="flex items-center justify-between w-full">
-                          <div className="w-full flex justify-center items-center gap-2">
-                            <h1
-                              className={clsx(
-                                'font-bold text-4xl',
-                                lastScanned?.visitor_app_status === 'Verified'
-                                  ? 'text-green-500'
-                                  : 'text-red-500'
+                          <div className="w-full flex justify-center items-center gap-2 flex-col">
+                            <div className="w-full flex justify-center items-center gap-2">
+                              <h1
+                                className={clsx(
+                                  'font-bold text-4xl',
+                                  lastScanned?.visitor_app_status === 'Verified'
+                                    ? 'text-green-500'
+                                    : 'text-red-500'
+                                )}
+                              >
+                                {lastScanned?.visitor_app_status}
+                              </h1>
+                              {lastScanned?.visitor_app_status === 'Verified' ? (
+                                <img src={check} alt="Check Mark" className="w-10 h-10" />
+                              ) : (
+                                <img src={ex} alt="X Mark" className="w-10 h-10" />
                               )}
-                            >
-                              {lastScanned?.visitor_app_status}
-                            </h1>
-                            {lastScanned?.visitor_app_status === 'Verified' ? (
-                              <img src={check} alt="Check Mark" className="w-10 h-10" />
-                            ) : (
-                              <img src={ex} alt="X Mark" className="w-10 h-10" />
-                            )}
+                            </div>
+                            <span>
+                              {
+                                inWatchList && (
+                                  <span className='w-full flex items-center gap-1 text-base'>
+                                    <IoIosWarning color='orange' size={25} />
+                                    {inWatchList}
+                                  </span>
+                                )
+                              }
+                            </span>
                           </div>
                         </div>
                       </div>
