@@ -18,7 +18,7 @@ const VisitorProfileSlider = () => {
     // Get today's date in the format that matches your API response
     const today = new Date().toISOString().slice(0, 10) // This gives format like "2025-05-21"
 
-    const { data: main_gate_logs, isLoading: main_gate_logs_loading } = useQuery({
+    const { data: main_gate_logs_raw, isLoading: main_gate_logs_loading } = useQuery({
         queryKey: ['main-gate-logs'],
         queryFn: async () => {
             const res = await fetch(`${BASE_URL}/api/visit-logs/main-gate-visits/?filter_today=true`, {
@@ -35,20 +35,23 @@ const VisitorProfileSlider = () => {
         refetchInterval: 30000,
     })
 
+    const main_gate_logs = main_gate_logs_raw?.results
+
     // Only process logs when they're actually loaded
     // Make sure we're comparing dates in the same format - handling timezone issues
-    const todayLogs = main_gate_logs_loading
-        ? []
-        : (main_gate_logs?.results?.filter(log => {
-            // Check if created_at exists
-            if (!log?.created_at) return false
 
-            // Parse the date from the API format, accommodating timezone
-            const logDate = new Date(log.created_at)
-            const logDateStr = logDate.toISOString().slice(0, 10)
+    // const todayLogs = main_gate_logs_loading
+    //     ? []
+    //     : (main_gate_logs?.results?.filter(log => {
+    //         // Check if created_at exists
+    //         if (!log?.created_at) return false
 
-            return logDateStr === today
-        }) || [])
+    //         // Parse the date from the API format, accommodating timezone
+    //         const logDate = new Date(log.created_at)
+    //         const logDateStr = logDate.toISOString().slice(0, 10)
+
+    //         return logDateStr === today
+    //     }) || [])
 
     // Debug date formats
     useEffect(() => {
@@ -60,7 +63,7 @@ const VisitorProfileSlider = () => {
     }, [main_gate_logs, main_gate_logs_loading, today])
 
     // Count occurrences of each ID number
-    const idNumberCounts = todayLogs.reduce((acc, log) => {
+    const idNumberCounts = main_gate_logs?.reduce((acc, log) => {
         const id = log.id_number
         if (!id) return acc // Skip logs without ID numbers
         acc[id] = (acc[id] || 0) + 1
@@ -71,7 +74,7 @@ const VisitorProfileSlider = () => {
 
     // Filter logs - include IDs that appear an odd number of times
     // but only include the first occurrence of each ID
-    const filteredLogs = todayLogs.filter(
+    const filteredLogs = main_gate_logs?.filter(
         (log, idx, arr) => {
             // Skip logs without ID numbers
             if (!log.id_number) return false
@@ -84,7 +87,7 @@ const VisitorProfileSlider = () => {
         }
     )
 
-    console.log("Filtered logs:", filteredLogs.length)
+    console.log("Filtered logs:", filteredLogs?.length)
 
     useEffect(() => {
         if (!emblaApi) return
@@ -139,7 +142,7 @@ const VisitorProfileSlider = () => {
 
     // Setup autoplay functionality
     useEffect(() => {
-        if (!emblaApi || filteredLogs.length <= 1) return
+        if (!emblaApi || filteredLogs?.length <= 1) return
 
         if (autoPlay) {
             // Start autoplay with 5 second interval
@@ -163,7 +166,7 @@ const VisitorProfileSlider = () => {
                 autoPlayIntervalRef.current = null
             }
         }
-    }, [emblaApi, autoPlay, filteredLogs.length])
+    }, [emblaApi, autoPlay, filteredLogs?.length])
 
     // Add keyboard event listener for arrow keys
     useEffect(() => {
@@ -233,7 +236,7 @@ const VisitorProfileSlider = () => {
                         onClick={scrollPrev}
                         className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full transition-opacity duration-300 opacity-20 hover:opacity-100 bg-black/20 hover:bg-black/60 text-white"
                         aria-label="Previous slide"
-                        disabled={filteredLogs.length <= 1}
+                        disabled={filteredLogs?.length <= 1}
                     >
                         <ChevronLeft className="w-6 h-6" />
                     </button>
@@ -243,13 +246,13 @@ const VisitorProfileSlider = () => {
                         onClick={scrollNext}
                         className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full transition-opacity duration-300 opacity-20 hover:opacity-100 bg-black/20 hover:bg-black/60 text-white"
                         aria-label="Next slide"
-                        disabled={filteredLogs.length <= 1}
+                        disabled={filteredLogs?.length <= 1}
                     >
                         <ChevronRight className="w-6 h-6" />
                     </button>
 
                     {/* Play/Pause Button */}
-                    {filteredLogs.length > 1 && (
+                    {filteredLogs?.length > 1 && (
                         <button
                             onClick={toggleAutoPlay}
                             className="absolute bottom-4 right-4 p-2 rounded-full transition-opacity duration-300 opacity-40 hover:opacity-100 bg-black/30 hover:bg-black/70 text-white"
@@ -264,7 +267,7 @@ const VisitorProfileSlider = () => {
                 <button className="bg-gray-800 text-white p-2 rounded" onClick={handle.enter}>Fullscreen</button>
                 <button className="bg-blue-600 text-white p-2 rounded" onClick={downloadAsImage}>Download as Image</button>
                 <button className="bg-green-600 text-white p-2 rounded" onClick={downloadAsPDF}>Download as PDF</button>
-                {filteredLogs.length > 1 && (
+                {filteredLogs?.length > 1 && (
                     <button
                         className={`p-2 rounded flex items-center gap-1 ${autoPlay ? 'bg-red-500' : 'bg-green-500'} text-white`}
                         onClick={toggleAutoPlay}
@@ -273,7 +276,7 @@ const VisitorProfileSlider = () => {
                     </button>
                 )}
                 <div className="absolute right-2 text-sm text-gray-500">
-                    {todayLogs.length > 0 ? `${todayLogs.length} total logs today` : 'No logs for today'}
+                    {main_gate_logs?.length > 0 ? `${main_gate_logs?.length} total logs today` : 'No logs for today'}
                 </div>
             </div>
         </>
