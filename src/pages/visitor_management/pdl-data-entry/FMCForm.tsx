@@ -36,9 +36,6 @@ const FMCForm = <T extends HasPersonRelationships>({
     prefixes,
     suffixes,
     setEditIndex,
-    personPage,
-    personSearch,
-    personsCount,
     setPersonPage,
     setPersonSearch
 }: Props<T>) => {
@@ -61,11 +58,16 @@ const FMCForm = <T extends HasPersonRelationships>({
         if (selectedPerson) {
             setForm(prev => ({
                 ...prev,
+                address: (
+                    selectedPerson?.addresses?.[0]?.province || selectedPerson?.addresses?.[0]?.barangay
+                        ? `${selectedPerson?.addresses?.[0]?.province ?? ""} ${selectedPerson?.addresses?.[0]?.barangay ?? ""}`.trim()
+                        : selectedPerson?.addresses?.[0]?.full_address
+                ) ?? "",
                 person_id: selectedPerson.id,
                 first_name: selectedPerson.first_name,
                 last_name: selectedPerson.last_name,
                 middle_name: selectedPerson.middle_name,
-                mobile_number: selectedPerson?.contacts?.find(type => type?.type === "Phone")?.value ?? "N/A",
+                mobile_number: selectedPerson?.contacts?.[0]?.value ?? "N/A",
                 // Assuming prefix and suffix are strings in the object
                 prefix: prefixes?.find(prefix => prefix?.id === selectedPerson?.prefix)?.prefix ?? "N/A",
                 suffix: suffixes?.find(suffix => suffix?.id === selectedPerson?.suffix)?.suffix ?? "N/A"
@@ -147,27 +149,6 @@ const FMCForm = <T extends HasPersonRelationships>({
         <div className="w-full p-5 flex justify-center items-center">
             <form className="w-full flex justify-center items-center">
                 <div className="flex flex-col gap-2 w-full justify-center items-center">
-                    {/* <div className="flex gap-2 mb-2 w-full">
-                        <Input
-                            placeholder="Search Person"
-                            value={personSearch}
-                            onChange={e => {
-                                setPersonSearch(e.target.value);
-                                setPersonPage(1);
-                            }}
-                            className="w-1/2 h-12"
-                        />
-                    </div> */}
-                    {/* {personsCount > 10 && (
-                            <Pagination
-                                className="mb-2"
-                                current={personPage}
-                                pageSize={10}
-                                total={personsCount}
-                                onChange={page => setPersonPage(page)}
-                                showSizeChanger={false}
-                            />
-                        )} */}
                     <div className="flex gap-2 w-full">
                         <label className="flex flex-col gap-2 flex-[2]">
                             <span className="font-semibold">Relationship <span className="text-red-600">*</span></span>
