@@ -88,7 +88,7 @@ const MultipleBirthSiblings = ({
         // Update the table info
         setTableInfo(prev => {
             const updatedTableInfo = [...(prev || [])];
-            const chosenSibling = persons?.find(person => person?.id === updatedData?.sibling_person_id);
+            const chosenSibling = persons?.find(person => person?.id === updatedData?.sibling_person_id || updatedData?.person_id || updatedData?.sibling_person_id_display);
             updatedTableInfo[index] = {
                 sibling_group: chosenSibling?.multiple_birth_siblings?.[0]?.multiple_birth_class || "",
                 short_name: chosenSibling?.shortname || "",
