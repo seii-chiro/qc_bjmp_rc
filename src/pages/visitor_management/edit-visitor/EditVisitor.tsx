@@ -899,9 +899,9 @@ const VisitorRegistration = () => {
                 ? new Date(visitorData.approved_at).toISOString()
                 : null,
         }));
-        console.log("Visitor Form After Update:", visitorForm);
     }, [visitorData, barangays, civilStatuses, countries, currentUser?.id, municipalities, nationalities, provinces, regions, relationships, users]);
 
+    // console.log("Person Form", personForm)
 
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""}`;
