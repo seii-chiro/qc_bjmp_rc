@@ -2,7 +2,7 @@ import Spinner from "@/components/loaders/Spinner";
 import { calculateAge } from "@/functions/calculateAge";
 import { getPersonnelTypes } from "@/lib/additionalQueries";
 import { getPersonnelStatus } from "@/lib/personnelQueries";
-import { getCivilStatus, getCountries, getCurrentUser, getEducationalAttainments, getEthnicityProvinces, getGenders, getJail_Barangay, getJail_Municipality, getJail_Province, getJailRegion, getNationalities, getPersonnelAppStatus, getPersonSearch, getPositions, getPrefixes, getRanks, getRealPerson, getReligion, getSuffixes, getUsers, getVisitor_to_PDL_Relationship } from "@/lib/queries";
+import { getCivilStatus, getCountries, getCurrentUser, getEducationalAttainments, getEthnicityProvinces, getGenders, getJail_Barangay, getJail_Municipality, getJail_Province, getJailRegion, getNationalities, getPersonnelAppStatus, getPersonSearch, getPositions, getPrefixes, getRanks, getReligion, getSuffixes, getUsers, getVisitor_to_PDL_Relationship } from "@/lib/queries";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
 import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
 import { PersonForm, PersonnelForm } from "@/lib/visitorFormDefinition";
@@ -23,6 +23,7 @@ import { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { useLocation } from "react-router-dom";
 import { useMemo } from "react";
+import { Person } from "@/lib/pdl-definitions";
 
 const patchPerson = async (payload: Partial<PersonForm>, token: string, id: string) => {
     const res = await fetch(`${PERSON.postPERSON}${id}/`, {
@@ -163,12 +164,20 @@ const PersonnelUpdate = () => {
     const [personSearch, setPersonSearch] = useState("");
     const [personPage, setPersonPage] = useState(1);
 
+    const [debouncedPersonSearch, setDebouncedPersonSearch] = useState(personSearch);
+
+    // Debounce effect
+    useEffect(() => {
+        const handler = setTimeout(() => setDebouncedPersonSearch(personSearch), 500);
+        return () => clearTimeout(handler);
+    }, [personSearch]);
+
     const {
         data: personsPaginated,
         isLoading: personsLoading,
     } = useQuery({
-        queryKey: ['paginated-person', personSearch, personPage],
-        queryFn: () => getPersonSearch(token ?? "", 10, personSearch, personPage),
+        queryKey: ['paginated-person', debouncedPersonSearch, personPage],
+        queryFn: () => getPersonSearch(token ?? "", 10, debouncedPersonSearch, personPage),
         keepPreviousData: true,
         staleTime: 10 * 60 * 1000,
     });
@@ -853,7 +862,8 @@ const PersonnelUpdate = () => {
                 )?.id ?? null,
             civil_status_id:
                 civilStatuses?.find(
-                    (civilStatus) => civilStatus?.status === personnelData?.person?.civil_status
+                    (civilStatus) =>
+                        civilStatus?.status === personnelData?.person?.civil_status
                 )?.id ?? null,
             address_data:
                 personnelData?.person.addresses?.map(
@@ -893,7 +903,8 @@ const PersonnelUpdate = () => {
                     })
                 ) ?? [],
             contact_data: personnelData?.person.contacts ?? [],
-            employment_history_data: personnelData?.person.employment_histories ?? [],
+            employment_history_data:
+                personnelData?.person.employment_histories ?? [],
             education_background_data:
                 personnelData?.person.education_backgrounds?.map(
                     (educ_bg: { educational_attainment: string }) => ({
@@ -905,7 +916,8 @@ const PersonnelUpdate = () => {
                             )?.id ?? null,
                     })
                 ) ?? [],
-            social_media_account_data: personnelData?.person.social_media_accounts ?? [],
+            social_media_account_data:
+                personnelData?.person.social_media_accounts ?? [],
             skill_id: personnelData?.person.skill ?? [],
             talent_id: personnelData?.person.talent ?? [],
             interest_id: personnelData?.person.interest ?? [],
@@ -929,34 +941,88 @@ const PersonnelUpdate = () => {
                     (status) => status?.status === personnelData?.personnel_app_status
                 )?.id ?? null,
             personnel_reg_no: personnelData?.personnel_reg_no ?? "",
-            status_id: personnelStatus?.find(status => status?.name === personnelData?.status)?.id,
+            status_id: personnelStatus?.find(
+                (status) => status?.name === personnelData?.status
+            )?.id,
             personnel_type_id:
                 personnelTypes?.find(
                     (type) => type?.name === personnelData?.personnel_type
                 )?.id ?? null,
-            position_id: positions?.find(position => position?.position_title === personnelData?.position)?.id ?? null,
-            rank_id: ranks?.find(rank => rank?.rank_name === personnelData?.rank?.replace(/\s*\(.*?\)\s*$/, ''))?.id ?? null,
+            position_id:
+                positions?.find(
+                    (position) => position?.position_title === personnelData?.position
+                )?.id ?? null,
+            rank_id:
+                ranks?.find(
+                    (rank) =>
+                        rank?.rank_name ===
+                        personnelData?.rank?.replace(/\s*\(.*?\)\s*$/, "")
+                )?.id ?? null,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            remarks_data: personnelData?.remarks?.map((remark: any) => ({
-                ...remark,
-                remark: remark?.remarks ?? "",
-                created_by: `${users?.find(user => user?.id === remark?.personnel)?.first_name ?? ""} ${users?.find(user => user?.id === remark?.personnel)?.last_name ?? ""}`,
-                created_at: personnelData?.updated_at ?? "",
-            })) ?? [],
+            remarks_data:
+                personnelData?.remarks?.map((remark: any) => ({
+                    ...remark,
+                    remark: remark?.remarks ?? "",
+                    created_by: `${users?.find((user) => user?.id === remark?.personnel)
+                        ?.first_name ?? ""
+                        } ${users?.find((user) => user?.id === remark?.personnel)
+                            ?.last_name ?? ""
+                        }`,
+                    created_at: personnelData?.updated_at ?? "",
+                })) ?? [],
             jail_id: 1,
-            person_relationship_data: personnelData?.person_relationships?.map((relationship: { relationship: string; is_contact_person: boolean; remarks: string; person: string; }) => ({
-                ...relationship,
-                relationship_id: relationships?.results?.find(relType => relType?.relationship_name === relationship?.relationship)?.id ?? null,
-                is_contact_person: relationship?.is_contact_person,
-                remarks: relationship?.remarks ?? "",
-                person_id: persons?.find(person => `${person?.first_name ?? ""} ${person?.last_name ?? ""}` === relationship?.person)?.id ?? null,
-            })) ?? [],
+            person_relationship_data:
+                personnelData?.person_relationships?.map(
+                    (relationship: {
+                        relationship: string;
+                        is_contact_person: boolean;
+                        remarks: string;
+                        person: Person;
+                    }) => ({
+                        relationship_id:
+                            relationships?.results?.find(
+                                (relType) =>
+                                    relType?.relationship_name === relationship?.relationship
+                            )?.id ?? null,
+                        is_contact_person: relationship?.is_contact_person,
+                        remarks: relationship?.remarks ?? "",
+                        person_id: relationship?.person?.id ?? "",
+                        first_name: relationship?.person?.first_name ?? "",
+                        middle_name: relationship?.person?.middle_name ?? "",
+                        last_name: relationship?.person?.last_name,
+                        address: `
+                                   ${relationship?.person?.addresses?.[0]?.region ?? ""}
+                                   ${relationship?.person?.addresses?.[0]?.province ?? ""} 
+                                   ${relationship?.person?.addresses?.[0]?.city_municipality ?? ""} 
+                                   ${relationship?.person?.addresses?.[0]?.barangay ?? ""}
+                                   ${relationship?.person?.addresses?.[0]?.street ?? ""}
+                               `,
+                        mobile_number: relationship?.person?.contacts?.[0]?.value
+                    })
+                ) ?? [],
             verified_by: personnelData?.verified_by ?? null,
             approved_by: personnelData?.approved_by ?? null,
             shortname: personnelData?.person?.shortname ?? "",
-        })
-
-    }, [personnelData, attainments, regions, provinces, municipalities, barangays, countries, civilStatuses, nationalities, personnelAppStatus, personnelTypes, users, positions, ranks, relationships, persons, personnelStatus]);
+        });
+    }, [
+        personnelData,
+        attainments,
+        regions,
+        provinces,
+        municipalities,
+        barangays,
+        countries,
+        civilStatuses,
+        nationalities,
+        personnelAppStatus,
+        personnelTypes,
+        users,
+        positions,
+        ranks,
+        relationships,
+        persons,
+        personnelStatus,
+    ]);
 
     useEffect(() => {
         setPersonnelForm(prev => ({
