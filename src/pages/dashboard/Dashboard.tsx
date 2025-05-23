@@ -37,11 +37,13 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { getVisitor } from "@/lib/query";
 import { Title } from "./components/SummaryCards";
+import { BASE_URL } from "@/lib/urls";
 
 const Dashboard = () => {
     const queryClient = useQueryClient();
     const handle = useFullScreenHandle();
     const token = useTokenStore().token;
+    const currentYear = new Date().getFullYear();
     const currentDate = new Date().toLocaleDateString('en-us', { year: "numeric", month: "long", day: "numeric" });
     const [time, setTime] = useState(new Date().toLocaleTimeString());
     const isFullscreen = handle.active;
@@ -75,10 +77,51 @@ const Dashboard = () => {
         queryKey: ['visitor'],
         queryFn: () => getVisitor(token ?? "")
     });
+const [dateField, setDateField] = useState('date_convicted');
+    const [startYear, setStartYear] = useState(currentYear.toString());
+    const [endYear, setEndYear] = useState(currentYear.toString());
 
-const totalJailCapacity = Array.isArray(jail?.results)
-    ? jail.results.reduce((sum: any, item: { jail_capacity: any; }) => sum + (item.jail_capacity || 0), 0)
-    : 0;
+    const fetchQuarterly = async () => {
+        const res = await fetch(`${BASE_URL}/api/dashboard/summary-dashboard/get-quarterly-pdl-summary?date_field=${dateField}&start_year=${startYear}&end_year=${endYear}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    const { data: quarterlyData } = useQuery({
+        queryKey: ['quarterly-summary', dateField, startYear, endYear],
+        queryFn: fetchQuarterly,
+        enabled: !!token 
+    });
+
+    const quarterlyCounts = quarterlyData?.success?.quarterly_pdl_summary || {};
+
+    const totalAdmissionCount = dateField === 'date_of_admission'
+        ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
+        : 0;
+
+    const totalReleasedCount = dateField === 'date_released'
+        ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
+        : 0;
+
+    const totalHospitalizedCount = dateField === 'date_hospitalized'
+        ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
+        : 0;
+
+    {/* const totalConvictedCount = dateField === 'date_convicted'
+        ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
+        : 0; */}
+    
+    
+
+    const totalJailCapacity = Array.isArray(jail?.results)
+        ? jail.results.reduce((sum: any, item: { jail_capacity: any; }) => sum + (item.jail_capacity || 0), 0)
+        : 0;
 
     const latestDate = Object.keys(dailysummarydata?.success.daily_visit_summary || {})[0];
     const summary = dailysummarydata?.success.daily_visit_summary[latestDate];
@@ -304,6 +347,37 @@ const totalJailCapacity = Array.isArray(jail?.results)
     return (
         <div>
             <div id="dashboard">
+                {/* <div className="bg-white border shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col gap-2 max-w-full md:max-w-sm lg:max-w-[16rem] w-full flex-[1.2]">
+                    <label>
+                        Date Field:
+                        <select onChange={(e) => setDateField(e.target.value)} value={dateField}>
+                            <option value="date_convicted">Date Convicted</option>
+                            <option value="date_hospitalized">Date Hospitalized</option>
+                            <option value="date_of_admission">Date of Admission</option>
+                            <option value="date_released">Date Released</option>
+                        </select>
+                    </label>
+                    <label>
+                        Start Year:
+                        <input 
+                            type="number" 
+                            onChange={(e) => setStartYear(e.target.value)} 
+                            value={startYear} 
+                            min="2000" 
+                            max="2100"
+                        />
+                    </label>
+                    <label>
+                        End Year:
+                        <input 
+                            type="number" 
+                            onChange={(e) => setEndYear(e.target.value)} 
+                            value={endYear} 
+                            min="2000" 
+                            max="2100"
+                        />
+                    </label>
+                </div> */}
                 <FullScreen handle={handle}>
                     <div  className={`w-full ${isFullscreen ? "h-screen bg-[#F6F7FB]" : ""} space-y-2  text-sm`}
                         style={{
@@ -357,13 +431,34 @@ const totalJailCapacity = Array.isArray(jail?.results)
                                 max-w-full md:max-w-sm lg:max-w-[16rem] w-full
                                 flex-[1.2]">
                                     <Card3 
+                                        image={release_pdl} 
+                                        title="Released PDL" 
+                                        count={totalReleasedCount} 
+                                        linkto="/jvms/pdls/pdl"
+                                        state={{ filterOption: "Released" }}
+                                    />
+                                    <Card3 
+                                        image={prison} 
+                                        title='Committed PDL' 
+                                        count={totalAdmissionCount} 
+                                        linkto="/jvms/pdls/pdl"
+                                        state={{ filterOption: "Commited" }}
+                                    />
+                                    <Card3 
+                                        image={hospital} 
+                                        title='Hospitalized PDL' 
+                                        count={totalHospitalizedCount} 
+                                        linkto="/jvms/pdls/pdl"
+                                        state={{ filterOption: "Hospitalized" }}
+                                    />
+                                    {/* <Card3 
                                     image={release_pdl} 
                                     title='Released PDL' 
                                     count={summarydata?.success.total_released_pdls.Active ?? 0} 
                                     linkto="/jvms/pdls/pdl"
-                                    state={{ filterOption: "Release" }}/>
-                                    <Card3 image={prison} title='Committed PDL' count={summarydata?.success.total_pdl_by_status.Commited.Active ?? 0} />
-                                    <Card3 image={hospital} title='Hospitalized PDL' count={summarydata?.success.total_hospitalized_pdls.Active || 0} />
+                                    state={{ filterOption: "Release" }}/> */}
+                                    {/* <Card3 image={prison} title='Committed PDL' count={summarydata?.success.total_pdl_by_status.Commited.Active ?? 0} />
+                                    <Card3 image={hospital} title='Hospitalized PDL' count={summarydata?.success.total_hospitalized_pdls.Active || 0} /> */}
                                 </div>
                             )}
                             <div className="w-full flex flex-col md:flex-row flex-1 gap-2">
@@ -528,9 +623,27 @@ const totalJailCapacity = Array.isArray(jail?.results)
                             {!isFullscreen && (
                                 <div className="bg-white border shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col gap-2
                                     max-w-full md:max-w-sm lg:max-w-[16rem] w-full flex-[1.2]">
-                                    <Card3 image={release_pdl} title='Released PDL' count={summarydata?.success.total_released_pdls.Active ?? 0} />
-                                    <Card3 image={prison} title='Committed PDL' count={summarydata?.success.total_pdl_by_status.Commited.Active ?? 0} />
-                                    <Card3 image={hospital} title='Hospitalized PDL' count={summarydata?.success.total_hospitalized_pdls.Active || 0} />
+                                    <Card3 
+                                        image={release_pdl} 
+                                        title="Released PDL" 
+                                        count={totalReleasedCount} 
+                                        linkto="/jvms/pdls/pdl"
+                                        state={{ filterOption: "Released" }}
+                                    />
+                                    <Card3 
+                                        image={prison} 
+                                        title='Committed PDL' 
+                                        count={totalAdmissionCount}  // Display total admission count here
+                                        linkto="/jvms/pdls/pdl"
+                                        state={{ filterOption: "Committed" }}
+                                    />
+                                    <Card3 
+                                        image={hospital} 
+                                        title='Hospitalized PDL' 
+                                        count={totalHospitalizedCount} 
+                                        linkto="/jvms/pdls/pdl"
+                                        state={{ filterOption: "Hospitalized" }}
+                                    />
                                 </div>
                             )}
                             <div className="w-full flex flex-col md:flex-row flex-1 gap-2">
@@ -565,7 +678,7 @@ const totalJailCapacity = Array.isArray(jail?.results)
                                             <Card3
                                                 image={pdl_enter}
                                                 title='Entered'
-                                                count={summarydata?.pdl_station_visits || 0}
+                                                count={summary?.pdl_station_visits || 0 }
                                             />
                                             <Card3
                                                 image={exited}

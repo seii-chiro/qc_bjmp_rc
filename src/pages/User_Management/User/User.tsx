@@ -124,12 +124,28 @@ const Users = () => {
       dataIndex: 'first_name',
       key: 'first_name',
       sorter: (a, b) => a.first_name.localeCompare(b.first_name),
+      filters: [
+        ...Array.from(
+            new Set(filteredData.map(item => item.first_name))
+        ).map(first_name => ({
+            text: first_name,
+            value: first_name,
+        }))
+      ]
     },
     {
       title: 'Last Name',
       dataIndex: 'last_name',
       key: 'last_name',
       sorter: (a, b) => a.last_name.localeCompare(b.last_name),
+      filters: [
+        ...Array.from(
+            new Set(filteredData.map(item => item.last_name))
+        ).map(last_name => ({
+            text: last_name,
+            value: last_name,
+        }))
+      ]
     },
     {
       title: "Action",
@@ -209,8 +225,9 @@ useEffect(() => {
 
     addHeader(); 
 
-    const tableData = dataSource.map(item => [
-        item.key,
+    const isSearching = searchText.trim().length > 0;
+    const tableData = (isSearching ? filteredData : dataSource).map((item, idx) => [
+        idx + 1,
         item.email,
         item.first_name,
         item.last_name
