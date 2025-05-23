@@ -244,12 +244,12 @@ const FMCForm = <T extends HasPersonRelationships>({
                         </label>
 
                         <label className="flex flex-col gap-2 flex-[2]">
-                            <span className="font-semibold">Middle Name <span className="text-red-600">*</span></span>
+                            <span className="font-semibold">Middle Name</span>
                             <Input className="h-12" value={form.middle_name || ""} readOnly />
                         </label>
 
                         <label className="flex flex-col gap-2 flex-1">
-                            <span className="font-semibold">Suffix <span className="text-red-600">*</span></span>
+                            <span className="font-semibold">Suffix</span>
                             <Input className="h-12" value={form.suffix || ""} readOnly />
                         </label>
                     </div>
