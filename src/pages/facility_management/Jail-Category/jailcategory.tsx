@@ -109,11 +109,11 @@ const JailCategory = () => {
       setIsModalOpen(false);
     };
 
-    const dataSource = data?.results?.map((category, index) => ({
+    const dataSource = data?.results?.map((category) => ({
         key: category?.id,
         id: category.id,
         description: category?.description ?? "N/A",
-        category: category?.category_name ?? "N/A",
+        category_name: category?.category_name ?? "N/A",
         organization: category?.organization ?? 'Bureau of Jail Management and Penology',
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
@@ -131,8 +131,8 @@ const JailCategory = () => {
         },
         {
             title: "Jail Category",
-            dataIndex: "category",
-            key: "category",
+            dataIndex: "category_name",
+            key: "category_name",
             sorter: (a, b) => a.category.localeCompare(b.category),
         },
         {
