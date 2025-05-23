@@ -212,8 +212,6 @@ const PDLToVisitForm = ({
         }, 100);
     };
 
-
-
     return (
         <div className='w-full'>
             <form
