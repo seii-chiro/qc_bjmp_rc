@@ -85,8 +85,8 @@ const UpdatePDLtoVisit = ({
 
     const pdls = pdlsPaginated?.results || [];
     const pdlsCount = pdlsPaginated?.count || 0;
-    const visitorToPdlRelationship = results?.[1]?.data?.results
-    const visitortoPDLRelationshipLoading = results?.[1]?.isLoading
+    const visitorToPdlRelationship = results?.[0]?.data?.results
+    const visitortoPDLRelationshipLoading = results?.[0]?.isLoading
 
     const handlePdlToVisitModalOpen = () => {
         setPdlToVisitModalOpen(true)
