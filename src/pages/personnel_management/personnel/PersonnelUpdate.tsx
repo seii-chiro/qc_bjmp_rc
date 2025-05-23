@@ -2,7 +2,7 @@ import Spinner from "@/components/loaders/Spinner";
 import { calculateAge } from "@/functions/calculateAge";
 import { getPersonnelTypes } from "@/lib/additionalQueries";
 import { getPersonnelStatus } from "@/lib/personnelQueries";
-import { getCivilStatus, getCountries, getCurrentUser, getEducationalAttainments, getEthnicityProvinces, getGenders, getJail_Barangay, getJail_Municipality, getJail_Province, getJailRegion, getNationalities, getPersonnelAppStatus, getPositions, getPrefixes, getRanks, getRealPerson, getReligion, getSuffixes, getUsers, getVisitor_to_PDL_Relationship } from "@/lib/queries";
+import { getCivilStatus, getCountries, getCurrentUser, getEducationalAttainments, getEthnicityProvinces, getGenders, getJail_Barangay, getJail_Municipality, getJail_Province, getJailRegion, getNationalities, getPersonnelAppStatus, getPersonSearch, getPositions, getPrefixes, getRanks, getRealPerson, getReligion, getSuffixes, getUsers, getVisitor_to_PDL_Relationship } from "@/lib/queries";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
 import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
 import { PersonForm, PersonnelForm } from "@/lib/visitorFormDefinition";
@@ -22,6 +22,7 @@ import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { useLocation } from "react-router-dom";
+import { useMemo } from "react";
 
 const patchPerson = async (payload: Partial<PersonForm>, token: string, id: string) => {
     const res = await fetch(`${PERSON.postPERSON}${id}/`, {
@@ -158,6 +159,19 @@ const PersonnelUpdate = () => {
         jail_id: 1,
         shortname: ""
     })
+
+    const [personSearch, setPersonSearch] = useState("");
+    const [personPage, setPersonPage] = useState(1);
+
+    const {
+        data: personsPaginated,
+        isLoading: personsLoading,
+    } = useQuery({
+        queryKey: ['paginated-person', personSearch, personPage],
+        queryFn: () => getPersonSearch(token ?? "", 10, personSearch, personPage),
+        keepPreviousData: true,
+        staleTime: 10 * 60 * 1000,
+    });
 
     const [icao, setIcao] = useState("")
 
@@ -416,11 +430,6 @@ const PersonnelUpdate = () => {
                 staleTime: 10 * 60 * 1000
             },
             {
-                queryKey: ['persons'],
-                queryFn: () => getRealPerson(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
                 queryKey: ['ethnicity'],
                 queryFn: () => getEthnicityProvinces(token ?? ""),
                 staleTime: 10 * 60 * 1000
@@ -637,14 +646,15 @@ const PersonnelUpdate = () => {
     const ranksLoading = dropdownOptions?.[14]?.isLoading;
     const positions = dropdownOptions?.[15]?.data?.results;
     const positionsLoading = dropdownOptions?.[15]?.isLoading;
-    const persons = dropdownOptions?.[16]?.data?.results;
-    const personsLoading = dropdownOptions?.[16]?.isLoading;
-    const ethnicities = dropdownOptions?.[17]?.data?.results;
-    const ethnicitiesLoading = dropdownOptions?.[17]?.isLoading;
-    const personnelTypes = dropdownOptions?.[18]?.data?.results;
-    const personnelTypesLoading = dropdownOptions?.[18]?.isLoading;
-    const personnelStatus = dropdownOptions?.[19]?.data?.results;
-    const personnelStatusLoading = dropdownOptions?.[19]?.isLoading;
+    const ethnicities = dropdownOptions?.[16]?.data?.results;
+    const ethnicitiesLoading = dropdownOptions?.[16]?.isLoading;
+    const personnelTypes = dropdownOptions?.[17]?.data?.results;
+    const personnelTypesLoading = dropdownOptions?.[17]?.isLoading;
+    const personnelStatus = dropdownOptions?.[18]?.data?.results;
+    const personnelStatusLoading = dropdownOptions?.[18]?.isLoading;
+
+    const persons = useMemo(() => personsPaginated?.results || [], [personsPaginated]);
+    const personsCount = useMemo(() => personsPaginated?.count || 0, [personsPaginated]);
 
 
     const addressDataSource = personForm?.address_data?.map((address, index) => {
@@ -1375,6 +1385,11 @@ const PersonnelUpdate = () => {
             />
 
             <FMC
+                personPage={personPage}
+                personSearch={personSearch}
+                personsCount={personsCount}
+                setPersonPage={setPersonPage}
+                setPersonSearch={setPersonSearch}
                 persons={persons || []}
                 personsLoading={personsLoading}
                 prefixes={prefixes || []}
