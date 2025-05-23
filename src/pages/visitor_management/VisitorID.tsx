@@ -8,7 +8,6 @@ import img_placeholder from "@/assets/img_placeholder.jpg"
 import { toPng } from 'html-to-image';
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { SearchOutlined } from '@ant-design/icons';
 
 const VisitorID = () => {
     const token = useTokenStore()?.token
@@ -16,7 +15,6 @@ const VisitorID = () => {
     const [currentPage, setCurrentPage] = useState(1)
     const pageSize = 10
     const [searchQuery, setSearchQuery] = useState("")
-    // const [totalVisitors, setTotalVisitors] = useState(0)
     const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
 
     useEffect(() => {
@@ -55,7 +53,7 @@ const VisitorID = () => {
     };
 
     // Query for paginated visitors with search
-    const { data: visitors, isLoading: visitorsLoading } = useQuery({
+    const { data: visitors, isLoading: visitorsLoading, isFetching } = useQuery({
         queryKey: ['visitors', 'visitorID', currentPage, pageSize, debouncedSearch],
         queryFn: fetchVisitors,
         placeholderData: 'keep',
@@ -80,31 +78,6 @@ const VisitorID = () => {
         },
         enabled: !!chosenVisitor, // Only run when chosenVisitor is set
     });
-
-    // Handle page change
-    // const handlePageChange = (page, pageSize) => {
-    //     setCurrentPage(page);
-    //     setPageSize(pageSize);
-    // };
-
-    // Handle search input
-    // const handleSearch = (value) => {
-    //     setSearchQuery(value);
-    //     setCurrentPage(1); // Reset to first page on new search
-    // };
-
-    // Debounced search to prevent excessive API calls
-    // const handleSearchInput = (e) => {
-    //     const value = e.target.value;
-    //     // Clear existing timeout
-    //     if (window.searchTimeout) {
-    //         clearTimeout(window.searchTimeout);
-    //     }
-    //     // Set new timeout
-    //     window.searchTimeout = setTimeout(() => {
-    //         handleSearch(value);
-    //     }, 500); // 500ms debounce
-    // };
 
     const handleDownloadAll = async () => {
         const zip = new JSZip();
@@ -135,15 +108,6 @@ const VisitorID = () => {
         <div>
             <div className='w-full h-full flex flex-col gap-10 mt-10'>
                 <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-                    {/* <div className="relative w-72">
-                        <Input
-                            placeholder="Search visitors..."
-                            prefix={<SearchOutlined />}
-                            onChange={handleSearchInput}
-                            className="h-10"
-                        />
-                    </div> */}
-
                     <Select
                         loading={visitorsLoading}
                         showSearch
@@ -156,27 +120,15 @@ const VisitorID = () => {
                             label: `${visitor?.person?.first_name ?? ""} ${visitor?.person?.middle_name ?? ""} ${visitor?.person?.last_name ?? ""}`,
                         })) ?? []}
                         onChange={value => setChosenVisitor(value)}
-                        notFoundContent={visitorsLoading ? 'Loading...' : 'No visitors found'}
+                        notFoundContent={visitorsLoading || isFetching ? <span>Loading...</span> : 'No visitors found'}
                         onSearch={value => {
                             setSearchQuery(value);
                             setCurrentPage(1);
                         }}
-                        filterOption={false} // Let backend handle filtering
+                        filterOption={false}
                     />
 
                 </div>
-
-                {/* Pagination component */}
-                {/* <div className="mb-4">
-                    <Pagination
-                        current={currentPage}
-                        pageSize={pageSize}
-                        total={totalVisitors}
-                        onChange={handlePageChange}
-                        showSizeChanger
-                        showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} visitors`}
-                    />
-                </div> */}
 
                 <div className='w-full flex flex-col lg:flex-row lg:gap-12'>
                     <div className='flex-1 flex flex-col gap-4'>
