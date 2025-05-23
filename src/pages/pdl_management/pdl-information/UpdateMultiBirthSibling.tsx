@@ -82,7 +82,7 @@ const UpdateMultipleBirthSiblings = ({
         return {
             key: index,
             siblingGroup: siblingGroup || "",
-            shortName: chosenSibling?.shortname || "N/A",
+            shortName: chosenSibling?.shortname || siblingData?.sibling_person || "N/A",
             gender: chosenSibling?.gender?.gender_option || "N/A",
             identical: siblingData?.is_identical ? "Yes" : "No",
             verified: siblingData?.is_verified ? "Yes" : "No",
@@ -196,7 +196,11 @@ const UpdateMultipleBirthSiblings = ({
                 loading={personsLoading}
                 className="border text-gray-200 rounded-md"
                 dataSource={IdentifierDataSource}
-                columns={identifierColumn}
+                columns={
+                    editIndex
+                        ? identifierColumn
+                        : identifierColumn.filter(col => !["gender", "siblingGroup"].includes(col.key as string))
+                }
                 scroll={{ x: 800 }}
             />
         </div>
