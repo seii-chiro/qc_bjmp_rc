@@ -45,7 +45,6 @@ const Dashboard = () => {
     const currentDate = new Date().toLocaleDateString('en-us', { year: "numeric", month: "long", day: "numeric" });
     const [time, setTime] = useState(new Date().toLocaleTimeString());
     const isFullscreen = handle.active;
-    const navigate = useNavigate();
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
@@ -78,7 +77,7 @@ const Dashboard = () => {
     });
 
 const totalJailCapacity = Array.isArray(jail?.results)
-    ? jail.results.reduce((sum, item) => sum + (item.jail_capacity || 0), 0)
+    ? jail.results.reduce((sum: any, item: { jail_capacity: any; }) => sum + (item.jail_capacity || 0), 0)
     : 0;
 
     const latestDate = Object.keys(dailysummarydata?.success.daily_visit_summary || {})[0];
@@ -124,7 +123,6 @@ const totalJailCapacity = Array.isArray(jail?.results)
         { name: 'Gay', value: summarydata?.success.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0 },
         { name: 'Transgender', value: summarydata?.success.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0 },
     ];
-    // Define separate color arrays
     const PDL_COLORS = ['#3471EC', '#7ED26C', '#FE319D'];
     const COLORS = ['#3471EC', '#FE319D', '#AF4BCE'];
 
@@ -249,8 +247,7 @@ const totalJailCapacity = Array.isArray(jail?.results)
         if (!input) return;
 
         const canvas = await html2canvas(input, {
-            scale: 2, // Higher scale for better resolution
-            width: 1280, // Force width
+            scale: 2, 
             useCORS: true,
         });
 
@@ -268,12 +265,12 @@ const totalJailCapacity = Array.isArray(jail?.results)
 
         const exportInFullscreen = async () => {
         if (!handle.active) {
-            await handle.enter(); // Enter fullscreen
-            setTimeout(() => exportDashboard(), 500); // Wait for layout to stabilize
+            await handle.enter(); 
+            setTimeout(() => exportDashboard(), 500);
         } else {
             exportDashboard();
         }
-        };
+    };
 
     const renderLegendCircle = (props: any) => {
         const { payload } = props;
@@ -754,7 +751,7 @@ const totalJailCapacity = Array.isArray(jail?.results)
                             {!isFullscreen && (
                                 <>
                                     <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
-                                        <div>
+                                        <div className="my-1">
                                             <Title title="Entry/Exits to Jail Premises of Service Provider" />
                                         </div>
                                         <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
@@ -821,7 +818,7 @@ const totalJailCapacity = Array.isArray(jail?.results)
                                                 <Card3
                                                     image={pdl_enter}
                                                     title='Entered'
-                                                    count={(summary?.main_gate_tracking ?? 0) + (summary?.visitor_station_visits ?? 0)}
+                                                    count={0}
                                                 />
                                                 <Card3
                                                     image={exited}
@@ -1042,16 +1039,84 @@ const totalJailCapacity = Array.isArray(jail?.results)
                     </div>
                 </FullScreen>
             </div>
-            <div className="flex justify-center md:justify-end gap-4 my-2">
-                <button className='gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full' onClick={exportInFullscreen}>
-                    <RiShareBoxLine /> Export
-                </button>
-                <button className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full" onClick={handleReset}>
-                    <IoMdRefresh /> Reset
-                </button>
-                <button className="gap-2 flex text-white items-center px-4 py-2 bg-[#1E365D] rounded-lg" onClick={handle.enter}>
-                    <RxEnterFullScreen className="text-xl" />
-                </button>
+            <div className="flex flex-wrap gap-2 justify-center md:justify-end my-2 items-center">
+            {/* <select
+                value={summaryView}
+                onChange={(e) => setSummaryView(e.target.value as any)}
+                className="px-4 py-2 rounded border"
+            >
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+            </select>
+
+            <input
+                type="text"
+                placeholder={
+                summaryView === "quarterly"
+                    ? "YYYY"
+                    : summaryView === "monthly"
+                    ? "MM-YYYY"
+                    : "MM-DD-YYYY"
+                }
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-4 py-2 rounded border"
+            />
+            <input
+                type="text"
+                placeholder={
+                summaryView === "quarterly"
+                    ? "YYYY"
+                    : summaryView === "monthly"
+                    ? "MM-YYYY"
+                    : "MM-DD-YYYY"
+                }
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-4 py-2 rounded border"
+            />
+
+            <button
+                className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full hover:bg-[#163050] transition"
+                onClick={handleFilter}
+            >
+                Filter
+            </button> */}
+
+            <button
+                className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full hover:bg-[#163050] transition"
+                onClick={exportInFullscreen}
+            >
+                <RiShareBoxLine /> Export
+            </button>
+            <button
+                className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full hover:bg-[#163050] transition"
+                onClick={handleReset}
+            >
+                <IoMdRefresh /> Reset
+            </button>
+            <button
+                className="gap-2 flex text-white items-center px-4 py-2 bg-[#1E365D] rounded-lg hover:bg-[#163050] transition"
+                onClick={handle.enter}
+            >
+                <RxEnterFullScreen className="text-xl" />
+            </button>
+
+            {/* Message Box below buttons, full width
+            {filterMessage && (
+                <div
+                className={`mt-4 w-full max-w-xl mx-auto text-center py-2 rounded ${
+                    filterMessage.includes("Failed")
+                    ? "bg-red-100 text-red-700"
+                    : "bg-green-100 text-green-700"
+                }`}
+                role="alert"
+                >
+                {filterMessage}
+                </div>
+            )} */}
             </div>
         </div>
     )
