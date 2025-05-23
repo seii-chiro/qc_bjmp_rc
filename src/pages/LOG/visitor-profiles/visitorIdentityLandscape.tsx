@@ -38,18 +38,18 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any }) => {
     }
 
     const Cards = ({ title, img }: { title: string, img?: string }) => {
+        const isValidImg = img && img !== `data:image/jpeg;base64,undefined` && img !== `data:image/jpeg;base64,`;
         return (
             <div className="border flex flex-col rounded-xl border-[#EAEAEC] h-[11.05rem] overflow-hidden">
                 <div className="w-full bg-white rounded-t-xl text-[#404958] text-xs py-1.5 font-semibold">
                     {title}
                 </div>
-                <div className="w-full rounded-b-lg bg-[#7E7E7E] flex-grow">
-                    {img && (
-                        <img
-                            src={img}
-                            className="w-full h-full object-cover"
-                        />
-                    )}
+                <div className="w-full rounded-b-lg bg-white flex-grow flex items-center justify-center">
+                    <img
+                        src={isValidImg ? img : no_img}
+                        className="w-[57%] h-full object-contain"
+                        alt={title}
+                    />
                 </div>
             </div>
         );
@@ -131,7 +131,7 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any }) => {
                                 <div className="border rounded-xl p-4 flex flex-col gap-4 shadow-md shadow-[#8E8E8E]/20 bh-white h-fit">
                                     <div className="bg-[#C4C4C4] w-full h-64 md:min-h-96 rounded-xl overflow-hidden object-cover">
                                         {
-                                            profileImg && (<img src={profileImg} alt="Profile Picture" className="w-full h-full object-cover" />)
+                                            profileImg && (<img src={profileImg} alt="Profile Picture" className="w-full h-full object-contain" />)
                                         }
                                     </div>
                                     <div className="border h-fit border-[#EAEAEC] rounded-xl py-2 px-3 overflow-hidden">
@@ -294,7 +294,7 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any }) => {
                                     </div>
                                     {visitor?.pdls?.map(pdl => (
                                         <div key={pdl?.pdl?.id} className="border-b border-t border-[#DCDCDC] flex flex-col gap-2 text-center font-light p-1 mt-2">
-                                            {pdl?.pdl?.cell?.floor}
+                                            {pdl?.pdl?.cell?.floor?.replace(/\s*\(.*?\)\s*/g, "")}
                                         </div>
                                     ))}
                                 </div>
@@ -315,11 +315,11 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any }) => {
                         <div className=" grid grid-cols-1 text-center md:grid-cols-2 gap-2">
                             <div className="space-y-2">
                                 <Title title="Waiver" />
-                                <Cards title="Waiver 1" img={`data:image/jpeg;base64,${requirementImg}`} />
+                                <Cards title="Waiver 1" img={requirementImg ? `data:image/jpeg;base64,${requirementImg}` : no_img} />
                             </div>
                             <div className="space-y-2">
                                 <Title title="Requirement" />
-                                <Cards title="Cohabitation" img={`data:image/jpeg;base64,${cohabitationRequirementImg}`} />
+                                <Cards title="Cohabitation" img={cohabitationRequirementImg ? `data:image/jpeg;base64,${cohabitationRequirementImg}` : no_img} />
                             </div>
                         </div>
                         <div className="space-y-2 text-center">
@@ -329,27 +329,26 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any }) => {
                                     <div className="w-full bg-white rounded-t-xl text-[#404958] text-xs py-1.5 font-semibold">
                                         Right Thumbmark
                                     </div>
-                                    <div className="w-full flex items-center justify-center rounded-b-lg bg-[#7E7E7E] flex-grow">
-                                        {rightThumbImg && (
-                                            <img
-                                                src={`data:image/jpeg;base64,${rightThumbImg}`}
-                                                className="w-[55%] h-full object-cover"
-                                            />
-                                        )}
+                                    <div className="w-full flex items-center justify-center rounded-b-lg bg-white flex-grow">
+                                        <img
+                                            src={rightThumbImg ? `data:image/jpeg;base64,${rightThumbImg}` : no_img}
+                                            className="w-[55%] h-full object-contain"
+                                            alt="Right Thumbmark"
+                                        />
                                     </div>
                                 </div>
-                                <Cards title="Signature" img={`data:image/jpeg;base64,${signatureImg}`} />
+                                <Cards title="Signature" img={signatureImg ? `data:image/jpeg;base64,${signatureImg}` : no_img} />
                             </div>
                         </div>
                         <div className="space-y-2 text-center">
                             <Title title="Identification Pictures" />
                             <div className=" grid grid-cols-1 text-center md:grid-cols-2 gap-2">
-                                <Cards title="Close Up Front" img={profileImg} />
-                                <Cards title="Full Body Front" img={`data:image/jpeg;base64,${fullBodyViewImg}`} />
+                                <Cards title="Close Up Front" img={profileImg || no_img} />
+                                <Cards title="Full Body Front" img={fullBodyViewImg ? `data:image/jpeg;base64,${fullBodyViewImg}` : no_img} />
                             </div>
                             <div className=" grid grid-cols-1 text-center md:grid-cols-2 gap-2">
-                                <Cards title="Left Side" img={`data:image/jpeg;base64,${leftViewImg}`} />
-                                <Cards title="Right Side" img={`data:image/jpeg;base64,${rightViewImg}`} />
+                                <Cards title="Left Side" img={leftViewImg ? `data:image/jpeg;base64,${leftViewImg}` : no_img} />
+                                <Cards title="Right Side" img={rightViewImg ? `data:image/jpeg;base64,${rightViewImg}` : no_img} />
                             </div>
                         </div>
                     </div>
