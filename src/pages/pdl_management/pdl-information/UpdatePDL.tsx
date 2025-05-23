@@ -27,7 +27,6 @@ import {
     getPersonSearch,
     getPrecincts,
     getPrefixes,
-    getRealPerson,
     getReligion,
     getSkills,
     getSuffixes,
@@ -60,6 +59,7 @@ import { ColumnsType } from "antd/es/table";
 import Spinner from "@/components/loaders/Spinner";
 import UpdateMultipleBirthSiblings from "./UpdateMultiBirthSibling";
 import UpdatePdlVisitor from "./UpdatePdlVisitor";
+import { EthnicityProvince } from "@/lib/definitions";
 
 const patchPerson = async (payload: PersonForm, token: string, id: string) => {
     const res = await fetch(`${PERSON.postPERSON}${id}/`, {
@@ -1017,7 +1017,7 @@ const UpdatePDL = () => {
             gang_affiliation_id:
                 gangAffiliation?.results?.find(
                     (affiliation) => affiliation?.name === pdlData?.gang_affiliation
-                )?.id ?? 1,
+                )?.id ?? null,
             jail_id: pdlData?.jail?.id ?? null,
             org_id: 1,
             occupation_id:
@@ -1033,7 +1033,7 @@ const UpdatePDL = () => {
                 created_by: `${users?.results?.find(user => user?.id === remark?.personnel)?.first_name ?? ""} ${users?.results?.find(user => user?.id === remark?.personnel)?.last_name ?? ""}`,
                 created_at: pdlData?.updated_at ?? "",
             })) ?? [],
-            look_id: looks?.results?.find((look) => look?.name === pdlData?.look)?.id ?? 5,
+            look_id: looks?.results?.find((look) => look?.name === pdlData?.look)?.id ?? null,
             person_relationship_data: pdlData?.person_relationships?.map((relationship: { relationship: string; is_contact_person: boolean; remarks: string; person: string; }) => ({
                 ...relationship,
                 relationship_id: relationships?.results?.find(relType => relType?.relationship_name === relationship?.relationship)?.id ?? null,
@@ -1551,9 +1551,9 @@ const UpdatePDL = () => {
                                     showSearch
                                     optionFilterProp="label"
                                     className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
-                                    options={ethnicitiesProvinces?.results?.map((ethnicity) => ({
+                                    options={ethnicitiesProvinces?.results?.map((ethnicity: EthnicityProvince) => ({
                                         value: ethnicity?.id,
-                                        label: `${ethnicity?.ethnicity}`,
+                                        label: `${ethnicity?.ethnicity} - ${ethnicity?.province}`,
                                     }))}
                                     onChange={(value) => {
                                         setPersonForm((prev) => ({
@@ -1757,6 +1757,11 @@ const UpdatePDL = () => {
                 personsLoading={personsLoading}
                 pdlForm={pdlForm}
                 setPdlForm={setPdlForm}
+                setPersonPage={setPersonPage}
+                setPersonSearch={setPersonSearch}
+                personPage={personPage}
+                personSearch={personSearch}
+                personsCount={personsCount}
             />
 
             <Modal
