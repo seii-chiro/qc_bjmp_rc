@@ -84,16 +84,14 @@ const FMC = <T extends HasPersonRelationships>({
 
 
     const contactDataSource = pdlForm?.person_relationship_data?.map((item, index) => {
-        const specificPerson = persons?.find(person => person?.id === item?.person_id)
-
         return ({
             key: index,
             relationship: relationships?.results?.find(relationship => relationship?.id === item?.relationship_id)?.relationship_name,
-            lastName: specificPerson?.last_name,
-            firsName: specificPerson?.first_name,
-            middleName: specificPerson?.middle_name,
-            address: `${specificPerson?.addresses[0]?.street ?? ""} ${specificPerson?.addresses[0]?.barangay ?? ""} ${specificPerson?.addresses[0]?.city_municipality ?? ""} ${specificPerson?.addresses[0]?.province ?? ""}`,
-            mobileNumber: specificPerson?.contacts[0]?.value,
+            lastName: item.last_name,
+            firsName: item?.first_name,
+            middleName: item?.middle_name,
+            address: item?.address,
+            mobileNumber: item?.mobile_number,
             contactPerson: item?.contact_person ? "Yes" : "No",
             remarks: item?.remarks,
             actions: (
