@@ -4,6 +4,7 @@ import {
   CrimeCategory,
   Ethnicities,
   GangAffiliation,
+  IssueCategory,
   Law,
   Offense,
   PDLtoVisit,
@@ -15,8 +16,10 @@ import {
   DeviceSettingPayload,
   EditDeviceSettingRecord,
   EditResponse,
+  GlobalSettingsResponse,
   GroupAffiliationResponse,
   IncidentCategoryResponse,
+  IncidentTypeResponse,
   MainGateLog,
   NonPDLVisitorPayload,
   OTPAccount,
@@ -830,6 +833,24 @@ export async function getIncidentCategory(
     return res.json();
 }
 
+export const patchIncidentCategory = async (
+    token: string,
+    id: number,
+    data: Partial<IncidentCategoryResponse>
+    ): Promise<IncidentCategoryResponse> => {
+    const url = `${BASE_URL}/api/incidents/incident-categories/${id}/`;
+    const res = await fetch(url, {
+        method: "PATCH",
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Failed to update Incident Category");
+    return res.json();
+};
+
 export const deleteIncidentCategory = async (token: string, id: number) => {
     const response = await fetch(
         `${BASE_URL}/api/incidents/incident-categories/${id}/`,
@@ -878,3 +899,54 @@ export const deleteIncidentType = async (token: string, id: number) => {
     const text = await response.text();
     return text ? JSON.parse(text) : {};
 };
+
+export const patchIncidentType = async (
+    token: string,
+    id: number,
+    data: Partial<IncidentTypeResponse>
+    ): Promise<IncidentTypeResponse> => {
+    const url = `${BASE_URL}/api/incidents/incident-types/${id}/`;
+    const res = await fetch(url, {
+        method: "PATCH",
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Failed to update Incident Type");
+    return res.json();
+};
+
+export const patchSettings = async (
+    token: string,
+    id: number,
+    data: Partial<GlobalSettingsResponse>
+    ): Promise<GlobalSettingsResponse> => {
+    const url = `${BASE_URL}/api/codes/global-system-settings/${id}/`;
+    const res = await fetch(url, {
+        method: "PATCH",
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Failed to update Settings");
+    return res.json();
+};
+
+export async function getIssueCategory(
+    token: string
+    ): Promise<IssueCategory[]> {
+    const res = await fetch(`${BASE_URL}/api/issues/issue-categories/`, {
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+        },
+    });
+    if (!res.ok) {
+        throw new Error("Failed to fetch Issue Category data.");
+    }
+    return res.json();
+}

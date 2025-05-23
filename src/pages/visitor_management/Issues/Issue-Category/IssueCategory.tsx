@@ -1,4 +1,4 @@
-import { deleteIssue_Category, getIssueCategories, getUser, patchIssue_Category } from "@/lib/queries";
+import { deleteIssue_Category, getUser, patchIssue_Category } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Form, Input, Menu, message, Modal } from "antd";
@@ -13,6 +13,7 @@ import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload, GoPlus } from "react-icons/go";
 import AddIssueCategory from "./AddIssueCategory";
 import bjmp from '../../../../assets/Logo/QCJMD.png'
+import { getIssueCategory } from "@/lib/query";
 
 type IssueCategory = {
     id: number;
@@ -37,8 +38,9 @@ const IssueCategory = () => {
 
     const { data } = useQuery({
         queryKey: ['issue-categories'],
-        queryFn: () => getIssueCategories(token ?? ""),
+        queryFn: () => getIssueCategory(token ?? ""),
     })
+
     const { data: UserData } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")

@@ -950,3 +950,12 @@ export interface IncidentTypeResponse {
   name: string;
   description: string;
 }
+
+export interface GlobalSettingsResponse {
+    id: number;
+    datestamp_format: string;
+    date_format: string;
+    jail_facility: string;
+    dashboard_period: "Daily" | "Weekly" | "Monthly"; // Assuming these are the only valid options
+    record_status: string;
+}

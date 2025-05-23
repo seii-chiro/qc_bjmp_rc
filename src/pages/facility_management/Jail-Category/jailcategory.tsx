@@ -1,19 +1,20 @@
-import { getJail_Category, deleteJail_Category, getUser } from "@/lib/queries"
+import { getJail_Category, deleteJail_Category, getUser, PaginatedResponse } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Table, Button, message, Modal, Dropdown, Menu } from "antd";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { Table, Button, message, Modal, Dropdown, Menu, Spin } from "antd";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { ColumnsType } from "antd/es/table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GoDownload, GoPlus } from "react-icons/go";
 import AddJailCategory from "./AddJailCategory";
 import EditJailCategories from "./EditJailCategories";
 import { LuSearch } from "react-icons/lu";
 import bjmp from '../../../assets/Logo/QCJMD.png'
+import { BASE_URL } from "@/lib/urls";
 
 type JailCategoryReport = {
     key: number;
@@ -24,20 +25,65 @@ type JailCategoryReport = {
 
 const JailCategory = () => {
     const [searchText, setSearchText] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
     const token = useTokenStore().token;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedJailCategories, setSelectedJailCategories] = useState<JailCategoryReport | null>(null);
+    const [page, setPage] = useState(1);
+    const limit = 10;
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
-    const { data } = useQuery({
-        queryKey: ["jail-category"],
-        queryFn: () => getJail_Category(token ?? ""),
+    useQuery({
+        queryKey: ["jail-category", debouncedSearch],
+        queryFn: () => getJail_Category(debouncedSearch),
+        behavior: keepPreviousData(),
+        enabled: debouncedSearch.length > 0,
     });
+
+    const { data, isFetching } = useQuery({
+        queryKey: ['jail-category', 'jail-category-table', page],
+        queryFn: async (): Promise<PaginatedResponse<JailCategoryReport>> => {
+            // Add offset parameter for Django REST Framework's pagination
+            const offset = (page - 1) * limit;
+            const res = await fetch(
+                `${BASE_URL}/api/jail/jail-categories/?page=${page}&limit=${limit}&offset=${offset}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch Jail Category data.');
+            }
+
+            return res.json();
+        },
+        behavior: keepPreviousData(),
+    });
+    
+    const handleTableChange = (pagination) => {
+        setPagination(pagination);
+        setPage(pagination.current);
+    };
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(searchText);
+        }, 500); // debounce delay
+
+        return () => {
+            clearTimeout(handler);
+        };
+        }, [searchText]);
+
 
     const { data: UserData } = useQuery({
         queryKey: ['user'],
@@ -67,7 +113,7 @@ const JailCategory = () => {
         key: category?.id,
         id: category.id,
         description: category?.description ?? "N/A",
-        category: category?.category ?? "N/A",
+        category: category?.category_name ?? "N/A",
         organization: category?.organization ?? 'Bureau of Jail Management and Penology',
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
@@ -239,6 +285,7 @@ const JailCategory = () => {
         <div className="h-screen">
             {contextHolder}
             <h1 className="text-3xl font-bold text-[#1E365D]">Jail Category</h1>
+            <Spin spinning={isFetching} tip="Loading jail categories...">
             <div className="my-4 flex justify-between gap-2">
             <div className="flex gap-2">
                         <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
@@ -273,18 +320,23 @@ const JailCategory = () => {
             <div className="w-full">
                 <div id="printable-table">
                     <Table
-                        className="overflow-x-auto"
-                        columns={columns}
-                        dataSource={filteredData}
-                        scroll={{ x: 'max-content' }} 
-                        pagination={{
-                            current: pagination.current,
-                            pageSize: pagination.pageSize,
-                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
-                        }}
-                    />
+                columns={columns}
+                dataSource={filteredData}
+                loading={isFetching}
+                pagination={{
+                    ...pagination,
+                    total: data?.count,
+                    onChange: (page) => {
+                        setPage(page);
+                        setPagination((prev) => ({ ...prev, current: page }));
+                    },
+                }}
+                rowKey="id"
+                scroll={{ x: "max-content" }}
+            />
                 </div>
             </div>
+            </Spin>
             <Modal
                 title="Jail Category Report"
                 open={isPdfModalOpen}
