@@ -1,12 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { MultiBirthSiblingForm as MultiBirthSiblingFormType, PersonForm } from "@/lib/visitorFormDefinition"
 import { Modal, Table } from "antd"
 import { ColumnsType } from "antd/es/table"
 import { Plus } from "lucide-react"
-import { Dispatch, SetStateAction, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai"
 import UpdateMultiBirthSiblingForm from "./UpdateMultiBirthSiblingForm"
 import { Gender, Person } from "@/lib/pdl-definitions"
 import { MultipleBirthClassType, Prefix, Suffix } from "@/lib/definitions"
+import { BASE_URL } from "@/lib/urls"
+import { useTokenStore } from "@/store/useTokenStore"
 
 type Props = {
     handleDeleteMultipleBirthSibling: (index: number) => void;
@@ -43,9 +46,22 @@ const UpdateMultipleBirthSiblings = ({
     setPersonPage,
     setPersonSearch
 }: Props) => {
+    const token = useTokenStore()?.token
     const [idsModalOpen, setIdsModalOpen] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const [editIndex, setEditIndex] = useState<number | null>(null)
+    const [identifierDataSource, setIdentifierDataSource] = useState<any[]>([]);
+
+    const fetchPersonById = async (id: number) => {
+        const res = await fetch(`${BASE_URL}/api/persons/${id}/`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+        if (!res.ok) return null;
+        return res.json();
+    };
 
     const handleModalOpen = (index?: number) => {
         if (index !== undefined) {
@@ -76,36 +92,63 @@ const UpdateMultipleBirthSiblings = ({
         });
     };
 
-    const IdentifierDataSource = personForm.multiple_birth_sibling_data?.map((siblingData, index) => {
-        const chosenSibling = persons?.find(person => person?.id === (siblingData.sibling_person_id_display || siblingData.sibling_person_id || siblingData.person_id));
-        const siblingGroup = birthClassTypes?.find(type => type?.id === siblingData?.multiple_birth_class_id)?.term_for_sibling_group
-        return {
-            key: index,
-            siblingGroup: siblingGroup || "",
-            shortName: chosenSibling?.shortname || siblingData?.sibling_person || "N/A",
-            gender: chosenSibling?.gender?.gender_option || "N/A",
-            identical: siblingData?.is_identical ? "Yes" : "No",
-            verified: siblingData?.is_verified ? "Yes" : "No",
-            actions: (
-                <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center items-center">
-                    <button
-                        type="button"
-                        className="border border-blue-500 text-blue-500 hover:bg-blue-600 hover:text-white py-1 rounded w-10 h-10 flex items-center justify-center"
-                        onClick={() => handleModalOpen(index)}
-                    >
-                        <AiOutlineEdit />
-                    </button>
-                    <button
-                        onClick={() => handleDeleteMultipleBirthSibling(index)}
-                        type="button"
-                        className="border border-red-500 text-red-500 hover:bg-red-600 hover:text-white py-1 rounded w-10 h-10 flex items-center justify-center"
-                    >
-                        <AiOutlineDelete />
-                    </button>
-                </div>
-            )
+    useEffect(() => {
+        const loadData = async () => {
+            if (!personForm?.multiple_birth_sibling_data) {
+                setIdentifierDataSource([]);
+                return;
+            }
+            const data = await Promise.all(
+                personForm?.multiple_birth_sibling_data?.map(async (siblingData, index) => {
+                    let chosenSibling = persons?.find(
+                        person => person?.id === (siblingData?.sibling_person_id_display || siblingData?.sibling_person_id)
+                    );
+                    if (
+                        !chosenSibling &&
+                        (siblingData?.sibling_person_id_display || siblingData?.sibling_person_id)
+                    ) {
+                        try {
+                            chosenSibling = await fetchPersonById(
+                                siblingData?.sibling_person_id_display || siblingData?.sibling_person_id
+                            );
+                        } catch {
+                            chosenSibling = null;
+                        }
+                    }
+                    // console.log("Chosen Sibling", chosenSibling)
+                    const siblingGroup = birthClassTypes?.find(type => type?.id === siblingData?.multiple_birth_class_id)?.term_for_sibling_group;
+                    return {
+                        key: index,
+                        siblingGroup: siblingGroup || "",
+                        shortName: chosenSibling?.shortname || siblingData?.sibling_person || siblingData?.full_name || "N/A",
+                        gender: chosenSibling?.gender?.gender_option || "N/A",
+                        identical: siblingData?.is_identical ? "Yes" : "No",
+                        verified: siblingData?.is_verified ? "Yes" : "No",
+                        actions: (
+                            <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center items-center">
+                                <button
+                                    type="button"
+                                    className="border border-blue-500 text-blue-500 hover:bg-blue-600 hover:text-white py-1 rounded w-10 h-10 flex items-center justify-center"
+                                    onClick={() => handleModalOpen(index)}
+                                >
+                                    <AiOutlineEdit />
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteMultipleBirthSibling(index)}
+                                    type="button"
+                                    className="border border-red-500 text-red-500 hover:bg-red-600 hover:text-white py-1 rounded w-10 h-10 flex items-center justify-center"
+                                >
+                                    <AiOutlineDelete />
+                                </button>
+                            </div>
+                        )
+                    };
+                })
+            );
+            setIdentifierDataSource(data);
         };
-    }) || [];
+        loadData();
+    }, [personForm.multiple_birth_sibling_data, persons, birthClassTypes, token]);
 
     const identifierColumn: ColumnsType<{
         siblingGroup: string;
@@ -195,7 +238,7 @@ const UpdateMultipleBirthSiblings = ({
             <Table
                 loading={personsLoading}
                 className="border text-gray-200 rounded-md"
-                dataSource={IdentifierDataSource}
+                dataSource={identifierDataSource}
                 columns={
                     editIndex
                         ? identifierColumn
