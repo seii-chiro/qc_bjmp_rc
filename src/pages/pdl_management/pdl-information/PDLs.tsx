@@ -13,14 +13,15 @@ import { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useSearchParams } from "react-router-dom";
 import { BASE_URL } from "@/lib/urls";
 import { PaginatedResponse } from "@/pages/personnel_management/personnel/personnel-backup";
 
 const PDLtable = () => {
     const location = useLocation();
-    const filterOption = location?.state?.filterOption || "all";
+    const [loadingMessage, setLoadingMessage] = useState("");
     const [searchText, setSearchText] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const queryClient = useQueryClient();
@@ -33,6 +34,7 @@ const PDLtable = () => {
     const limit = 10;
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [allPDLs, setAllPDLs] = useState<PDLs[]>([]);
+    const StatusFilter = location.state?.filterOption || "all";
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -50,18 +52,6 @@ const PDLtable = () => {
         fetchAll();
     }, [token]);
 
-    const fetchPdls = async (search: string) => {
-        const res = await fetch(`${BASE_URL}/api/pdls/pdl/?search=${search}`, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
-
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-    };
-
     useEffect(() => {
         const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
         return () => clearTimeout(timeout);
@@ -70,7 +60,7 @@ const PDLtable = () => {
     const { data: searchData, isLoading: searchLoading } = useQuery({
         queryKey: ["pdls", debouncedSearch],
         queryFn: () => fetchPdls(debouncedSearch),
-        placeholderData: (previousData) => previousData,
+        behavior: keepPreviousData(),
         enabled: debouncedSearch.length > 0,
     });
 
@@ -139,18 +129,78 @@ const PDLtable = () => {
         }
     };
 
-    const filteredPDLs = {
-        ...pdlData,
-        results:
-            filterOption === "all"
-                ? pdlData?.results || []
-                : (pdlData?.results || []).filter(
-                    (pdl) => pdl?.person?.gender?.gender_option === filterOption
-                ),
+    const [searchParams] = useSearchParams();
+    const gender = searchParams.get("gender") || "all";
+    const genderParam = searchParams.get("gender") || "all";
+    const genderList = genderParam !== "all" ? genderParam.split(",").map(decodeURIComponent) : [];
+
+    const fetchPDLGender = async (genders: string[]) => {
+        const hasFilters = genders.length > 0 && genders[0] !== "all";
+        const genderQuery = hasFilters
+            ? genders.map(g => `gender=${encodeURIComponent(g)}`).join("&")
+            : "";
+
+        const query = genderQuery ? `?${genderQuery}&limit=5000` : "?limit=5000";
+        const url = `${BASE_URL}/api/pdls/pdl/${query}`;
+
+        const res = await fetch(url, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
     };
 
-    const dataSource = filteredPDLs?.results?.map((pdl) => ({
-        key: pdl.id,
+    const { data: pdlGenderData, isLoading: pdlByGenderLoading } = useQuery({
+        queryKey: ["pdl", genderList],
+        queryFn: () => fetchPDLGender(genderList),
+        enabled: !!token,
+    });
+
+    const genderFilteredPDLIds = new Set(
+        (pdlGenderData?.results || []).map(pdl => pdl.id)
+    );
+
+    const status = searchParams.get("status") || "all";
+    const statusParam = searchParams.get("status") || "all";
+    const statusList = statusParam !== "all" ? statusParam.split(",").map(decodeURIComponent) : [];
+
+    const fetchPDLStatus = async (status: string[]) => {
+        const hasFilters = status.length > 0 && status[0] !== "all";
+        const statusQuery = hasFilters
+            ? status.map(g => `status=${encodeURIComponent(g)}`).join("&")
+            : "";
+
+        const query = statusQuery ? `?${statusQuery}&limit=5000` : "?limit=5000";
+        const url = `${BASE_URL}/api/pdls/pdl/${query}`;
+
+        const res = await fetch(url, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    const { data: pdlStatusData, isLoading: pdlByStatusLoading } = useQuery({
+        queryKey: ["pdl", statusList],
+        queryFn: () => fetchPDLStatus(statusList),
+        enabled: !!token,
+    });
+
+    const statusFilteredPDLIds = new Set(
+        (pdlStatusData?.results || []).map(pdl => pdl.id)
+    );
+
+    const dataSource = (pdlData?.results || []).filter(pdl =>
+    gender === "all" ? true : genderFilteredPDLIds.has(pdl.id) && 
+    status === "all" ? true : statusFilteredPDLIds.has(pdl.id) 
+    ).map((pdl, index) => ({
+        key: index + 1,
         id: pdl?.id,
         pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
         visitation_status: pdl?.visitation_status ?? 'N/A',
@@ -161,6 +211,7 @@ const PDLtable = () => {
         cell_no: pdl?.cell?.cell_no ?? 'N/A',
         floor: pdl?.cell?.floor ?? 'N/A',
         cell_name: pdl?.cell?.cell_name ?? 'N/A',
+        gender: pdl?.person?.gender?.gender_option ?? '',
         // gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
         // look: pdl?.look ?? 'N/A',
         status: pdl?.status ?? 'N/A',
@@ -169,11 +220,13 @@ const PDLtable = () => {
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
-    const filteredData = dataSource?.filter((pdl) =>
-        Object.values(pdl).some((value) =>
-            String(value).toLowerCase().includes(searchText.toLowerCase())
-        )
+    const filteredData = dataSource?.filter((pdl: any) => {
+    const matchesSearch = Object.values(pdl).some((value) =>
+        String(value).toLowerCase().includes(searchText.toLowerCase())
     );
+    return matchesSearch;
+    });
+
 
     const columns: ColumnsType<PDLs> = [
         {
@@ -250,8 +303,8 @@ const PDLtable = () => {
             sorter: (a, b) => a.status.localeCompare(b.status),
             filters: [
                 ...Array.from(new Set(allPDLs.map(item => item.status)))
-                    .filter(gang => gang)
-                    .map(gang => ({ text: gang, value: gang }))
+                    .filter(status => status)
+                    .map(status => ({ text: status, value: status }))
             ],
             onFilter: (value, record) => record.status === value,
         },
@@ -327,24 +380,52 @@ const PDLtable = () => {
         XLSX.writeFile(wb, "PDL.xlsx");
     };
 
-    const fetchAllPDLs = async () => {
-        const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=100000`, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-    };
-    const handleExportPDF = async () => {
+    // useEffect(() => {
+    //     const fetchAllPDLs = async () => {
+    //         try {
+    //             const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
+    //                 headers: {
+    //                     Authorization: `Token ${token}`,
+    //                     "Content-Type": "application/json",
+    //                 },
+    //             });
+    //             if (!res.ok) throw new Error("Network error");
+    //             const data = await res.json();
+    //             setAllPDLs(data.results || []);
+    //         } catch (error) {
+    //             console.error("Error fetching PDLs:", error);
+    //         }
+    //     };
+
+    //     fetchAllPDLs();
+    // }, [token, BASE_URL]); 
+
+const fetchAllPDLs = async () => {
+    const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
+        headers: {
+            Authorization: `Token ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+    if (!res.ok) throw new Error("Network error");
+    return res.json(); // paginated response { count, next, results, ... }
+};
+
+const handleExportPDF = async () => {
+    setIsLoading(true);
+    setLoadingMessage("Generating PDF... Please wait.");
+
+    try {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
 
-        let printSource;
+        let printSource = [];
+
         if (debouncedSearch) {
+            // use filtered data from search results
             printSource = (searchData?.results || []).map((pdl, index) => ({
+                key: index + 1,
                 id: pdl?.id ?? 'N/A',
                 pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
                 first_name: pdl?.person?.first_name ?? 'N/A',
@@ -352,46 +433,48 @@ const PDLtable = () => {
                 last_name: pdl?.person?.last_name ?? '',
                 name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
                 cell_no: pdl?.cell?.cell_no ?? 'N/A',
+                floor: pdl?.cell?.floor ?? 'N/A',
+                gender: pdl?.gender?.gender_option ?? '',
                 cell_name: pdl?.cell?.cell_name ?? 'N/A',
                 visitation_status: pdl?.visitation_status ?? 'N/A',
-                // gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
-                // look: pdl?.look ?? 'N/A',
+                status: pdl?.status ?? 'N/A',
                 date_of_admission: pdl?.date_of_admission ?? 'N/A',
                 organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
                 updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
             }));
         } else {
-            // Fetch all personnel for printing
+            // fetch all data
             const allData = await fetchAllPDLs();
-            printSource = (allData?.results || []).map((pdl) => ({
+            printSource = (allData.results || []).map((pdl, index) => ({
+                key: index + 1,
                 id: pdl?.id ?? 'N/A',
                 pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
                 first_name: pdl?.person?.first_name ?? 'N/A',
                 middle_name: pdl?.person?.middle_name ?? '',
                 last_name: pdl?.person?.last_name ?? '',
+                gender: pdl?.gender?.gender_option ?? '',
                 name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
                 cell_no: pdl?.cell?.cell_no ?? 'N/A',
+                floor: pdl?.cell?.floor ?? 'N/A',
                 cell_name: pdl?.cell?.cell_name ?? 'N/A',
                 visitation_status: pdl?.visitation_status ?? 'N/A',
-                // gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
-                // look: pdl?.look ?? 'N/A',
+                status: pdl?.status ?? 'N/A',
                 date_of_admission: pdl?.date_of_admission ?? 'N/A',
                 organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
                 updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
             }));
         }
 
-        const organizationName = dataSource[0]?.organization || "";
-        const PreparedBy = dataSource[0]?.updated || '';
-
+        // Prepare header/footer info
+        const organizationName = printSource[0]?.organization || "";
+        const PreparedBy = printSource[0]?.updated || '';
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-
-        const maxRowsPerPage = 27;
-
+        const maxRowsPerPage = 26;
         let startY = headerHeight;
 
+        // Header function
         const addHeader = () => {
             const pageWidth = doc.internal.pageSize.getWidth();
             const imageWidth = 30;
@@ -414,16 +497,16 @@ const PDLtable = () => {
             doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
         };
 
-
         addHeader();
 
-        const isSearching = searchText.trim().length > 0;
-        const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+        // Prepare table data
+        const tableData = printSource.map((item, idx) => [
             idx + 1,
             item.name,
-            item.gang_affiliation,
-            item.cell_no,
             item.cell_name,
+            item.floor ?? 'N/A',
+            item.visitation_status,
+            item.status ?? 'N/A',
             item.date_of_admission,
         ]);
 
@@ -431,11 +514,11 @@ const PDLtable = () => {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
 
             autoTable(doc, {
-                head: [['No.', 'PDL', 'Gang Affiliation', 'Cell No.', 'Cell', 'Date Admission']],
+                head: [['No.', 'PDL', 'Cell', 'Floor', 'Visitation Status', 'Status', 'Date Admission']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
-                didDrawPage: function (data) {
+                didDrawPage: function () {
                     if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
                         addHeader();
                     }
@@ -448,6 +531,7 @@ const PDLtable = () => {
             }
         }
 
+        // Add footer on all pages
         const pageCount = doc.internal.getNumberOfPages();
         for (let page = 1; page <= pageCount; page++) {
             doc.setPage(page);
@@ -468,7 +552,14 @@ const PDLtable = () => {
         const pdfOutput = doc.output('datauristring');
         setPdfDataUrl(pdfOutput);
         setIsPdfModalOpen(true);
-    };
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+        alert("Failed to generate PDF. Please try again.");
+    } finally {
+        setIsLoading(false);
+    }
+};
+
 
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
@@ -498,9 +589,13 @@ const PDLtable = () => {
                             <GoDownload /> Export
                         </a>
                     </Dropdown>
-                    <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
-                        Print Report
-                    </button>
+<button 
+                className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                onClick={handleExportPDF} 
+                disabled={isLoading}
+            >
+                {isLoading ? loadingMessage : 'PDF Report'}
+            </button>
                 </div>
                 <div className="flex gap-2 items-center">
                     <Input placeholder="Search PDL..." value={searchText} className="py-2 md:w-64 w-full" onChange={(e) => setSearchText(e.target.value)} />
@@ -508,7 +603,7 @@ const PDLtable = () => {
             </div>
             <Table
                 columns={columns}
-                loading={isFetching || searchLoading}
+                loading={isFetching || searchLoading || pdlByGenderLoading || pdlByStatusLoading}
                 scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
                 dataSource={
                     debouncedSearch
@@ -524,15 +619,63 @@ const PDLtable = () => {
                             cell_name: pdl?.cell?.cell_name ?? 'N/A',
                             gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
                             look: pdl?.look ?? 'N/A',
+                            status: pdl?.status ?? 'N/A',
+                            gender: pdl?.person?.gender?.gender_option,
+                            visitation_status: pdl?.visitation_status ?? 'N/A',
+                            floor: pdl?.cell?.floor ?? 'N/A',
                             date_of_admission: pdl?.date_of_admission ?? 'N/A',
                             organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
                             updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
                         }))
+                        : gender !== "all"
+                            ? (pdlGenderData?.results || []).map((pdl, index) => ({
+                                ...pdl,
+                                key: index + 1,
+                                id: pdl?.id ?? 'N/A',
+                                pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
+                                first_name: pdl?.person?.first_name ?? 'N/A',
+                                middle_name: pdl?.person?.middle_name ?? '',
+                                last_name: pdl?.person?.last_name ?? '',
+                                name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
+                                cell_no: pdl?.cell?.cell_no ?? 'N/A',
+                                cell_name: pdl?.cell?.cell_name ?? 'N/A',
+                                gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
+                                look: pdl?.look ?? 'N/A',
+                                status: pdl?.status ?? 'N/A',
+                                gender: pdl?.person?.gender?.gender_option,
+                                visitation_status: pdl?.visitation_status ?? 'N/A',
+                                floor: pdl?.cell?.floor ?? 'N/A',
+                                date_of_admission: pdl?.date_of_admission ?? 'N/A',
+                                organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
+                                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+                                }))
+                        : status !== "all"
+                            ? (pdlStatusData?.results || []).map((pdl, index) => ({
+                                ...pdl,
+                                key: index + 1,
+                                id: pdl?.id ?? 'N/A',
+                                pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
+                                first_name: pdl?.person?.first_name ?? 'N/A',
+                                middle_name: pdl?.person?.middle_name ?? '',
+                                last_name: pdl?.person?.last_name ?? '',
+                                name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
+                                cell_no: pdl?.cell?.cell_no ?? 'N/A',
+                                cell_name: pdl?.cell?.cell_name ?? 'N/A',
+                                gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
+                                look: pdl?.look ?? 'N/A',
+                                status: pdl?.status ?? 'N/A',
+                                gender: pdl?.person?.gender?.gender_option,
+                                visitation_status: pdl?.visitation_status ?? 'N/A',
+                                floor: pdl?.cell?.floor ?? 'N/A',
+                                date_of_admission: pdl?.date_of_admission ?? 'N/A',
+                                organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
+                                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+                                }))
                         : filteredData
                 }
                 pagination={
-                    debouncedSearch
-                        ? false // Hide pagination when searching (unless your backend supports paginated search)
+                    debouncedSearch || gender !== "all" || status !== "all"
+                        ? false
                         : {
                             current: page,
                             pageSize: limit,
@@ -585,3 +728,7 @@ const PDLtable = () => {
 }
 
 export default PDLtable
+function fetchPdls(debouncedSearch: string): any {
+    throw new Error("Function not implemented.");
+}
+

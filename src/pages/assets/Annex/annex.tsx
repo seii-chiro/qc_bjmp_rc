@@ -72,7 +72,6 @@ const Annex = () => {
         floor_number: annex?.floor_number,
         floor_name: annex?.floor_name,
         security_level: annex?.security_level,
-        floor_description: annex?.floor_description,
         organization: annex?.organization ?? 'Bureau of Jail Management and Penology',
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
@@ -147,21 +146,6 @@ const Annex = () => {
                     }))
                 ],
                 onFilter: (value, record) => record.security_level === value,
-        },
-        {
-            title: "Description",
-            dataIndex: "floor_description",
-            key: "floor_description",
-            sorter: (a, b) => a.floor_description.localeCompare(b.floor_description),
-            filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.floor_description))
-                    ).map(floor_description => ({
-                        text: floor_description,
-                        value: floor_description,
-                    }))
-                ],
-                onFilter: (value, record) => record.floor_description === value,
         },
         {
             title: "Actions",

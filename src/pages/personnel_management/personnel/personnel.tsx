@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useLocation } from 'react-router';
+import { useLocation, useSearchParams } from 'react-router';
 import { PersonnelForm } from "@/lib/issues-difinitions";
 import { getUser } from "@/lib/queries";
 import { deletePersonnel } from "@/lib/query";
@@ -11,7 +11,7 @@ import * as XLSX from "xlsx";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Input, Menu, message, Modal, Table } from "antd";
 import { ColumnType } from "antd/es/table";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png';
@@ -28,6 +28,8 @@ export type PaginatedResponse<T> = {
 
 const Personnel = () => {
     const [searchText, setSearchText] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState("");
     const token = useTokenStore().token;
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
@@ -41,12 +43,9 @@ const Personnel = () => {
     // const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [allPersonnel, setAllPersonnel] = useState<PersonnelType[]>([]);
 
-    const initialGenderFilter = location.state?.genderFilter || null;
-    const [genderFilter, setGenderFilter] = useState<string | null>(initialGenderFilter);
-
     useEffect(() => {
         const fetchAll = async () => {
-            const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=100000`, {
+            const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
                 headers: {
                     Authorization: `Token ${token}`,
                     "Content-Type": "application/json",
@@ -59,8 +58,6 @@ const Personnel = () => {
         };
         fetchAll();
     }, [token]);
-
-
 
     const fetchPersonnels = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/codes/personnel/?search=${search}`, {
@@ -126,28 +123,118 @@ const Personnel = () => {
         },
     });
 
-    const dataSource = data?.results?.map((personnel, index) => ({
+    const [searchParams] = useSearchParams();
+    const gender = searchParams.get("gender") || "all";
+    const genderParam = searchParams.get("gender") || "all";
+    const genderList = genderParam !== "all" ? genderParam.split(",").map(decodeURIComponent) : [];
+    
+
+    const fetchPersonnelGender = async (genders: string[]) => {
+        const isOthers =
+            genders.includes("LGBTQ + TRANSGENDER") ||
+            genders.includes("LGBTQ + GAY / BISEXUAL") ||
+            genders.includes("LGBTQ + LESBIAN / BISEXUAL") ||
+            genders.includes("Others");
+
+        const url = `${BASE_URL}/api/codes/personnel/?limit=5000`;
+
+        const res = await fetch(url, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+        if (!res.ok) throw new Error("Network error");
+
+        const result = await res.json();
+
+        if (genders[0] === "all") {
+            return result; 
+        }
+
+        if (isOthers) {
+            const otherGenders = [
+                "LGBTQ + TRANSGENDER",
+                "LGBTQ + GAY / BISEXUAL",
+                "LGBTQ + LESBIAN / BISEXUAL"
+            ];
+            result.results = result.results.filter(personnel =>
+                otherGenders.includes(personnel?.person?.gender?.gender_option)
+            );
+            return result;
+        }
+
+        result.results = result.results.filter(personnel =>
+            genders.includes(personnel?.person?.gender?.gender_option)
+        );
+        return result;
+    };
+
+    const { data: personnelGenderData, isLoading: personnelsByGenderLoading } = useQuery({
+        queryKey: ["personnel", genderList],
+        queryFn: () => fetchPersonnelGender(genderList),
+        enabled: !!token,
+    });
+
+    const genderFilteredPersonnelIds = new Set(
+        (personnelGenderData?.results || []).map(personnel => personnel.id)
+    );
+
+    const status = searchParams.get("status") || "all";
+    const statusParam = searchParams.get("status") || "all";
+    const statusList = statusParam !== "all" ? statusParam.split(",").map(decodeURIComponent) : [];
+
+    const fetchPersonnelStatus= async (status: string[]) => {
+        const hasFilters = status.length > 0 && status[0] !== "all";
+        const statusQuery = hasFilters
+            ? status.map(g => `status=${encodeURIComponent(g)}`).join("&")
+            : "";
+
+        const query = statusQuery ? `?${statusQuery}&limit=5000` : "?limit=5000";
+        const url = `${BASE_URL}/api/codes/personnel/${query}`;
+
+        const res = await fetch(url, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    const { data: personnelStatusData, isLoading: personnelByStatusLoading } = useQuery({
+        queryKey: ["personnel", statusList],
+        queryFn: () => fetchPersonnelStatus(statusList),
+        enabled: !!token,
+    });
+
+    const statusFilteredPersonnelIds = new Set(
+        (personnelStatusData?.results || []).map(personnel => personnel.id)
+    );
+
+    const dataSource = (data?.results || []).filter(personnel =>
+    gender === "all" ? true : genderFilteredPersonnelIds.has(personnel.id) && 
+    status === "all" ? true : statusFilteredPersonnelIds.has(personnel.id) 
+    ).map((personnel, index) => ({
         key: index + 1,
-        id: personnel?.id,
-        personnel_reg_no: personnel?.personnel_reg_no ?? '',
-        person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
-        shortname: personnel?.person?.shortname ?? '',
-        rank: personnel?.rank ?? '',
-        status: personnel?.status ?? '',
-        gender: personnel?.person?.gender?.gender_option ?? '',
-        date_joined: personnel?.date_joined ?? '',
-        record_status: personnel?.record_status ?? '',
-        updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+                id: personnel?.id,
+                personnel_reg_no: personnel?.personnel_reg_no ?? '',
+                person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
+                shortname: personnel?.person?.shortname ?? '',
+                rank: personnel?.rank ?? '',
+                status: personnel?.status ?? '',
+                gender: personnel?.person?.gender?.gender_option ?? '',
+                date_joined: personnel?.date_joined ?? '',
+                record_status: personnel?.record_status ?? '',
+                updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
-    // Filter data based on search input, filter option, and gender filter
-    const filteredData = dataSource.filter(personnel => {
+    const filteredData = dataSource?.filter(personnel => {
         const matchesSearch = Object.values(personnel).some(value =>
             String(value).toLowerCase().includes(searchText.toLowerCase())
         );
-        const matchesStatus = filterOption ? personnel.status === filterOption : true;
-        const matchesGender = genderFilter ? personnel.gender === genderFilter : true; // Updated to check gender
-        return matchesSearch && matchesStatus && matchesGender;
+        return matchesSearch;
     });
 
     const columns: ColumnType<PersonnelForm> = [
@@ -276,7 +363,7 @@ const Personnel = () => {
     };
 
     const fetchAllPersonnels = async () => {
-        const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=100000`, {
+        const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
@@ -287,6 +374,8 @@ const Personnel = () => {
     };
 
     const handleExportPDF = async () => {
+        setIsLoading(true);
+        setLoadingMessage("Generating PDF... Please wait.");
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
@@ -408,6 +497,7 @@ const Personnel = () => {
         const pdfOutput = doc.output('datauristring');
         setPdfDataUrl(pdfOutput);
         setIsPdfModalOpen(true);
+        setIsLoading(false);
     };
 
     const handleClosePdfModal = () => {
@@ -439,9 +529,13 @@ const Personnel = () => {
                             <GoDownload /> Export
                         </a>
                     </Dropdown>
-                    <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
-                        Print Report
-                    </button>
+                    <button 
+                className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                onClick={handleExportPDF} 
+                disabled={isLoading}
+            >
+                {isLoading ? loadingMessage : 'PDF Report'}
+            </button>
                 </div>
                 <div className="flex gap-2 items-center">
                     <Input
@@ -454,7 +548,7 @@ const Personnel = () => {
             </div>
             <Table
                 className='overflow-x-auto'
-                loading={isFetching || searchLoading}
+                loading={isFetching || searchLoading || personnelsByGenderLoading || personnelByStatusLoading || personnelByStatusLoading}
                 columns={columns}
                 dataSource={
                     debouncedSearch
@@ -472,11 +566,43 @@ const Personnel = () => {
                             record_status: personnel?.record_status ?? '',
                             updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
                         }))
-                        : filteredData
+                        : gender !== "all"
+                            ? (personnelGenderData?.results || []).map((personnel, index) => ({
+                                ...personnel,
+                                id: personnel?.id,
+                            key: index + 1,
+                            organization: personnel?.organization ?? '',
+                            personnel_reg_no: personnel?.personnel_reg_no ?? '',
+                            person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
+                            shortname: personnel?.person?.shortname ?? '',
+                            rank: personnel?.rank ?? '',
+                            status: personnel?.status ?? '',
+                            gender: personnel?.person?.gender?.gender_option ?? '',
+                            date_joined: personnel?.date_joined ?? '',
+                            record_status: personnel?.record_status ?? '',
+                            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+                                }))
+                            : status !== "all"
+                            ? (personnelStatusData?.results || []).map((personnel, index) => ({
+                                ...personnel,
+                                id: personnel?.id,
+                            key: index + 1,
+                            organization: personnel?.organization ?? '',
+                            personnel_reg_no: personnel?.personnel_reg_no ?? '',
+                            person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
+                            shortname: personnel?.person?.shortname ?? '',
+                            rank: personnel?.rank ?? '',
+                            status: personnel?.status ?? '',
+                            gender: personnel?.person?.gender?.gender_option ?? '',
+                            date_joined: personnel?.date_joined ?? '',
+                            record_status: personnel?.record_status ?? '',
+                            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+                                }))
+                            : filteredData
                 }
                 scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
                 pagination={
-                    debouncedSearch
+                    debouncedSearch || gender !== "all" || status !== "all"
                         ? false // Hide pagination when searching
                         : {
                             current: page,

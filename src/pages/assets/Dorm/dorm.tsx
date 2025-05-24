@@ -71,7 +71,6 @@ const Dorm = () => {
         floor: dorm?.floor,
         cell_no: dorm?.cell_no,
         cell_name: dorm?.cell_name,
-        cell_description: dorm?.cell_description,
         organization: dorm?.organization ?? 'Bureau of Jail Management and Penology',
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
@@ -135,22 +134,6 @@ const Dorm = () => {
                     }))
                 ],
                 onFilter: (value, record) => record.cell_name === value,
-        },
-        {
-            title: "Dorm Description",
-            dataIndex: "cell_description",
-            key: "cell_description",
-            sorter: (a, b) => a.cell_description.localeCompare(b.cell_description),
-            sortDirections: ["ascend", "descend"],
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.cell_description))
-                    ).map(cell_description => ({
-                        text: cell_description,
-                        value: cell_description,
-                    }))
-                ],
-                onFilter: (value, record) => record.cell_description === value,
         },
         {
             title: "Action",
@@ -236,7 +219,7 @@ const Dorm = () => {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
     
             autoTable(doc, { 
-                head: [['No.','Dorm No.', 'Dorm', 'Floor', 'Description']],
+                head: [['No.','Dorm No.', 'Dorm', 'Floor']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
