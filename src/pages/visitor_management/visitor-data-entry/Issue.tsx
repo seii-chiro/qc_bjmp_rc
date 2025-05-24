@@ -142,7 +142,7 @@ const Issue = () => {
             dataIndex: "risk_level_id",
             key: "risk_level_id",
             render: (riskLevelId: number) => {
-                const riskLevelObj = riskLevels?.find((r) => r.id === riskLevelId);
+                const riskLevelObj = riskLevels?.find((r: { id: number; }) => r.id === riskLevelId);
                 return riskLevelObj ? riskLevelObj.risk_severity : riskLevelId;
             }
         },
@@ -151,7 +151,7 @@ const Issue = () => {
             dataIndex: "impact_level_id",
             key: "impact_level_id",
             render: (impactLevelId: number) => {
-                const impactLevelObj = impactLevels?.find((r) => r.id === impactLevelId);
+                const impactLevelObj = impactLevels?.find((r: { id: number; }) => r.id === impactLevelId);
                 return impactLevelObj ? impactLevelObj.impact_level : impactLevelId;
             }
         },
@@ -160,7 +160,7 @@ const Issue = () => {
             dataIndex: "impact_id",
             key: "impact_id",
             render: (impactId: number) => {
-                const impactObj = impact?.find((r) => r.id === impactId);
+                const impactObj = impact?.find((r: { id: number; }) => r.id === impactId);
                 return impactObj ? impactObj.name : impactId;
             }
         },
@@ -169,7 +169,7 @@ const Issue = () => {
             dataIndex: "issue_status_id",
             key: "issue_status_id",
             render: (statusId: number) => {
-                const statusObj = issueStatuses?.find((r) => r.id === statusId);
+                const statusObj = issueStatuses?.find((r: { id: number; description: string }) => r.id === statusId);
                 return statusObj ? statusObj.description : statusId;
             }
         },
