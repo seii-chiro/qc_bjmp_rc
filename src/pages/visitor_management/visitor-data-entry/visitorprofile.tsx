@@ -13,6 +13,8 @@ import { PersonForm } from "@/lib/visitorFormDefinition";
 import { CloseOutlined, EditOutlined } from '@ant-design/icons';
 import { verifyFaceInWatchlist } from "@/lib/threatQueries";
 import { Signature } from "./Signature";
+import { BASE_URL } from "@/lib/urls";
+import { useTokenStore } from "@/store/useTokenStore";
 
 type Props = {
     visitorToEdit?: any;
@@ -116,6 +118,7 @@ const VisitorProfile = ({
     setEnrollFormFace,
     visitorToEdit,
 }: Props) => {
+    const token = useTokenStore()?.token;
     const faceHandle = useFullScreenHandle();
     const irisHandle = useFullScreenHandle();
     const leftFingersHandle = useFullScreenHandle();
@@ -200,6 +203,57 @@ const VisitorProfile = ({
     const [LeftFingerResponse, setLeftFingerResponse] = useState<CustomFingerResponse | null>(null)
     const [RightFingerResponse, setRightFingerResponse] = useState<CustomFingerResponse | null>(null)
     const [ThumbFingerResponse, setThumbFingerResponse] = useState<CustomFingerResponse | null>(null)
+
+    useEffect(() => {
+        if (!isInWatchlist || !token) return;
+
+        let isCancelled = false;
+        const submitIssue = async () => {
+            try {
+                const response = await fetch(`${BASE_URL}/api/issues_v2/issues/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${token}`
+                    },
+                    body: JSON.stringify({
+                        impact_id: 8,
+                        impact_level_id: 2,
+                        issueType: 15,
+                        issue_category_id: 1,
+                        issue_status_id: 1,
+                        issue_type_id: 15,
+                        recommendedAction: "Cross-Check With Watchlists and Prior Incidents: Look for related entries or historical patterns.",
+                        risk_level_id: 2,
+                        risks: 7,
+                        status_id: 1
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    if (!isCancelled) {
+                        message.error(`Error submitting issue: ${JSON.stringify(errorData) || 'Unknown error'}`);
+                    }
+                    return;
+                }
+
+                if (!isCancelled) {
+                    message.success('Issue successfully submitted!');
+                }
+            } catch (error) {
+                if (!isCancelled) {
+                    message.error(`Request failed: ${error instanceof Error ? error.message : String(error)}`);
+                }
+            }
+        };
+
+        submitIssue();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [isInWatchlist, token]);
 
     useEffect(() => {
         const mediaArray = visitorToEdit?.person?.media ?? [];
@@ -344,11 +398,6 @@ const VisitorProfile = ({
         },
         onError: (error) => {
             messageApi.info(`Watchlist: ${error?.message}`);
-            // messageApi.warning({
-            //     // content: `${data['message']}`,
-            //     content: `This Person is Found in the Watchlist Database!`,
-            //     duration: 30
-            // });
         },
     });
 
@@ -361,8 +410,12 @@ const VisitorProfile = ({
                 ...prevStates,
                 upload_data: data?.images?.icao,
             }));
-            verifyFaceMutation.mutate({ template: data?.images?.icao, type: "face" })
-            verifyFaceInWatchlistMutation.mutate({ template: data?.images?.icao, type: "face" })
+            if (data?.images?.icao) {
+                verifyFaceMutation.mutate({ template: data?.images?.icao, type: "face" })
+                verifyFaceInWatchlistMutation.mutate({ template: data?.images?.icao, type: "face" })
+            } else {
+                message.warning("No Face Captured. Please try again")
+            }
         },
         onError: (error) => {
             console.error(error.message);
@@ -1388,14 +1441,21 @@ const VisitorProfile = ({
                                                             </button>
                                                         </Upload>
                                                         <button onClick={handleOpenPad} className="bg-gray-100 hover:bg-gray-200 p-1 rounded-full text-gray-600" title="Draw signature">
-                                                            ✍️
+                                                            ✍🏼
                                                         </button>
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <Dragger {...props} className="!h-full !w-full !p-0 !m-0 bg-transparent border-0" style={{ background: 'transparent' }}>
+                                                <Dragger {...props}
+                                                    className="!h-full !w-full !p-0 !m-0 bg-transparent border-0"
+                                                    style={{ background: 'transparent' }}
+                                                >
                                                     <p className="text-sm text-gray-500">Click or drag to upload signature</p>
-                                                    <button type="button" onClick={handleOpenPad} className="mt-2 underline text-blue-500 hover:text-blue-600">
+                                                    <button
+                                                        type="button"
+                                                        onClick={e => { e.stopPropagation(); handleOpenPad(); }}
+                                                        className="mt-2 underline text-blue-500 hover:text-blue-600"
+                                                    >
                                                         Or draw signature
                                                     </button>
                                                 </Dragger>
