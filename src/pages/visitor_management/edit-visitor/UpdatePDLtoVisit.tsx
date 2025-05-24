@@ -10,6 +10,18 @@ import { VisitorForm } from "@/lib/visitorFormDefinition";
 import { ColumnsType } from "antd/es/table";
 import { Sibling } from "@/lib/pdl-definitions";
 import { getVisitor } from "@/lib/query";
+import { BASE_URL } from "@/lib/urls";
+
+const fetchPDLById = async (token: string, id: number) => {
+    const res = await fetch(`${BASE_URL}/api/pdls/${id}/`, {
+        headers: {
+            Authorization: `Token ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+    if (!res.ok) throw new Error("Failed to fetch PDL by ID");
+    return res.json();
+};
 
 type Props = {
     deletePdlToVisit: (index: number) => void;
@@ -47,6 +59,8 @@ const UpdatePDLtoVisit = ({
     const [pdlPage, setPdlPage] = useState(1);
     const [pdlFirstName, setPdlFirstName] = useState("");
     const [debouncedPdlFirstName, setDebouncedPdlFirstName] = useState("");
+
+    const [tableData, setTableData] = useState<any[]>([]);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -106,46 +120,69 @@ const UpdatePDLtoVisit = ({
         deletePdlToVisit(index)
     };
 
-    const pdlToVisitDataSource = visitorForm?.pdl_data.map((pdl, index) => {
-        const specificpdl = pdls?.find(thispdl => thispdl?.id === (pdl.pdl_id ?? pdl?.pdl?.id));
-        const specificrelationship = visitorToPdlRelationship?.find(thisrelationship =>
-            thisrelationship?.id === pdl.relationship_to_pdl_id ||
-            thisrelationship?.relationship_name === pdl.relationship_to_pdl
-        )?.relationship_name;
+    useEffect(() => {
+        const loadTableData = async () => {
+            if (!visitorForm?.pdl_data) {
+                setTableData([]);
+                return;
+            }
+            const data = await Promise.all(
+                visitorForm.pdl_data.map(async (pdl, index) => {
+                    let specificpdl = pdls?.find(thispdl => thispdl?.id === (pdl.pdl_id ?? pdl?.pdl?.id));
+                    if (!specificpdl && (pdl.pdl_id ?? pdl?.pdl?.id)) {
+                        try {
+                            specificpdl = await fetchPDLById(token ?? "", pdl.pdl_id ?? pdl?.pdl?.id);
+                        } catch (e) {
+                            specificpdl = null;
+                        }
+                    }
+                    const specificrelationship = visitorToPdlRelationship?.find(thisrelationship =>
+                        thisrelationship?.id === pdl.relationship_to_pdl_id ||
+                        thisrelationship?.relationship_name === pdl.relationship_to_pdl
+                    )?.relationship_name;
 
-        const levelAndBuilding = specificpdl?.cell?.floor?.split('(');
-        const building = levelAndBuilding?.[1]?.replace(')', '').trim();
+                    const levelAndBuilding = specificpdl?.cell?.floor?.split('(');
+                    const building = levelAndBuilding?.[1]?.replace(')', '').trim();
 
-        return ({
-            key: index,
-            lastname: specificpdl?.person?.last_name,
-            firstName: specificpdl?.person?.first_name,
-            middleName: specificpdl?.person?.middle_name,
-            relationship: specificrelationship,
-            level: building ?? '',
-            dorm: specificpdl?.cell?.cell_name,
-            visitationStatus: specificpdl?.visitation_status,
-            birthClassClassification: specificpdl?.person?.multiple_birth_siblings?.[0]?.multiple_birth_class,
-            action: (
-                <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center items-center">
-                    <button
-                        type="button"
-                        onClick={() => handleEditAddress(index)}
-                        className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white py-1 rounded w-10 h-10 flex items-center justify-center"
-                    >
-                        <AiOutlineEdit />
-                    </button>
-                    <button
-                        type="button"
-                        className="border border-red-500 text-red-500 hover:bg-red-500 hover:text-white py-1 rounded flex w-10 h-10 items-center justify-center"
-                        onClick={() => handleDeletePdl(index)}
-                    >
-                        <AiOutlineDelete />
-                    </button>
-                </div>
-            )
-        });
-    });
+                    return {
+                        key: index,
+                        lastname: specificpdl?.person?.last_name || pdl?.last_name,
+                        firstName: specificpdl?.person?.first_name || pdl?.first_name,
+                        middleName: specificpdl?.person?.middle_name || pdl?.middle_name,
+                        relationship: specificrelationship,
+                        level: building ?? pdl?.level ?? '',
+                        dorm: specificpdl?.cell?.cell_name || pdl?.dorm,
+                        annex: specificpdl?.cell?.cell_floor || pdl?.annex,
+                        visitationStatus: specificpdl?.visitation_status || pdl?.visitationStatus,
+                        birthClassClassification: specificpdl?.person?.multiple_birth_siblings?.[0]?.multiple_birth_class,
+                        action: (
+                            <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center items-center">
+                                <button
+                                    type="button"
+                                    onClick={() => handleEditAddress(index)}
+                                    className="border border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white py-1 rounded w-10 h-10 flex items-center justify-center"
+                                >
+                                    <AiOutlineEdit />
+                                </button>
+                                <button
+                                    type="button"
+                                    className="border border-red-500 text-red-500 hover:bg-red-500 hover:text-white py-1 rounded flex w-10 h-10 items-center justify-center"
+                                    onClick={() => handleDeletePdl(index)}
+                                >
+                                    <AiOutlineDelete />
+                                </button>
+                            </div>
+                        )
+                    };
+                })
+            );
+            setTableData(data);
+        };
+
+        loadTableData();
+        // Add dependencies as needed
+    }, [visitorForm?.pdl_data, pdls, visitorToPdlRelationship, token]);
+
     const visitorToPdlRelationshipColumns: ColumnsType<{
         key: number;
         lastname: string | null;
@@ -258,7 +295,7 @@ const UpdatePDLtoVisit = ({
                     <Table
                         loading={pdlsLoading || visitortoPDLRelationshipLoading}
                         className="border text-gray-200 rounded-md"
-                        dataSource={pdlToVisitDataSource}
+                        dataSource={tableData}
                         columns={visitorToPdlRelationshipColumns}
                         scroll={{ x: 800 }}
                     />
