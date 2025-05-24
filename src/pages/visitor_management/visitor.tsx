@@ -346,123 +346,124 @@ const Visitor = () => {
         if (!res.ok) throw new Error("Network error");
         return res.json();
     };
-const handleExportPDF = async () => {
-    const doc = new jsPDF();
-    const headerHeight = 48;
-    const footerHeight = 32;
 
-    let printSource;
-    if (debouncedSearch) {
-        printSource = (searchData?.results || []).map((item, index) => ({
-            ...item,
-            key: index + 1,
-            visitor_reg_no: item?.visitor_reg_no,
-            visitor_type: item?.visitor_type,
-            nationality: item?.person?.nationality,
-            organization: item?.organization ?? 'Bureau of Jail Management and Penology',
-            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-        }));
-    } else {
-        // Fetch all visitors for printing
-        const allData = await fetchAllVisitors();
-        printSource = (allData?.results || []).map((item, index) => ({
-            ...item,
-            key: index + 1,
-            visitor_reg_no: item?.visitor_reg_no,
-            visitor_type: item?.visitor_type,
-            nationality: item?.person?.nationality,
-            organization: item?.organization ?? 'Bureau of Jail Management and Penology',
-            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-        }));
-    }
+    const handleExportPDF = async () => {
+        const doc = new jsPDF();
+        const headerHeight = 48;
+        const footerHeight = 32;
 
-    const organizationName = printSource[0]?.organization || "";
-    const PreparedBy = printSource[0]?.updated || '';
+        let printSource;
+        if (debouncedSearch) {
+            printSource = (searchData?.results || []).map((item, index) => ({
+                ...item,
+                key: index + 1,
+                visitor_reg_no: item?.visitor_reg_no,
+                visitor_type: item?.visitor_type,
+                nationality: item?.person?.nationality,
+                organization: item?.organization ?? 'Bureau of Jail Management and Penology',
+                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+            }));
+        } else {
+            // Fetch all visitors for printing
+            const allData = await fetchAllVisitors();
+            printSource = (allData?.results || []).map((item, index) => ({
+                ...item,
+                key: index + 1,
+                visitor_reg_no: item?.visitor_reg_no,
+                visitor_type: item?.visitor_type,
+                nationality: item?.person?.nationality,
+                organization: item?.organization ?? 'Bureau of Jail Management and Penology',
+                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+            }));
+        }
 
-    const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-    const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+        const organizationName = printSource[0]?.organization || "";
+        const PreparedBy = printSource[0]?.updated || '';
 
-    const maxRowsPerPage = 27;
-    let startY = headerHeight;
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
-    const addHeader = () => {
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const imageWidth = 30;
-        const imageHeight = 30;
-        const margin = 10;
-        const imageX = pageWidth - imageWidth - margin;
-        const imageY = 12;
+        const maxRowsPerPage = 27;
+        let startY = headerHeight;
 
-        doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
+        const addHeader = () => {
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const imageWidth = 30;
+            const imageHeight = 30;
+            const margin = 10;
+            const imageX = pageWidth - imageWidth - margin;
+            const imageY = 12;
 
-        doc.setTextColor(0, 102, 204);
-        doc.setFontSize(16);
-        doc.text("Visitor Report", 10, 15);
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(10);
-        doc.text(`Organization Name: ${organizationName}`, 10, 25);
-        doc.text("Report Date: " + formattedDate, 10, 30);
-        doc.text("Prepared By: " + PreparedBy, 10, 35);
-        doc.text("Department/ Unit: IT", 10, 40);
-        doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
-    };
+            doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
 
-    addHeader();
+            doc.setTextColor(0, 102, 204);
+            doc.setFontSize(16);
+            doc.text("Visitor Report", 10, 15);
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.text(`Organization Name: ${organizationName}`, 10, 25);
+            doc.text("Report Date: " + formattedDate, 10, 30);
+            doc.text("Prepared By: " + PreparedBy, 10, 35);
+            doc.text("Department/ Unit: IT", 10, 40);
+            doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
+        };
 
-    const tableData = printSource.map((item, index) => {
-        const fullName = `${item?.person?.first_name ?? ''} ${item?.person?.middle_name ?? ''} ${item?.person?.last_name ?? ''}`.trim();
-        return [
-            index + 1,
-            item.visitor_reg_no,
-            fullName,
-            item.visitor_type,
-            item.approved_by,
-        ];
-    });
+        addHeader();
 
-    for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
-        const pageData = tableData.slice(i, i + maxRowsPerPage);
-
-        autoTable(doc, {
-            head: [['No.', 'Visitor Registration No.', 'Name', 'Visitor Type', 'Approved By']],
-            body: pageData,
-            startY: startY,
-            margin: { top: 0, left: 10, right: 10 },
-            didDrawPage: function (data) {
-                if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                    addHeader();
-                }
-            },
+        const tableData = printSource.map((item, index) => {
+            const fullName = `${item?.person?.first_name ?? ''} ${item?.person?.middle_name ?? ''} ${item?.person?.last_name ?? ''}`.trim();
+            return [
+                index + 1,
+                item.visitor_reg_no,
+                fullName,
+                item.visitor_type,
+                item.approved_by,
+            ];
         });
 
-        if (i + maxRowsPerPage < tableData.length) {
-            doc.addPage();
-            startY = headerHeight;
+        for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
+            const pageData = tableData.slice(i, i + maxRowsPerPage);
+
+            autoTable(doc, {
+                head: [['No.', 'Visitor Registration No.', 'Name', 'Visitor Type', 'Approved By']],
+                body: pageData,
+                startY: startY,
+                margin: { top: 0, left: 10, right: 10 },
+                didDrawPage: function (data) {
+                    if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+                        addHeader();
+                    }
+                },
+            });
+
+            if (i + maxRowsPerPage < tableData.length) {
+                doc.addPage();
+                startY = headerHeight;
+            }
         }
-    }
 
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let page = 1; page <= pageCount; page++) {
-        doc.setPage(page);
-        const footerText = [
-            "Document Version: Version 1.0",
-            "Confidentiality Level: Internal use only",
-            "Contact Info: " + PreparedBy,
-            `Timestamp of Last Update: ${formattedDate}`
-        ].join('\n');
-        const footerX = 10;
-        const footerY = doc.internal.pageSize.height - footerHeight + 15;
-        const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
-        doc.setFontSize(8);
-        doc.text(footerText, footerX, footerY);
-        doc.text(`${page} / ${pageCount}`, pageX, footerY);
-    }
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let page = 1; page <= pageCount; page++) {
+            doc.setPage(page);
+            const footerText = [
+                "Document Version: Version 1.0",
+                "Confidentiality Level: Internal use only",
+                "Contact Info: " + PreparedBy,
+                `Timestamp of Last Update: ${formattedDate}`
+            ].join('\n');
+            const footerX = 10;
+            const footerY = doc.internal.pageSize.height - footerHeight + 15;
+            const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+            doc.setFontSize(8);
+            doc.text(footerText, footerX, footerY);
+            doc.text(`${page} / ${pageCount}`, pageX, footerY);
+        }
 
-    const pdfOutput = doc.output('datauristring');
-    setPdfDataUrl(pdfOutput);
-    setIsPdfModalOpen(true);
-};
+        const pdfOutput = doc.output('datauristring');
+        setPdfDataUrl(pdfOutput);
+        setIsPdfModalOpen(true);
+    };
 
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
