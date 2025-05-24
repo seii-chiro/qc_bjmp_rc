@@ -219,7 +219,7 @@ const UpdatePDL = () => {
     } = useQuery({
         queryKey: ['paginated-person', debouncedSearch, personPage],
         queryFn: () => getPersonSearch(token ?? "", 10, debouncedSearch, personPage),
-        keepPreviousData: true,
+        placeholderData: (previousData) => previousData,
         staleTime: 10 * 60 * 1000,
     });
 
@@ -511,36 +511,43 @@ const UpdatePDL = () => {
         useQuery({
             queryKey: ["visitation-statuses"],
             queryFn: () => getPDLVisitStatuses(token ?? ""),
+            staleTime: 10 * 60 * 1000,
         });
 
     const { data: attainments } = useQuery({
         queryKey: ["education-attainment"],
         queryFn: () => getEducationalAttainments(token ?? ""),
+        staleTime: 10 * 60 * 1000,
     });
 
     const { data: courtBranches } = useQuery({
         queryKey: ['court-branches'],
-        queryFn: () => getCourtBranches(token ?? "")
+        queryFn: () => getCourtBranches(token ?? ""),
+        staleTime: 10 * 60 * 1000,
     })
 
     const { data: crimeCategories } = useQuery({
         queryKey: ['crime-categories'],
-        queryFn: () => getCrimeCategories(token ?? "")
+        queryFn: () => getCrimeCategories(token ?? ""),
+        staleTime: 10 * 60 * 1000,
     })
 
     const { data: laws } = useQuery({
         queryKey: ['laws'],
-        queryFn: () => getLaws(token ?? "")
+        queryFn: () => getLaws(token ?? ""),
+        staleTime: 10 * 60 * 1000,
     })
 
     const { data: users } = useQuery({
         queryKey: ['users'],
-        queryFn: () => getUsers(token ?? "")
+        queryFn: () => getUsers(token ?? ""),
+        staleTime: 10 * 60 * 1000,
     })
 
     const { data: relationships } = useQuery({
         queryKey: ['relationships'],
-        queryFn: () => getVisitor_to_PDL_Relationship(token ?? "")
+        queryFn: () => getVisitor_to_PDL_Relationship(token ?? ""),
+        staleTime: 10 * 60 * 1000,
     })
 
     const enrollFaceMutation = useMutation({
@@ -994,6 +1001,7 @@ const UpdatePDL = () => {
             multiple_birth_sibling_data:
                 pdlData?.person?.multiple_birth_siblings?.map((sibling: any) => ({
                     ...sibling,
+                    full_name: sibling?.person,
                     sibling_person_id: +sibling?.sibling_person_id_display,
                     person_id: pdlData?.person?.id ?? null,
                     multiple_birth_sibling_id: birthClassTypes?.find(
@@ -1155,7 +1163,7 @@ const UpdatePDL = () => {
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
 
     // console.log("PDL Data:", pdlData)
-    // console.log("Person Form:", personForm)
+    console.log("Person Form:", personForm)
 
     return (
         <div className="bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5">
