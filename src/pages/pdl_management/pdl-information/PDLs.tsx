@@ -1,5 +1,5 @@
 import { PDLs } from "@/lib/pdl-definitions";
-import { getPDLs, getUser } from "@/lib/queries";
+import { getUser } from "@/lib/queries";
 import { deletePDL, patchPDL } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { CSVLink } from "react-csv";
@@ -25,7 +25,6 @@ const PDLtable = () => {
     const [form] = Form.useForm();
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectPDL, setSelectedPDL] = useState<PDLs | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
@@ -33,7 +32,6 @@ const PDLtable = () => {
     const [page, setPage] = useState(1);
     const limit = 10;
     const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [allPDLs, setAllPDLs] = useState<PDLs[]>([]);
 
     useEffect(() => {
@@ -72,7 +70,7 @@ const PDLtable = () => {
     const { data: searchData, isLoading: searchLoading } = useQuery({
         queryKey: ["pdls", debouncedSearch],
         queryFn: () => fetchPdls(debouncedSearch),
-        behavior: keepPreviousData(),
+        placeholderData: (previousData) => previousData,
         enabled: debouncedSearch.length > 0,
     });
 
