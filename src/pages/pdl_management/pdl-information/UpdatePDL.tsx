@@ -1148,14 +1148,14 @@ const UpdatePDL = () => {
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""
             }`;
-        setPersonForm((prev) => ({ ...prev, shortname: short.toUpperCase() }));
-    }, [personForm.first_name, personForm.last_name]);
+        setPersonForm((prev) => ({ ...prev, shortname: short?.toUpperCase() }));
+    }, [personForm?.first_name, personForm?.last_name]);
 
     if (isLoading) return <div><Spinner /></div>;
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
 
     // console.log("PDL Data:", pdlData)
-    // console.log("PDL Form:", pdlForm)
+    // console.log("Person Form:", personForm)
 
     return (
         <div className="bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5">
