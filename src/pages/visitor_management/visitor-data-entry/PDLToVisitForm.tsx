@@ -1,7 +1,7 @@
 import { VisitortoPDLRelationship } from '@/lib/definitions';
 import { PDLs } from '@/lib/pdl-definitions';
 import { VisitorForm } from '@/lib/visitorFormDefinition';
-import { Input, Pagination, Select, message } from 'antd';
+import { Input, Select, message } from 'antd';
 import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { PdlToVisitForm } from './PDLtovisit';
 
@@ -33,9 +33,6 @@ const PDLToVisitForm = ({
     handlePdlToVisitModalCancel,
     editPdlToVisitIndex,
     visitorForm,
-    pdlFirstName,
-    pdlPage,
-    pdlsCount,
     setPdlFirstName,
     setPdlPage
 }: Props) => {
