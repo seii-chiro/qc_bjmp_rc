@@ -38,9 +38,9 @@ const VisitorProfileSlider = () => {
         refetchInterval: 30000,
     })
 
-    const main_gate_logs = main_gate_logs_raw?.results
+    const main_gate_logs = main_gate_logs_raw?.results || []
 
-    const todayLogs = main_gate_logs.filter((log: { timestamp_out: string; timestamp_in: string }) => {
+    const todayLogs = main_gate_logs?.filter((log: { timestamp_out: string; timestamp_in: string }) => {
         if (log.timestamp_out) return false;
 
         const logDate = log.timestamp_in ? new Date(log.timestamp_in) : null;
