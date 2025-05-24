@@ -891,6 +891,14 @@ const VisitorRegistration = () => {
             pdl_data: visitorData?.pdls?.map((pdl: { pdl: { id: any; }; relationship_to_pdl: string; }) => ({
                 ...pdl,
                 pdl_id: pdl?.pdl?.id,
+                last_name: pdl?.pdl?.person?.last_name,
+                first_name: pdl?.pdl?.person?.first_name,
+                middle_name: pdl?.pdl?.person?.middle_name,
+                annex: pdl?.pdl?.cell?.floor,
+                dorm: pdl?.pdl?.cell?.cell_name,
+                level: pdl?.pdl?.jail?.jail_name,
+                visitationStatus: pdl?.pdl?.visitation_status,
+                birthClassClassification: "N/A",
                 relationship_to_pdl_id: relationships?.results?.find(rel => rel?.relationship_name === pdl?.relationship_to_pdl)?.id
             })) ?? [],
             id_number: visitorData?.id_number ?? null,
