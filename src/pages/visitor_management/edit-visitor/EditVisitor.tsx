@@ -898,7 +898,7 @@ const VisitorRegistration = () => {
                 dorm: pdl?.pdl?.cell?.cell_name,
                 level: pdl?.pdl?.jail?.jail_name,
                 visitationStatus: pdl?.pdl?.visitation_status,
-                birthClassClassification: "N/A",
+                birthClassClassification: pdl?.pdl?.person?.multiple_birth_siblings?.[0]?.multiple_birth_class,
                 relationship_to_pdl_id: relationships?.results?.find(rel => rel?.relationship_name === pdl?.relationship_to_pdl)?.id
             })) ?? [],
             id_number: visitorData?.id_number ?? null,
@@ -1126,7 +1126,7 @@ const VisitorRegistration = () => {
                                 />
                             </div>
                             <div className='flex flex-col mt-2 flex-[3]'>
-                                <div className='flex gap-1'>Place of Birth<p className='text-red-600'>*</p></div>
+                                <div className='flex gap-1'>Place of Birth</div>
                                 <Input
                                     value={personForm?.place_of_birth}
                                     className='mt-2 px-3 py-2 rounded-md outline-gray-300'

@@ -154,7 +154,7 @@ const UpdatePDLtoVisit = ({
                         dorm: specificpdl?.cell?.cell_name || pdl?.dorm,
                         annex: specificpdl?.cell?.cell_floor || pdl?.annex,
                         visitationStatus: specificpdl?.visitation_status || pdl?.visitationStatus,
-                        birthClassClassification: specificpdl?.person?.multiple_birth_siblings?.[0]?.multiple_birth_class,
+                        birthClassClassification: specificpdl?.person?.multiple_birth_siblings?.[0]?.multiple_birth_class || pdl?.birthClassClassification,
                         action: (
                             <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center items-center">
                                 <button
