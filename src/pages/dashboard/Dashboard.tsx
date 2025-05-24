@@ -1,10 +1,10 @@
-import { getJail, getPersonnel, getSummary_Card, getSummaryDaily } from "@/lib/queries";
+import { getJail, getPersonnel, getSummary_Card, getSummaryDaily, getSystem_Setting } from "@/lib/queries";
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import bjmp from '../../assets/Logo/bjmp.png';
 import bjmpro from '../../assets/Logo/BJMPRO.png';
 import bp from '../../assets/Logo/BP.png';
@@ -35,15 +35,25 @@ import { IoMdRefresh } from "react-icons/io";
 import { RxEnterFullScreen } from "react-icons/rx";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { getVisitor } from "@/lib/query";
 import { Title } from "./components/SummaryCards";
 import { BASE_URL } from "@/lib/urls";
+import { Input, Select } from "antd";
+
+const { Option } = Select;
+interface PDLData {
+    pdl_count?: number; // Optional since it may not be present
+}
 
 const Dashboard = () => {
     const queryClient = useQueryClient();
     const handle = useFullScreenHandle();
     const token = useTokenStore().token;
     const currentYear = new Date().getFullYear();
+    const [genderFilter, setGenderFilter] = useState(''); // State for gender filter
+    const [visitorsData, setVisitorsData] = useState([]);
+    const currentMonth = new Date().getMonth();
+    const navigate = useNavigate();
+    const [visitorGenderFilter, setvisitorGenderFilter] = useState({});
     const currentDate = new Date().toLocaleDateString('en-us', { year: "numeric", month: "long", day: "numeric" });
     const [time, setTime] = useState(new Date().toLocaleTimeString());
     const isFullscreen = handle.active;
@@ -63,21 +73,53 @@ const Dashboard = () => {
         queryFn: () => getSummaryDaily(token ?? "")
     });
 
-    const { data: jail } = useQuery({
-        queryKey: ['jail'],
-        queryFn: () => getJail(token ?? "")
+    const fetchSettings = async () => {
+        const res = await fetch(`${BASE_URL}/api/codes/global-system-settings`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    const { data: systemsettingdata } = useQuery({
+        queryKey: ['global-settings'],
+        queryFn: fetchSettings,
     });
 
-    const { data: personnelData } = useQuery({
-        queryKey: ['personnel'],
-        queryFn: () => getPersonnel(token ?? "")
-    });
+    // const { data: personnelData } = useQuery({
+    //     queryKey: ['personnel'],
+    //     queryFn: () => getPersonnel(token ?? "")
+    // });
 
-    const { data: visitorData } = useQuery({
-        queryKey: ['visitor'],
-        queryFn: () => getVisitor(token ?? "")
-    });
-const [dateField, setDateField] = useState('date_convicted');
+    // const { data: visitorData } = useQuery({
+    //     queryKey: ['visitor'],
+    //     queryFn: () => getVisitor(token ?? "")
+    // });
+
+{/* 
+    
+
+    const fetchData = async (type) => {
+        const endpoint = type === 'quarterly'
+            ? `/api/dashboard/summary-dashboard/get-quarterly-pdl-summary`
+            : `/api/dashboard/summary-dashboard/get-monthly-pdl-summary`;
+
+        const res = await fetch(`${BASE_URL}${endpoint}?date_field=${dateField}&${type === 'monthly' ? `start_date=${startDate}&end_date=${endDate}` : `start_year=${startYear}&end_year=${endYear}`}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    const [dateField, setDateField] = useState('date_convicted');
     const [startYear, setStartYear] = useState(currentYear.toString());
     const [endYear, setEndYear] = useState(currentYear.toString());
 
@@ -111,59 +153,101 @@ const [dateField, setDateField] = useState('date_convicted');
 
     const totalHospitalizedCount = dateField === 'date_hospitalized'
         ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
-        : 0;
+        : 0;*/}
 
     {/* const totalConvictedCount = dateField === 'date_convicted'
         ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
         : 0; */}
-    
-    
 
-    const totalJailCapacity = Array.isArray(jail?.results)
-        ? jail.results.reduce((sum: any, item: { jail_capacity: any; }) => sum + (item.jail_capacity || 0), 0)
-        : 0;
+    const [dateField, setDateField] = useState<string>('date_convicted');
+    const [timeFrame, setTimeFrame] = useState<string>('monthly');
+    const [startYear, setStartYear] = useState<string>(currentYear.toString());
+    const [endYear, setEndYear] = useState<string>(currentYear.toString());
+    
+    const [totalReleasedCount, setTotalReleasedCount] = useState<number>(0);
+    const [totalCommittedCount, setTotalCommittedCount] = useState<number>(0);
+    const [totalHospitalizedCount, setTotalHospitalizedCount] = useState<number>(0);
+
+    const fetchData = async () => {
+        const endpoint = {
+            quarterly: '/api/dashboard/summary-dashboard/get-quarterly-pdl-summary',
+            monthly: '/api/dashboard/summary-dashboard/get-monthly-pdl-summary',
+            weekly: '/api/dashboard/summary-dashboard/get-weekly-pdl-summary',
+            daily: '/api/dashboard/summary-dashboard/get-daily-pdl-summary',
+        }[timeFrame];
+
+        const res = await fetch(`${BASE_URL}${endpoint}?date_field=${dateField}&start_year=${startYear}&end_year=${endYear}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        const data = await res.json();
+        
+        const quarterlyCounts: Record<string, PDLData> = data.success.quarterly_pdl_summary || {};
+        setTotalReleasedCount(dateField === 'date_released' ? calculateCount(quarterlyCounts) : 0);
+        setTotalCommittedCount(dateField === 'date_of_admission' ? calculateCount(quarterlyCounts) : 0);
+        setTotalHospitalizedCount(dateField === 'date_hospitalized' ? calculateCount(quarterlyCounts) : 0);
+    };
+
+    const calculateCount = (counts: Record<string, PDLData>): number => {
+        return Object.values(counts).reduce((total, data) => total + (data.pdl_count || 0), 0);
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, [dateField, timeFrame, startYear, endYear]);
+    
+const fetchVisitors = async (gender: any) => {
+        const res = await fetch(`/api/visitors/visitor/?gender=${gender}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        const data = await res.json();
+        setVisitorsData(data);
+    };
+
+    const handleGenderFilter = (gender: SetStateAction<string>) => {
+        setGenderFilter(gender);
+        fetchVisitors(gender); // Fetch data for the selected gender
+    };
+
+    useEffect(() => {
+        fetchVisitors(genderFilter); // Fetch data when page or limit changes
+    }, [genderFilter]);
 
     const latestDate = Object.keys(dailysummarydata?.success.daily_visit_summary || {})[0];
     const summary = dailysummarydata?.success.daily_visit_summary[latestDate];
 
+    const visitorOtherCount = Object.entries(summarydata?.success?.visitor_based_on_gender?.Active || {})
+    .filter(([key]) => key !== "Male" && key !== "Female")
+    .reduce((total, [, value]) => total + (value ?? 0), 0);
 
-    const personnelResults = personnelData?.results || [];
-    const personnelMaleCount = personnelResults.filter(
-        p => p?.person?.gender?.gender_option === "Male"
-    ).length;
-    const personnelFemaleCount = personnelResults.filter(
-        p => p?.person?.gender?.gender_option === "Female"
-    ).length;
-    const personnelOtherCount = personnelResults.filter(
-        p => p?.person?.gender?.gender_option !== "Male" &&
-            p?.person?.gender?.gender_option !== "Female"
-    ).length;
-
-    const visitorResults = visitorData?.results || [];
-    const visitorMaleCount = visitorResults.filter(
-        p => p?.person?.gender?.gender_option === "Male"
-    ).length;
-    const visitorFemaleCount = visitorResults.filter(
-        p => p?.person?.gender?.gender_option === "Female"
-    ).length;
-    const visitorOtherCount = visitorResults.filter(
-        p => p?.person?.gender?.gender_option !== "Male" &&
-            p?.person?.gender?.gender_option !== "Female"
-    ).length;
-
+const personnelOtherCount = Object.entries(summarydata?.success?.personnel_based_on_gender?.Active || {})
+    .filter(([key]) => key !== "Male" && key !== "Female")
+    .reduce((total, [, value]) => total + (value ?? 0), 0);
+    // Construct arrays
     const visitorGenderData = [
-        { name: 'Male', value: visitorMaleCount ?? 0 },
-        { name: 'Female', value: visitorFemaleCount ?? 0 },
-        { name: 'Other', value: visitorOtherCount ?? 0 },
+    { name: 'Male', value: summarydata?.success?.visitor_based_on_gender?.Active?.Male ?? 0 },
+    { name: 'Female', value: summarydata?.success?.visitor_based_on_gender?.Active?.Female ?? 0 },
+    { name: 'Other', value: visitorOtherCount },
     ];
+
     const personnelGenderData = [
-        { name: 'Male', value: personnelMaleCount ?? 0 },
-        { name: 'Female', value: personnelFemaleCount ?? 0 },
-        { name: 'Other', value: personnelOtherCount ?? 0 },
+    { name: 'Male', value: summarydata?.success?.personnel_based_on_gender?.Active?.Male ?? 0 },
+    { name: 'Female', value: summarydata?.success?.personnel_based_on_gender?.Active?.Female ?? 0 },
+    { name: 'Other', value: personnelOtherCount },
     ];
+
     const genderData = [
-        { name: 'Male', value: summarydata?.success.pdls_based_on_gender?.Active?.Male || 0 },
-        { name: 'Gay', value: summarydata?.success.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0 },
+        { name: 'Male', value: summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0 },
+        { name: 'Gay', value: summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0 },
         { name: 'Transgender', value: summarydata?.success.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0 },
     ];
     const PDL_COLORS = ['#3471EC', '#7ED26C', '#FE319D'];
@@ -242,7 +326,7 @@ const [dateField, setDateField] = useState('date_convicted');
                 className='rounded-lg flex flex-grow items-center gap-2 p-2 w-full bg-[#F6F7FB] hover:cursor-pointer'
                 onClick={handleClick}
             >
-                <div className='bg-[#D3DFF0] p-1 rounded-full'>
+                <div className='bg-[#D3DFF0] rounded-full'>
                     <img src={image} className='w-10' alt={title} />
                 </div>
                 <div className='flex gap-2 items-center'>
@@ -253,7 +337,7 @@ const [dateField, setDateField] = useState('date_convicted');
         );
     };
 
-        const Card3 = (props: {
+    const Card3 = (props: {
         title: string;
         image: string;
         count: number | string;
@@ -274,7 +358,7 @@ const [dateField, setDateField] = useState('date_convicted');
                 className='rounded-lg flex flex-grow items-center gap-2 p-2 w-full bg-[#F6F7FB] hover:cursor-pointer'
                 onClick={handleClick}
             >
-                <div className='bg-[#D3DFF0] p-1 rounded-full'>
+                <div className='bg-[#D3DFF0] rounded-full'>
                     <img src={image} className='w-10' alt={title} />
                 </div>
                 <div className='flex flex-col'>
@@ -347,37 +431,6 @@ const [dateField, setDateField] = useState('date_convicted');
     return (
         <div>
             <div id="dashboard">
-                {/* <div className="bg-white border shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col gap-2 max-w-full md:max-w-sm lg:max-w-[16rem] w-full flex-[1.2]">
-                    <label>
-                        Date Field:
-                        <select onChange={(e) => setDateField(e.target.value)} value={dateField}>
-                            <option value="date_convicted">Date Convicted</option>
-                            <option value="date_hospitalized">Date Hospitalized</option>
-                            <option value="date_of_admission">Date of Admission</option>
-                            <option value="date_released">Date Released</option>
-                        </select>
-                    </label>
-                    <label>
-                        Start Year:
-                        <input 
-                            type="number" 
-                            onChange={(e) => setStartYear(e.target.value)} 
-                            value={startYear} 
-                            min="2000" 
-                            max="2100"
-                        />
-                    </label>
-                    <label>
-                        End Year:
-                        <input 
-                            type="number" 
-                            onChange={(e) => setEndYear(e.target.value)} 
-                            value={endYear} 
-                            min="2000" 
-                            max="2100"
-                        />
-                    </label>
-                </div> */}
                 <FullScreen handle={handle}>
                     <div  className={`w-full ${isFullscreen ? "h-screen bg-[#F6F7FB]" : ""} space-y-2  text-sm`}
                         style={{
@@ -417,7 +470,7 @@ const [dateField, setDateField] = useState('date_convicted');
                                 <Card3
                                     image={rate}
                                     title='Jail Capacity'
-                                    count={totalJailCapacity}
+                                    count={systemsettingdata?.results[0]?.jail_facility?.jail_capacity ??  0}
                                     linkto="/jvms/assets/jail-facility"
                                 />
                                 <Card3
@@ -440,9 +493,9 @@ const [dateField, setDateField] = useState('date_convicted');
                                     <Card3 
                                         image={prison} 
                                         title='Committed PDL' 
-                                        count={totalAdmissionCount} 
+                                        count={totalCommittedCount} 
                                         linkto="/jvms/pdls/pdl"
-                                        state={{ filterOption: "Commited" }}
+                                        state={{ filterOption: "Committed" }}
                                     />
                                     <Card3 
                                         image={hospital} 
@@ -492,23 +545,23 @@ const [dateField, setDateField] = useState('date_convicted');
                                             <Card3
                                                 image={male}
                                                 title='Male'
-                                                count={summarydata?.success.pdls_based_on_gender?.Active?.Male || 0}
+                                                count={summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0}
                                                 linkto='/jvms/pdls/pdl'
-                                                state={{ filterOption: "Male" }}
+                                                state={{ genderFilter: "Male" }}
                                             />
                                             <Card3
                                                 image={gay}
                                                 title='Gay'
-                                                count={summarydata?.success.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0}
+                                                count={summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0}
                                                 linkto='/jvms/pdls/pdl'
-                                                state={{ filterOption: "LGBTQ + GAY / BISEXUAL" }}
+                                                state={{ genderFilter: "LGBTQ + GAY / BISEXUAL" }}
                                             />
                                             <Card3
                                                 image={trans}
                                                 title='Transgender'
-                                                count={summarydata?.success.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0}
+                                                count={summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0}
                                                 linkto='/jvms/pdls/pdl'
-                                                state={{ filterOption: "LGBTQ + TRANSGENDER" }}
+                                                state={{ genderFilter: "LGBTQ + TRANSGENDER" }}
                                             />
                                         </div>
                                     </div>
@@ -541,17 +594,17 @@ const [dateField, setDateField] = useState('date_convicted');
                                             </ResponsiveContainer>
                                         </div>
                                         <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
-                                            <Card3
+                                            {/* <Card3
                                                 image={visitor_male}
                                                 title='Male'
-                                                count={visitorMaleCount}
+                                                count={summarydata?.success?.visitor_based_on_gender?.Active?.Male}
                                                 linkto='/jvms/visitors/visitor'
                                                 state={{ genderFilter: "Male" }}
                                             />
                                             <Card3
                                                 image={visitor_female}
                                                 title='Female'
-                                                count={visitorFemaleCount}
+                                                count={summarydata?.success?.visitor_based_on_gender?.Active?.Female}
                                                 linkto='/jvms/visitors/visitor'
                                                 state={{ genderFilter: "Female" }}
                                             />
@@ -561,6 +614,30 @@ const [dateField, setDateField] = useState('date_convicted');
                                                 count={visitorOtherCount}
                                                 linkto='/jvms/visitors/visitor'
                                                 state={{ genderFilter: "Other" }}
+                                            /> */}
+                                            <Card3
+                                                image={visitor_male}
+                                                title='Male'
+                                                count={summarydata?.success?.visitor_based_on_gender?.Active?.Male}
+                                                linkto='/jvms/visitors/visitor'
+                                                state={{ genderFilter: "Male" }}
+                                                onClick={() => handleGenderFilter("Male")}
+                                            />
+                                            <Card3
+                                                image={visitor_female}
+                                                title='Female'
+                                                count={summarydata?.success?.visitor_based_on_gender?.Active?.Female}
+                                                linkto='/jvms/visitors/visitor'
+                                                state={{ genderFilter: "Female" }}
+                                                onClick={() => handleGenderFilter("Female")}
+                                            />
+                                            <Card3
+                                                image={trans}
+                                                title='Others'
+                                                count={visitorOtherCount}
+                                                linkto='/jvms/visitors/visitor'
+                                                state={{ genderFilter: "Other" }}
+                                                onClick={() => handleGenderFilter("Other")}
                                             />
                                         </div>
                                     </div>
@@ -596,14 +673,14 @@ const [dateField, setDateField] = useState('date_convicted');
                                             <Card3
                                                 image={personnel_male}
                                                 title='Male'
-                                                count={personnelMaleCount}
+                                                count={summarydata?.success?.personnel_based_on_gender?.Active?.Male}
                                                 linkto='/jvms/personnels/personnel'
                                                 state={{ genderFilter: "Male" }}
                                             />
                                             <Card3
                                                 image={personnel_woman}
                                                 title='Female'
-                                                count={personnelFemaleCount}
+                                                count={summarydata?.success?.personnel_based_on_gender?.Active?.Female}
                                                 linkto='/jvms/personnels/personnel'
                                                 state={{ genderFilter: "Female" }}
                                             />
@@ -623,7 +700,28 @@ const [dateField, setDateField] = useState('date_convicted');
                             {!isFullscreen && (
                                 <div className="bg-white border shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col gap-2
                                     max-w-full md:max-w-sm lg:max-w-[16rem] w-full flex-[1.2]">
-                                    <Card3 
+                                        <Card3 
+                                            image={release_pdl} 
+                                            title="Released PDL" 
+                                            count={totalReleasedCount} 
+                                            linkto="/jvms/pdls/pdl"
+                                            state={{ filterOption: "Released" }}
+                                        />
+                                        <Card3 
+                                            image={prison} 
+                                            title='Committed PDL' 
+                                            count={totalCommittedCount} 
+                                            linkto="/jvms/pdls/pdl"
+                                            state={{ filterOption: "Committed" }}
+                                        />
+                                        <Card3 
+                                            image={hospital} 
+                                            title='Hospitalized PDL' 
+                                            count={totalHospitalizedCount} 
+                                            linkto="/jvms/pdls/pdl"
+                                            state={{ filterOption: "Hospitalized" }}
+                                        />
+                                    {/* <Card3 
                                         image={release_pdl} 
                                         title="Released PDL" 
                                         count={totalReleasedCount} 
@@ -632,10 +730,10 @@ const [dateField, setDateField] = useState('date_convicted');
                                     />
                                     <Card3 
                                         image={prison} 
-                                        title='Committed PDL' 
-                                        count={totalAdmissionCount}  // Display total admission count here
+                                        title='Commited PDL' 
+                                        count={summarydata?.success?.total_pdl_by_status?.Commited?.Active}  // Display total admission count here
                                         linkto="/jvms/pdls/pdl"
-                                        state={{ filterOption: "Committed" }}
+                                        state={{ filterOption: "Commited" }}
                                     />
                                     <Card3 
                                         image={hospital} 
@@ -643,7 +741,7 @@ const [dateField, setDateField] = useState('date_convicted');
                                         count={totalHospitalizedCount} 
                                         linkto="/jvms/pdls/pdl"
                                         state={{ filterOption: "Hospitalized" }}
-                                    />
+                                    /> */}
                                 </div>
                             )}
                             <div className="w-full flex flex-col md:flex-row flex-1 gap-2">
@@ -1153,51 +1251,6 @@ const [dateField, setDateField] = useState('date_convicted');
                 </FullScreen>
             </div>
             <div className="flex flex-wrap gap-2 justify-center md:justify-end my-2 items-center">
-            {/* <select
-                value={summaryView}
-                onChange={(e) => setSummaryView(e.target.value as any)}
-                className="px-4 py-2 rounded border"
-            >
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="quarterly">Quarterly</option>
-            </select>
-
-            <input
-                type="text"
-                placeholder={
-                summaryView === "quarterly"
-                    ? "YYYY"
-                    : summaryView === "monthly"
-                    ? "MM-YYYY"
-                    : "MM-DD-YYYY"
-                }
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="px-4 py-2 rounded border"
-            />
-            <input
-                type="text"
-                placeholder={
-                summaryView === "quarterly"
-                    ? "YYYY"
-                    : summaryView === "monthly"
-                    ? "MM-YYYY"
-                    : "MM-DD-YYYY"
-                }
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="px-4 py-2 rounded border"
-            />
-
-            <button
-                className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full hover:bg-[#163050] transition"
-                onClick={handleFilter}
-            >
-                Filter
-            </button> */}
-
             <button
                 className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full hover:bg-[#163050] transition"
                 onClick={exportInFullscreen}
@@ -1216,20 +1269,39 @@ const [dateField, setDateField] = useState('date_convicted');
             >
                 <RxEnterFullScreen className="text-xl" />
             </button>
+            </div>
+            <div className="bg-white border shadow-md rounded-lg p-4 flex flex-col gap-2 max-w-full">
+                {/* Date Field Selection */}
+                <label>
+                    Date Field:
+                    <Select onChange={setDateField} value={dateField} className="w-full">
+                        <Option value="date_convicted">Date Convicted</Option>
+                        <Option value="date_hospitalized">Date Hospitalized</Option>
+                        <Option value="date_of_admission">Date of Admission</Option>
+                        <Option value="date_released">Date Released</Option>
+                    </Select>
+                </label>
+                
+                {/* Time Frame Selection */}
+                <label>
+                    Time Frame:
+                    <Select onChange={setTimeFrame} value={timeFrame} className="w-full">
+                        <Option value="daily">Daily</Option>
+                        <Option value="weekly">Weekly</Option>
+                        <Option value="monthly">Monthly</Option>
+                        <Option value="quarterly">Quarterly</Option>
+                    </Select>
+                </label>
 
-            {/* Message Box below buttons, full width
-            {filterMessage && (
-                <div
-                className={`mt-4 w-full max-w-xl mx-auto text-center py-2 rounded ${
-                    filterMessage.includes("Failed")
-                    ? "bg-red-100 text-red-700"
-                    : "bg-green-100 text-green-700"
-                }`}
-                role="alert"
-                >
-                {filterMessage}
-                </div>
-            )} */}
+                {/* Year Inputs */}
+                <label>
+                    Start Year:
+                    <Input type="number" onChange={(e) => setStartYear(e.target.value)} value={startYear} min="2000" max="2100" />
+                </label>
+                <label>
+                    End Year:
+                    <Input type="number" onChange={(e) => setEndYear(e.target.value)} value={endYear} min="2000" max="2100" />
+                </label>
             </div>
         </div>
     )

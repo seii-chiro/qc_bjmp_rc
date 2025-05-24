@@ -25,7 +25,6 @@ const Home = () => {
     const [startMonth, setStartMonth] = useState<string>(todayMonth);
     const [endMonth, setEndMonth] = useState<string>(todayMonth);
 
-
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
         return () => clearInterval(timer);
