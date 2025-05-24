@@ -346,7 +346,7 @@ const VisitorRegistration = () => {
     const [debouncedPersonSearch, setDebouncedPersonSearch] = useState(personSearch)
 
     useEffect(() => {
-        const handler = setTimeout(() => setDebouncedPersonSearch(personSearch));
+        const handler = setTimeout(() => setDebouncedPersonSearch(personSearch), 500);
         return () => clearTimeout(handler)
     }, [personSearch])
 
@@ -354,7 +354,7 @@ const VisitorRegistration = () => {
         data: personsPaginated,
         isLoading: personsLoading,
     } = useQuery({
-        queryKey: ['paginated-person', personSearch, personPage],
+        queryKey: ['paginated-person', debouncedPersonSearch, personPage],
         queryFn: () => getPersonSearch(token ?? "", 10, debouncedPersonSearch, personPage),
         keepPreviousData: true,
         staleTime: 10 * 60 * 1000,
@@ -840,7 +840,7 @@ const VisitorRegistration = () => {
 
 
     // console.log(visitorForm)
-    // console.log("Person Form: ", personForm)
+    console.log("Person Form: ", personForm)
 
     return (
         <div className='bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5'>
