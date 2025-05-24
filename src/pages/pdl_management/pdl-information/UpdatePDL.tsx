@@ -50,7 +50,7 @@ import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import { DatePicker, Input, message, Modal, Select, Table } from "antd";
 import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
 import { useLocation } from "react-router-dom";
 import dayjs from "dayjs";
@@ -471,7 +471,7 @@ const UpdatePDL = () => {
     const annex = dropdownOptions?.[18]?.data?.results;
     const annexLoading = dropdownOptions?.[18]?.isLoading;
 
-    const persons = personsPaginated?.results || [];
+    const persons = useMemo(() => personsPaginated?.results || [], [personsPaginated]);
     const personsCount = personsPaginated?.count || 0;
 
     const { data: ethnicitiesProvinces, isLoading: ethnicitiesProvincesLoading } =
@@ -1112,7 +1112,7 @@ const UpdatePDL = () => {
             cell_id: pdlData?.cell?.id ?? null,
             floor_id:
                 annex?.find(
-                    (annex) => annex?.floor_name === pdlData?.cell?.floor?.split(" ")[0]
+                    (annex) => annex?.floor_name === pdlData?.cell?.floor?.replace(/\s*\([^)]*\)/g, "")
                 )?.id ?? null,
             visitation_status_id:
                 pdlVisitStatuses?.results?.find(
@@ -1142,6 +1142,7 @@ const UpdatePDL = () => {
         users,
         persons,
         relationships,
+        birthClassTypes
     ]);
 
     useEffect(() => {
@@ -1153,8 +1154,8 @@ const UpdatePDL = () => {
     if (isLoading) return <div><Spinner /></div>;
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
 
-    console.log("PDL Data:", pdlData)
-    console.log("PDL Form:", pdlForm)
+    // console.log("PDL Data:", pdlData)
+    // console.log("PDL Form:", pdlForm)
 
     return (
         <div className="bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5">
