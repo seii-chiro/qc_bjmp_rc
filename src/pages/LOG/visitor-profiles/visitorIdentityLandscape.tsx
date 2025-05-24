@@ -16,7 +16,7 @@ const IdentificationLandscape = ({ visitor_log, visitHistory }: { visitor_log: a
 
     const currentVisit = {
         ...visitor_log,
-        isCurrent: true, // flag to indicate this is the current/ongoing visit
+        isCurrent: true,
     };
     const displayedVisitHistory = [currentVisit, ...(sortedVisitHistory || [])];
 
