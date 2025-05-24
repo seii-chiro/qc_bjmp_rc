@@ -26,6 +26,7 @@ type Props = {
 }
 
 export type TableInfo = {
+    person_id?: string;
     sibling_group: string;
     short_name: string;
     gender: string;
@@ -88,7 +89,7 @@ const MultipleBirthSiblings = ({
         // Update the table info
         setTableInfo(prev => {
             const updatedTableInfo = [...(prev || [])];
-            const chosenSibling = persons?.find(person => person?.id === updatedData?.sibling_person_id || updatedData?.person_id || updatedData?.sibling_person_id_display);
+            const chosenSibling = persons?.find(person => person?.id === updatedData?.sibling_person_id || updatedData?.sibling_person_id_display);
             updatedTableInfo[index] = {
                 sibling_group: chosenSibling?.multiple_birth_siblings?.[0]?.multiple_birth_class || "",
                 short_name: chosenSibling?.shortname || "",
@@ -101,9 +102,11 @@ const MultipleBirthSiblings = ({
     };
 
     const IdentifierDataSource = tableInfo?.map((info, index) => {
+        const normalizeSiblingGroup = info?.sibling_group === "" ? "Single" : info.sibling_group
+        console.log(info)
         return ({
             key: index,
-            siblingGroup: info?.sibling_group ?? "N/A",
+            siblingGroup: normalizeSiblingGroup,
             shortName: info?.short_name ?? "N/A",
             gender: info?.gender ?? "N/A",
             identical: info?.identical ?? "N/A",
