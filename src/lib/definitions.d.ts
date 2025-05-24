@@ -2085,28 +2085,27 @@ type VisitorApplicationPayload = {
   record_status_id: number | null;
   remarks_data: Remark[];
   pdl_data: PdlData[];
-  verified_at: string; 
-  approved_at: string; 
+  verified_at: string;
+  approved_at: string;
   id_number: string;
   shortname: string;
   visitor_have_twins: boolean;
   visitor_twin_name: string;
   visited_pdl_have_twins: boolean;
   visited_pdl_twin_name: string;
-}
+};
 
 type Remark = {
   record_status_id: number | null;
   visitor: number | null;
   remarks: string;
-}
+};
 
 type PdlData = {
   visitor: number | null;
   relationship_to_pdl: number | null;
   record_status: number | null;
-}
-
+};
 
 type Ethnicities = {
   id: number;
@@ -2248,6 +2247,7 @@ export type IssueType = {
   description: string;
   created_by: number;
   updated_by: number;
+  risk?: string | number | null;
 };
 
 export type CourtBranch = {
@@ -2352,14 +2352,13 @@ export type BackupResponse = {
   backups: Backup[];
 };
 
-
 type IssueCategory = {
   id: number;
   created_by: string;
   updated_by: string;
   record_status: string;
-  created_at: string; 
-  updated_at: string; 
+  created_at: string;
+  updated_at: string;
   name: string;
   description: string;
 };
@@ -2370,8 +2369,8 @@ type IssueType = {
   updated_by: string;
   issue_category: IssueCategory;
   record_status: string;
-  created_at: string; 
-  updated_at: string; 
+  created_at: string;
+  updated_at: string;
   name: string;
   remarks: string;
   description: string;
@@ -2396,7 +2395,7 @@ export type PersonnelType = {
   name: string;
   description: string;
 };
- 
+
 export type PersonnelStatus = {
   id: number;
   created_by: string;
@@ -2409,7 +2408,7 @@ export type PersonnelStatus = {
   description: string;
   device: number;
 };
- 
+
 export type NonPdlVisitorReasonVisit = {
   id: number;
   created_by: string;
@@ -2427,7 +2426,7 @@ export type NonPdlVisitorReasonVisit = {
   threats: string;
   mitigation: string;
 };
- 
+
 export type Relationship = {
   id: number;
   created_by: string;
@@ -2438,7 +2437,7 @@ export type Relationship = {
   relationship_name: string;
   description: string;
 };
- 
+
 export type ProvidedService = {
   id: number;
   created_by: string;
@@ -2457,7 +2456,7 @@ export type ProvidedService = {
     | "Annually"
     | "As Needed";
 };
- 
+
 export type ServiceProviderType = {
   id: number;
   created_by: string;
@@ -2468,7 +2467,7 @@ export type ServiceProviderType = {
   serv_prov_type: string;
   description: string;
 };
- 
+
 export type ServiceProviderRemarks = {
   id: number;
   created_by: string;
@@ -2479,7 +2478,7 @@ export type ServiceProviderRemarks = {
   remark: string;
   description: string;
 };
- 
+
 export type Affiliation = {
   id: number;
   organization_name: string;
@@ -2491,7 +2490,7 @@ export type Affiliation = {
   record_status: string;
   person: number;
 };
- 
+
 export type GroupAffiliation = {
   id: number;
   created_by: string;
@@ -2502,7 +2501,7 @@ export type GroupAffiliation = {
   name: string;
   description: string;
 };
- 
+
 export type PDLVisitStatus = {
   id: number;
   created_by: string;
