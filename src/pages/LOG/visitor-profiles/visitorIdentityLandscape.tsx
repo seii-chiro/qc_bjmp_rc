@@ -1,24 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { calculateAge } from "@/functions/calculateAge"
-import { VisitorRecord } from "@/lib/definitions";
-import { useEffect, useState } from "react";
 import no_img from "@/assets/noimg.png"
+import dayjs from "dayjs";
 
-//All errors are linter errors, please ignore. Me too lazy write long type huhu
-type Visitor = VisitorRecord;
 
-const IdentificationLandscape = ({ visitor_log }: { visitor_log: any }) => {
+const IdentificationLandscape = ({ visitor_log, visitHistory }: { visitor_log: any, visitHistory: any[] }) => {
     const visitor = visitor_log?.visitor;
 
-    const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(visitor);
-    const [visitorVisits, setVisitorVisits] = useState(selectedVisitor?.main_gate_visits || []);
-    const [showAllVisits, setShowAllVisits] = useState(false);
+    const visitHistoryForVisitor = visitHistory?.filter(log => log?.person === visitor_log?.person)
 
-    useEffect(() => {
-        if (selectedVisitor?.main_gate_visits) {
-            setVisitorVisits(selectedVisitor.main_gate_visits);
-        }
-    }, [selectedVisitor]);
+    const sortedVisitHistory = visitHistoryForVisitor
+        ?.slice() // create a shallow copy
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 3);
+
+    const currentVisit = {
+        ...visitor_log,
+        isCurrent: true, // flag to indicate this is the current/ongoing visit
+    };
+    const displayedVisitHistory = [currentVisit, ...(sortedVisitHistory || [])];
 
     const Info = ({ title, info }: { title: string, info: string | null }) => {
         return (
@@ -147,56 +147,42 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any }) => {
                                                             <th className="rounded-r-lg bg-[#2F3237] text-white py-1 px-2 font-semibold text-xs">Logout</th>
                                                         </tr>
                                                     </thead>
-                                                    {selectedVisitor?.main_gate_visits?.length > 0 && (
-                                                        <tbody>
-                                                            {(showAllVisits
-                                                                ? [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-                                                                : [...visitorVisits]
-                                                                    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-                                                                    .slice(0, 3)
-                                                            ).map((visit, index, arr) => {
+                                                    <tbody>
+                                                        {displayedVisitHistory && displayedVisitHistory.length > 0 ? (
+                                                            displayedVisitHistory.map((visit, index) => {
                                                                 const login = new Date(visit.created_at);
-                                                                const logout = arr[index + 1] ? new Date(arr[index + 1].created_at) : new Date(visit.updated_at);
-                                                                const durationMs = logout.getTime() - login.getTime();
+                                                                const logout = visit.updated_at && !visit.isCurrent ? new Date(visit.updated_at) : null;
+                                                                const durationMs = logout ? logout.getTime() - login.getTime() : 0;
                                                                 const durationMins = Math.floor(durationMs / 60000);
                                                                 const hours = Math.floor(durationMins / 60);
                                                                 const minutes = durationMins % 60;
                                                                 return (
                                                                     <tr key={index}>
                                                                         <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                                            {login.toLocaleDateString()}
+                                                                            {dayjs(login).format("YYYY-MM-DD")}
                                                                         </td>
                                                                         <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                                            {`${hours}h ${minutes}m`}
+                                                                            {visit.isCurrent ? "..." : (logout ? `${hours}h ${minutes}m` : "-")}
                                                                         </td>
                                                                         <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
                                                                             {login.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                                                         </td>
                                                                         <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                                            {logout
+                                                                            {visit.isCurrent ? <span className="text-green-600 font-semibold">...</span> : (logout
                                                                                 ? logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                                                                                : "-"}
+                                                                                : "-")}
                                                                         </td>
                                                                     </tr>
                                                                 );
-                                                            })}
-                                                            {selectedVisitor.main_gate_visits?.length > 4 && (
-                                                                <div className="text-center mt-2">
-                                                                    <button
-                                                                        onClick={() => setShowAllVisits(!showAllVisits)}
-                                                                        className="text-xs text-blue-600 hover:underline"
-                                                                    >
-                                                                        {showAllVisits ? "Show Less" : "Show More"}
-                                                                    </button>
-                                                                </div>
-                                                            )}
-
-                                                        </tbody>
-                                                    )}
+                                                            })
+                                                        ) : (
+                                                            <tr>
+                                                                <td colSpan={4} className="text-center text-xs py-2">No visit history found.</td>
+                                                            </tr>
+                                                        )}
+                                                    </tbody>
                                                 </table>
-
                                             </div>
-
                                         </div>
                                     </div>
                                 </div>
