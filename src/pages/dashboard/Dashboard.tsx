@@ -70,7 +70,7 @@ const Dashboard = () => {
     });
 
     const fetchSettings = async () => {
-        const res = await fetch(`${BASE_URL}/api/codes/global-system-settings`, {
+        const res = await fetch(`${BASE_URL}/api/codes/global-system-settings/`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
@@ -86,7 +86,7 @@ const Dashboard = () => {
         queryFn: fetchSettings,
     });
 
-    const [frequency, setFrequency] = useState('quarterly'); // default view
+    const [frequency, setFrequency] = useState('quarterly'); 
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [dateField, setDateField] = useState('date_convicted');
@@ -281,14 +281,14 @@ const Dashboard = () => {
         count: number | string;
         linkto?: string;
         state?: any;
-        onClick?: () => void; // Add onClick prop
+        onClick?: () => void; 
     }) => {
         const navigate = useNavigate();
         const { title, image, count, linkto, state, onClick } = props;
 
         const handleClick = () => {
             if (onClick) {
-                onClick(); // Call the onClick function if provided
+                onClick(); 
             }
             if (linkto) {
                 navigate(linkto, { state });

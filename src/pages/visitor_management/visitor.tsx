@@ -18,7 +18,7 @@ import html2canvas from 'html2canvas';
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../assets/Logo/QCJMD.png'
 import EditVisitor from "./edit-visitor/EditVisitor";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { PiFolderUserDuotone } from "react-icons/pi";
 import { BASE_URL } from "@/lib/urls";
 import { PaginatedResponse } from "../personnel_management/personnel/personnel-backup";
@@ -248,20 +248,30 @@ const genderFilteredVisitorIds = new Set(
 
     // Step 2: Filter full data (data?.results) to only include visitors matching gender filter
     const dataSource = (data?.results || []).filter(visitor =>
-    gender === "all" ? true : genderFilteredVisitorIds.has(visitor.id)
-    ).map((visitor, index) => ({
-    ...visitor,
-    key: index + 1,
-    id: visitor?.id,
-    name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
-    visitor_reg_no: visitor?.visitor_reg_no,
-    visitor_type: visitor?.visitor_type,
-    nationality: visitor?.person?.nationality,
-    full_address: visitor?.person?.addresses?.full_address ?? '',
-    gender: visitor?.person?.gender?.gender_option,
-    organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
-    updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-    }));
+        gender === "all" ? true : genderFilteredVisitorIds.has(visitor.id)
+    ).map((visitor, index) => {
+        const barangay = visitor?.person?.addresses[0]?.barangay || '';
+        const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
+        const province = visitor?.person?.addresses[0]?.province || '';
+        
+        const addressParts = [barangay, cityMunicipality, province].filter(part => part);
+        const address = addressParts.join(', ');
+
+        return {
+            ...visitor,
+            key: index + 1,
+            id: visitor?.id,
+            name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
+            visitor_reg_no: visitor?.visitor_reg_no,
+            visitor_type: visitor?.visitor_type,
+            nationality: visitor?.person?.nationality,
+            full_address: visitor?.person?.addresses[0]?.full_address ?? '',
+            address: address,
+            gender: visitor?.person?.gender?.gender_option,
+            organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
+            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+        };
+    });
 
     // Step 3: Apply search filter on this gender-filtered list
     const filteredData = dataSource.filter(visitor => {
@@ -357,21 +367,21 @@ const genderFilteredVisitorIds = new Set(
             onFilter: (value, record) => record.person?.addresses?.full_address === value,
 
         },
-        {
-            title: 'Approved By',
-            dataIndex: 'approved_by',
-            key: 'approved_by',
-            sorter: (a, b) => a.approved_by.localeCompare(b.approved_by),
-            filters: [
-                ...Array.from(
-                    new Set(allVisitor.map(item => item.approved_by))
-                ).map(approved_by => ({
-                    text: approved_by,
-                    value: approved_by,
-                }))
-            ],
-            onFilter: (value, record) => record.approved_by === value,
-        },
+        // {
+        //     title: 'Approved By',
+        //     dataIndex: 'approved_by',
+        //     key: 'approved_by',
+        //     sorter: (a, b) => a.approved_by.localeCompare(b.approved_by),
+        //     filters: [
+        //         ...Array.from(
+        //             new Set(allVisitor.map(item => item.approved_by))
+        //         ).map(approved_by => ({
+        //             text: approved_by,
+        //             value: approved_by,
+        //         }))
+        //     ],
+        //     onFilter: (value, record) => record.approved_by === value,
+        // },
         {
             title: "Action",
             key: "action",
@@ -461,6 +471,13 @@ const handleExportPDF = async () => {
 
     // Decide if we are printing filtered data (all at once) or paginated chunks of full data
     if (debouncedSearch && debouncedSearch.trim().length > 0) {
+
+        const barangay = visitor?.person?.addresses[0]?.barangay || '';
+        const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
+        const province = visitor?.person?.addresses[0]?.province || '';
+
+        const addressParts = [barangay, cityMunicipality, province].filter(part => part);
+        const address = addressParts.join(', ');
         // Print all filtered data at once
         printSource = (searchData?.results || []).map((visitor, index) => ({
         key: index + 1,
@@ -468,6 +485,8 @@ const handleExportPDF = async () => {
         visitor_reg_no: visitor?.visitor_reg_no,
         name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
         visitor_type: visitor?.visitor_type,
+        full_address: visitor?.person?.addresses[0]?.full_address ?? '',
+        address: address,
         nationality: visitor?.person?.nationality,
         gender: visitor?.person?.gender?.gender_option,
         updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
@@ -483,16 +502,27 @@ const handleExportPDF = async () => {
 
     printSource = allResults
         .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + MAX_ROWS_PER_PRINT)
-        .map((visitor, index) => ({
-            key: lastPrintIndexRef.current + index + 1,
-            id: visitor?.id,
-            visitor_reg_no: visitor?.visitor_reg_no,
-            name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
-            visitor_type: visitor?.visitor_type,
-            nationality: visitor?.person?.nationality,
-            gender: visitor?.person?.gender?.gender_option,
-            updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
-        }));
+        .map((visitor, index) => {
+            const barangay = visitor?.person?.addresses[0]?.barangay || '';
+            const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
+            const province = visitor?.person?.addresses[0]?.province || '';
+
+            const addressParts = [barangay, cityMunicipality, province].filter(part => part);
+            const address = addressParts.join(', ');
+
+            return {
+                key: lastPrintIndexRef.current + index + 1,
+                id: visitor?.id,
+                visitor_reg_no: visitor?.visitor_reg_no,
+                name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
+                visitor_type: visitor?.visitor_type,
+                full_address: visitor?.person?.addresses[0]?.full_address ?? '',
+                address: address,
+                nationality: visitor?.person?.nationality,
+                gender: visitor?.person?.gender?.gender_option,
+                updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
+            };
+        });
 
         // Update lastPrintIndexRef for next chunk
         lastPrintIndexRef.current += MAX_ROWS_PER_PRINT;
@@ -542,7 +572,8 @@ const handleExportPDF = async () => {
         index + 1,
         item.visitor_reg_no,
         item.name,
-        item.visitor_type
+        item.visitor_type,
+        item.address,
         ];
     });
 
@@ -551,7 +582,7 @@ const handleExportPDF = async () => {
         const pageData = tableData.slice(i, i + maxRowsPerPage);
 
         autoTable(doc, {
-        head: [["No.", "Visitor No.", "Name", "Visitor Type"]],
+        head: [["No.", "Visitor No.", "Name", "Visitor Type", "Address"]],
         body: pageData,
         startY: startY,
         margin: { top: 0, left: 10, right: 10 },
@@ -596,8 +627,23 @@ const handleExportPDF = async () => {
         setPdfDataUrl(null);
     };
 
-    const handleExportExcel = () => {
-        const exportData = dataSource.map(({ id, updated, organization, ...rest }) => rest);
+    const handleExportExcel = async () => {
+        // Fetch all visitors if necessary
+        const fullDataSource = await fetchAllVisitors(); // Ensure this fetches all data
+
+        // Map to prepare export data, excluding unnecessary fields
+        const exportData = fullDataSource?.results.map(visitor => {
+            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
+            return {
+                "Registration No.": visitor?.visitor_reg_no,
+                "Name":name, // Include constructed name
+                "Visitor Type": visitor?.visitor_type,
+                "Address": visitor?.person?.addresses[0]?.full_address ?? '',
+                "Nationality": visitor?.person?.nationality,
+                "Gender": visitor?.person?.gender?.gender_option,
+            };
+        }) || [];
+
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Visitor");
@@ -696,6 +742,8 @@ const handleExportPDF = async () => {
                                 visitor_type: visitor?.visitor_type,
                                 gender: visitor?.person?.gender?.gender_option,
                                 nationality: visitor?.person?.nationality,
+                                full_address: visitor?.person?.addresses[0]?.full_address ?? '',
+                                address: `${visitor?.person?.addresses[0]?.barangay ?? ''} ${visitor?.person?.addresses[0]?.city_municipality ?? ''} ${visitor?.person?.addresses[0]?.province ?? ''}`,
                                 organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
                                 updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
                                 }))
@@ -708,6 +756,8 @@ const handleExportPDF = async () => {
                                 visitor_type: visitor?.visitor_type,
                                 gender: visitor?.person?.gender?.gender_option,
                                 nationality: visitor?.person?.nationality,
+                                full_address: visitor?.person?.addresses[0]?.full_address ?? '',
+                                address: `${visitor?.person?.addresses[0]?.barangay ?? ''} ${visitor?.person?.addresses[0]?.city_municipality ?? ''} ${visitor?.person?.addresses[0]?.province ?? ''}`,
                                 organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
                                 updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
                                 }))

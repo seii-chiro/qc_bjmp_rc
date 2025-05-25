@@ -12,7 +12,7 @@ const GeneralSettings = () => {
     const token = useTokenStore().token;
 
     const fetchSettings = async () => {
-        const res = await fetch(`${BASE_URL}/api/codes/global-system-settings`, {
+        const res = await fetch(`${BASE_URL}/api/codes/global-system-settings/`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",

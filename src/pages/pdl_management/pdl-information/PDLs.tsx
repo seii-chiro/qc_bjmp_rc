@@ -9,7 +9,7 @@ import * as XLSX from "xlsx";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Form, Input, Menu, message, Modal } from "antd";
 import Table, { ColumnsType } from "antd/es/table";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
@@ -34,7 +34,6 @@ const PDLtable = () => {
     const limit = 10;
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [allPDLs, setAllPDLs] = useState<PDLs[]>([]);
-    const StatusFilter = location.state?.filterOption || "all";
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -400,165 +399,160 @@ const PDLtable = () => {
     //     fetchAllPDLs();
     // }, [token, BASE_URL]); 
 
-const fetchAllPDLs = async () => {
-    const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
-        headers: {
-            Authorization: `Token ${token}`,
-            "Content-Type": "application/json",
-        },
-    });
-    if (!res.ok) throw new Error("Network error");
-    return res.json(); // paginated response { count, next, results, ... }
-};
+    const fetchAllPDLs = async () => {
+        const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+        if (!res.ok) throw new Error("Network error");
+        return res.json(); // paginated response { count, next, results, ... }
+    };
 
-const handleExportPDF = async () => {
-    setIsLoading(true);
-    setLoadingMessage("Generating PDF... Please wait.");
+    const lastPrintIndexRef = useRef(0);
+    const MAX_ROWS_PER_PRINT = 800; // Adjust this number as needed
 
-    try {
-        const doc = new jsPDF();
-        const headerHeight = 48;
-        const footerHeight = 32;
+    const handleExportPDF = async () => {
+        setIsLoading(true);
+        setLoadingMessage("Generating PDF... Please wait.");
 
-        let printSource = [];
+        try {
+            const doc = new jsPDF();
+            const headerHeight = 48;
+            const footerHeight = 32;
 
-        if (debouncedSearch) {
-            // use filtered data from search results
-            printSource = (searchData?.results || []).map((pdl, index) => ({
-                key: index + 1,
-                id: pdl?.id ?? 'N/A',
-                pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
-                first_name: pdl?.person?.first_name ?? 'N/A',
-                middle_name: pdl?.person?.middle_name ?? '',
-                last_name: pdl?.person?.last_name ?? '',
-                name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
-                cell_no: pdl?.cell?.cell_no ?? 'N/A',
-                floor: pdl?.cell?.floor ?? 'N/A',
-                gender: pdl?.gender?.gender_option ?? '',
-                cell_name: pdl?.cell?.cell_name ?? 'N/A',
-                visitation_status: pdl?.visitation_status ?? 'N/A',
-                status: pdl?.status ?? 'N/A',
-                date_of_admission: pdl?.date_of_admission ?? 'N/A',
-                organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
-                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-            }));
-        } else {
-            // fetch all data
-            const allData = await fetchAllPDLs();
-            printSource = (allData.results || []).map((pdl, index) => ({
-                key: index + 1,
-                id: pdl?.id ?? 'N/A',
-                pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
-                first_name: pdl?.person?.first_name ?? 'N/A',
-                middle_name: pdl?.person?.middle_name ?? '',
-                last_name: pdl?.person?.last_name ?? '',
-                gender: pdl?.gender?.gender_option ?? '',
-                name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
-                cell_no: pdl?.cell?.cell_no ?? 'N/A',
-                floor: pdl?.cell?.floor ?? 'N/A',
-                cell_name: pdl?.cell?.cell_name ?? 'N/A',
-                visitation_status: pdl?.visitation_status ?? 'N/A',
-                status: pdl?.status ?? 'N/A',
-                date_of_admission: pdl?.date_of_admission ?? 'N/A',
-                organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
-                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-            }));
-        }
+            let printSource = [];
 
-        // Prepare header/footer info
-        const organizationName = printSource[0]?.organization || "";
-        const PreparedBy = printSource[0]?.updated || '';
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-        const maxRowsPerPage = 26;
-        let startY = headerHeight;
+            if (debouncedSearch) {
+                // Use filtered data from search results
+                printSource = (searchData?.results || []).map((pdl, index) => ({
+                    key: index + 1,
+                    id: pdl?.id ?? 'N/A',
+                    pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
+                    first_name: pdl?.person?.first_name ?? 'N/A',
+                    middle_name: pdl?.person?.middle_name ?? '',
+                    last_name: pdl?.person?.last_name ?? '',
+                    name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
+                    cell_no: pdl?.cell?.cell_no ?? 'N/A',
+                    floor: pdl?.cell?.floor ?? 'N/A',
+                    gender: pdl?.gender?.gender_option ?? '',
+                    cell_name: pdl?.cell?.cell_name ?? 'N/A',
+                    visitation_status: pdl?.visitation_status ?? 'N/A',
+                    status: pdl?.status ?? 'N/A',
+                    date_of_admission: pdl?.date_of_admission ?? 'N/A',
+                    organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
+                    updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+                }));
+            } else {
+                // Fetch all data
+                const allData = await fetchAllPDLs();
+                const allResults = allData.results || [];
 
-        // Header function
-        const addHeader = () => {
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const imageWidth = 30;
-            const imageHeight = 30;
-            const margin = 10;
-            const imageX = pageWidth - imageWidth - margin;
-            const imageY = 12;
+                // Handle pagination
+                printSource = allResults.slice(lastPrintIndexRef.current, lastPrintIndexRef.current + MAX_ROWS_PER_PRINT);
+                lastPrintIndexRef.current += MAX_ROWS_PER_PRINT;
 
-            doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-
-            doc.setTextColor(0, 102, 204);
-            doc.setFontSize(16);
-            doc.text("PDL Report", 10, 15);
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(10);
-            doc.text(`Organization Name: ${organizationName}`, 10, 25);
-            doc.text("Report Date: " + formattedDate, 10, 30);
-            doc.text("Prepared By: " + PreparedBy, 10, 35);
-            doc.text("Department/ Unit: IT", 10, 40);
-            doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
-        };
-
-        addHeader();
-
-        // Prepare table data
-        const tableData = printSource.map((item, idx) => [
-            idx + 1,
-            item.name,
-            item.cell_name,
-            item.floor ?? 'N/A',
-            item.visitation_status,
-            item.status ?? 'N/A',
-            item.date_of_admission,
-        ]);
-
-        for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
-            const pageData = tableData.slice(i, i + maxRowsPerPage);
-
-            autoTable(doc, {
-                head: [['No.', 'PDL', 'Cell', 'Floor', 'Visitation Status', 'Status', 'Date Admission']],
-                body: pageData,
-                startY: startY,
-                margin: { top: 0, left: 10, right: 10 },
-                didDrawPage: function () {
-                    if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                        addHeader();
-                    }
-                },
-            });
-
-            if (i + maxRowsPerPage < tableData.length) {
-                doc.addPage();
-                startY = headerHeight;
+                // Reset if we've reached the end
+                if (lastPrintIndexRef.current >= allResults.length) {
+                    lastPrintIndexRef.current = 0; // Reset for next export
+                }
             }
-        }
 
-        // Add footer on all pages
-        const pageCount = doc.internal.getNumberOfPages();
-        for (let page = 1; page <= pageCount; page++) {
-            doc.setPage(page);
-            const footerText = [
-                "Document Version: Version 1.0",
-                "Confidentiality Level: Internal use only",
-                "Contact Info: " + PreparedBy,
-                `Timestamp of Last Update: ${formattedDate}`
-            ].join('\n');
-            const footerX = 10;
-            const footerY = doc.internal.pageSize.height - footerHeight + 15;
-            const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
-            doc.setFontSize(8);
-            doc.text(footerText, footerX, footerY);
-            doc.text(`${page} / ${pageCount}`, pageX, footerY);
-        }
+            // Prepare header/footer info
+            const organizationName = printSource[0]?.organization || "";
+            const PreparedBy = printSource[0]?.updated || '';
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+            const maxRowsPerPage = 26;
+            let startY = headerHeight;
 
-        const pdfOutput = doc.output('datauristring');
-        setPdfDataUrl(pdfOutput);
-        setIsPdfModalOpen(true);
-    } catch (error) {
-        console.error("Error generating PDF:", error);
-        alert("Failed to generate PDF. Please try again.");
-    } finally {
-        setIsLoading(false);
-    }
-};
+            // Header function
+            const addHeader = () => {
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const imageWidth = 30;
+                const imageHeight = 30;
+                const margin = 10;
+                const imageX = pageWidth - imageWidth - margin;
+                const imageY = 12;
+
+                doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
+
+                doc.setTextColor(0, 102, 204);
+                doc.setFontSize(16);
+                doc.text("PDL Report", 10, 15);
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(10);
+                doc.text(`Organization Name: ${organizationName}`, 10, 25);
+                doc.text("Report Date: " + formattedDate, 10, 30);
+                doc.text("Prepared By: " + PreparedBy, 10, 35);
+                doc.text("Department/ Unit: IT", 10, 40);
+                doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
+            };
+
+            addHeader();
+
+            // Prepare table data
+            const tableData = printSource.map((item, idx) => [
+                idx + 1,
+                item.name,
+                item.cell_name,
+                item.floor ?? 'N/A',
+                item.visitation_status,
+                item.status ?? 'N/A',
+                item.date_of_admission,
+            ]);
+
+            for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
+                const pageData = tableData.slice(i, i + maxRowsPerPage);
+
+                autoTable(doc, {
+                    head: [['No.', 'PDL', 'Cell', 'Floor', 'Visitation Status', 'Status', 'Date Admission']],
+                    body: pageData,
+                    startY: startY,
+                    margin: { top: 0, left: 10, right: 10 },
+                    didDrawPage: function () {
+                        if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+                            addHeader();
+                        }
+                    },
+                });
+
+                if (i + maxRowsPerPage < tableData.length) {
+                    doc.addPage();
+                    startY = headerHeight;
+                }
+            }
+
+            // Add footer on all pages
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let page = 1; page <= pageCount; page++) {
+                doc.setPage(page);
+                const footerText = [
+                    "Document Version: Version 1.0",
+                    "Confidentiality Level: Internal use only",
+                    "Contact Info: " + PreparedBy,
+                    `Timestamp of Last Update: ${formattedDate}`
+                ].join('\n');
+                const footerX = 10;
+                const footerY = doc.internal.pageSize.height - footerHeight + 15;
+                const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+                doc.setFontSize(8);
+                doc.text(footerText, footerX, footerY);
+                doc.text(`${page} / ${pageCount}`, pageX, footerY);
+            }
+
+            const pdfOutput = doc.output('datauristring');
+            setPdfDataUrl(pdfOutput);
+            setIsPdfModalOpen(true);
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            alert("Failed to generate PDF. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
 
     const handleClosePdfModal = () => {
