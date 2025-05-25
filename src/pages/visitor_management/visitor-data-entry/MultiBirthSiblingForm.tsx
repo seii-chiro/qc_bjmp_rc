@@ -114,7 +114,7 @@ const MultiBirthSiblingForm = ({
                 ...(prev || []),
                 {
                     sibling_group: chosenSibling?.multiple_birth_siblings?.[0]?.multiple_birth_class || "",
-                    short_name: chosenSibling?.shortname || "",
+                    short_name: chosenSibling?.shortname || `${chosenSibling?.first_name} ${chosenSibling?.last_name}` || "",
                     gender: chosenSibling?.gender?.gender_option || "",
                     identical: multiBirthSiblingForm?.is_identical ? "Yes" : "No",
                     verified: multiBirthSiblingForm?.is_verified ? "Yes" : "No",

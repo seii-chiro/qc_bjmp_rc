@@ -770,7 +770,7 @@ const VisitorRegistration = () => {
 
 
     // console.log(visitorForm)
-    console.log("Person Form: ", personForm)
+    // console.log("Person Form: ", personForm)
 
     return (
         <div className='bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5'>

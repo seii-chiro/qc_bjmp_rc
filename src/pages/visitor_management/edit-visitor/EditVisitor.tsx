@@ -8,10 +8,10 @@ import VisitorProfile from "../visitor-data-entry/visitorprofile";
 import Issue from "../visitor-data-entry/Issue";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import {
-    getAffiliationTypes, getCivilStatus, getCountries, getCurrentUser, getGenders, getJail_Barangay,
+    getCivilStatus, getCountries, getCurrentUser, getGenders, getJail_Barangay,
     getJail_Municipality, getJail_Province, getJailRegion, getMultipleBirthClassTypes, getNationalities,
     getPersonSearch,
-    getPrefixes, getRealPerson, getSuffixes, getUsers, getVisitor_to_PDL_Relationship, getVisitor_Type, getVisitorAppStatus,
+    getPrefixes, getSuffixes, getUsers, getVisitor_to_PDL_Relationship, getVisitor_Type, getVisitorAppStatus,
 } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { PersonForm, VisitorForm } from "@/lib/visitorFormDefinition";
@@ -355,8 +355,9 @@ const VisitorRegistration = () => {
     } = useQuery({
         queryKey: ['paginated-person', personSearch, personPage],
         queryFn: () => getPersonSearch(token ?? "", 10, personSearch, personPage),
-        keepPreviousData: true,
-        staleTime: 10 * 60 * 1000,
+        staleTime: 600_000,
+        enabled: !!token,
+        placeholderData: (prevData) => prevData,
     });
 
     const dropdownOptions = useQueries({
@@ -364,90 +365,80 @@ const VisitorRegistration = () => {
             {
                 queryKey: ['visitor-type'],
                 queryFn: () => getVisitor_Type(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['person-gender'],
                 queryFn: () => getGenders(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['person-nationality'],
                 queryFn: () => getNationalities(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['person-civil-status'],
                 queryFn: () => getCivilStatus(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['affiliations'],
-                queryFn: () => getAffiliationTypes(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['regions'],
                 queryFn: () => getJailRegion(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['provinces'],
                 queryFn: () => getJail_Province(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['city/municipality'],
                 queryFn: () => getJail_Municipality(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['barangays'],
                 queryFn: () => getJail_Barangay(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['countries'],
                 queryFn: () => getCountries(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['persons'],
-                queryFn: () => getRealPerson(token ?? "", 1),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['users'],
                 queryFn: () => getUsers(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['visitor-app-status'],
                 queryFn: () => getVisitorAppStatus(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['current-user'],
                 queryFn: () => getCurrentUser(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['prefix'],
                 queryFn: () => getPrefixes(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['suffix'],
                 queryFn: () => getSuffixes(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
             {
                 queryKey: ['multiple-birth-class-types'],
                 queryFn: () => getMultipleBirthClassTypes(token ?? ""),
-                staleTime: 10 * 60 * 1000
+                staleTime: 600_000,
             },
-        ]
-    })
+        ],
+    });
 
     const { data: relationships } = useQuery({
         queryKey: ['editVisitor', 'relationships'],
@@ -549,25 +540,22 @@ const VisitorRegistration = () => {
     const genders = dropdownOptions?.[1]?.data?.results;
     const nationalities = dropdownOptions?.[2]?.data?.results;
     const civilStatuses = dropdownOptions?.[3]?.data?.results;
-    // const affiliations = dropdownOptions?.[4]?.data?.results;
-    const regions = dropdownOptions?.[5]?.data?.results;
-    const provinces = dropdownOptions?.[6]?.data?.results;
-    const municipalities = dropdownOptions?.[7]?.data?.results;
-    const barangays = dropdownOptions?.[8]?.data?.results;
-    const countries = dropdownOptions?.[9]?.data?.results;
-    // const persons = dropdownOptions?.[10]?.data?.results;
-    // const personsLoading = dropdownOptions?.[10]?.isLoading;
-    const users = dropdownOptions?.[11]?.data?.results;
-    const userLoading = dropdownOptions?.[11]?.isLoading;
-    const visitorAppStatus = dropdownOptions?.[12]?.data?.results;
-    const visitorAppStatusLoading = dropdownOptions?.[12]?.isLoading;
-    const currentUser = dropdownOptions?.[13]?.data;
-    const prefixes = dropdownOptions?.[14]?.data?.results;
-    const prefixesLoading = dropdownOptions?.[14]?.isLoading;
-    const suffixes = dropdownOptions?.[15]?.data?.results;
-    const suffixesLoading = dropdownOptions?.[15]?.isLoading;
-    const birthClassTypes = dropdownOptions?.[16]?.data?.results;
-    const birthClassTypesLoading = dropdownOptions?.[16]?.isLoading;
+    const regions = dropdownOptions?.[4]?.data?.results;
+    const provinces = dropdownOptions?.[5]?.data?.results;
+    const municipalities = dropdownOptions?.[6]?.data?.results;
+    const barangays = dropdownOptions?.[7]?.data?.results;
+    const countries = dropdownOptions?.[8]?.data?.results;
+    const users = dropdownOptions?.[9]?.data?.results;
+    const userLoading = dropdownOptions?.[9]?.isLoading;
+    const visitorAppStatus = dropdownOptions?.[10]?.data?.results;
+    const visitorAppStatusLoading = dropdownOptions?.[10]?.isLoading;
+    const currentUser = dropdownOptions?.[11]?.data;
+    const prefixes = dropdownOptions?.[12]?.data?.results;
+    const prefixesLoading = dropdownOptions?.[12]?.isLoading;
+    const suffixes = dropdownOptions?.[13]?.data?.results;
+    const suffixesLoading = dropdownOptions?.[13]?.isLoading;
+    const birthClassTypes = dropdownOptions?.[14]?.data?.results;
+    const birthClassTypesLoading = dropdownOptions?.[14]?.isLoading;
 
     const persons = personsPaginated?.results || [];
     const personsCount = personsPaginated?.count || 0;

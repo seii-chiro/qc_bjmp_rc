@@ -10,7 +10,7 @@ import { Avatar, Dropdown, Button, Modal, MenuProps } from 'antd';
 import { useTokenStore } from "@/store/useTokenStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUserStore } from "@/store/useUserStore.ts";
-import profile_fallback from "@/assets/people.png"
+import profile_fallback from "@/assets/profile_placeholder.jpg"
 
 
 const RootLayout = () => {
@@ -39,24 +39,8 @@ const RootLayout = () => {
     };
 
     const items: MenuProps['items'] = [
-        // {
-        //     key: '1',
-        //     label: (
-        //         <a href="#">
-        //             Profile
-        //         </a>
-        //     ),
-        // },
-        // {
-        //     key: '2',
-        //     label: (
-        //         <a href="#">
-        //             Account Settings
-        //         </a>
-        //     ),
-        // },
         {
-            key: '3',
+            key: '1',
             label: (
                 <button
                     className="w-full text-left font-semibold"
@@ -67,8 +51,6 @@ const RootLayout = () => {
             ),
         },
     ];
-
-    //setting outlet container to h-full cuts the sidebar when scrolling down.
 
     return (
         <>

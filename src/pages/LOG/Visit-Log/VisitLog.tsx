@@ -1,13 +1,16 @@
-import { BASE_URL } from '@/lib/urls';
-import { useTokenStore } from '@/store/useTokenStore';
-import { useQuery } from '@tanstack/react-query';
-import { Input, Button, Table } from 'antd';
-import { useEffect, useState } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { BASE_URL } from "@/lib/urls";
+import { useTokenStore } from "@/store/useTokenStore";
+import { useQuery } from "@tanstack/react-query";
+import { Input, Button, Table } from "antd";
+import { useEffect, useState } from "react";
 
 const VisitLog = () => {
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [view, setView] = useState<'Main Gate' | 'Visitor' | 'PDL'>('Main Gate');
+  const [view, setView] = useState<"Main Gate" | "Visitor" | "PDL">(
+    "Main Gate"
+  );
   const token = useTokenStore().token;
 
   const [mainGatePage, setMainGatePage] = useState(1);
@@ -32,7 +35,7 @@ const VisitLog = () => {
   };
 
   const { data: mainGateData, isLoading: mainGateLogsLoading } = useQuery({
-    queryKey: ['main-gate', mainGatePage, limit, debouncedSearch],
+    queryKey: ["main-gate", mainGatePage, limit, debouncedSearch],
     queryFn: async () => {
       const offset = (mainGatePage - 1) * limit;
       const url = debouncedSearch
@@ -40,12 +43,12 @@ const VisitLog = () => {
         : `${BASE_URL}/api/visit-logs/main-gate-visits/?&limit=${limit}&offset=${offset}`;
       return fetchVisitLogs(url);
     },
-    keepPreviousData: true,
-    enabled: view === 'Main Gate',
+    placeholderData: (prevData) => prevData,
+    enabled: view === "Main Gate",
   });
 
   const { data: visitorData, isLoading: visitorLogsLoading } = useQuery({
-    queryKey: ['visitor', visitorPage, limit, debouncedSearch],
+    queryKey: ["visitor", visitorPage, limit, debouncedSearch],
     queryFn: async () => {
       const offset = (visitorPage - 1) * limit;
       const url = debouncedSearch
@@ -53,12 +56,12 @@ const VisitLog = () => {
         : `${BASE_URL}/api/visit-logs/visitor-station-visits/?&limit=${limit}&offset=${offset}`;
       return fetchVisitLogs(url);
     },
-    keepPreviousData: true,
-    enabled: view === 'Visitor',
+    placeholderData: (prevData) => prevData,
+    enabled: view === "Visitor",
   });
 
   const { data: pdlData, isLoading: pdlLogsLoading } = useQuery({
-    queryKey: ['pdl', pdlPage, limit, debouncedSearch],
+    queryKey: ["pdl", pdlPage, limit, debouncedSearch],
     queryFn: async () => {
       const offset = (pdlPage - 1) * limit;
       const url = debouncedSearch
@@ -66,17 +69,17 @@ const VisitLog = () => {
         : `${BASE_URL}/api/visit-logs/pdl-station-visits/?&limit=${limit}&offset=${offset}`;
       return fetchVisitLogs(url);
     },
-    keepPreviousData: true,
-    enabled: view === 'PDL',
+    placeholderData: (prevData) => prevData,
+    enabled: view === "PDL",
   });
 
   let activeData, tableIsLoading, page, setPage;
-  if (view === 'Main Gate') {
+  if (view === "Main Gate") {
     activeData = mainGateData;
     tableIsLoading = mainGateLogsLoading;
     page = mainGatePage;
     setPage = setMainGatePage;
-  } else if (view === 'Visitor') {
+  } else if (view === "Visitor") {
     activeData = visitorData;
     tableIsLoading = visitorLogsLoading;
     page = visitorPage;
@@ -88,86 +91,159 @@ const VisitLog = () => {
     setPage = setPDLPage;
   }
 
+  type VisitLogRow = {
+    key: string | number;
+    id: string | number;
+    timestampIn: string;
+    timestampOut: string;
+    status: string;
+    visitor: string;
+    visitor_type: string;
+    pdl_name: string;
+    pdl_type: React.ReactNode;
+  };
+
   const columns = [
     {
-      title: 'No.',
-      key: 'no',
-      render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
+      title: "No.",
+      width: 90,
+      key: "no",
+      render: (_: any, __: any, index: number) =>
+        (page - 1) * limit + index + 1,
     },
     {
-      title: 'Timestamp',
-      dataIndex: 'timestamp',
-      key: 'timestamp',
-      render: (text) => {
-        const date = new Date(text);
-        return date.toLocaleString();
-      },
-    },
-    {
-      title: 'Visitor Name',
-      dataIndex: 'visitor',
-      key: 'visitor',
-      sorter: (a, b) => {
-        const nameA = a.visitor?.toLowerCase() || '';
-        const nameB = b.visitor?.toLowerCase() || '';
+      title: "Visitor Name",
+      dataIndex: "visitor",
+      key: "visitor",
+      sorter: (a: VisitLogRow, b: VisitLogRow) => {
+        const nameA = a.visitor?.toLowerCase() || "";
+        const nameB = b.visitor?.toLowerCase() || "";
         return nameA.localeCompare(nameB);
       },
     },
     {
-      title: 'Visitor Type',
-      dataIndex: 'visitor_type',
-      key: 'visitor_type',
-      sorter: (a, b) => (a.visitor_type || '').localeCompare(b.visitor_type || ''),
+      title: "Visitor Type",
+      dataIndex: "visitor_type",
+      key: "visitor_type",
+      sorter: (a: VisitLogRow, b: VisitLogRow) =>
+        (a.visitor_type || "").localeCompare(b.visitor_type || ""),
     },
-    { title: 'PDL Name', dataIndex: 'pdl_name', key: 'pdl_name' },
-    { title: 'PDL Type', dataIndex: 'pdl_type', key: 'pdl_type' },
+    { title: "PDL Name(s)", dataIndex: "pdl_name", key: "pdl_name" },
+    { title: "PDL Type", dataIndex: "pdl_type", key: "pdl_type" },
+    {
+      title: "Timestamp In",
+      dataIndex: "timestampIn",
+      key: "timestampIn",
+      render: (text: string | number | Date | null | undefined) => {
+        if (!text) return "...";
+        const date = new Date(text);
+        return isNaN(date.getTime()) ? "..." : date.toLocaleString();
+      },
+    },
+    {
+      title: "Timestamp Out",
+      dataIndex: "timestampOut",
+      key: "timestampOut",
+      render: (text: string | number | Date | null | undefined) => {
+        if (!text) return "...";
+        const date = new Date(text);
+        return isNaN(date.getTime()) ? "..." : date.toLocaleString();
+      },
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+    },
   ];
 
-  const dataSource = (activeData?.results || []).map((entry) => ({
-    key: entry.id,
-    id: entry?.id,
-    timestamp: entry?.tracking_logs?.[0]?.created_at ?? '',
-    visitor: entry?.person || '',
-    visitor_type: entry?.visitor_type || '',
-    pdl_name: entry?.pdl_name || '',
-    pdl_type: entry?.pdl_type || '',
-  })).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-  const filteredData = dataSource.filter((log) => {
-    const visitorMatch = (log.visitor || '').toLowerCase().includes(searchText.toLowerCase());
-    const otherMatch = Object.values(log).some((value) =>
-      String(value).toLowerCase().includes(searchText.toLowerCase())
+  const dataSource = (activeData?.results || [])
+    .map(
+      (entry: {
+        id: any;
+        timestamp_in: any;
+        timestamp_out: any;
+        status: any;
+        person: any;
+        visitor: { visitor_type: any; pdls: any[] };
+      }) => ({
+        key: entry.id,
+        id: entry?.id,
+        timestampIn: entry?.timestamp_in ?? "",
+        timestampOut: entry?.timestamp_out ?? "",
+        status: entry?.status ?? "",
+        visitor: entry?.person || "",
+        visitor_type: entry?.visitor?.visitor_type || "N/A",
+        pdl_name:
+          Array.isArray(entry?.visitor?.pdls) && entry.visitor.pdls.length > 0
+            ? entry.visitor.pdls
+              .map(
+                (pdl) =>
+                  `${pdl?.pdl?.person?.first_name ?? ""} ${pdl?.pdl?.person?.last_name ?? ""}`.trim()
+              )
+              .join(", ")
+            : "N/A",
+        pdl_type:
+          Array.isArray(entry?.visitor?.pdls) && entry.visitor.pdls.length > 0
+            ? entry.visitor.pdls.map((pdl, i, arr) => (
+              <span key={i}>
+                {pdl?.pdl?.status || "Unknown"}
+                {i < arr.length - 1 ? ", " : ""}
+              </span>
+            ))
+            : "N/A",
+      })
+    )
+    .sort(
+      (
+        a: { timestamp: string | number | Date },
+        b: { timestamp: string | number | Date }
+      ) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
-    return visitorMatch || otherMatch;
-  });
+
+  const filteredData = dataSource.filter(
+    (log: { [s: string]: unknown } | ArrayLike<unknown>) => {
+      const hasVisitor =
+        typeof log === "object" && log !== null && "visitor" in log;
+      const visitorMatch = hasVisitor
+        ? String((log as { [s: string]: unknown }).visitor || "")
+          .toLowerCase()
+          .includes(searchText.toLowerCase())
+        : false;
+      const otherMatch = Object.values(log).some((value) =>
+        String(value).toLowerCase().includes(searchText.toLowerCase())
+      );
+      return visitorMatch || otherMatch;
+    }
+  );
 
   return (
     <div className="p-4 h-full flex flex-col">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
         <div>
           <h1 className="text-3xl font-bold text-[#1E365D]">
-            {view === 'Main Gate'
-              ? 'Main Gate Visitor Logs'
-              : view === 'Visitor'
-                ? 'Visitor Logs'
-                : 'PDL Logs'}
+            {view === "Main Gate"
+              ? "Main Gate Visitor Logs"
+              : view === "Visitor"
+                ? "Visitor Logs"
+                : "PDL Logs"}
           </h1>
           <div className="flex gap-2 mt-2">
             <Button
-              type={view === 'Main Gate' ? 'primary' : 'default'}
-              onClick={() => setView('Main Gate')}
+              type={view === "Main Gate" ? "primary" : "default"}
+              onClick={() => setView("Main Gate")}
             >
               Main Gate Logs
             </Button>
             <Button
-              type={view === 'Visitor' ? 'primary' : 'default'}
-              onClick={() => setView('Visitor')}
+              type={view === "Visitor" ? "primary" : "default"}
+              onClick={() => setView("Visitor")}
             >
               Visitor Logs
             </Button>
             <Button
-              type={view === 'PDL' ? 'primary' : 'default'}
-              onClick={() => setView('PDL')}
+              type={view === "PDL" ? "primary" : "default"}
+              onClick={() => setView("PDL")}
             >
               PDL Logs
             </Button>
@@ -178,19 +254,19 @@ const VisitLog = () => {
           value={searchText}
           onChange={(e) => {
             setSearchText(e.target.value);
-            if (view === 'Main Gate') setMainGatePage(1);
-            if (view === 'Visitor') setVisitorPage(1);
-            if (view === 'PDL') setPDLPage(1);
+            if (view === "Main Gate") setMainGatePage(1);
+            if (view === "Visitor") setVisitorPage(1);
+            if (view === "PDL") setPDLPage(1);
           }}
           className="py-2 w-full md:w-64"
         />
       </div>
-      <div className="overflow-y-auto" style={{ maxHeight: '90vh' }}>
+      <div className="overflow-y-auto" style={{ maxHeight: "90vh" }}>
         <Table
           loading={tableIsLoading}
           columns={columns}
           dataSource={debouncedSearch ? filteredData : dataSource}
-          scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
+          scroll={{ x: 800, y: "calc(100vh - 200px)" }}
           pagination={
             debouncedSearch
               ? false
