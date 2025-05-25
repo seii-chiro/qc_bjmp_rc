@@ -53,7 +53,7 @@ const UpdateMultipleBirthSiblings = ({
     const [identifierDataSource, setIdentifierDataSource] = useState<any[]>([]);
 
     const fetchPersonById = async (id: number) => {
-        const res = await fetch(`${BASE_URL}/api/persons/${id}/`, {
+        const res = await fetch(`${BASE_URL}/api/standards/persons/${id}/`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
@@ -120,7 +120,7 @@ const UpdateMultipleBirthSiblings = ({
                     return {
                         key: index,
                         siblingGroup: siblingGroup || "",
-                        shortName: chosenSibling?.shortname || siblingData?.sibling_person || siblingData?.full_name || "N/A",
+                        shortName: chosenSibling?.shortname || siblingData?.sibling_person || siblingData?.full_name || `${chosenSibling?.first_name} ${chosenSibling?.last_name}` || "N/A",
                         gender: chosenSibling?.gender?.gender_option || "N/A",
                         identical: siblingData?.is_identical ? "Yes" : "No",
                         verified: siblingData?.is_verified ? "Yes" : "No",
