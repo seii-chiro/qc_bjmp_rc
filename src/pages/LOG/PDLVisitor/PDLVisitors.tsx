@@ -1,58 +1,85 @@
-import { getPDLStation } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
 import { ColumnsType } from "antd/es/table";
 import { Image, Input, Table } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import noimg from "../../../../public/noimg.png";
-import { MainGateLog } from "@/lib/issues-difinitions";
+import { BASE_URL } from "@/lib/urls";
+
+const fetchVisitLogs = async (url: string, token: string) => {
+    const res = await fetch(url, {
+        headers: {
+            Authorization: `Token ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+    if (!res.ok) throw new Error("Network error");
+    return res.json();
+};
+
+const limit = 10;
 
 const PDLVisitors = () => {
-    const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
+    const [searchText, setSearchText] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [visitorPage, setVisitorPage] = useState(1);
 
-    const { data: visitLogData, isLoading: logsLoading } = useQuery({
-        queryKey: ["pdl-station"],
-        queryFn: () => getPDLStation(token ?? ""),
-        refetchInterval: 60000,
+    useEffect(() => {
+        const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
+        return () => clearTimeout(timeout);
+    }, [searchText]);
+
+    const { data: visitorData, isLoading: visitorLogsLoading } = useQuery({
+        queryKey: ["visitor", visitorPage, limit, debouncedSearch],
+        queryFn: async () => {
+            const offset = (visitorPage - 1) * limit;
+            const url = debouncedSearch
+                ? `${BASE_URL}/api/visit-logs/visitor-station-visits/?search=${debouncedSearch}&limit=${limit}&offset=${offset}`
+                : `${BASE_URL}/api/visit-logs/visitor-station-visits/?&limit=${limit}&offset=${offset}`;
+            return fetchVisitLogs(url, token ?? "");
+        },
+        placeholderData: (prevData) => prevData,
     });
 
-    const dataSource: MainGateLog[] = visitLogData?.results?.map((pdlstation, index) => {
-        const profileImage = pdlstation?.results?.visitor?.person?.media?.find(
-            (m: any) => m.picture_view === "Front"
-        );
-
-        const pdlImage = pdlstation?.results?.visitor?.pdls[0]?.pdl.person?.media?.find(
-            (m: any) => m.picture_view === "Front"
-        );
+    const dataSource = (visitorData?.results || []).map((entry, index) => {
+        const visitorPerson = entry?.visitor?.person;
+        const visitorMedia = visitorPerson?.media?.find((m: any) => m.picture_view === "Front");
+        const pdl = entry?.visitor?.pdls?.[0]?.pdl;
+        const pdlPerson = pdl?.person;
+        const pdlMedia = pdlPerson?.media?.find((m: any) => m.picture_view === "Front");
 
         return {
-            key: index + 1,
-            id: pdlstation?.results?.id ?? "N/A",
-            timestamp: pdlstation?.tracking_logs?.[0]?.created_at ?? '',
-            visitor: pdlstation?.person,
-            visitorPhoto: profileImage
+            key: entry?.id ?? index + 1,
+            id: entry?.id ?? "N/A",
+            timestampIn: entry?.timestamp_in ?? "",
+            timestampOut: entry?.timestamp_out ?? "",
+            status: entry?.status ?? "",
+            visitor: visitorPerson
+                ? `${visitorPerson?.first_name ?? ""} ${visitorPerson?.last_name ?? ""}`.trim()
+                : "N/A",
+            visitor_type: entry?.visitor?.visitor_type || "N/A",
+            visitorPhoto: visitorMedia
                 ? {
-                    media_binary: profileImage.media_binary,
-                    media_filepath: profileImage.media_filepath,
+                    media_binary: visitorMedia.media_binary,
+                    media_filepath: visitorMedia.media_filepath,
                 }
                 : null,
-            pdlPhoto: pdlImage
+            pdlPhoto: pdlMedia
                 ? {
-                    media_binary: pdlImage.media_binary,
-                    media_filepath: pdlImage.media_filepath,
+                    media_binary: pdlMedia.media_binary,
+                    media_filepath: pdlMedia.media_filepath,
                 }
                 : null,
-            visitorType: pdlstation?.visitor?.visitor_type ?? "",
-            pdlName: pdlstation
-                ? `${pdlstation?.visitor?.pdls[0]?.pdl.person?.first_name || ''} ${pdlstation?.visitor?.pdls[0]?.pdl.person?.last_name || ''}`
-                : "",
-            relationshipToPDL: pdlstation?.visitor?.pdls[0]?.relationship_to_pdl || "No PDL relationship",
-            level: pdlstation?.visitor?.pdls?.[0]?.pdl.cell.cell_name,
-            annex: pdlstation?.visitor?.pdls?.[0]?.pdl?.cell?.floor?.split("(")[1]?.replace(")", ""),
-            dorm: pdlstation?.visitor?.pdls?.[0]?.pdl?.cell?.floor,
-        }
-    }) || [];
+            pdl_name: pdlPerson
+                ? `${pdlPerson?.first_name ?? ""} ${pdlPerson?.last_name ?? ""}`.trim()
+                : "N/A",
+            relationshipToPDL: entry?.visitor?.pdls?.[0]?.relationship_to_pdl || "No PDL relationship",
+            level: pdl?.cell?.cell_name || "N/A",
+            annex: pdl?.cell?.floor?.split("(")[1]?.replace(")", "") || "N/A",
+            dorm: pdl?.cell?.floor || "N/A",
+        };
+    });
 
     const filteredData = dataSource.filter((visit) =>
         Object.values(visit).some((value) =>
@@ -60,35 +87,28 @@ const PDLVisitors = () => {
         )
     );
 
-    const columns: ColumnsType<MainGateLog> = [
+    const columns: ColumnsType<any> = [
         {
             title: "No.",
             dataIndex: "key",
             key: "key",
-        },
-        {
-            title: "Timestamp",
-            dataIndex: "timestamp",
-            key: "timestamp",
-            render: (text) => new Date(text).toLocaleString(),
-            sorter: (a, b) => new Date(b.timestamp) - new Date(a.timestamp), // Descending order for latest first
-            defaultSortOrder: 'descend', // Default to descending order
+            render: (_: any, __: any, index: number) => (visitorPage - 1) * limit + index + 1,
         },
         {
             title: "Visitor Name",
             dataIndex: "visitor",
             key: "visitor",
             sorter: (a, b) => {
-                const nameA = a.visitor.toLowerCase();
-                const nameB = b.visitor.toLowerCase();
-                return nameA.localeCompare(nameB); // Sorting by visitor name
+                const nameA = a.visitor?.toLowerCase();
+                const nameB = b.visitor?.toLowerCase();
+                return nameA.localeCompare(nameB);
             },
         },
         {
             title: "Visitor Type",
-            dataIndex: "visitorType",
-            key: "visitorType",
-            sorter: (a, b) => a.visitorType.localeCompare(b.visitorType), // Sorting for visitor type
+            dataIndex: "visitor_type",
+            key: "visitor_type",
+            sorter: (a, b) => (a.visitor_type || "").localeCompare(b.visitor_type || ""),
             filters: [
                 { text: 'Regular', value: 'Regular' },
                 { text: 'Senior Citizen', value: 'Senior Citizen' },
@@ -99,7 +119,7 @@ const PDLVisitors = () => {
                 { text: 'LGBTQ + GAY / BISEXUAL', value: 'LGBTQ + GAY / BISEXUAL' },
                 { text: 'LGBTQ + LESBIAN / BISEXUAL', value: 'LGBTQ + LESBIAN / BISEXUAL' },
             ],
-            onFilter: (value, record) => record.visitorType.includes(value), // Filtering
+            onFilter: (value, record) => record.visitor_type.includes(value),
         },
         {
             title: "Visitor Photo",
@@ -159,11 +179,11 @@ const PDLVisitors = () => {
         },
         {
             title: "PDL Name",
-            dataIndex: "pdlName",
-            key: "pdlName",
+            dataIndex: "pdl_name",
+            key: "pdl_name",
         },
         {
-            title: "Relationship to Visitor",
+            title: "Relationship to PDL",
             dataIndex: "relationshipToPDL",
             key: "relationshipToPDL",
         },
@@ -182,27 +202,62 @@ const PDLVisitors = () => {
             dataIndex: "dorm",
             key: "dorm",
         },
+        {
+            title: "Timestamp In",
+            dataIndex: "timestampIn",
+            key: "timestampIn",
+            render: (text) => text ? new Date(text).toLocaleString() : "...",
+            sorter: (a, b) => new Date(b.timestampIn) - new Date(a.timestampIn),
+            defaultSortOrder: 'descend',
+        },
+        {
+            title: "Timestamp Out",
+            dataIndex: "timestampOut",
+            key: "timestampOut",
+            render: (text) => text ? new Date(text).toLocaleString() : "...",
+            sorter: (a, b) => new Date(b.timestampOut || 0) - new Date(a.timestampOut || 0),
+        },
+        {
+            title: "Status",
+            dataIndex: "status",
+            key: "status",
+        },
     ];
 
     return (
-        <div className="p-4">
-            <div className="flex justify-between">
-                <h1 className="text-3xl font-bold text-[#1E365D]">PDL Visitor</h1>
+        <div className="p-4 h-full flex flex-col">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
+                <h1 className="text-3xl font-bold text-[#1E365D]">PDL Visitor Logs</h1>
                 <Input
                     placeholder="Search logs..."
                     value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    className="mb-4 py-2 w-full md:w-64"
+                    onChange={(e) => {
+                        setSearchText(e.target.value);
+                        setVisitorPage(1);
+                    }}
+                    className="py-2 w-full md:w-64"
                 />
             </div>
-
-            <Table
-                loading={logsLoading}
-                dataSource={filteredData}
-                columns={columns}
-                pagination={{ pageSize: 10 }}
-                rowKey="id"
-            />
+            <div className="overflow-y-auto" style={{ maxHeight: "90vh" }}>
+                <Table
+                    loading={visitorLogsLoading}
+                    dataSource={debouncedSearch ? filteredData : dataSource}
+                    columns={columns}
+                    scroll={{ x: 800, y: "calc(100vh - 200px)" }}
+                    pagination={
+                        debouncedSearch
+                            ? false
+                            : {
+                                current: visitorPage,
+                                pageSize: limit,
+                                total: visitorData?.count || 0,
+                                onChange: (newPage) => setVisitorPage(newPage),
+                                showSizeChanger: false,
+                            }
+                    }
+                    rowKey="key"
+                />
+            </div>
         </div>
     );
 };
