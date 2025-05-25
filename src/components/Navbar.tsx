@@ -30,7 +30,7 @@ const Navbar = ({ isSidebarCollapsed }: NavbarProps) => {
         { path: "screening", icon: MdOutlinePersonSearch, label: "Screening" },
         { path: "threats", icon: PiWarningLight, label: "Threats" },//threats
         { path: "incidents", icon: PiWarningOctagon, label: "Incidents" },
-        { path: "", icon: FaRegFileAlt, label: "Reports" },//reports
+        { path: "reports", icon: FaRegFileAlt, label: "Reports" },
         { path: "", icon: FaWrench, label: "Supports" },//supports
         { path: "settings", icon: VscSettings, label: "Settings" },//
     ];
