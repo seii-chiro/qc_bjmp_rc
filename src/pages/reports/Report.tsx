@@ -15,7 +15,7 @@ const Report = () => {
     const [pdfDataUrl, setPdfDataUrl] = useState('');
     const token = useTokenStore().token;
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-    const [organizationName, setOrganizationName] = useState('Sample Organization');
+    const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
     const [preparedBy, setPreparedBy] = useState('Prepared By Name');
     const [visitors, setVisitors] = useState([]);
     const [personnel, setPersonnel] = useState([]);
