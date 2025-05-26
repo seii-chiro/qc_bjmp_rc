@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import React, { Suspense } from "react";
 import Spinner from "./components/loaders/Spinner.tsx";
-import GeneralErrorElement from "./pages/error_pages/GeneralErrorElement.tsx";
+// import GeneralErrorElement from "./pages/error_pages/GeneralErrorElement.tsx";
 import { useAuthStore } from "./store/useAuthStore.ts";
 import { MapContent } from "./map/MapContent.tsx";
 import Landing from "./pages/landing/Home.tsx";
@@ -20,7 +20,6 @@ import SocialMedia from "./pages/maintenance/social_media_platform/socialmedia.t
 import Gender from "./pages/personnel_management/gender/gender.tsx";
 import CivilStatus from "./pages/personnel_management/civil-status/civilstatus.tsx";
 import ID_Types from "./pages/personnel_management/ID_type/idtype.tsx";
-import GeneralSetting from "./pages/Settings/generalsetting.tsx";
 import User from "./pages/User_Management/User.tsx";
 import Users from "./pages/User_Management/User/User.tsx";
 import Roles from "./pages/User_Management/Roles/Roles.tsx";
@@ -113,6 +112,9 @@ import Dorm from "./pages/assets/dorm/Dorm.tsx";
 import GroupAffiliation from "./pages/maintenance/group-affiliation/GroupAffiliation.tsx";
 import IncidentCategory from "./pages/Incidents/incident-category/IncidentCategory.tsx";
 import IncidentType from "./pages/Incidents/incident-type/IncidentType.tsx";
+import Settings from "./pages/Settings/Settings.tsx";
+import GeneralSettings from "./pages/Settings/general-setting/GeneralSettings.tsx";
+import SystemSettings from "./pages/Settings/system-settings/SystemSettings.tsx";
 
 // Lazy-loaded components
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -298,7 +300,15 @@ function App() {
                 },
                 {
                     path: "settings",
-                    element: <GeneralSetting />
+                    element: <Settings />
+                },
+                {
+                    path: "settings/general-settings",
+                    element: <GeneralSettings />
+                },
+                {
+                    path: "settings/system-settings",
+                    element: <SystemSettings />
                 },
                 {
                     path: "users",
