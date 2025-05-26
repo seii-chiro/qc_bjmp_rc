@@ -14,11 +14,8 @@ const IdentificationLandscape = ({ visitor_log, visitHistory }: { visitor_log: a
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 3);
 
-    const currentVisit = {
-        ...visitor_log,
-        isCurrent: true,
-    };
-    const displayedVisitHistory = [currentVisit, ...(sortedVisitHistory || [])];
+
+    const displayedVisitHistory = sortedVisitHistory || [];
 
     const Info = ({ title, info }: { title: string, info: string | null }) => {
         return (
@@ -150,19 +147,28 @@ const IdentificationLandscape = ({ visitor_log, visitHistory }: { visitor_log: a
                                                     <tbody>
                                                         {displayedVisitHistory && displayedVisitHistory.length > 0 ? (
                                                             displayedVisitHistory.map((visit, index) => {
-                                                                const login = new Date(visit.created_at);
-                                                                const logout = visit.updated_at && !visit.isCurrent ? new Date(visit.updated_at) : null;
-                                                                const durationMs = logout ? logout.getTime() - login.getTime() : 0;
-                                                                const durationMins = Math.floor(durationMs / 60000);
-                                                                const hours = Math.floor(durationMins / 60);
-                                                                const minutes = durationMins % 60;
+                                                                const login = new Date(visit.timestamp_in);
+                                                                const logout = visit.timestamp_out ? new Date(visit.timestamp_out) : null;
+                                                                const duration_in_sec = visit?.duration ? visit?.duration : 0;
+                                                                let durationDisplay = "...";
+                                                                if (visit.timestamp_out) {
+                                                                    const minutes = Math.floor(duration_in_sec / 60);
+                                                                    const hours = Math.floor(minutes / 60);
+                                                                    if (duration_in_sec < 60) {
+                                                                        durationDisplay = `${duration_in_sec}s`;
+                                                                    } else if (minutes < 60) {
+                                                                        durationDisplay = `${minutes}m`;
+                                                                    } else {
+                                                                        durationDisplay = `${hours}h ${minutes % 60}m`;
+                                                                    }
+                                                                }
                                                                 return (
                                                                     <tr key={index}>
                                                                         <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
                                                                             {dayjs(login).format("YYYY-MM-DD")}
                                                                         </td>
                                                                         <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                                            {visit.isCurrent ? "..." : (logout ? `${hours}h ${minutes}m` : "-")}
+                                                                            {!visit.timestamp_out ? "..." : durationDisplay}
                                                                         </td>
                                                                         <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
                                                                             {login.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
