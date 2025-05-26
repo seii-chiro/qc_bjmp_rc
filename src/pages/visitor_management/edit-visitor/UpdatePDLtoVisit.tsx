@@ -13,7 +13,7 @@ import { getVisitor } from "@/lib/query";
 import { BASE_URL } from "@/lib/urls";
 
 const fetchPDLById = async (token: string, id: number) => {
-    const res = await fetch(`${BASE_URL}/api/pdls/${id}/`, {
+    const res = await fetch(`${BASE_URL}/api/pdls/pdl/${id}/`, {
         headers: {
             Authorization: `Token ${token}`,
             "Content-Type": "application/json",
@@ -78,7 +78,7 @@ const UpdatePDLtoVisit = ({
     } = useQuery({
         queryKey: ['pdls-edit', pdlPage, debouncedPdlFirstName],
         queryFn: () => getPDLs(token ?? "", 10, pdlPage, debouncedPdlFirstName),
-        keepPreviousData: true,
+        placeholderData: (prev) => prev,
         staleTime: 10 * 60 * 1000,
     });
 
