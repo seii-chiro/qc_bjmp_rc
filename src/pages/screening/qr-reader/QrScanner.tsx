@@ -203,7 +203,7 @@ const QrScanner = ({
     }, [error]);
 
     return (
-        <div className="w-[35%] mb-5">
+        <div className="w-[35%]">
             <Scanner
                 onScan={handleScan}
                 onError={handleError}
