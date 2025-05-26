@@ -21,7 +21,7 @@ const VisitorProfilePortrait = ({
     visitorData = {},
 }) => {
     const modalContentRef = useRef(null);
-    console.log(visitorData)
+    // console.log(visitorData)
     // Extract data with null safety
     const selectedVisitor = visitorData || {};
 
