@@ -131,7 +131,7 @@ const VisitLog = () => {
     { title: "PDL Name(s)", dataIndex: "pdl_name", key: "pdl_name" },
     { title: "PDL Type", dataIndex: "pdl_type", key: "pdl_type" },
     {
-      title: "Timestamp In",
+      title: "Login",
       dataIndex: "timestampIn",
       key: "timestampIn",
       render: (text: string | number | Date | null | undefined) => {
@@ -141,7 +141,7 @@ const VisitLog = () => {
       },
     },
     {
-      title: "Timestamp Out",
+      title: "Logout",
       dataIndex: "timestampOut",
       key: "timestampOut",
       render: (text: string | number | Date | null | undefined) => {
@@ -151,9 +151,44 @@ const VisitLog = () => {
       },
     },
     {
+      title: "Duration",
+      dataIndex: "duration",
+      key: "duration",
+    },
+    {
       title: "Status",
       dataIndex: "status",
+      width: 100,
       key: "status",
+      filters: [
+        { text: "IN", value: "IN" },
+        { text: "OUT", value: "OUT" },
+      ],
+      onFilter: (value: string | number | boolean, record: any) =>
+        String(record.status).toLowerCase() === String(value).toLowerCase(),
+    },
+    {
+      title: "", // No title for the status color box
+      key: "statusColor",
+      width: 40,
+      align: "center",
+      render: (_: any, record: any) => (
+        <div
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: 4,
+            background:
+              String(record.status).toLowerCase() === "out"
+                ? "#22c55e" // green-500
+                : String(record.status).toLowerCase() === "in"
+                  ? "#f59e42" // orange-400
+                  : "#d1d5db", // gray-300 for other statuses
+            display: "inline-block",
+          }}
+          title={record.status}
+        />
+      ),
     },
   ];
 
@@ -163,6 +198,7 @@ const VisitLog = () => {
         id: any;
         timestamp_in: any;
         timestamp_out: any;
+        duration: any;
         status: any;
         person: any;
         visitor: { visitor_type: any; pdls: any[] };
@@ -171,6 +207,16 @@ const VisitLog = () => {
         id: entry?.id,
         timestampIn: entry?.timestamp_in ?? "",
         timestampOut: entry?.timestamp_out ?? "",
+        duration:
+          (() => {
+            const sec = Number(entry?.duration ?? 0);
+            if (!sec || isNaN(sec) || sec === 0) return undefined;
+            if (sec < 60) return `${sec}s`;
+            const min = Math.floor(sec / 60);
+            if (min < 60) return `${min}m`;
+            const hr = Math.floor(min / 60);
+            return `${hr}h ${min % 60}m`;
+          })() ?? "...",
         status: entry?.status ?? "",
         visitor: entry?.person || "",
         visitor_type: entry?.visitor?.visitor_type || "N/A",
@@ -201,21 +247,21 @@ const VisitLog = () => {
       ) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
-  const filteredData = dataSource.filter(
-    (log: { [s: string]: unknown } | ArrayLike<unknown>) => {
-      const hasVisitor =
-        typeof log === "object" && log !== null && "visitor" in log;
-      const visitorMatch = hasVisitor
-        ? String((log as { [s: string]: unknown }).visitor || "")
-          .toLowerCase()
-          .includes(searchText.toLowerCase())
-        : false;
-      const otherMatch = Object.values(log).some((value) =>
-        String(value).toLowerCase().includes(searchText.toLowerCase())
-      );
-      return visitorMatch || otherMatch;
-    }
-  );
+  // const filteredData = dataSource.filter(
+  //   (log: { [s: string]: unknown } | ArrayLike<unknown>) => {
+  //     const hasVisitor =
+  //       typeof log === "object" && log !== null && "visitor" in log;
+  //     const visitorMatch = hasVisitor
+  //       ? String((log as { [s: string]: unknown }).visitor || "")
+  //         .toLowerCase()
+  //         .includes(searchText.toLowerCase())
+  //       : false;
+  //     const otherMatch = Object.values(log).some((value) =>
+  //       String(value).toLowerCase().includes(searchText.toLowerCase())
+  //     );
+  //     return visitorMatch || otherMatch;
+  //   }
+  // );
 
   return (
     <div className="p-4 h-full flex flex-col">
@@ -228,7 +274,7 @@ const VisitLog = () => {
                 ? "Visitor Logs"
                 : "PDL Logs"}
           </h1>
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2 mt-10">
             <Button
               type={view === "Main Gate" ? "primary" : "default"}
               onClick={() => setView("Main Gate")}
@@ -263,21 +309,17 @@ const VisitLog = () => {
       </div>
       <div className="overflow-y-auto" style={{ maxHeight: "90vh" }}>
         <Table
-          loading={tableIsLoading}
+          loading={tableIsLoading || mainGateLogsLoading || visitorLogsLoading || pdlLogsLoading}
           columns={columns}
-          dataSource={debouncedSearch ? filteredData : dataSource}
+          dataSource={dataSource}
           scroll={{ x: 800, y: "calc(100vh - 200px)" }}
-          pagination={
-            debouncedSearch
-              ? false
-              : {
-                current: page,
-                pageSize: limit,
-                total: activeData?.count || 0,
-                onChange: (newPage) => setPage(newPage),
-                showSizeChanger: false,
-              }
-          }
+          pagination={{
+            current: page,
+            pageSize: limit,
+            total: activeData?.count || 0,
+            onChange: (newPage) => setPage(newPage),
+            showSizeChanger: false,
+          }}
           rowKey="key"
         />
       </div>
