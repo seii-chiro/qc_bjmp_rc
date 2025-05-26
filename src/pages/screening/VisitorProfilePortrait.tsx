@@ -36,13 +36,13 @@ const VisitorProfilePortrait = ({
         }
     }
     const displayedVisitHistory = visitorData?.main_gate_visits || []
-    const waiverData = visitorData.person?.media_requirements?.find(media => media?.name?.toLowerCase() === "waiver") || {};
-    const CohabitationData = visitorData.person?.media_requirements?.find(media => media?.name?.toLowerCase() === "cohabitation") || {};
-    const RightThumb = visitorData.person?.media?.find(media => media?.name?.toLowerCase() === "cohabitation") || {};
-    const Signature = visitorData.person?.media?.find(media => media?.media_description?.toLowerCase() === "signature picture") || {};
-    const fullBodyFrontIage = visitorData.person?.media?.find(media => media?.media_description?.toLowerCase() === "full-body front picture") || {};
-    const leftSideImage = visitorData.person?.media?.find(media => media?.media_description?.toLowerCase() === "left-side view picture") || {};
-    const RightImage = visitorData.person?.media?.find(media => media?.media_description?.toLowerCase() === "right-side view picture") || {};
+    const waiverData = visitorData?.person?.media_requirements?.find(media => media?.name?.toLowerCase() === "waiver") || {};
+    const CohabitationData = visitorData?.person?.media_requirements?.find(media => media?.name?.toLowerCase() === "cohabitation") || {};
+    const RightThumb = visitorData?.person?.media?.find(media => media?.name?.toLowerCase() === "cohabitation") || {};
+    const Signature = visitorData?.person?.media?.find(media => media?.media_description?.toLowerCase() === "signature picture") || {};
+    const fullBodyFrontIage = visitorData?.person?.media?.find(media => media?.media_description?.toLowerCase() === "full-body front picture") || {};
+    const leftSideImage = visitorData?.person?.media?.find(media => media?.media_description?.toLowerCase() === "left-side view picture") || {};
+    const RightImage = visitorData?.person?.media?.find(media => media?.media_description?.toLowerCase() === "right-side view picture") || {};
 
     // Helper function to calculate age
     const calculateAge = (dateOfBirth: string | Date) => {
