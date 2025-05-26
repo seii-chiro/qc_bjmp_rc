@@ -196,7 +196,6 @@ const VisitorProfileSlider = () => {
 
     return (
         <>
-            <span>Log interval: {logRefetchInterval}</span>
             <FullScreen handle={handle}>
                 <div className={clsx('w-full relative flex justify-center items-center overflow-x-hidden', handle?.active ? 'h-full' : 'h-[85vh]')}>
                     {/* Slide number overlay */}
