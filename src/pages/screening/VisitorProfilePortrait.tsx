@@ -38,7 +38,7 @@ const VisitorProfilePortrait = ({
     const displayedVisitHistory = visitorData?.main_gate_visits || []
     const waiverData = visitorData?.person?.media_requirements?.find(media => media?.name?.toLowerCase() === "waiver") || {};
     const CohabitationData = visitorData?.person?.media_requirements?.find(media => media?.name?.toLowerCase() === "cohabitation") || {};
-    const RightThumb = visitorData?.person?.media?.find(media => media?.name?.toLowerCase() === "cohabitation") || {};
+    const RightThumb = visitorData?.person?.biometrics?.find(biometric => biometric?.position?.toLowerCase() === "finger_right_thumb") || {};
     const Signature = visitorData?.person?.media?.find(media => media?.media_description?.toLowerCase() === "signature picture") || {};
     const fullBodyFrontIage = visitorData?.person?.media?.find(media => media?.media_description?.toLowerCase() === "full-body front picture") || {};
     const leftSideImage = visitorData?.person?.media?.find(media => media?.media_description?.toLowerCase() === "left-side view picture") || {};
