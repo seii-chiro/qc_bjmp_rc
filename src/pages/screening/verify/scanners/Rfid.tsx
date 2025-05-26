@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useRef, useState } from 'react'
-import noimg from '../../../../../public/noimg.png';
 import qjmmd from '../../../../assets/Logo/QCJMD.png';
 import rfid from '../../../../assets/rfid.png'
 import close from '../../../../assets/Icons/close.png'
@@ -11,6 +10,8 @@ import { Device } from '@/lib/definitions';
 import { BASE_URL } from '@/lib/urls';
 import { useVisitorLogStore } from '@/store/useVisitorLogStore';
 import Clock from '../../Clock';
+import VisitorProfilePortrait from '../../VisitorProfilePortrait';
+import { FullScreen, useFullScreenHandle } from 'react-full-screen';
 
 type Props = {
     devices: Device[];
@@ -30,6 +31,23 @@ const Rfid = ({
     const addOrRemoveVisitorLog = useVisitorLogStore((state) => state.addOrRemoveVisitorLog);
     const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null)
     const prevIdRef = useRef<string | null>(null);
+    const fullScreenHandle = useFullScreenHandle();
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            // Ctrl+Shift+F for fullscreen toggle
+            if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'f') {
+                event.preventDefault();
+                if (fullScreenHandle.active) {
+                    fullScreenHandle.exit();
+                } else {
+                    fullScreenHandle.enter();
+                }
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [fullScreenHandle]);
 
     useEffect(() => {
         if (scannedIdNumber === "") {
@@ -150,13 +168,6 @@ const Rfid = ({
         }
     };
 
-    // Trigger manually on Enter key
-    // const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    //     if (e.key === "Enter") {
-    //         fetchVisitorLog();
-    //     }
-    // };
-
     useEffect(() => {
         if (!scannedIdNumber) return;
 
@@ -164,97 +175,78 @@ const Rfid = ({
 
         const delay = setTimeout(() => {
             fetchVisitorLog();
-            prevIdRef.current = scannedIdNumber; // update the previous scanned ID
-            setScannedIdNumber(""); // clear only when it's new
-        }, 700); // debounce delay
+            prevIdRef.current = scannedIdNumber;
+            setScannedIdNumber("");
+        }, 700);
 
         return () => clearTimeout(delay);
     }, [scannedIdNumber]);
 
-    console.log(selectedDeviceId)
-
     return (
-        <div className="flex flex-col md:flex-row items-center justify-center gap-5 p-5 md:p-10">
-            {/* Info section */}
-            <div className="flex justify-center items-center flex-col gap-5 text-center px-5 w-full md:w-1/2">
-                <img src={qjmmd} className="w-32 md:w-44" alt="QUEZON CITY JAIL LOGO" />
-                <div className="flex flex-col items-center gap-2">
-                    <h1 className="uppercase font-bold text-xl md:text-3xl">
-                        Visitor Check In / Check Out
-                    </h1>
-                    <div className="text-sm md:text-base text-gray-600">
-                        <Clock />
-                    </div>
-                    <div className="mt-5">
-                        <h1 className=" font-bold text-xl text-orange-500 md:text-2xl">
-                            Hold your RFID Card near the Reader
+        <FullScreen handle={fullScreenHandle}>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-5 p-2 md:p-10 bg-white">
+                {/* Info section */}
+                <div className="flex justify-center items-center flex-col gap-5 text-center px-5 w-full md:w-1/2">
+                    <img src={qjmmd} className="w-32 md:w-44" alt="QUEZON CITY JAIL LOGO" />
+                    <div className="flex flex-col items-center gap-2">
+                        <h1 className="uppercase font-bold text-xl md:text-3xl">
+                            Visitor Check In / Check Out
                         </h1>
+                        <div className="text-sm md:text-base text-gray-600">
+                            <Clock />
+                        </div>
+                        <div className="mt-5">
+                            <h1 className=" font-bold text-xl text-orange-500 md:text-2xl">
+                                Hold your RFID Card near the Reader
+                            </h1>
+                        </div>
+                        <img src={rfid} className="w-52" alt="RFID" />
                     </div>
-                    <img src={rfid} className="w-52" alt="RFID" />
+                    <div className="w-full justify-normal flex items-center gap-4 px-20">
+                        <span className='min-w-fit'>Device ID:</span>
+                        <Select
+                            loading={deviceLoading}
+                            value={selectedDeviceId}
+                            className='h-10 w-full'
+                            options={rfidDevices.map(device => ({
+                                label: device?.device_name,
+                                value: device?.id
+                            }))}
+                            onChange={value => {
+                                setSelectedDeviceId(value)
+                            }}
+                        />
+                    </div>
+                    <div>
+                        <Input
+                            ref={inputRef}
+                            autoFocus
+                            value={scannedIdNumber}
+                            onChange={e => setScannedIdNumber(e.target.value)}
+                        />
+                    </div>
                 </div>
-                <div className="w-full justify-normal flex items-center gap-4 px-20">
-                    <span className='min-w-fit'>Device ID:</span>
-                    <Select
-                        loading={deviceLoading}
-                        value={selectedDeviceId}
-                        className='h-10 w-full'
-                        options={rfidDevices.map(device => ({
-                            label: device?.device_name,
-                            value: device?.id
-                        }))}
-                        onChange={value => {
-                            setSelectedDeviceId(value)
-                        }}
-                    />
-                </div>
-                <div>
-                    <Input
-                        ref={inputRef}
-                        autoFocus
-                        value={scannedIdNumber}
-                        onChange={e => setScannedIdNumber(e.target.value)}
-                    />
-                </div>
-            </div>
 
-            {/* Image section */}
-            <div className="flex justify-center flex-col items-center gap-5 w-full md:w-1/2">
-                <div className="w-64 md:w-96 h-64 md:h-96 bg-gray-200 p-5 rounded-lg flex items-center justify-center">
-                    {
-                        scannedVisitor?.person?.media?.find(image => image?.media_description === "Close-Up Front Picture")?.media_binary ? (
-                            <img
-                                src={`data:image/png;base64,${scannedVisitor?.person?.media?.find(
-                                    image => image?.media_description === "Close-Up Front Picture"
-                                )?.media_binary}`}
-                                alt="Close-Up Front Picture"
-                            />
-                        ) : (
-                            <img src={noimg} alt="No Image" className="max-h-full max-w-full object-contain" />
-                        )
-                    }
-                </div>
-                <h1 className="text-2xl font-bold text-center">
-                    {`${scannedVisitor?.person?.first_name ?? ""} ${scannedVisitor?.person?.middle_name ? scannedVisitor.person.middle_name + " " : ""}${scannedVisitor?.person?.last_name ?? ""}`}
-                </h1>
-                <div className="flex items-center gap-2">
-                    <h1 className="font-bold text-2xl">STATUS:</h1>
-                    <h1 className="font-bold text-2xl">{scannedVisitor?.visitor_app_status}</h1>
-                </div>
-                <div className='w-full flex items-center justify-center'>
-                    {
-                        scannedVisitor?.visitor_app_status && (
-                            <div className="flex gap-5">
-                                {scannedVisitor?.visitor_app_status === "Verified" ? (
-                                    <img src={check} className="w-14" alt="Check" />
-                                ) : (
-                                    <img src={close} className="w-14" alt="Close" />
-                                )}
-                            </div>
-                        )
-                    }
+                {/* Image section */}
+                <div className="flex justify-center flex-col items-center gap-1 w-full md:w-1/2">
+                    <div className='w-full flex items-center justify-center'>
+                        {
+                            scannedVisitor?.visitor_app_status && (
+                                <div className="flex items-center justify-center gap-5">
+                                    <h1 className="font-bold text-2xl text-green-700">{scannedVisitor?.visitor_app_status}</h1>
+                                    {scannedVisitor?.visitor_app_status === "Verified" ? (
+                                        <img src={check} className="w-10" alt="Check" />
+                                    ) : (
+                                        <img src={close} className="w-10" alt="Close" />
+                                    )}
+                                </div>
+                            )
+                        }
+                    </div>
+                    <VisitorProfilePortrait visitorData={scannedVisitor} />
                 </div>
             </div>
-        </div>
+        </FullScreen>
     )
 }
 
