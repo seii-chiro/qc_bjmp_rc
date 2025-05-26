@@ -7,6 +7,7 @@ type SystemSettingsState = {
   fingerScannerTimeout: string;
   irisScannerTimeout: string;
   logRefetchInterval: string;
+  nfiqQuality: string;
   fetchSystemSettings: (token: string) => Promise<void>;
   updateSystemSettingsStore: (token: string) => Promise<void>;
 };
@@ -17,6 +18,7 @@ export const useSystemSettingsStore = create<SystemSettingsState>()(
       fingerScannerTimeout: "",
       irisScannerTimeout: "",
       logRefetchInterval: "",
+      nfiqQuality: "",
       fetchSystemSettings: async (token: string) => {
         try {
           const res = await fetch(`${BASE_URL}/api/codes/system-settings/`, {
@@ -39,12 +41,16 @@ export const useSystemSettingsStore = create<SystemSettingsState>()(
             logRefetchInterval:
               data?.results?.find((s: any) => s.key === "log_refetch_interval")
                 ?.value ?? "",
+            nfiqQuality:
+              data?.results?.find((s: any) => s.key === "nfiq_quality")
+                ?.value ?? "",
           });
         } catch {
           set({
             fingerScannerTimeout: "",
             irisScannerTimeout: "",
             logRefetchInterval: "",
+            nfiqQuality: "",
           });
         }
       },
@@ -70,22 +76,27 @@ export const useSystemSettingsStore = create<SystemSettingsState>()(
             logRefetchInterval:
               data?.results?.find((s: any) => s.key === "log_refetch_interval")
                 ?.value ?? "",
+            nfiqQuality:
+              data?.results?.find((s: any) => s.key === "nfiq_quality")
+                ?.value ?? "",
           });
         } catch {
           set({
             fingerScannerTimeout: "",
             irisScannerTimeout: "",
             logRefetchInterval: "",
+            nfiqQuality: "",
           });
         }
       },
     }),
     {
-      name: "system-settings-store", // unique name for localStorage
+      name: "system-settings-store",
       partialize: (state) => ({
         fingerScannerTimeout: state.fingerScannerTimeout,
         irisScannerTimeout: state.irisScannerTimeout,
         logRefetchInterval: state.logRefetchInterval,
+        nfiqQuality: state.nfiqQuality,
       }),
     }
   )
