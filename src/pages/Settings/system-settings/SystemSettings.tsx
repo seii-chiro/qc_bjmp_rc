@@ -1,4 +1,5 @@
 import { getSystemSettings, patchSystemSettings } from "@/lib/system-settings-queries";
+import { useSystemSettingsStore } from "@/store/useSystemSettingStore";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
 import { Button, Input, Skeleton, message } from "antd";
@@ -6,6 +7,7 @@ import { useEffect, useState } from "react";
 
 const SystemSettings = () => {
     const token = useTokenStore((state) => state.token);
+    const updateSystemSettingsStore = useSystemSettingsStore((state) => state.fetchSystemSettings);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const { data: systemSettings, isLoading: loadingSettings } = useQuery({
@@ -58,6 +60,8 @@ const SystemSettings = () => {
                     { key: "iris_capture_timeout", value: irisTimeout }
                 );
             }
+            // Update global store after patch
+            await updateSystemSettingsStore(token ?? "");
             message.success("Scanner settings updated successfully!");
         } catch (error) {
             message.error("Failed to update scanner settings");
@@ -75,6 +79,8 @@ const SystemSettings = () => {
                     { key: "log_refetch_interval", value: logInterval }
                 );
             }
+            // Update global store after patch
+            await updateSystemSettingsStore(token ?? "");
             message.success("Log settings updated successfully!");
         } catch (error) {
             message.error("Failed to update log settings");
