@@ -4,7 +4,7 @@ import autoTable from 'jspdf-autotable';
 import { BASE_URL } from '@/lib/urls';
 import { useTokenStore } from '@/store/useTokenStore';
 import bjmp from '../../assets/Logo/QCJMD.png';
-import { Input, Select } from 'antd';
+import { Select } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 
 const { Option } = Select;
@@ -25,29 +25,246 @@ const Report = () => {
     const [visitorsLoading, setVisitorsLoading] = useState(true);
   const [personnelLoading, setPersonnelLoading] = useState(true);
 
+  const sharedFields = {
+    name: true,
+    gender: true,
+    nationality: true,
+    civil_status: true,
+
+    // Address
+    address: true,
+    province: true,
+    municipality: true,
+    region: true,
+    barangay: true,
+    country: true,
+    addressType: true,
+    type: true,
+    street: true,
+    postalCode: true,
+    street_number: true,
+    bldgSubdivision: true,
+
+    // Contact
+    contactType: true,
+    value: true,
+    mobileImei: true,
+
+    // Talents & Interests
+    talents: true,
+    skills: true,
+    religion: true,
+    interests: true,
+    sports: true,
+    musicalInstruments: true,
+
+    // Identifiers
+    identifierType: true,
+    identifierIDNumber: true,
+    identifierIssuedBy: true,
+    identifierDateIssued: true,
+    identifierExpiryDate: true,
+    identifiersPlaceIssued: true,
+
+    // Employment
+    employmentName: true,
+    jobTitle: true,
+    employmentType: true,
+    startDate: true,
+    endDate: true,
+    location: true,
+    responsibilities: true,
+
+    // Education
+    educationalAttainment: true,
+    institutionName: true,
+    degree: true,
+    fieldOfStudy: true,
+    startYear: true,
+    endYear: true,
+    highestLevel: true,
+    institutionAddress: true,
+    honorsRecieved: true,
+
+    // Social Media
+    platform: true,
+    handle: true,
+    profileURL: true,
+    isPrimaryAccount: true,
+
+    // Affiliations
+    organizationName: true,
+    roleorPosition: true,
+    affiliationStartDate: true,
+    affiliationEndDate: true,
+    affiliationType: true,
+    description: true,
+
+    // Diagnoses
+    healthCondition: true,
+    HealthConditionCategory: true,
+    diagnosisDate: true,
+    treatmentPlan: true,
+
+    // Media Requirements
+    requirementsName: true,
+    requirementissuedBy: true,
+    requirementdateIssued: true,
+    requirementExpiryDate: true,
+    requirementPlaceIssued: true,
+    requirementStatus: true,
+
+    // Media Identifier
+    mediaIdentityIdNumber: true,
+    mediaIdentityIssuedBy: true,
+    mediaIdentityDateIssued: true,
+    mediaIdentityExpiryDate: true,
+    mediaIdentityPlaceIssued: true,
+    mediaIdentityStatus: true,
+    mediaIdentityIDType: true,
+
+    // Multiple Birth Sibling
+    personIDDisplay: true,
+    siblingPerson: true,
+    siblingPersonIDDisplay: true,
+    multipleBirthClass: true,
+    isIdentical: true,
+    isVerified: true,
+
+    // Family Record
+    familyRecordRelationship: true,
+    familyRecordFullName: true,
+    familyRecordIsContactPerson: true,
+    familyRecordContact: true,
+  };
 
     const [visitorFields, setVisitorFields] = useState({
-        idNumber: true,
-        name: true,
-        gender: true,
-        visitorType: true,
-        address: true,
-    });
+    ...sharedFields,
+    idNumber: true,
+    visitorType: true,
+    visitorAppStatus: true,
+    ethnicityProvince: true,
+    visitorRegNo: true,
+    visitorHaveTwins: true,
+    visitorTwinName: true,
+    visitorPDLHaveTwins: true,
+    visitorPDLTwinName: true,
+    lacking: true,
+    // Full Details
+    firstName: true,
+    lastName: true,
+    shortName: true,
+    dateOfBirth: true,
+    placeofBirth: true,
+    noofChildren: true,
+    prefix: true,
+    suffix: true,
+    pdls: true,
+  });
 
-    const [personnelFields, setPersonnelFields] = useState({
-        name: true,
-        gender: true,
-        role: true,
-        status: true,
-        address: true,
-    });
+  const [personnelFields, setPersonnelFields] = useState({
+    ...sharedFields,
+    role: true,
+    status: true,
+    relationship: true,
+    rank: true,
+    personnelRegNo: true,
+    personnelIDNumber: true,
+    personnelShortName: true,
+    dateJoined: true,
+    principleInLife: true,
+    ambition: true,
+    designation: true,
+    desiredDesignation: true,
+    personnelType: true,
+    personnelstatus: true,
+    personnelPosition: true,
+    personnelAppStatus: true,
+
+    // person relationship
+    personnellPersonGender: true,
+    personNationality: true,
+    personCivilStatus: true,
+
+    // person full address
+    personProvince: true,
+    personMunicipality: true,
+    personRegion: true,
+    personBarangay: true,
+    personCountry: true,
+    personAddressType: true,
+    personFullAddress: true,
+    personHomeType: true,
+    personStreet: true,
+    perIsCurrentAddress: true,
+    personStreetNumber: true,
+    personbldgSubdivision: true,
+  });
 
     const [pdlFields, setPDLFields] = useState({
-        name: true,
-        gender: true,
-        role: true,
-        status: true,
-        address: true,
+        ...visitorFields,
+        ...sharedFields,
+        //PDL Details
+        pdlGender: true,
+        visitationStatus: true,
+        gangAffiliation:true,
+        look: true,
+        occupation: true,
+        precinct: true,
+
+        //Case
+          //Offense
+            crimeCategory: true,
+            law: true,
+            offense:true,
+            crimeSeverity: true,
+            punishment: true,
+
+          //Court Branch
+            courtProvince: true,
+            courtRegion: true,
+            court: true,
+            branch: true,
+            judge: true,
+
+          //Other Case Details
+          bailRecommended: true,
+          fileNumber: true,
+          caseNumber: true,
+          dateCrimeCommitted: true,
+          dateCommitted: true,
+          caseName: true,
+          status: true,
+          sentenceLength: true,
+          voterStatus: true,
+          riskClassification: true,
+          noTimesArrested: true,
+          dateConvicted: true,
+          dateReleased: true,
+          dateHospitilized: true,
+          dateofAdmission: true,
+          expectedReleaseDate: true,
+          personnelAppStatus: true,
+
+        //Jail
+        jailName: true,
+        jailType: true,
+        jailCategory: true,
+        emailAddress: true,
+        contactNumber: true, 
+        jailProvince: true,
+        jailMunicipality: true,
+        jailRegion: true,
+        jailBarangay: true,
+        jailStreet: true,
+        jailPostalCode: true,
+        securityLevel: true,
+        jailCapacity:true,
+
+        //Cell
+        cellName: true,
+        cellCapacity: true,
+        cellStatus: true,
     });
 
     useEffect(() => {
@@ -151,7 +368,8 @@ const Report = () => {
 
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
-        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+        const reportReferenceNo = `TAL-${formattedDate}-XXX`; //const reportReferenceNo = `TAL-${formattedDate}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+
 
         const maxRowsPerPage = 26;
         let startY = headerHeight;
