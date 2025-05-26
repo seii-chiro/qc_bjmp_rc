@@ -18,10 +18,12 @@ const SystemSettings = () => {
     const [fingerprintTimeout, setFingerprintTimeout] = useState("");
     const [irisTimeout, setIrisTimeout] = useState("");
     const [logInterval, setLogInterval] = useState("");
+    const [nfiqQuality, setNfiqQuality] = useState("");
 
     const [fingerprintId, setFingerprintId] = useState<number | null>(null);
     const [irisId, setIrisId] = useState<number | null>(null);
     const [logId, setLogId] = useState<number | null>(null);
+    const [nfiqQualityId, setNfiqQualityId] = useState<number | null>(null);
 
     // Update local state when data is loaded
     useEffect(() => {
@@ -35,15 +37,20 @@ const SystemSettings = () => {
             const logSetting = systemSettings.results.find(
                 (setting) => setting.key === "log_refetch_interval"
             );
+            const nfiqQuality = systemSettings.results.find(
+                (setting) => setting.key === "nfiq_quality"
+            );
 
             setFingerprintTimeout(fingerprintSetting?.value ?? "");
             setIrisTimeout(irisSetting?.value ?? "");
             setLogInterval(logSetting?.value ?? "");
+            setNfiqQuality(nfiqQuality?.value ?? "");
 
             // Store IDs for patching
             setFingerprintId(fingerprintSetting?.id ?? null);
             setIrisId(irisSetting?.id ?? null);
             setLogId(logSetting?.id ?? null);
+            setNfiqQualityId(nfiqQuality?.id ?? null);
         }
     }, [systemSettings]);
 
@@ -58,6 +65,11 @@ const SystemSettings = () => {
             if (irisId !== null) {
                 await patchSystemSettings(token ?? "", irisId,
                     { key: "iris_capture_timeout", value: irisTimeout }
+                );
+            }
+            if (nfiqQualityId !== null) {
+                await patchSystemSettings(token ?? "", nfiqQualityId,
+                    { key: "nfiq_quality", value: nfiqQuality }
                 );
             }
             // Update global store after patch
@@ -157,6 +169,19 @@ const SystemSettings = () => {
                                 type="number"
                             />
                             <span className="flex-1">in seconds</span>
+                        </span>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <span>Fingerprint Scanner NFIQ Quality:</span>
+                        <span className="flex items-center gap-2">
+                            <Input
+                                value={nfiqQuality}
+                                onChange={(e) => setNfiqQuality(e.target.value)}
+                                className="flex-1"
+                                type="number"
+                            />
+                            <span className="flex-1">range: 10-100</span>
                         </span>
                     </div>
 
