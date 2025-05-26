@@ -162,7 +162,7 @@ const PdlRegistration = () => {
     } = useQuery({
         queryKey: ['paginated-person', debouncedSearch, personPage],
         queryFn: () => getPersonSearch(token ?? "", 10, debouncedSearch, personPage),
-        keepPreviousData: true,
+        placeholderData: (prev) => prev,
         staleTime: 10 * 60 * 1000,
     });
 
