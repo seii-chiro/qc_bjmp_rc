@@ -1164,8 +1164,6 @@ const Dashboard = () => {
                                     </div>
                                 </>
                                 )}
-
-                            
                             {/* Personnel section always visible */}
                             <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
                                 <div className="my-1">
@@ -1284,7 +1282,7 @@ const Dashboard = () => {
                                 </div>
 
                                 {/* Second Section: Action Taken */}
-                                <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col mt-4">
+                                <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
                                 <div className="my-1">
                                     <Title title="Action Taken Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
                                 </div>
