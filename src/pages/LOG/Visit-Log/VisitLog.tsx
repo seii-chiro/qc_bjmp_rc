@@ -139,6 +139,39 @@ const VisitLog = () => {
         const date = new Date(text);
         return isNaN(date.getTime()) ? "..." : date.toLocaleString();
       },
+      sorter: (a: any, b: any) => {
+        const aTime = new Date(a.timestampIn).getTime();
+        const bTime = new Date(b.timestampIn).getTime();
+        return aTime - bTime;
+      },
+      // Simple filter by date string (YYYY-MM-DD)
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+        <div style={{ padding: 8 }}>
+          <Input
+            placeholder="YYYY-MM-DD"
+            value={selectedKeys[0]}
+            onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={confirm}
+            style={{ width: 188, marginBottom: 8, display: 'block' }}
+          />
+          <Button
+            type="primary"
+            onClick={confirm}
+            size="small"
+            style={{ width: 90, marginRight: 8 }}
+          >
+            Filter
+          </Button>
+          <Button onClick={clearFilters} size="small" style={{ width: 90 }}>
+            Reset
+          </Button>
+        </div>
+      ),
+      onFilter: (value, record) => {
+        if (!value) return true;
+        if (!record.timestampIn) return false;
+        return record.timestampIn.startsWith(value);
+      },
     },
     {
       title: "Logout",
@@ -148,6 +181,38 @@ const VisitLog = () => {
         if (!text) return "...";
         const date = new Date(text);
         return isNaN(date.getTime()) ? "..." : date.toLocaleString();
+      },
+      sorter: (a: any, b: any) => {
+        const aTime = new Date(a.timestampOut).getTime();
+        const bTime = new Date(b.timestampOut).getTime();
+        return aTime - bTime;
+      },
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
+        <div style={{ padding: 8 }}>
+          <Input
+            placeholder="YYYY-MM-DD"
+            value={selectedKeys[0]}
+            onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={confirm}
+            style={{ width: 188, marginBottom: 8, display: 'block' }}
+          />
+          <Button
+            type="primary"
+            onClick={confirm}
+            size="small"
+            style={{ width: 90, marginRight: 8 }}
+          >
+            Filter
+          </Button>
+          <Button onClick={clearFilters} size="small" style={{ width: 90 }}>
+            Reset
+          </Button>
+        </div>
+      ),
+      onFilter: (value: any, record: { timestampOut: string; }) => {
+        if (!value) return true;
+        if (!record.timestampOut) return false;
+        return record.timestampOut.startsWith(value);
       },
     },
     {
