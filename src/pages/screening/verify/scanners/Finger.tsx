@@ -12,7 +12,7 @@ import { useVisitorLogStore } from '@/store/useVisitorLogStore'
 import { useTokenStore } from '@/store/useTokenStore'
 import { BASE_URL } from '@/lib/urls'
 import { Device } from '@/lib/definitions'
-import clsx from 'clsx'
+import VisitorProfilePortrait from '../../VisitorProfilePortrait'
 // import { getPDLVisitStatuses } from '@/lib/additionalQueries'
 
 type Props = {
@@ -61,14 +61,9 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
 
     const NFIQ_Quality_Options = [10, 20, 30, 40, 50]
 
-    // const { data: visitation_status } = useQuery({
-    //     queryKey: ['get-visitation-status', 'qr-reader'],
-    //     queryFn: () => getPDLVisitStatuses(token ?? ""),
-    // })
-
     const fingerprintDevices = useMemo(
         () =>
-            devices?.results?.filter(device =>
+            devices?.results?.filter((device: { device_name: string }) =>
                 device?.device_name?.toLowerCase().includes("fingerprint")
             ) || [],
         [devices]
@@ -192,18 +187,6 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
             if (template) {
                 verifyFingerprintMutation.mutate({ template, type: 'fingerprint' });
             }
-        }
-    }
-
-    let imageSrc = "";
-
-    if (lastScanned?.person?.media) {
-        const frontPicture = lastScanned?.person?.media?.find(
-            (media: { picture_view: string; }) => media?.picture_view === "Front"
-        )?.media_binary;
-
-        if (frontPicture) {
-            imageSrc = `data:image/jpeg;base64,${frontPicture}`;
         }
     }
 
@@ -730,46 +713,21 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                         </div>
                     ) : (
                         <div className='flex-1'>
-                            <div className="flex flex-col items-center justify-center gap-4">
-                                <div className="w-full flex items-center justify-center flex-col gap-10">
-                                    <div className="w-[60%] rounded-md overflow-hidden object-cover">
-                                        <img src={imageSrc || noImg} alt="Image of a person" className="w-full" />
-                                    </div>
-                                    <h1 className="text-4xl font-semibold">{`${lastScanned?.person?.first_name ?? ""} ${lastScanned?.person?.last_name ?? ""}`}</h1>
-                                </div>
-                                <div className="w-full flex items-center justify-center">
-                                    {
-                                        lastScanned ? (
-                                            <div className="w-fit text-3xl flex">
-                                                <div className="flex items-center justify-between w-full">
-                                                    <div className="flex items-center gap-2">
-                                                        <h1 className={clsx(
-                                                            'font-bold text-4xl',
-                                                            lastScanned?.visitor_app_status === 'Verified'
-                                                                ? 'text-green-500'
-                                                                : 'text-red-500'
-                                                        )}>{lastScanned?.visitor_app_status}</h1>
-                                                        {lastScanned?.visitor_app_status === "Verified" ? (
-                                                            <img src={check} alt="Check Mark" className="w-10 h-10" />
-                                                        ) : (
-                                                            <img src={ex} alt="X Mark" className="w-10 h-10" />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div>
-                                                <p className="text-2xl font-semibold">Please Scan Your Fingerprint.</p>
-                                            </div>
-                                        )
-                                    }
-                                </div>
+                            <div className='w-full flex items-center justify-center'>
+                                {
+                                    lastScanned?.visitor_app_status && (
+                                        <div className="flex items-center justify-center gap-5">
+                                            <h1 className="font-bold text-2xl text-green-700">{lastScanned?.visitor_app_status}</h1>
+                                            {lastScanned?.visitor_app_status === "Verified" ? (
+                                                <img src={check} className="w-10" alt="Check" />
+                                            ) : (
+                                                <img src={ex} className="w-10" alt="Close" />
+                                            )}
+                                        </div>
+                                    )
+                                }
                             </div>
-                            {/* <div className='mt-4'>
-                                <p className="text-lg text-center">
-                                    {visitation_status?.results?.find(status => status?.name === lastScanned?.pdls?.[0]?.pdl?.visitation_status)?.description}
-                                </p>
-                            </div> */}
+                            <VisitorProfilePortrait visitorData={lastScanned} />
                         </div>
                     )
                 }

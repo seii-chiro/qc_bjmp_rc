@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IrisCapturePayload, IrisCaptureResponse } from "@/lib/scanner-definitions"
 import { captureIris, getIrisScannerInfo, uninitIrisScanner, verifyIris } from "@/lib/scanner-queries"
-import { useMutation, useQuery } from "@tanstack/react-query"
-import { Checkbox, message, Select } from "antd"
+import { useMutation } from "@tanstack/react-query"
+import { Button, Checkbox, message, Select } from "antd"
 import { useEffect, useState, useRef, useMemo } from "react"
 import noImg from "@/assets/no-img.webp"
 import check from "@/assets/Icons/check-mark.png"
@@ -11,8 +11,7 @@ import { useVisitorLogStore } from '@/store/useVisitorLogStore'
 import { useTokenStore } from '@/store/useTokenStore'
 import { BASE_URL } from '@/lib/urls'
 import { Device } from '@/lib/definitions'
-import { getPDLVisitStatuses } from "@/lib/additionalQueries"
-import clsx from "clsx"
+import VisitorProfilePortrait from "../../VisitorProfilePortrait"
 
 type Props = {
   devices: Device[];
@@ -36,7 +35,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
 
   const irisDevices = useMemo(
     () =>
-      devices?.results?.filter(device =>
+      devices?.results?.filter((device: { device_name: string }) =>
         device?.device_name?.toLowerCase().includes('iris scanner')
       ) || [],
     [devices]
@@ -47,11 +46,6 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
       setSelectedDeviceId(irisDevices[0].id);
     }
   }, [deviceLoading, irisDevices]);
-
-  const { data: visitation_status } = useQuery({
-    queryKey: ['get-visitation-status', 'qr-reader'],
-    queryFn: () => getPDLVisitStatuses(token ?? ""),
-  })
 
   // Add this ref to track if processing is in progress to prevent duplicate API calls
   const processingRef = useRef(false);
@@ -196,21 +190,21 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
     },
   });
 
-  const handleVerifyIris = () => {
-    if (!selectedDeviceId) {
-      message.warning("Please select a device.");
-      return;
-    }
+  // const handleVerifyIris = () => {
+  //   if (!selectedDeviceId) {
+  //     message.warning("Please select a device.");
+  //     return;
+  //   }
 
-    // Only verify one iris at a time, prioritizing left
-    if (irsCaptureResponse?.ImgDataLeft) {
-      verifyIrisMutation.mutate({ template: irsCaptureResponse?.ImgDataLeft ?? "", type: "iris" });
-    } else if (irsCaptureResponse?.ImgDataRight) {
-      verifyIrisMutation.mutate({ template: irsCaptureResponse?.ImgDataRight ?? "", type: "iris" });
-    } else {
-      message.warning("No iris scan data available");
-    }
-  }
+  //   // Only verify one iris at a time, prioritizing left
+  //   if (irsCaptureResponse?.ImgDataLeft) {
+  //     verifyIrisMutation.mutate({ template: irsCaptureResponse?.ImgDataLeft ?? "", type: "iris" });
+  //   } else if (irsCaptureResponse?.ImgDataRight) {
+  //     verifyIrisMutation.mutate({ template: irsCaptureResponse?.ImgDataRight ?? "", type: "iris" });
+  //   } else {
+  //     message.warning("No iris scan data available");
+  //   }
+  // }
 
   const irisScannerUninitThenInitMutation = useMutation({
     mutationKey: ['iris-scanner-uninit'],
@@ -266,18 +260,6 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
       message.error("Error scanning iris: " + error?.message)
     }
   });
-
-  let imageSrc = "";
-
-  if (lastScanned?.person?.media) {
-    const frontPicture = lastScanned?.person?.media?.find(
-      (media: { picture_view: string; }) => media?.picture_view === "Front"
-    )?.media_binary;
-
-    if (frontPicture) {
-      imageSrc = `data:image/jpeg;base64,${frontPicture}`;
-    }
-  }
 
   if (isFetching) {
     message.info("Processing scan...");
@@ -346,13 +328,13 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
                   </div>
                 </div>
               </div>.
-              <div className="flex gap-4">
-                <button
+              <div className="flex">
+                <Button
                   onClick={() => irisScannerCaptureMutation.mutate()}
-                  type="button"
-                  className="bg-[#1976D2] text-white px-10 py-2 rounded-md w-52">
+                  loading={!irisScannerReady}
+                  className="bg-[#1976D2] text-white px-10 py-2 rounded-md w-52 h-10">
                   Capture Iris
-                </button>
+                </Button>
                 {verifyIrisMutation?.isPending && (
                   <button
                     type="button"
@@ -414,46 +396,21 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
             </div>
           ) : (
             <div className='flex-1'>
-              <div className="flex flex-col items-center justify-center">
-                <div className="w-full flex items-center justify-center flex-col gap-10">
-                  <div className="w-[60%] rounded-md overflow-hidden object-cover">
-                    <img src={imageSrc || noImg} alt="Image of a person" className="w-full" />
-                  </div>
-                  <h1 className="text-4xl">{`${lastScanned?.person?.first_name ?? ""} ${lastScanned?.person?.last_name ?? ""}`}</h1>
-                </div>
-                <div className="w-full flex items-center justify-center">
-                  {
-                    lastScanned ? (
-                      <div className="w-fit text-3xl flex">
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex items-center gap-2">
-                            <h1 className={clsx(
-                              'font-bold text-4xl',
-                              lastScanned?.visitor_app_status === 'Verified'
-                                ? 'text-green-500'
-                                : 'text-red-500'
-                            )}>{lastScanned?.visitor_app_status}</h1>
-                            {lastScanned?.visitor_app_status === "Verified" ? (
-                              <img src={check} alt="Check Mark" className="w-10 h-10" />
-                            ) : (
-                              <img src={ex} alt="X Mark" className="w-10 h-10" />
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-2xl font-semibold">Please Scan Your Iris.</p>
-                      </div>
-                    )
-                  }
-                </div>
-                {/* <div className='mt-4'>
-                  <p className="text-lg text-center">
-                    {visitation_status?.results?.find(status => status?.name === lastScanned?.pdls?.[0]?.pdl?.visitation_status)?.description}
-                  </p>
-                </div> */}
+              <div className='w-full flex items-center justify-center'>
+                {
+                  lastScanned?.visitor_app_status && (
+                    <div className="flex items-center justify-center gap-5">
+                      <h1 className="font-bold text-2xl text-green-700">{lastScanned?.visitor_app_status}</h1>
+                      {lastScanned?.visitor_app_status === "Verified" ? (
+                        <img src={check} className="w-10" alt="Check" />
+                      ) : (
+                        <img src={ex} className="w-10" alt="Close" />
+                      )}
+                    </div>
+                  )
+                }
               </div>
+              <VisitorProfilePortrait visitorData={lastScanned} />
             </div>
           )
         }

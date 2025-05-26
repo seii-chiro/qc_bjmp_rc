@@ -27,7 +27,7 @@ const Rfid = ({
     const inputRef = useRef<InputRef>(null);
     const token = useTokenStore()?.token
     const [scannedIdNumber, setScannedIdNumber] = useState("")
-    const [scannedVisitor, setScannedVisitor] = useState({})
+    const [scannedVisitor, setScannedVisitor] = useState({ visitor_app_status: "" })
     const addOrRemoveVisitorLog = useVisitorLogStore((state) => state.addOrRemoveVisitorLog);
     const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null)
     const prevIdRef = useRef<string | null>(null);
@@ -57,7 +57,7 @@ const Rfid = ({
 
     const rfidDevices = useMemo(
         () =>
-            devices?.results?.filter(device =>
+            devices?.results?.filter((device: { device_name: string; }) =>
                 device?.device_name?.toLowerCase().includes("rfid")
             ) || [],
         [devices]
@@ -208,7 +208,7 @@ const Rfid = ({
                             loading={deviceLoading}
                             value={selectedDeviceId}
                             className='h-10 w-full'
-                            options={rfidDevices.map(device => ({
+                            options={rfidDevices.map((device: { device_name: any; id: any; }) => ({
                                 label: device?.device_name,
                                 value: device?.id
                             }))}
