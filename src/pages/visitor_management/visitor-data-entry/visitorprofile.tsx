@@ -85,7 +85,7 @@ const VisitorProfile = ({
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isInWatchlist, setIsInWatchlist] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { fingerScannerTimeout, irisScannerTimeout } = useSystemSettingsStore()
+    const { fingerScannerTimeout, irisScannerTimeout, nfiqQuality } = useSystemSettingsStore()
 
     const handleOpenPad = () => setIsModalOpen(true);
     const handleClosePad = () => setIsModalOpen(false);
@@ -96,7 +96,7 @@ const VisitorProfile = ({
     };
 
     const captureLeftFingersPayload = {
-        TimeOut: +fingerScannerTimeout,
+        TimeOut: +fingerScannerTimeout || 60,
         Slap: 0,
         FingerPosition: {
             LEFT_LITTLE: false,
@@ -110,11 +110,11 @@ const VisitorProfile = ({
             LEFT_THUMB: true,
             RIGHT_THUMB: true,
         },
-        NFIQ_Quality: 20
+        NFIQ_Quality: +nfiqQuality || 20
     }
 
     const captureRightFingersPayload = {
-        TimeOut: +fingerScannerTimeout,
+        TimeOut: +fingerScannerTimeout || 60,
         Slap: 1,
         FingerPosition: {
             LEFT_LITTLE: true,
@@ -128,11 +128,11 @@ const VisitorProfile = ({
             LEFT_THUMB: true,
             RIGHT_THUMB: true,
         },
-        NFIQ_Quality: 20
+        NFIQ_Quality: +nfiqQuality || 20
     }
 
     const captureThumbsPayload = {
-        TimeOut: +fingerScannerTimeout,
+        TimeOut: +fingerScannerTimeout || 60,
         Slap: 2,
         FingerPosition: {
             LEFT_LITTLE: true,
@@ -146,10 +146,10 @@ const VisitorProfile = ({
             LEFT_THUMB: false,
             RIGHT_THUMB: false,
         },
-        NFIQ_Quality: 20
+        NFIQ_Quality: +nfiqQuality || 20
     }
 
-    const captureIrisPayload = { TimeOut: +irisScannerTimeout, IrisSide: 0 }
+    const captureIrisPayload = { TimeOut: +irisScannerTimeout || 60, IrisSide: 0 }
 
     const props: UploadProps = {
         name: 'file',
