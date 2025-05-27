@@ -35,21 +35,21 @@ const PDLtable = () => {
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [allPDLs, setAllPDLs] = useState<PDLs[]>([]);
 
-    useEffect(() => {
-        const fetchAll = async () => {
-            const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
-                headers: {
-                    Authorization: `Token ${token}`,
-                    "Content-Type": "application/json",
-                },
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setAllPDLs(data.results || []);
-            }
-        };
-        fetchAll();
-    }, [token]);
+    // useEffect(() => {
+    //     const fetchAll = async () => {
+    //         const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
+    //             headers: {
+    //                 Authorization: `Token ${token}`,
+    //                 "Content-Type": "application/json",
+    //             },
+    //         });
+    //         if (res.ok) {
+    //             const data = await res.json();
+    //             setAllPDLs(data.results || []);
+    //         }
+    //     };
+    //     fetchAll();
+    // }, [token]);
 
     useEffect(() => {
         const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
@@ -139,7 +139,7 @@ const PDLtable = () => {
             ? genders.map(g => `gender=${encodeURIComponent(g)}`).join("&")
             : "";
 
-        const query = genderQuery ? `?${genderQuery}&limit=5000` : "?limit=5000";
+        const query = genderQuery ? `?${genderQuery}` : "";
         const url = `${BASE_URL}/api/pdls/pdl/${query}`;
 
         const res = await fetch(url, {
@@ -172,7 +172,7 @@ const PDLtable = () => {
             ? status.map(g => `status=${encodeURIComponent(g)}`).join("&")
             : "";
 
-        const query = statusQuery ? `?${statusQuery}&limit=5000` : "?limit=5000";
+        const query = statusQuery ? `?${statusQuery}` : "";
         const url = `${BASE_URL}/api/pdls/pdl/${query}`;
 
         const res = await fetch(url, {
@@ -400,7 +400,7 @@ const PDLtable = () => {
     // }, [token, BASE_URL]); 
 
     const fetchAllPDLs = async () => {
-        const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
+        const res = await fetch(`${BASE_URL}/api/pdls/pdl/`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",

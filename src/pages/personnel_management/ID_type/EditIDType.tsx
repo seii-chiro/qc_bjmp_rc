@@ -67,8 +67,8 @@ const EditIDType = ({ idtypes, onClose }: { idtypes: any; onClose: () => void })
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" htmlType="submit" className="flex justify-end ml-auto" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update ID Type"}
+                    <Button type="primary" htmlType="submit" className="flex justify-end ml-auto" >
+                        Update ID Type
                     </Button>
                 </Form.Item>
             </Form>

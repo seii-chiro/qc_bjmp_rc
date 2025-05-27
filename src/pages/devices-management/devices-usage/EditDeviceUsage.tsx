@@ -68,8 +68,8 @@ const EditDeviceUsage = ({ deviceusage, onClose }: { deviceusage: any; onClose: 
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Device Usage"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Device Usage
                     </Button>
                 </Form.Item>
             </Form>

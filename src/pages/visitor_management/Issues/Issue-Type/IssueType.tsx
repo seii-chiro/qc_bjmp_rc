@@ -126,14 +126,14 @@ const IssueType = () => {
             key: index + 1,
             id: issue_type?.id ?? '',
             name: issue_type?.name ?? '',
-            description: issue_type?.description ?? '',
+            // description: issue_type?.description ?? '',
             updated_at: issue_type?.updated_at ?? '',
             updated_by: issue_type?.updated_by ?? '',
             issue_category: issue_type?.issue_category?.name ?? '',
             issue_category_description: issue_type?.issue_category?.description ?? '',
-            risk: issue_type?.risk ?? '',
+            // risk: issue_type?.risk ?? '',
             organization: issue_type?.organization ?? 'Bureau of Jail Management and Penology',
-            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+            // updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -163,21 +163,21 @@ const IssueType = () => {
             ],
             onFilter: (value, record) => record.name === value,
         },
-        {
-            title: 'Description',
-            dataIndex: 'description',
-            key: 'description',
-            sorter: (a, b) => a.description.localeCompare(b.description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.description))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.description === value,
-        },
+        // {
+        //     title: 'Description',
+        //     dataIndex: 'description',
+        //     key: 'description',
+        //     sorter: (a, b) => a.description.localeCompare(b.description),
+        //     filters: [
+        //         ...Array.from(
+        //             new Set(filteredData.map(item => item.description))
+        //         ).map(name => ({
+        //             text: name,
+        //             value: name,
+        //         }))
+        //     ],
+        //     onFilter: (value, record) => record.description === value,
+        // },
         {
             title: 'Issue Category',
             dataIndex: 'issue_category',
@@ -208,54 +208,54 @@ const IssueType = () => {
             ],
             onFilter: (value, record) => record.issue_category_description === value,
         },
-        {
-            title: 'Risk',
-            dataIndex: 'risk',
-            key: 'risk',
-            sorter: (a, b) => a.risk.localeCompare(b.risk),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.risk))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.risk === value,
-        },
-        {
-            title: "Updated At",
-            dataIndex: "updated_at",
-            key: "updated_at",
-            render: (value) =>
-                value !== '' ? moment(value).format("MMMM D, YYYY h:mm A") : "",
-            sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => moment(item.updated_at).format("MMMM D, YYYY h:mm A")))
-                ).map(dateTime => ({
-                    text: dateTime,
-                    value: dateTime,
-                }))
-            ],
-            onFilter: (value, record) =>
-                moment(record.updated_at).format("MMMM D, YYYY h:mm A") === value,
-        },
-        {
-            title: 'Updated By',
-            dataIndex: 'updated_by',
-            key: 'updated_by',
-            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.updated_by))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.updated_by === value,
-        },
+        // {
+        //     title: 'Risk',
+        //     dataIndex: 'risk',
+        //     key: 'risk',
+        //     sorter: (a, b) => a.risk.localeCompare(b.risk),
+        //     filters: [
+        //         ...Array.from(
+        //             new Set(filteredData.map(item => item.risk))
+        //         ).map(name => ({
+        //             text: name,
+        //             value: name,
+        //         }))
+        //     ],
+        //     onFilter: (value, record) => record.risk === value,
+        // },
+        // {
+        //     title: "Updated At",
+        //     dataIndex: "updated_at",
+        //     key: "updated_at",
+        //     render: (value) =>
+        //         value !== '' ? moment(value).format("MMMM D, YYYY h:mm A") : "",
+        //     sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+        //     filters: [
+        //         ...Array.from(
+        //             new Set(filteredData.map(item => moment(item.updated_at).format("MMMM D, YYYY h:mm A")))
+        //         ).map(dateTime => ({
+        //             text: dateTime,
+        //             value: dateTime,
+        //         }))
+        //     ],
+        //     onFilter: (value, record) =>
+        //         moment(record.updated_at).format("MMMM D, YYYY h:mm A") === value,
+        // },
+        // {
+        //     title: 'Updated By',
+        //     dataIndex: 'updated_by',
+        //     key: 'updated_by',
+        //     sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+        //     filters: [
+        //         ...Array.from(
+        //             new Set(filteredData.map(item => item.updated_by))
+        //         ).map(name => ({
+        //             text: name,
+        //             value: name,
+        //         }))
+        //     ],
+        //     onFilter: (value, record) => record.updated_by === value,
+        // },
         {
             title: "Action",
             key: "action",

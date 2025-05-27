@@ -107,8 +107,8 @@ const EditPrefixes = ({ prefixes, onClose }: { prefixes: any; onClose: () => voi
             />
             </Form.Item>
             <Form.Item>
-            <Button type="primary" htmlType="submit" disabled={isLoading}>
-                {isLoading ? "Updating..." : "Update Prefix"}
+            <Button type="primary" htmlType="submit">
+                Update Prefix
             </Button>
             </Form.Item>
         </Form>

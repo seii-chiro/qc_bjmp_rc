@@ -65,8 +65,8 @@ const EditReligion = ({ religion, onClose }: { religion: any; onClose: () => voi
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex justify-end ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Religion"}
+                    <Button type="primary" className="flex justify-end ml-auto" htmlType="submit">
+                        Update Religion
                     </Button>
                 </Form.Item>
                 

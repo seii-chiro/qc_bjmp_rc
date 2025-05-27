@@ -185,8 +185,8 @@ const EditJailArea = ({ jailarea, onClose }: { jailarea: any; onClose: () => voi
                         ))}/>
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Jail Area"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit" >
+                        Update Jail Area
                     </Button>
                 </Form.Item>
             </Form>

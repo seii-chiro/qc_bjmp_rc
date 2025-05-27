@@ -69,8 +69,8 @@ const EditAffiliationType = ({ affiliationtype, onClose }: { affiliationtype: an
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Affiliation Type"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Affiliation Type
                     </Button>
                 </Form.Item>
             </Form>

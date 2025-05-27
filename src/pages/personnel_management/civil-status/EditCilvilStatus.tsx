@@ -67,8 +67,8 @@ const EditCivilStatus = ({ cilvilstatus, onClose }: { cilvilstatus: any; onClose
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex justify-end ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Civil Status"}
+                    <Button type="primary" className="flex justify-end ml-auto" htmlType="submit">
+                        Update Civil Status
                     </Button>
                 </Form.Item>
             </Form>

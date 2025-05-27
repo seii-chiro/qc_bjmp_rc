@@ -173,8 +173,8 @@ const EditDevices = ({ devices, onClose }: { devices: any; onClose: () => void }
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Device"}
+                    <Button type="primary" htmlType="submit">
+                        Update Device
                     </Button>
                 </Form.Item>
             </Form>

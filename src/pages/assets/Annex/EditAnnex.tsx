@@ -109,8 +109,8 @@ const EditAnnex = ({ annex, onClose }: { annex: any; onClose: () => void }) => {
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Annex"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Annex
                     </Button>
                 </Form.Item>
             </Form>

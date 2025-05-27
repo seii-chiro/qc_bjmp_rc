@@ -114,8 +114,8 @@ const EditDorm = ({ dorm, onClose }: EditDormProps) => {
                 </Form.Item>
 
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Dorm"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Dorm
                     </Button>
                 </Form.Item>
             </Form>

@@ -45,6 +45,7 @@ const Report = () => {
     const [personnel, setPersonnel] = useState([]);
     const [pdl, setPDL] = useState([]);
     const [affiliation, setAffiliation] = useState([]);
+    const [, set] = useState([]);
     const [selectedType, setSelectedType] = useState('visitor');
     const [selectedGender, setSelectedGender] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
@@ -91,6 +92,16 @@ const Report = () => {
         };
 
         const fetchAffiliation = async () => {
+            try {
+                setAffiliationLoading(true);
+                const data = await fetchAllAffiliation();
+                setAffiliation(data.results || []);
+            } finally {
+                setAffiliationLoading(false);
+            }
+        };
+
+        const fetchDeviceSettings = async () => {
             try {
                 setAffiliationLoading(true);
                 const data = await fetchAllAffiliation();
@@ -153,6 +164,18 @@ const Report = () => {
 
     const fetchAllAffiliation = async () => {
         const res = await fetch(`${BASE_URL}/api/codes/affiliation-types/`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+        const fetchAllDeviceSettings = async () => {
+        const res = await fetch(`${BASE_URL}/api/codes/device-settings/`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
@@ -304,7 +327,7 @@ const Report = () => {
           style: 'tableExample',
           table: {
             headerRows: 1,
-            widths: Array(displayedHeaders.length).fill('*'), // flexible width columns
+            widths: Array(displayedHeaders.length).fill('*'),
             body: [
               displayedHeaders.map(header => ({ text: header, style: 'tableHeader', noWrap: false })),
               ...displayedBody.map(row =>

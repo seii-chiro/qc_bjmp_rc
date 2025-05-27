@@ -69,8 +69,8 @@ const EditEmploymentType = ({ employmenttype, onClose }: { employmenttype: any; 
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Employment Type"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                       Update Employment Type
                     </Button>
                 </Form.Item>
             </Form>

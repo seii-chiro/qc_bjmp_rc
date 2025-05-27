@@ -155,8 +155,8 @@ const EditOrganization = ({ organization, onClose }: { organization: any; onClos
                         ))}/>
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Organization"}
+                    <Button type="primary" htmlType="submit">
+                        Update Organization
                     </Button>
                 </Form.Item>
             </Form>

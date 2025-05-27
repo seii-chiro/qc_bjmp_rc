@@ -138,16 +138,17 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
           <span className="block font-semibold text-gray-700 mb-2">Personal Information</span>
           {[
             'registrationNo',
-            'ID',
-            'shortName',
-            'firstName',
-            'middleName',
-            'lastName',
+            // 'ID',
+            // 'shortName',
+            // 'firstName',
+            // 'middleName',
+            // 'lastName',
             'name',
             'gender',
             'dateOfBirth',
             'civilStatus',
             'religion',
+            'fullAddress',
           ].map((field) => (
             <label key={field} className="inline-flex items-center gap-2 mr-4 cursor-pointer select-none">
               <input
@@ -165,17 +166,17 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
               <span>
                 {{
                   registrationNo: 'Registration No',
-                  ID: 'ID Number',
-                  shortName: 'Short Name',
-                  firstName: 'First Name',
-                  middleName: 'Middle Name',
-                  lastName: 'Last Name',
+                  // ID: 'ID Number',
+                  // shortName: 'Short Name',
+                  // firstName: 'First Name',
+                  // middleName: 'Middle Name',
+                  // lastName: 'Last Name',
                   name: 'Full Name',
                   gender: 'Gender',
                   dateOfBirth: 'Date of Birth',
                   civilStatus: 'Civil Status',
                   religion: 'Religion',
-                  address: 'Address',
+                  fullAddress: 'Address',
                 }[field]}
               </span>
             </label>
@@ -188,11 +189,11 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
         <div className="w-full mt-4">
           <span className="block font-semibold text-gray-700 mb-2">PDL Information</span>
           {[
-            'ID',
-            'shortName',
-            'firstName',
-            'middleName',
-            'lastName',
+            // 'ID',
+            // 'shortName',
+            // 'firstName',
+            // 'middleName',
+            // 'lastName',
             'name',
             'gender',
             'status',
@@ -200,6 +201,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
             'placeOfBirth',
             'civilStatus',
             'religion',
+            'fullAddress',
           ].map((field) => (
             <label key={field} className="inline-flex items-center gap-2 mr-4 cursor-pointer select-none">
               <input
@@ -210,11 +212,11 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
               />
               <span>
                 {{
-                  ID: 'ID Number',
-                  shortName: 'Short Name',
-                  firstName: 'First Name',
-                  middleName: 'Middle Name',
-                  lastName: 'Last Name',
+                  // ID: 'ID Number',
+                  // shortName: 'Short Name',
+                  // firstName: 'First Name',
+                  // middleName: 'Middle Name',
+                  // lastName: 'Last Name',
                   name: 'Full Name',
                   gender: 'Gender',
                   status: 'Status',
@@ -222,7 +224,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                   placeOfBirth: 'Place of Birth',
                   civilStatus: 'Civil Status',
                   religion: 'Religion',
-                  address: 'Address',
+                  fullAddress: 'Address',
                 }[field]}
               </span>
             </label>
@@ -233,7 +235,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
       {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && (
         <>
         <div className="flex flex-wrap gap-2">
-          <button
+          {/* <button
             type="button"
             className={`px-3 py-1 rounded font-semibold transition-colors
               ${showAddressFields
@@ -243,7 +245,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
             onClick={() => setShowAddressFields(!showAddressFields)}
           >
             {showAddressFields ? '' : ''} Address
-          </button>
+          </button> */}
           <button
             type="button"
             className={`px-3 py-1 rounded font-semibold transition-colors
@@ -439,7 +441,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
         
         </>
       )}
-      {/* Address */}
+      {/* Address
       {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && showAddressFields && (
         <div className="w-full">
           <span className="block font-semibold text-gray-700 mb-2">Addresses</span>
@@ -491,7 +493,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
             </label>
           ))}
         </div>
-      )}
+      )} */}
       {/* Contact Information */}
       {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && showContactFields && (
         <div className="w-full">
@@ -1050,7 +1052,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
               />
               <span>
                 {{
-                  
+
                 }[field]}
               </span>
             </label>

@@ -107,8 +107,8 @@ type OccupationProps = {
             />
             </Form.Item>
             <Form.Item>
-            <Button type="primary" htmlType="submit" disabled={isLoading}>
-                {isLoading ? "Updating..." : "Update Occupation"}
+            <Button type="primary" htmlType="submit">
+                Update Occupation
             </Button>
             </Form.Item>
         </Form>

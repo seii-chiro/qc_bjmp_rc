@@ -68,8 +68,8 @@ const EditGender = ({ gender, onClose }: { gender: any; onClose: () => void }) =
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex justify-end py-2 ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Gender"}
+                    <Button type="primary" className="flex justify-end py-2 ml-auto" htmlType="submit">
+                        Update Gender
                     </Button>
                 </Form.Item>
             </Form>

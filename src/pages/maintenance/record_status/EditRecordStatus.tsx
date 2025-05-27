@@ -63,8 +63,8 @@ const EditRecordStatus = ({ recordstatus, onClose }: { recordstatus: any; onClos
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button className="float-right" type="primary" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Record Status"}
+                    <Button className="float-right" type="primary" htmlType="submit">
+                        Update Record Status
                     </Button>
                 </Form.Item>
             </Form>

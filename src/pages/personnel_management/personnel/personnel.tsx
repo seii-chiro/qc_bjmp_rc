@@ -41,21 +41,21 @@ const Personnel = () => {
     // const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [allPersonnel, setAllPersonnel] = useState<PersonnelType[]>([]);
 
-    useEffect(() => {
-        const fetchAll = async () => {
-            const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
-                headers: {
-                    Authorization: `Token ${token}`,
-                    "Content-Type": "application/json",
-                },
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setAllPersonnel(data.results || []);
-            }
-        };
-        fetchAll();
-    }, [token]);
+    // useEffect(() => {
+    //     const fetchAll = async () => {
+    //         const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
+    //             headers: {
+    //                 Authorization: `Token ${token}`,
+    //                 "Content-Type": "application/json",
+    //             },
+    //         });
+    //         if (res.ok) {
+    //             const data = await res.json();
+    //             setAllPersonnel(data.results || []);
+    //         }
+    //     };
+    //     fetchAll();
+    // }, [token]);
 
     const fetchPersonnels = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/codes/personnel/?search=${search}`, {
@@ -128,13 +128,7 @@ const Personnel = () => {
     
 
     const fetchPersonnelGender = async (genders: string[]) => {
-        const isOthers =
-            genders.includes("LGBTQ + TRANSGENDER") ||
-            genders.includes("LGBTQ + GAY / BISEXUAL") ||
-            genders.includes("LGBTQ + LESBIAN / BISEXUAL") ||
-            genders.includes("Others");
-
-        const url = `${BASE_URL}/api/codes/personnel/?limit=5000`;
+        const url = `${BASE_URL}/api/codes/personnel/`;
 
         const res = await fetch(url, {
             headers: {
@@ -188,7 +182,7 @@ const Personnel = () => {
             ? status.map(g => `status=${encodeURIComponent(g)}`).join("&")
             : "";
 
-        const query = statusQuery ? `?${statusQuery}&limit=5000` : "?limit=5000";
+        const query = statusQuery ? `?${statusQuery}` : "";
         const url = `${BASE_URL}/api/codes/personnel/${query}`;
 
         const res = await fetch(url, {
@@ -218,7 +212,7 @@ const Personnel = () => {
         key: index + 1,
                 id: personnel?.id,
                 personnel_reg_no: personnel?.personnel_reg_no ?? '',
-                person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
+                person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
                 shortname: personnel?.person?.shortname ?? '',
                 rank: personnel?.rank ?? '',
                 status: personnel?.status ?? '',
@@ -354,7 +348,7 @@ const Personnel = () => {
     };
 
     const fetchAllPersonnels = async () => {
-        const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
+        const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=${limit}`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
@@ -383,11 +377,14 @@ const Personnel = () => {
                     key: index + 1,
                     organization: personnel?.organization ?? '',
                     personnel_reg_no: personnel?.personnel_reg_no ?? '',
-                    person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
+                    person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
                     shortname: personnel?.person?.shortname ?? '',
                     rank: personnel?.rank ?? '',
                     status: personnel?.status ?? '',
-                    gender: personnel?.person?.gender?.gender_option ?? '',
+                    gender:
+                    (personnel?.person?.gender?.gender_option === "Male" || personnel?.person?.gender?.gender_option === "Female")
+                        ? personnel?.person?.gender?.gender_option
+                        : "Others",
                     date_joined: personnel?.date_joined ?? '',
                     record_status: personnel?.record_status ?? '',
                     updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
@@ -395,14 +392,10 @@ const Personnel = () => {
             } else {
                 const allData = await fetchAllPersonnels();
                 const allResults = allData?.results || [];
-
-                // Use lastPrintIndexRef for pagination
                 printSource = allResults.slice(lastPrintIndexRef.current, lastPrintIndexRef.current + MAX_ROWS_PER_PAGE);
                 lastPrintIndexRef.current += MAX_ROWS_PER_PAGE;
-
-                // Reset if we've reached the end
                 if (lastPrintIndexRef.current >= allResults.length) {
-                    lastPrintIndexRef.current = 0; // Reset for next export
+                    lastPrintIndexRef.current = 0; 
                 }
             }
 
@@ -437,19 +430,20 @@ const Personnel = () => {
 
             addHeader();
 
-            const tableData = printSource.map(item => [
+            const tableData = dataSource.map((item) => [
                 item.key,
                 item.personnel_reg_no,
                 item.person,
+                item.gender,
                 item.rank,
-                item.date_joined,
+                item.status,
             ]);
 
             for (let i = 0; i < tableData.length; i += MAX_ROWS_PER_PAGE) {
                 const pageData = tableData.slice(i, i + MAX_ROWS_PER_PAGE);
 
                 autoTable(doc, {
-                    head: [['No.', 'Personnel Reg. No.', 'Personnel', 'Rank', 'Date Joined']],
+                    head: [['No.', 'Personnel Reg. No.', 'Personnel', 'Gender', 'Rank', 'Status']],
                     body: pageData,
                     startY: startY,
                     margin: { top: 0, left: 10, right: 10 },

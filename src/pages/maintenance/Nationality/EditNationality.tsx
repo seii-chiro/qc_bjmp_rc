@@ -105,8 +105,8 @@ const EditNationality = ({ nationality, onClose }: { nationality: any; onClose: 
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-            {isLoading ? "Updating..." : "Update Nationality"}
+          <Button type="primary" className="flex ml-auto" htmlType="submit">
+            Update Nationality
           </Button>
         </Form.Item>
       </Form>

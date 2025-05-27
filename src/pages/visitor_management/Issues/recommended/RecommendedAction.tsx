@@ -157,36 +157,36 @@ const RecommendedAction = () => {
             ],
             onFilter: (value, record) => record.name === value,
         },
-        {
-            title: 'Description',
-            dataIndex: 'description',
-            key: 'description',
-            sorter: (a, b) => a.description.localeCompare(b.description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.description))
-                ).map(description => ({
-                    text: description,
-                    value: description,
-                }))
-            ],
-            onFilter: (value, record) => record.description === value,
-        },
-        {
-            title: 'Risk',
-            dataIndex: 'risk',
-            key: 'risk',
-            sorter: (a, b) => a.risk.localeCompare(b.risk),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.risk))
-                ).map(risk => ({
-                    text: risk,
-                    value: risk,
-                }))
-            ],
-            onFilter: (value, record) => record.risk === value,
-        },
+        // {
+        //     title: 'Description',
+        //     dataIndex: 'description',
+        //     key: 'description',
+        //     sorter: (a, b) => a.description.localeCompare(b.description),
+        //     filters: [
+        //         ...Array.from(
+        //             new Set(filteredData.map(item => item.description))
+        //         ).map(description => ({
+        //             text: description,
+        //             value: description,
+        //         }))
+        //     ],
+        //     onFilter: (value, record) => record.description === value,
+        // },
+        // {
+        //     title: 'Risk',
+        //     dataIndex: 'risk',
+        //     key: 'risk',
+        //     sorter: (a, b) => a.risk.localeCompare(b.risk),
+        //     filters: [
+        //         ...Array.from(
+        //             new Set(filteredData.map(item => item.risk))
+        //         ).map(risk => ({
+        //             text: risk,
+        //             value: risk,
+        //         }))
+        //     ],
+        //     onFilter: (value, record) => record.risk === value,
+        // },
         {
             title: "Updated At",
             dataIndex: "updated_at",
@@ -291,14 +291,14 @@ const isSearching = searchText.trim().length > 0;
     const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
     idx + 1,
             item.name,
-            item.risk,
+            // item.risk,
         ]);
     
         for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
     
             autoTable(doc, { 
-                head: [['No.', 'Recommended Action','Risk']],
+                head: [['No.', 'Recommended Action']],//,'Risk'
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },

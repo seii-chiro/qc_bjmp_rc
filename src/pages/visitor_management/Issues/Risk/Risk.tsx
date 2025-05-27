@@ -124,7 +124,7 @@ const Risk = () => {
 const columns: ColumnsType<RiskProps & { key: number }> = [
     { title: "No.", render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,},
     { title: "Risk", dataIndex: "name", key: "name", sorter: (a, b) => a.name.localeCompare(b.name), },
-    { title: "Description", dataIndex: "description", key: "description", sorter: (a, b) => a.description.localeCompare(b.description), },
+    // { title: "Description", dataIndex: "description", key: "description", sorter: (a, b) => a.description.localeCompare(b.description), },
 {
     title: "Updated At",
     dataIndex: "updated_at",

@@ -68,8 +68,8 @@ const EditSkill = ({ skill, onClose }: { skill: any; onClose: () => void }) => {
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Skills"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Skills
                     </Button>
                 </Form.Item>
                 
