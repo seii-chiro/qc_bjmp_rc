@@ -276,7 +276,7 @@ const VisitLog = () => {
           (() => {
             const sec = Number(entry?.duration ?? 0);
             if (!sec || isNaN(sec) || sec === 0) return undefined;
-            if (sec < 60) return `${sec}s`;
+            if (sec < 60) return `${sec?.toFixed(0)}s`;
             const min = Math.floor(sec / 60);
             if (min < 60) return `${min}m`;
             const hr = Math.floor(min / 60);
@@ -374,7 +374,7 @@ const VisitLog = () => {
       </div>
       <div className="overflow-y-auto" style={{ maxHeight: "90vh" }}>
         <Table
-          loading={tableIsLoading || mainGateLogsLoading || visitorLogsLoading || pdlLogsLoading}
+          loading={tableIsLoading}
           columns={columns}
           dataSource={dataSource}
           scroll={{ x: 800, y: "calc(100vh - 200px)" }}

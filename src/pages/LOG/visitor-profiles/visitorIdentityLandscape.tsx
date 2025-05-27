@@ -155,7 +155,7 @@ const IdentificationLandscape = ({ visitor_log, visitHistory }: { visitor_log: a
                                                                     const minutes = Math.floor(duration_in_sec / 60);
                                                                     const hours = Math.floor(minutes / 60);
                                                                     if (duration_in_sec < 60) {
-                                                                        durationDisplay = `${duration_in_sec}s`;
+                                                                        durationDisplay = `${duration_in_sec?.toFixed(0)}s`;
                                                                     } else if (minutes < 60) {
                                                                         durationDisplay = `${minutes}m`;
                                                                     } else {
