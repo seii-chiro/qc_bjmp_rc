@@ -204,7 +204,7 @@ const SystemSettings = () => {
                             onClick={handleScannerSubmit}
                             loading={isSubmitting}
                         >
-                            Submit
+                            Apply Changes
                         </Button>
                     </div>
                 </div>
@@ -229,7 +229,7 @@ const SystemSettings = () => {
                             onClick={handleLogSubmit}
                             loading={isSubmitting}
                         >
-                            Submit
+                            Apply Changes
                         </Button>
                     </div>
                 </div>
