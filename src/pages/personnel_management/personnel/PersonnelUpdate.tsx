@@ -178,7 +178,7 @@ const PersonnelUpdate = () => {
     } = useQuery({
         queryKey: ['paginated-person', debouncedPersonSearch, personPage],
         queryFn: () => getPersonSearch(token ?? "", 10, debouncedPersonSearch, personPage),
-        keepPreviousData: true,
+        placeholderData: prev => prev,
         staleTime: 10 * 60 * 1000,
     });
 
@@ -1425,6 +1425,7 @@ const PersonnelUpdate = () => {
 
             {/**Biometrics */}
             <VisitorProfile
+                visitorToEdit={personnelData}
                 icao={icao}
                 setIcao={setIcao}
                 setPersonForm={setPersonForm}
