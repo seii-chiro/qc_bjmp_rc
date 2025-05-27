@@ -1019,6 +1019,8 @@ const PersonnelRegistration = () => {
                                 <div className='flex gap-1 font-semibold'>Position<p className='text-red-600'>*</p></div>
                                 <Select
                                     loading={positionsLoading}
+                                    showSearch
+                                    optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={positions?.map(position => ({
                                         value: position?.id,
