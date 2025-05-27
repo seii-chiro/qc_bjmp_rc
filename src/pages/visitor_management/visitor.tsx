@@ -166,13 +166,31 @@ const Visitor = () => {
         (m: any) => m.name?.toLowerCase() === "cohabitation"
     );
 
+    
+// const fetchVisitorGender = async (gender: string) => {
+//     const genderQuery = gender !== "all" ? `gender=${encodeURIComponent(gender)}` : "";
+//     // Set a large limit to get all visitors for this gender (if API supports it)
+//     const query = genderQuery ? `?${genderQuery}&limit=5000` : "?limit=5000";
+
+//     const url = `${BASE_URL}/api/visitors/visitor${query}`;
+
+//     const res = await fetch(url, {
+//         headers: {
+//         Authorization: `Token ${token}`,
+//         "Content-Type": "application/json",
+//         },
+//     });
+//     if (!res.ok) throw new Error("Network error");
+//     return res.json();
+// };
     const [searchParams] = useSearchParams();
     const gender = searchParams.get("gender") || "all";
     const genderParam = searchParams.get("gender") || "all";
 const genderList = genderParam !== "all" ? genderParam.split(",").map(decodeURIComponent) : [];
 
 const fetchVisitorGender = async (genders: string[]) => {
-    const url = `${BASE_URL}/api/visitors/visitor/?gender=${genders}&limit=${limit}`;
+    // Use a large limit to get all matching visitors
+    const url = `${BASE_URL}/api/visitors/visitor/?gender=${genders.join(",")}&limit=${limit}`;
     const res = await fetch(url, {
         headers: {
             Authorization: `Token ${token}`,
@@ -187,6 +205,7 @@ const fetchVisitorGender = async (genders: string[]) => {
         return result; // No filtering
     }
 
+    // If multiple genders, filter for any of them
     result.results = result.results.filter(visitor => {
         const genderOption = visitor?.person?.gender?.gender_option;
         return genders.includes(genderOption);
@@ -225,7 +244,7 @@ const genderFilteredVisitorIds = new Set(
             ...visitor,
             key: index + 1,
             id: visitor?.id,
-            name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
+            name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
             visitor_reg_no: visitor?.visitor_reg_no,
             visitor_type: visitor?.visitor_type,
             nationality: visitor?.person?.nationality,
@@ -425,9 +444,8 @@ const genderFilteredVisitorIds = new Set(
             <p className="mt-1 w-full bg-[#F9F9F9] rounded-md px-2 py-[1px] text-[13px] break-words">{info || ""}</p>
         </div>
     );
-
     const fetchAllVisitors = async () => {
-        const res = await fetch(`${BASE_URL}/api/visitors/visitor/`, {
+        const res = await fetch(`${BASE_URL}/api/visitors/visitor/?limit=10000`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
@@ -446,70 +464,79 @@ const handleExportPDF = async () => {
     const doc = new jsPDF();
     const headerHeight = 48;
     const footerHeight = 32;
+
     const MAX_ROWS_PER_PRINT = 800;
 
     let printSource;
-    
+
+    // Decide if we are printing filtered data (all at once) or paginated chunks of full data
     if (debouncedSearch && debouncedSearch.trim().length > 0) {
-        printSource = (searchData?.results || []).map((visitor, index) => {
+    // Print all filtered data at once
+    printSource = (searchData?.results || []).map((visitor, index) => {
+        const barangay = visitor?.person?.addresses[0]?.barangay || '';
+        const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
+        const province = visitor?.person?.addresses[0]?.province || '';
+        const addressParts = [barangay, cityMunicipality, province].filter(part => part);
+        const address = addressParts.join(', ');
+
+        return {
+            key: index + 1,
+            id: visitor?.id,
+            visitor_reg_no: visitor?.visitor_reg_no,
+            name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+            visitor_type: visitor?.visitor_type,
+            full_address: visitor?.person?.addresses[0]?.full_address ?? '',
+            address: address,
+            nationality: visitor?.person?.nationality,
+            gender: (visitor?.person?.gender?.gender_option === "Male" || visitor?.person?.gender?.gender_option === "Female")
+                ? visitor?.person?.gender?.gender_option
+                : "Others",
+            updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
+        };
+    });
+
+    // Reset lastPrintIndex because search print is a full print
+    lastPrintIndexRef.current = 0;
+} else {
+    // Print MAX_ROWS_PER_PRINT rows starting from lastPrintIndexRef.current from all visitors
+    const allData = await fetchAllVisitors();
+    const allResults = allData?.results || [];
+
+    printSource = allResults
+        .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + MAX_ROWS_PER_PRINT)
+        .map((visitor, index) => {
             const barangay = visitor?.person?.addresses[0]?.barangay || '';
             const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
             const province = visitor?.person?.addresses[0]?.province || '';
+
             const addressParts = [barangay, cityMunicipality, province].filter(part => part);
             const address = addressParts.join(', ');
+
             return {
-                key: index + 1,
+                key: lastPrintIndexRef.current + index + 1,
                 id: visitor?.id,
                 visitor_reg_no: visitor?.visitor_reg_no,
-                name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
+                name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
                 visitor_type: visitor?.visitor_type,
                 full_address: visitor?.person?.addresses[0]?.full_address ?? '',
                 address: address,
                 nationality: visitor?.person?.nationality,
-                gender:
-                  (visitor?.person?.gender?.gender_option === "Male" || visitor?.person?.gender?.gender_option === "Female")
-                    ? visitor?.person?.gender?.gender_option
-                    : "Others",
+                gender: visitor?.person?.gender?.gender_option,
                 updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
             };
         });
-        
-        lastPrintIndexRef.current = 0; 
-    } else {
-        const allData = await fetchAllVisitors();
-        const allResults = allData?.results || [];
-        printSource = allResults
-            .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + MAX_ROWS_PER_PRINT)
-            .map((visitor, index) => {
-                const barangay = visitor?.person?.addresses[0]?.barangay || '';
-                const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
-                const province = visitor?.person?.addresses[0]?.province || '';
-                const addressParts = [barangay, cityMunicipality, province].filter(part => part);
-                const address = addressParts.join(', ');
-                return {
-                    key: lastPrintIndexRef.current + index + 1,
-                    id: visitor?.id,
-                    visitor_reg_no: visitor?.visitor_reg_no,
-                    name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
-                    visitor_type: visitor?.visitor_type,
-                    full_address: visitor?.person?.addresses[0]?.full_address ?? '',
-                    address: address,
-                    nationality: visitor?.person?.nationality,
-                    gender:
-                      (visitor?.person?.gender?.gender_option === "Male" || visitor?.person?.gender?.gender_option === "Female")
-                        ? visitor?.person?.gender?.gender_option
-                        : "Others",
-                    updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
-                };
-            });
+
+        // Update lastPrintIndexRef for next chunk
         lastPrintIndexRef.current += MAX_ROWS_PER_PRINT;
+
+        // Reset to 0 if we've reached or exceeded total length
         if (lastPrintIndexRef.current >= allResults.length) {
-            lastPrintIndexRef.current = 0;
+        lastPrintIndexRef.current = 0;
         }
     }
 
-    const organizationName = printSource[0]?.organization || "";
-    const PreparedBy = printSource[0]?.updated || "";
+    const organizationName = dataSource[0]?.organization || "Bureau of Jail Management and Penology";
+    const PreparedBy = dataSource[0]?.updated || "";
     const today = new Date();
     const formattedDate = today.toISOString().split("T")[0];
     const reportReferenceNo = `TAL-${formattedDate}-XXX`;
@@ -541,34 +568,37 @@ const handleExportPDF = async () => {
 
     addHeader();
 
-    const tableData = printSource.map((item, index) => [
+    // Prepare tableData based on printSource
+    const tableData = printSource.map((item, index) => {
+        return [
         index + 1,
         item.visitor_reg_no,
         item.name,
-        item.visitor_type,
         item.gender,
+        item.visitor_type,
         item.address,
-        
-    ]);
+        ];
+    });
 
+    // Draw table, paginate with maxRowsPerPage rows per page
     for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
         const pageData = tableData.slice(i, i + maxRowsPerPage);
 
         autoTable(doc, {
-            head: [["No.", "Visitor No.", "Name","Visitor Type","Gender",  "Address",]],
-            body: pageData,
-            startY: startY,
-            margin: { top: 0, left: 10, right: 10 },
-            didDrawPage: function (data) {
-                if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                    addHeader();
-                }
-            },
+        head: [["No.", "Visitor No.", "Name", "Gender", "Visitor Type", "Address"]],
+        body: pageData,
+        startY: startY,
+        margin: { top: 0, left: 10, right: 10 },
+        didDrawPage: function (data) {
+            if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+            addHeader();
+            }
+        },
         });
 
         if (i + maxRowsPerPage < tableData.length) {
-            doc.addPage();
-            startY = headerHeight;
+        doc.addPage();
+        startY = headerHeight;
         }
     }
 
@@ -576,10 +606,10 @@ const handleExportPDF = async () => {
     for (let page = 1; page <= pageCount; page++) {
         doc.setPage(page);
         const footerText = [
-            "Document Version: Version 1.0",
-            "Confidentiality Level: Internal use only",
-            "Contact Info: " + PreparedBy,
-            `Timestamp of Last Update: ${formattedDate}`,
+        "Document Version: Version 1.0",
+        "Confidentiality Level: Internal use only",
+        "Contact Info: " + PreparedBy,
+        `Timestamp of Last Update: ${formattedDate}`,
         ].join("\n");
         const footerX = 10;
         const footerY = doc.internal.pageSize.height - footerHeight + 15;

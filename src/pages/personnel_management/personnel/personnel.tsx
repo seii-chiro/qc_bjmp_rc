@@ -164,12 +164,7 @@ const Personnel = () => {
     const statusList = statusParam !== "all" ? statusParam.split(",").map(decodeURIComponent) : [];
 
     const fetchPersonnelStatus= async (status: string[]) => {
-        const hasFilters = status.length > 0 && status[0] !== "all";
-        const statusQuery = hasFilters
-            ? status.map(g => `status=${encodeURIComponent(g)}`).join("&")
-            : "";
-
-        const url = `${BASE_URL}/api/codes/personnel/?status=${statusQuery}`;
+        const url = `${BASE_URL}/api/codes/personnel/?status=${status}&limit=${limit}`;
 
         const res = await fetch(url, {
             headers: {
@@ -334,7 +329,7 @@ const Personnel = () => {
     };
 
     const fetchAllPersonnels = async () => {
-        const res = await fetch(`${BASE_URL}/api/codes/personnel/`, {
+        const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
@@ -363,7 +358,7 @@ const Personnel = () => {
                     key: index + 1,
                     organization: personnel?.organization ?? '',
                     personnel_reg_no: personnel?.personnel_reg_no ?? '',
-                    person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+                    person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
                     shortname: personnel?.person?.shortname ?? '',
                     rank: personnel?.rank ?? '',
                     status: personnel?.status ?? '',
@@ -389,7 +384,7 @@ const Personnel = () => {
                     key: index + 1,
                     organization: personnel?.organization ?? '',
                     personnel_reg_no: personnel?.personnel_reg_no ?? '',
-                    person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel.person.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+                    person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
                     shortname: personnel?.person?.shortname ?? '',
                     rank: personnel?.rank ?? '',
                     status: personnel?.status ?? '',
@@ -412,7 +407,7 @@ const Personnel = () => {
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
             const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-            const MAX_ROWS_PER_PAGE = 26; 
+            const MAX_ROWS_PER_PAGE = 26;
             let startY = headerHeight;
 
             const addHeader = () => {
@@ -438,8 +433,8 @@ const Personnel = () => {
 
             addHeader();
 
-            const tableData = printSource.map((item, index) => [
-                index + 1,
+            const tableData = printSource.map((item) => [
+                item.key,
                 item.personnel_reg_no,
                 item.person,
                 item.gender,
