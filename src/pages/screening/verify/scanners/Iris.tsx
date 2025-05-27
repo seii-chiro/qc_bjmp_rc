@@ -4,7 +4,6 @@ import { captureIris, getIrisScannerInfo, uninitIrisScanner, verifyIris } from "
 import { useMutation } from "@tanstack/react-query"
 import { Button, Checkbox, message, Select } from "antd"
 import { useEffect, useState, useRef, useMemo } from "react"
-import noImg from "@/assets/no-img.webp"
 import check from "@/assets/Icons/check-mark.png"
 import ex from "@/assets/Icons/close.png"
 import { useTokenStore } from '@/store/useTokenStore'
@@ -13,6 +12,7 @@ import { Device } from '@/lib/definitions'
 import VisitorProfilePortrait from "../../VisitorProfilePortrait"
 import { useSystemSettingsStore } from "@/store/useSystemSettingStore"
 import { PaginatedResponse } from "@/lib/queries"
+import PdlProfilePortrait from "../../PdlProfilePortrait"
 
 type Props = {
   devices: PaginatedResponse<Device>;
@@ -33,6 +33,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
   const [irsCaptureResponse, setIrisCaptureResponse] = useState<IrisCaptureResponse | null>(null)
   const [irisScannerReady, setIrisScannerReady] = useState(false)
   const [irisVerificationResponse, setIrisVerificationResponse] = useState<any>(null)
+  const [lastScannedPdl, setLastScannedPdl] = useState<any | null>(null);
 
   const irisDevices = useMemo(
     () =>
@@ -68,6 +69,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
     }
 
     const idNumber = verificationData?.data?.[0]?.biometric?.person_data?.visitor?.id_number;
+    const pdlId = verificationData?.data?.[0]?.biometric?.person_data?.pdl?.id
     if (selectedArea !== "PDL Station") {
       if (!idNumber) {
         message.warning("No ID number found.");
@@ -117,13 +119,20 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
         if (!res.ok) throw new Error(`Failed to fetch visitor log. Status: ${res.status}`);
         visitorData = await res.json();
 
-        // try {
-        //   addOrRemoveVisitorLog(visitorData);
-        // } catch (storeErr) {
-        //   console.error("Failed to update visitor log store:", storeErr);
-        // }
-
         setLastScanned(visitorData);
+      } else {
+        const res = await fetch(`${BASE_URL}/api/pdls/pdl/${pdlId}`, {
+          method: 'get',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
+          },
+        });
+
+        if (!res.ok) throw new Error(`Failed to fetch PDL. Status: ${res.status}`);
+        visitorData = await res.json();
+
+        setLastScannedPdl(visitorData);
       }
 
       // Post to visit log endpoint
@@ -197,22 +206,6 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
       message.info("Match Not Found");
     },
   });
-
-  // const handleVerifyIris = () => {
-  //   if (!selectedDeviceId) {
-  //     message.warning("Please select a device.");
-  //     return;
-  //   }
-
-  //   // Only verify one iris at a time, prioritizing left
-  //   if (irsCaptureResponse?.ImgDataLeft) {
-  //     verifyIrisMutation.mutate({ template: irsCaptureResponse?.ImgDataLeft ?? "", type: "iris" });
-  //   } else if (irsCaptureResponse?.ImgDataRight) {
-  //     verifyIrisMutation.mutate({ template: irsCaptureResponse?.ImgDataRight ?? "", type: "iris" });
-  //   } else {
-  //     message.warning("No iris scan data available");
-  //   }
-  // }
 
   const irisScannerUninitThenInitMutation = useMutation({
     mutationKey: ['iris-scanner-uninit'],
@@ -360,47 +353,47 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
         </div>
         {
           selectedArea?.toLowerCase() === "pdl station" ? (
-            <div className='flex-1'>
-              <div className="flex flex-col items-center justify-center">
-                <div className="w-full flex items-center justify-center flex-col gap-10">
-                  <div className="w-[60%] rounded-md overflow-hidden object-cover">
-                    {
-                      irisVerificationResponse ? (
-                        <img src={`data:image/jpeg;base64,${irisVerificationResponse?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data}`} alt="Image of a person" className="w-full" />
-                      ) : (
-                        <img src={noImg} alt="Image of a person" className="w-full" />
-                      )
-                    }
-                  </div>
-                  <h1 className="text-4xl">{`${irisVerificationResponse?.data?.[0]?.biometric?.person_data?.first_name ?? ""} ${irisVerificationResponse?.data?.[0]?.biometric?.person_data?.middle_name ?? ""} ${irisVerificationResponse?.data?.[0]?.biometric?.person_data?.last_name ?? ""}`}</h1>
-                </div>
-                {
-                  lastScanned && (
-                    <div className="w-full flex items-center justify-center">
-                      <div className="w-[80%] text-4xl flex">
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex-[4] flex gap-8">
+            // <div className='flex-1'>
+            //   <div className="flex flex-col items-center justify-center">
+            //     <div className="w-full flex items-center justify-center flex-col gap-10">
+            //       <div className="w-[60%] rounded-md overflow-hidden object-cover">
+            //         {
+            //           irisVerificationResponse ? (
+            //             <img src={`data:image/jpeg;base64,${irisVerificationResponse?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data}`} alt="Image of a person" className="w-full" />
+            //           ) : (
+            //             <img src={noImg} alt="Image of a person" className="w-full" />
+            //           )
+            //         }
+            //       </div>
+            //       <h1 className="text-4xl">{`${irisVerificationResponse?.data?.[0]?.biometric?.person_data?.first_name ?? ""} ${irisVerificationResponse?.data?.[0]?.biometric?.person_data?.middle_name ?? ""} ${irisVerificationResponse?.data?.[0]?.biometric?.person_data?.last_name ?? ""}`}</h1>
+            //     </div>
+            //     {
+            //       lastScanned && (
+            //         <div className="w-full flex items-center justify-center">
+            //           <div className="w-[80%] text-4xl flex">
+            //             <div className="flex items-center justify-between w-full">
+            //               <div className="flex-[4] flex gap-8">
 
-                            <>
-                              <span>STATUS:</span>
-                              <span>ALLOWED VISIT</span>
-                            </>
+            //                 <>
+            //                   <span>STATUS:</span>
+            //                   <span>ALLOWED VISIT</span>
+            //                 </>
 
-                          </div>
-                          <div className="flex justify-end flex-1 gap-4">
-                            <div className="w-16">
-                              <img src={check} alt="check icon" />
-                            </div>
-                            {/* <div className="w-16">
-                              <img src={ex} alt="close icon" />
-                            </div> */}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                }
-              </div>
+            //               </div>
+            //               <div className="flex justify-end flex-1 gap-4">
+            //                 <div className="w-16">
+            //                   <img src={check} alt="check icon" />
+            //                 </div>
+            //               </div>
+            //             </div>
+            //           </div>
+            //         </div>
+            //       )
+            //     }
+            //   </div>
+            // </div>
+            <div className="flex-1">
+              <PdlProfilePortrait visitorData={lastScannedPdl} />
             </div>
           ) : (
             <div className='flex-1'>

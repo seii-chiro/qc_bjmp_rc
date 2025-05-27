@@ -3,16 +3,14 @@ import { captureFace, verifyFace } from '@/lib/scanner-queries'
 import { useMutation } from '@tanstack/react-query'
 import { message, Select } from 'antd'
 import { useEffect, useState } from 'react'
-import noImg from "@/assets/no-img.webp"
 import check from "@/assets/Icons/check-mark.png"
 import ex from "@/assets/Icons/close.png"
-import { useVisitorLogStore } from '@/store/useVisitorLogStore'
 import { useTokenStore } from '@/store/useTokenStore'
 import { BASE_URL } from '@/lib/urls'
 import { Device } from '@/lib/definitions'
 import { verifyFaceInWatchlist } from '@/lib/threatQueries'
-import { IoIosWarning } from "react-icons/io";
 import VisitorProfilePortrait from '../../VisitorProfilePortrait'
+import PdlProfilePortrait from '../../PdlProfilePortrait'
 
 type Props = {
   devices: Device[];
@@ -26,8 +24,8 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
   const [verificationResult, setVerificationResult] = useState<any | null>(null)
 
   const [lastScanned, setLastScanned] = useState<any | null>(null);
+  const [lastScannedPdl, setLastScannedPdl] = useState<any | null>(null);
   const token = useTokenStore()?.token;
-  const addOrRemoveVisitorLog = useVisitorLogStore((state) => state.addOrRemoveVisitorLog);
 
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
   const [isFetching, setIsFetching] = useState(false);
@@ -76,6 +74,7 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
     }
 
     const idNumber = verificationData?.data?.[0]?.biometric?.person_data?.visitor?.id_number;
+    const pdlId = verificationData?.data?.[0]?.biometric?.person_data?.pdl?.id
 
     if (selectedArea !== "PDL Station") {
       if (!idNumber) {
@@ -122,16 +121,23 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
           },
         });
 
-        if (!res.ok) throw new Error(`Failed to fetch visitor log. Status: ${res.status}`);
+        if (!res.ok) throw new Error(`Failed to fetch visitor. Status: ${res.status}`);
         visitorData = await res.json();
 
-        try {
-          addOrRemoveVisitorLog(visitorData);
-        } catch (storeErr) {
-          console.error("Failed to update visitor log store:", storeErr);
-        }
-
         setLastScanned(visitorData);
+      } else {
+        const res = await fetch(`${BASE_URL}/api/pdls/pdl/${pdlId}`, {
+          method: 'get',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`
+          },
+        });
+
+        if (!res.ok) throw new Error(`Failed to fetch PDL. Status: ${res.status}`);
+        visitorData = await res.json();
+
+        setLastScannedPdl(visitorData);
       }
 
       // Post to visit log endpoint
@@ -293,70 +299,73 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
 
         {
           selectedArea?.toLowerCase() === "pdl station" ? (
-            <div className='flex-1'>
-              <div className="flex flex-col items-center justify-center">
-                <div className="w-full flex items-center justify-center flex-col gap-10">
-                  <div className="w-[60%] rounded-md overflow-hidden object-cover">
-                    {
-                      verificationResult ? (
-                        <img
-                          src={`data:image/jpeg;base64,${verificationResult?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data}`}
-                          onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).src = "https://i2.wp.com/vdostavka.ru/wp-content/uploads/2019/05/no-avatar.png?fit=512%2C512&ssl=1";
-                          }}
-                          alt="Image of a person"
-                          className="w-full"
-                        />
-                      ) : (
-                        <img src={noImg} alt="Image of a person" className="w-full" />
-                      )
-                    }
-                  </div>
-                  <h1 className="text-4xl">
-                    {`
-                  ${verificationResult?.data?.[0]?.biometric?.person_data?.first_name ?? ""} 
-                  ${verificationResult?.data?.[0]?.biometric?.person_data?.middle_name ?? ""} 
-                  ${verificationResult?.data?.[0]?.biometric?.person_data?.last_name ?? ""}
-                  `}
-                  </h1>
-                  <span>
-                    {
-                      inWatchList && (
-                        <span className='flex items-center gap-1'>
-                          <IoIosWarning color='orange' size={25} />
-                          <span className='text-red-600'>{inWatchList}</span>
-                        </span>
-                      )
-                    }
-                  </span>
-                </div>
-                {
-                  lastScanned && (
-                    <div className="w-full flex items-center justify-center">
-                      <div className="w-[80%] text-4xl flex">
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex-[4] flex gap-8">
+            // <div className='flex-1'>
+            //   <div className="flex flex-col items-center justify-center">
+            //     <div className="w-full flex items-center justify-center flex-col gap-10">
+            //       <div className="w-[60%] rounded-md overflow-hidden object-cover">
+            //         {
+            //           verificationResult ? (
+            //             <img
+            //               src={`data:image/jpeg;base64,${verificationResult?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data}`}
+            //               onError={(e) => {
+            //                 (e.currentTarget as HTMLImageElement).src = "https://i2.wp.com/vdostavka.ru/wp-content/uploads/2019/05/no-avatar.png?fit=512%2C512&ssl=1";
+            //               }}
+            //               alt="Image of a person"
+            //               className="w-full"
+            //             />
+            //           ) : (
+            //             <img src={noImg} alt="Image of a person" className="w-full" />
+            //           )
+            //         }
+            //       </div>
+            //       <h1 className="text-4xl">
+            //         {`
+            //       ${verificationResult?.data?.[0]?.biometric?.person_data?.first_name ?? ""} 
+            //       ${verificationResult?.data?.[0]?.biometric?.person_data?.middle_name ?? ""} 
+            //       ${verificationResult?.data?.[0]?.biometric?.person_data?.last_name ?? ""}
+            //       `}
+            //       </h1>
+            //       <span>
+            //         {
+            //           inWatchList && (
+            //             <span className='flex items-center gap-1'>
+            //               <IoIosWarning color='orange' size={25} />
+            //               <span className='text-red-600'>{inWatchList}</span>
+            //             </span>
+            //           )
+            //         }
+            //       </span>
+            //     </div>
+            //     {
+            //       lastScanned && (
+            //         <div className="w-full flex items-center justify-center">
+            //           <div className="w-[80%] text-4xl flex">
+            //             <div className="flex items-center justify-between w-full">
+            //               <div className="flex-[4] flex gap-8">
 
-                            <>
-                              <span>STATUS:</span>
-                              <span>ALLOWED VISIT</span>
-                            </>
+            //                 <>
+            //                   <span>STATUS:</span>
+            //                   <span>ALLOWED VISIT</span>
+            //                 </>
 
-                          </div>
-                          <div className="flex justify-end flex-1 gap-4">
-                            <div className="w-16">
-                              <img src={check} alt="check icon" />
-                            </div>
-                            {/* <div className="w-16">
-                              <img src={ex} alt="close icon" />
-                            </div> */}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                }
-              </div>
+            //               </div>
+            //               <div className="flex justify-end flex-1 gap-4">
+            //                 <div className="w-16">
+            //                   <img src={check} alt="check icon" />
+            //                 </div>
+            //                 {/* <div className="w-16">
+            //                   <img src={ex} alt="close icon" />
+            //                 </div> */}
+            //               </div>
+            //             </div>
+            //           </div>
+            //         </div>
+            //       )
+            //     }
+            //   </div>
+            // </div>
+            <div className="flex-1">
+              <PdlProfilePortrait visitorData={lastScannedPdl} />
             </div>
           ) : (
             <div className='flex-1'>
