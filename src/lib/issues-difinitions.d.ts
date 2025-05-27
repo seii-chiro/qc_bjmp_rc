@@ -960,3 +960,8 @@ export interface GlobalSettingsResponse {
   dashboard_period: "Daily" | "Weekly" | "Monthly"; // Assuming these are the only valid options
   record_status: string;
 }
+
+export interface GroupRole {
+  id: number;
+  name: string;
+}

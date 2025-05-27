@@ -166,30 +166,12 @@ const Visitor = () => {
         (m: any) => m.name?.toLowerCase() === "cohabitation"
     );
 
-    
-// const fetchVisitorGender = async (gender: string) => {
-//     const genderQuery = gender !== "all" ? `gender=${encodeURIComponent(gender)}` : "";
-//     // Set a large limit to get all visitors for this gender (if API supports it)
-//     const query = genderQuery ? `?${genderQuery}&limit=5000` : "?limit=5000";
-
-//     const url = `${BASE_URL}/api/visitors/visitor${query}`;
-
-//     const res = await fetch(url, {
-//         headers: {
-//         Authorization: `Token ${token}`,
-//         "Content-Type": "application/json",
-//         },
-//     });
-//     if (!res.ok) throw new Error("Network error");
-//     return res.json();
-// };
     const [searchParams] = useSearchParams();
     const gender = searchParams.get("gender") || "all";
     const genderParam = searchParams.get("gender") || "all";
 const genderList = genderParam !== "all" ? genderParam.split(",").map(decodeURIComponent) : [];
 
 const fetchVisitorGender = async (genders: string[]) => {
-    // Use a large limit to get all matching visitors
     const url = `${BASE_URL}/api/visitors/visitor/?gender=${genders}&limit=${limit}`;
     const res = await fetch(url, {
         headers: {
@@ -205,7 +187,6 @@ const fetchVisitorGender = async (genders: string[]) => {
         return result; // No filtering
     }
 
-    // If multiple genders, filter for any of them
     result.results = result.results.filter(visitor => {
         const genderOption = visitor?.person?.gender?.gender_option;
         return genders.includes(genderOption);
@@ -468,8 +449,7 @@ const handleExportPDF = async () => {
     const MAX_ROWS_PER_PRINT = 800;
 
     let printSource;
-
-    // Decide if we are printing filtered data (all at once) or paginated chunks of full data
+    
     if (debouncedSearch && debouncedSearch.trim().length > 0) {
         printSource = (searchData?.results || []).map((visitor, index) => {
             const barangay = visitor?.person?.addresses[0]?.barangay || '';
