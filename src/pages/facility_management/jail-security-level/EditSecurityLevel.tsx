@@ -65,8 +65,8 @@ const EditSecurityLevel = ({ securitylevel, onClose }: { securitylevel: any; onC
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Security Level"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Security Level
                     </Button>
                 </Form.Item>
             </Form>

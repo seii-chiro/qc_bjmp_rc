@@ -100,7 +100,7 @@ const Impact = () => {
         key: index + 1,
         id: impact?.id ?? 'N/A',
         name: impact?.name ?? 'N/A',
-        description: impact?.description ?? 'N/A',
+        // description: impact?.description ?? 'N/A',
         updated_at: impact?.updated_at ?? 'N/A',
         updated_by: impact?.updated_by ?? 'N/A',
         organization: impact?.organization ?? 'Bureau of Jail Management and Penology',
@@ -135,21 +135,21 @@ const Impact = () => {
             ],
             onFilter: (value, record) => record.name === value,
         },
-        {
-            title: 'Description',
-            dataIndex: 'description',
-            key: 'description',
-            sorter: (a, b) => a.description.localeCompare(b.description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.description))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.description === value,
-        },
+        // {
+        //     title: 'Description',
+        //     dataIndex: 'description',
+        //     key: 'description',
+        //     sorter: (a, b) => a.description.localeCompare(b.description),
+        //     filters: [
+        //         ...Array.from(
+        //             new Set(filteredData.map(item => item.description))
+        //         ).map(name => ({
+        //             text: name,
+        //             value: name,
+        //         }))
+        //     ],
+        //     onFilter: (value, record) => record.description === value,
+        // },
         {
             title: "Updated At",
             dataIndex: "updated_at",

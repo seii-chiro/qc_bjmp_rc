@@ -36,7 +36,6 @@ import {
   USER,
   PDL_TO_VISIT,
   EMPLOYMENT_TYPE,
-  GROUP_ROLE,
   DEVICE,
   DEVICE_TYPE,
   DEVICE_USAGE,
@@ -87,7 +86,6 @@ import {
   OrganitionalType,
   Organization,
   IDType,
-  GroupRolePermission,
   SystemSetting,
   User,
   PDLtoVisit,
@@ -1278,66 +1276,6 @@ export async function getPersonnel(
 
   return res.json();
 }
-
-export async function getGroup_Role(
-  token: string
-): Promise<GroupRolePermission[]> {
-  const res = await fetch(GROUP_ROLE.getGROUP_ROLE, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch Group Role data.");
-  }
-
-  return res.json();
-}
-
-export const updateGroup_Roles = async (
-  token: string,
-  id: number,
-  updatedData: any
-) => {
-  const response = await fetch(
-    `${GROUP_ROLE.putGROUP_ROLE.replace("{id}", id.toString())}`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Token ${token}`,
-      },
-      body: JSON.stringify(updatedData),
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Failed to update Group Roles");
-  }
-
-  return response.json();
-};
-
-export const deleteGroup_Roles = async (token: string, id: number) => {
-  const response = await fetch(
-    `${GROUP_ROLE.deleteGROUP_ROLE.replace("{id}", id.toString())}`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization: `Token ${token}`,
-      },
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Failed to delete Group Roles");
-  }
-
-  const text = await response.text();
-  return text ? JSON.parse(text) : {};
-};
 
 export async function getSystem_Setting(
   token: string

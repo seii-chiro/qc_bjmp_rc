@@ -110,8 +110,8 @@ const EditSuffix = ({ suffix, onClose }: { suffix: any; onClose: () => void;}) =
             />
             </Form.Item>
             <Form.Item>
-            <Button type="primary" htmlType="submit" disabled={isLoading}>
-                {isLoading ? "Updating..." : "Update Suffix"}
+            <Button type="primary" htmlType="submit">
+                Update Suffix
             </Button>
             </Form.Item>
         </Form>

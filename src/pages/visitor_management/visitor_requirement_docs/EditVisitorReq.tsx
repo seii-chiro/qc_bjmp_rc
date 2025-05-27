@@ -68,8 +68,8 @@ const EditVisitorReq = ({ visitorreqdocs, onClose }: { visitorreqdocs: any; onCl
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Visitor Requirements"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Visitor Requirements
                     </Button>
                 </Form.Item>
             </Form>

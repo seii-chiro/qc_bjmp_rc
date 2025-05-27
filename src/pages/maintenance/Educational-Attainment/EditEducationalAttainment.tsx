@@ -115,7 +115,7 @@ const EditEducationalAttainment = ({
 
         <Form.Item>
           <Button type="primary" className="flex ml-auto" htmlType="submit" loading={isLoading}>
-            {isLoading ? "Updating..." : "Update Educational Attainment"}
+            Update Educational Attainment
           </Button>
         </Form.Item>
       </Form>

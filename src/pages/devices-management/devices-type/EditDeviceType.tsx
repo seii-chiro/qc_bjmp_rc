@@ -130,8 +130,8 @@ const EditDevicesTypes = ({ devicetype, onClose }: { devicetype: any; onClose: (
                         ))}/>
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Device Type"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                       Update Device Type
                     </Button>
                 </Form.Item>
             </Form>

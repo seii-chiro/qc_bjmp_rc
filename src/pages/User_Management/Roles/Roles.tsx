@@ -1,4 +1,4 @@
-import { getGroup_Role, deleteGroup_Roles, getUser } from "@/lib/queries"
+import { getUser } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CSVLink } from "react-csv";
@@ -14,12 +14,8 @@ import EditRoles from "./EditRoles";
 import AddRoles from "./AddRoles";
 import { LuSearch } from "react-icons/lu";
 import bjmp from '../../../assets/Logo/QCJMD.png'
-
-type GroupRole = {
-    key: number;
-    id: number;
-    name: string;
-};
+import { GroupRole } from "@/lib/issues-difinitions";
+import { deleteGroup_Roles, getGroup_Role } from "@/lib/query";
 
 const Roles = () => {
     const [searchText, setSearchText] = useState("");
@@ -61,9 +57,9 @@ const Roles = () => {
             setIsModalOpen(false);
         };
 
-    const dataSource = data?.results?.map((role) => ({
+    const dataSource = data?.results.map((role) => ({
         id: role.id,
-        name: role?.name ?? "N/A",
+        name: role?.name ?? "",
         organization: role?.organization ?? 'Bureau of Jail Management and Penology',
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];

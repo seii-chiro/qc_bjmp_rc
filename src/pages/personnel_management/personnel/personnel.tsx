@@ -41,21 +41,21 @@ const Personnel = () => {
     // const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [allPersonnel, setAllPersonnel] = useState<PersonnelType[]>([]);
 
-    useEffect(() => {
-        const fetchAll = async () => {
-            const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
-                headers: {
-                    Authorization: `Token ${token}`,
-                    "Content-Type": "application/json",
-                },
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setAllPersonnel(data.results || []);
-            }
-        };
-        fetchAll();
-    }, [token]);
+    // useEffect(() => {
+    //     const fetchAll = async () => {
+    //         const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
+    //             headers: {
+    //                 Authorization: `Token ${token}`,
+    //                 "Content-Type": "application/json",
+    //             },
+    //         });
+    //         if (res.ok) {
+    //             const data = await res.json();
+    //             setAllPersonnel(data.results || []);
+    //         }
+    //     };
+    //     fetchAll();
+    // }, [token]);
 
     const fetchPersonnels = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/codes/personnel/?search=${search}`, {
@@ -125,17 +125,9 @@ const Personnel = () => {
     const gender = searchParams.get("gender") || "all";
     const genderParam = searchParams.get("gender") || "all";
     const genderList = genderParam !== "all" ? genderParam.split(",").map(decodeURIComponent) : [];
-    
 
     const fetchPersonnelGender = async (genders: string[]) => {
-        const isOthers =
-            genders.includes("LGBTQ + TRANSGENDER") ||
-            genders.includes("LGBTQ + GAY / BISEXUAL") ||
-            genders.includes("LGBTQ + LESBIAN / BISEXUAL") ||
-            genders.includes("Others");
-
-        const url = `${BASE_URL}/api/codes/personnel/?limit=5000`;
-
+        const url = `${BASE_URL}/api/codes/personnel/?gender=${genders}&limit=${limit}`;
         const res = await fetch(url, {
             headers: {
                 Authorization: `Token ${token}`,
@@ -143,28 +135,17 @@ const Personnel = () => {
             },
         });
         if (!res.ok) throw new Error("Network error");
-
+    
         const result = await res.json();
-
-        if (genders[0] === "all") {
-            return result; 
+    
+        if (genders.length === 0 || genders[0] === "all") {
+            return result; // No filtering
         }
-
-        if (isOthers) {
-            const otherGenders = [
-                "LGBTQ + TRANSGENDER",
-                "LGBTQ + GAY / BISEXUAL",
-                "LGBTQ + LESBIAN / BISEXUAL"
-            ];
-            result.results = result.results.filter(personnel =>
-                otherGenders.includes(personnel?.person?.gender?.gender_option)
-            );
-            return result;
-        }
-
-        result.results = result.results.filter(personnel =>
-            genders.includes(personnel?.person?.gender?.gender_option)
-        );
+    
+        result.results = result.results.filter(visitor => {
+            const genderOption = visitor?.person?.gender?.gender_option;
+            return genders.includes(genderOption);
+        });
         return result;
     };
 
@@ -183,13 +164,7 @@ const Personnel = () => {
     const statusList = statusParam !== "all" ? statusParam.split(",").map(decodeURIComponent) : [];
 
     const fetchPersonnelStatus= async (status: string[]) => {
-        const hasFilters = status.length > 0 && status[0] !== "all";
-        const statusQuery = hasFilters
-            ? status.map(g => `status=${encodeURIComponent(g)}`).join("&")
-            : "";
-
-        const query = statusQuery ? `?${statusQuery}&limit=5000` : "?limit=5000";
-        const url = `${BASE_URL}/api/codes/personnel/${query}`;
+        const url = `${BASE_URL}/api/codes/personnel/?status=${status}&limit=${limit}`;
 
         const res = await fetch(url, {
             headers: {
@@ -218,7 +193,7 @@ const Personnel = () => {
         key: index + 1,
                 id: personnel?.id,
                 personnel_reg_no: personnel?.personnel_reg_no ?? '',
-                person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
+                person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
                 shortname: personnel?.person?.shortname ?? '',
                 rank: personnel?.rank ?? '',
                 status: personnel?.status ?? '',
@@ -364,7 +339,6 @@ const Personnel = () => {
         return res.json();
     };
 
-    const MAX_ROWS_PER_PAGE = 26; 
     const lastPrintIndexRef = useRef(0); 
 
     const handleExportPDF = async () => {
@@ -373,45 +347,67 @@ const Personnel = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
+        const MAX_ROWS_PER_PRINT = 800;
 
         let printSource;
 
-        try {
-            if (debouncedSearch) {
-                printSource = (searchData?.results || []).map((personnel, index) => ({
+        if (debouncedSearch && debouncedSearch.trim().length > 0) {
+        printSource = (searchData?.results || []).map((personnel, index) => {
+            return {
+                id: personnel?.id,
+                    key: index + 1,
+                    organization: personnel?.organization ?? '',
+                    personnel_reg_no: personnel?.personnel_reg_no ?? '',
+                    person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+                    shortname: personnel?.person?.shortname ?? '',
+                    rank: personnel?.rank ?? '',
+                    status: personnel?.status ?? '',
+                    gender:
+                    (personnel?.person?.gender?.gender_option === "Male" || personnel?.person?.gender?.gender_option === "Female")
+                        ? personnel?.person?.gender?.gender_option
+                        : "Others",
+                    date_joined: personnel?.date_joined ?? '',
+                    record_status: personnel?.record_status ?? '',
+                    updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+            };
+        });
+        
+        lastPrintIndexRef.current = 0; 
+    } else {
+        const allData = await fetchAllPersonnels();
+        const allResults = allData?.results || [];
+        printSource = allResults
+            .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + MAX_ROWS_PER_PRINT)
+            .map((personnel, index) => {
+                return {
                     id: personnel?.id,
                     key: index + 1,
                     organization: personnel?.organization ?? '',
                     personnel_reg_no: personnel?.personnel_reg_no ?? '',
-                    person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
+                    person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
                     shortname: personnel?.person?.shortname ?? '',
                     rank: personnel?.rank ?? '',
                     status: personnel?.status ?? '',
-                    gender: personnel?.person?.gender?.gender_option ?? '',
+                    gender:
+                    (personnel?.person?.gender?.gender_option === "Male" || personnel?.person?.gender?.gender_option === "Female")
+                        ? personnel?.person?.gender?.gender_option
+                        : "Others",
                     date_joined: personnel?.date_joined ?? '',
                     record_status: personnel?.record_status ?? '',
                     updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-                }));
-            } else {
-                const allData = await fetchAllPersonnels();
-                const allResults = allData?.results || [];
-
-                // Use lastPrintIndexRef for pagination
-                printSource = allResults.slice(lastPrintIndexRef.current, lastPrintIndexRef.current + MAX_ROWS_PER_PAGE);
-                lastPrintIndexRef.current += MAX_ROWS_PER_PAGE;
-
-                // Reset if we've reached the end
-                if (lastPrintIndexRef.current >= allResults.length) {
-                    lastPrintIndexRef.current = 0; // Reset for next export
-                }
-            }
-
+                };
+            });
+        lastPrintIndexRef.current += MAX_ROWS_PER_PRINT;
+        if (lastPrintIndexRef.current >= allResults.length) {
+            lastPrintIndexRef.current = 0;
+        }
+    }
             const organizationName = printSource[0]?.organization || "";
             const PreparedBy = printSource[0]?.updated_by || '';
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
             const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-
+            const MAX_ROWS_PER_PAGE = 26;
             let startY = headerHeight;
 
             const addHeader = () => {
@@ -437,19 +433,20 @@ const Personnel = () => {
 
             addHeader();
 
-            const tableData = printSource.map(item => [
+            const tableData = printSource.map((item) => [
                 item.key,
                 item.personnel_reg_no,
                 item.person,
+                item.gender,
                 item.rank,
-                item.date_joined,
+                item.status,
             ]);
 
             for (let i = 0; i < tableData.length; i += MAX_ROWS_PER_PAGE) {
                 const pageData = tableData.slice(i, i + MAX_ROWS_PER_PAGE);
 
                 autoTable(doc, {
-                    head: [['No.', 'Personnel Reg. No.', 'Personnel', 'Rank', 'Date Joined']],
+                    head: [['No.', 'Personnel No.', 'Name', 'Gender', 'Rank', 'Status']],
                     body: pageData,
                     startY: startY,
                     margin: { top: 0, left: 10, right: 10 },
@@ -486,13 +483,8 @@ const Personnel = () => {
             const pdfOutput = doc.output('datauristring');
             setPdfDataUrl(pdfOutput);
             setIsPdfModalOpen(true);
-        } catch (error) {
-            console.error("Error generating PDF:", error);
-            alert("Failed to generate PDF. Please try again.");
-        } finally {
             setIsLoading(false);
         }
-    };
 
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);

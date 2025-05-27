@@ -11,7 +11,7 @@ const User = () => {
                         <div className="border border-gray-200 p-5 w-96 shadow-sm hover:shadow-md rounded-md">
                             <div className="mt-2">
                                 <div className="ml-8">
-                                    {/* <GodotLink link="roles" title="Roles" /> */}
+                                    <GodotLink link="roles" title="Roles" />
                                     <GodotLink link="" title="Role Levels" />
                                     <GodotLink link="" title="Menu Items" />
                                     <GodotLink link="" title="Access Matrix" />

@@ -4,10 +4,10 @@
 
       //Visitor Information Headers
       if (fields.registrationNo) headers.push('Visitor Reg No');
-      if (fields.ID) headers.push('ID Number');
-      if (fields.firstName) headers.push('First Name');
-      if (fields.middleName) headers.push('Middle Name');
-      if (fields.lastName) headers.push('Last Name');
+    //   if (fields.ID) headers.push('ID Number');
+    //   if (fields.firstName) headers.push('First Name');
+    //   if (fields.middleName) headers.push('Middle Name');
+    //   if (fields.lastName) headers.push('Last Name');
       if (fields.name) headers.push('Name');
       if (fields.gender) headers.push('Gender');
       if (fields.dateOfBirth) headers.push('Date of Birth');
@@ -17,19 +17,19 @@
 
           //Address
     if (fields.fullAddress) headers.push('Full Address');
-    if (fields.addressType) headers.push('Address Type');
-    if (fields.bldgSubdivision) headers.push('BLDG Subdivision');
-    if (fields.barangay) headers.push('Barangay');
-    if (fields.street) headers.push('Street');
-    if (fields.streetNumber) headers.push('Street Number');
-    if (fields.municipality) headers.push('Municipality');
-    if (fields.province) headers.push('Province');
-    if (fields.region) headers.push('Region');
-    if (fields.postalCode) headers.push('Postal Code');
-    if (fields.country) headers.push('Country');
-    if (fields.isActive) headers.push('Is Active');
-    if (fields.isCurrent) headers.push('Is Current');
-    if (fields.type) headers.push('Address Type');
+    // if (fields.addressType) headers.push('Address Type');
+    // if (fields.bldgSubdivision) headers.push('BLDG Subdivision');
+    // if (fields.barangay) headers.push('Barangay');
+    // if (fields.street) headers.push('Street');
+    // if (fields.streetNumber) headers.push('Street Number');
+    // if (fields.municipality) headers.push('Municipality');
+    // if (fields.province) headers.push('Province');
+    // if (fields.region) headers.push('Region');
+    // if (fields.postalCode) headers.push('Postal Code');
+    // if (fields.country) headers.push('Country');
+    // if (fields.isActive) headers.push('Is Active');
+    // if (fields.isCurrent) headers.push('Is Current');
+    // if (fields.type) headers.push('Address Type');
 
     //Other Visitor Info
     if (fields.type) headers.push('Visitor Type');
@@ -126,10 +126,10 @@
     filteredVisitors.forEach((v, i) => {
         const row = [i + 1];
         if (fields.registrationNo) row.push(v.visitor_reg_no ?? '');
-        if (fields.ID) row.push(v.id_number ?? '');
-        if (fields.firstName) row.push(v?.person?.first_name ?? '');
-        if (fields.middleName) row.push(v?.person?.middle_name ?? '');
-        if (fields.lastName) row.push(v?.person?.last_name ?? '');
+        // if (fields.ID) row.push(v.id_number ?? '');
+        // if (fields.firstName) row.push(v?.person?.first_name ?? '');
+        // if (fields.middleName) row.push(v?.person?.middle_name ?? '');
+        // if (fields.lastName) row.push(v?.person?.last_name ?? '');
         if (fields.name) row.push(`${v?.person?.first_name ?? ''} ${v?.person?.last_name ?? ''}`.trim());
         if (fields.gender) row.push(v?.person?.gender?.gender_option ?? '');
         if (fields.dateOfBirth) row.push(v?.person?.date_of_birth ?? '');
@@ -139,19 +139,19 @@
         
         //Address
         if (fields.fullAddress) row.push(v?.person?.addresses?.[0]?.full_address ?? '');
-        if (fields.addressType) row.push(v?.person?.addresses?.[0]?.address_type ?? '');
-        if (fields.bldgSubdivision) row.push(v?.person?.addresses?.[0]?.bldg_subdivision ?? '');
-        if (fields.barangay) row.push(v?.person?.addresses?.[0]?.barangay ?? '');
-        if (fields.street) row.push(v?.person?.addresses?.[0]?.street ?? '');
-        if (fields.streetNumber) row.push(v?.person?.addresses?.[0]?.street_number ?? '');
-        if (fields.municipality) row.push(v?.person?.addresses?.[0]?.city_municipality ?? '');
-        if (fields.province) row.push(v?.person?.addresses?.[0]?.province ?? '');
-        if (fields.region) row.push(v?.person?.addresses?.[0]?.region ?? '');
-        if (fields.postalCode) row.push(v?.person?.addresses?.[0]?.postal_code ?? '');
-        if (fields.country) row.push(v?.person?.addresses?.[0]?.country ?? '');
-        if (fields.isActive) row.push(v?.person?.addresses?.[0]?.is_active ? 'Yes' : 'No');
-        if (fields.isCurrent) row.push(v?.person?.addresses?.[0]?.is_current ? 'Yes' : 'No');
-        if (fields.type) row.push(v?.person?.addresses?.[0]?.type ?? '');
+        // if (fields.addressType) row.push(v?.person?.addresses?.[0]?.address_type ?? '');
+        // if (fields.bldgSubdivision) row.push(v?.person?.addresses?.[0]?.bldg_subdivision ?? '');
+        // if (fields.barangay) row.push(v?.person?.addresses?.[0]?.barangay ?? '');
+        // if (fields.street) row.push(v?.person?.addresses?.[0]?.street ?? '');
+        // if (fields.streetNumber) row.push(v?.person?.addresses?.[0]?.street_number ?? '');
+        // if (fields.municipality) row.push(v?.person?.addresses?.[0]?.city_municipality ?? '');
+        // if (fields.province) row.push(v?.person?.addresses?.[0]?.province ?? '');
+        // if (fields.region) row.push(v?.person?.addresses?.[0]?.region ?? '');
+        // if (fields.postalCode) row.push(v?.person?.addresses?.[0]?.postal_code ?? '');
+        // if (fields.country) row.push(v?.person?.addresses?.[0]?.country ?? '');
+        // if (fields.isActive) row.push(v?.person?.addresses?.[0]?.is_active ? 'Yes' : 'No');
+        // if (fields.isCurrent) row.push(v?.person?.addresses?.[0]?.is_current ? 'Yes' : 'No');
+        // if (fields.type) row.push(v?.person?.addresses?.[0]?.type ?? '');
 
         //Visitor other information
         if (fields.type) row.push(v?.visitor_type ?? '');
@@ -281,11 +281,11 @@
       const headers: string[] = [];
       const body: any[][] = [];
       if (fields.registrationNo) headers.push('Registration No');
-      if (fields.ID) headers.push('ID Number');
-      if (fields.shortName) headers.push('Short Name');
-      if (fields.firstName) headers.push('First Name');
-      if (fields.middleName) headers.push('Middle Name');
-      if (fields.lastName) headers.push('Last Name');
+    //   if (fields.ID) headers.push('ID Number');
+    //   if (fields.shortName) headers.push('Short Name');
+    //   if (fields.firstName) headers.push('First Name');
+    //   if (fields.middleName) headers.push('Middle Name');
+    //   if (fields.lastName) headers.push('Last Name');
       if (fields.name) headers.push('Name');
       if (fields.gender) headers.push('Gender');
       if (fields.religion) headers.push('Religion');
@@ -308,19 +308,19 @@
 
     //Address
     if (fields.fullAddress) headers.push('Full Address');
-    if (fields.addressType) headers.push('Address Type');
-    if (fields.bldgSubdivision) headers.push('BLDG Subdivision');
-    if (fields.barangay) headers.push('Barangay');
-    if (fields.street) headers.push('Street');
-    if (fields.streetNumber) headers.push('Street Number');
-    if (fields.municipality) headers.push('Municipality');
-    if (fields.province) headers.push('Province');
-    if (fields.region) headers.push('Region');
-    if (fields.postalCode) headers.push('Postal Code');
-    if (fields.country) headers.push('Country');
-    if (fields.isActive) headers.push('Is Active');
-    if (fields.isCurrent) headers.push('Is Current');
-    if (fields.type) headers.push('Address Type');
+    // if (fields.addressType) headers.push('Address Type');
+    // if (fields.bldgSubdivision) headers.push('BLDG Subdivision');
+    // if (fields.barangay) headers.push('Barangay');
+    // if (fields.street) headers.push('Street');
+    // if (fields.streetNumber) headers.push('Street Number');
+    // if (fields.municipality) headers.push('Municipality');
+    // if (fields.province) headers.push('Province');
+    // if (fields.region) headers.push('Region');
+    // if (fields.postalCode) headers.push('Postal Code');
+    // if (fields.country) headers.push('Country');
+    // if (fields.isActive) headers.push('Is Active');
+    // if (fields.isCurrent) headers.push('Is Current');
+    // if (fields.type) headers.push('Address Type');
 
     //    Contact Information
       if (fields.contactType) headers.push('Contact Type');
@@ -418,11 +418,11 @@
       filteredPersonnel.forEach((p, i) => {
         const row = [i + 1];
         if (fields.registrationNo) row.push(p?.personnel_reg_no ?? '');
-        if (fields.ID) row.push(p?.id_number ?? '');
-        if (fields.shortName) row.push(p?.shortname ?? '');
-        if (fields.firstName) row.push(p?.person?.first_name ?? '');
-        if (fields.middleName) row.push(p?.person?.middle_name ?? '');
-        if (fields.lastName) row.push(p?.person?.last_name ?? '');
+        // if (fields.ID) row.push(p?.id_number ?? '');
+        // if (fields.shortName) row.push(p?.shortname ?? '');
+        // if (fields.firstName) row.push(p?.person?.first_name ?? '');
+        // if (fields.middleName) row.push(p?.person?.middle_name ?? '');
+        // if (fields.lastName) row.push(p?.person?.last_name ?? '');
         if (fields.name) row.push(`${p?.person?.first_name ?? ''} ${p?.person?.last_name ?? ''}`.trim());
         if (fields.gender) row.push(p?.person?.gender?.gender_option ?? '');
         if (fields.religion) row.push(p?.person?.religion?.name ?? '');
@@ -445,19 +445,19 @@
 
         //Address
         if (fields.fullAddress) row.push(p?.person?.addresses?.[0]?.full_address ?? '');
-        if (fields.addressType) row.push(p?.person?.addresses?.[0]?.address_type ?? '');
-        if (fields.bldgSubdivision) row.push(p?.person?.addresses?.[0]?.bldg_subdivision ?? '');
-        if (fields.barangay) row.push(p?.person?.addresses?.[0]?.barangay ?? '');
-        if (fields.street) row.push(p?.person?.addresses?.[0]?.street ?? '');
-        if (fields.streetNumber) row.push(p?.person?.addresses?.[0]?.street_number ?? '');
-        if (fields.municipality) row.push(p?.person?.addresses?.[0]?.city_municipality ?? '');
-        if (fields.province) row.push(p?.person?.addresses?.[0]?.province ?? '');
-        if (fields.region) row.push(p?.person?.addresses?.[0]?.region ?? '');
-        if (fields.postalCode) row.push(p?.person?.addresses?.[0]?.postal_code ?? '');
-        if (fields.country) row.push(p?.person?.addresses?.[0]?.country ?? '');
-        if (fields.isActive) row.push(p?.person?.addresses?.[0]?.is_active ? 'Yes' : 'No');
-        if (fields.isCurrent) row.push(p?.person?.addresses?.[0]?.is_current ? 'Yes' : 'No');
-        if (fields.type) row.push(p?.person?.addresses?.[0]?.type ?? '');
+        // if (fields.addressType) row.push(p?.person?.addresses?.[0]?.address_type ?? '');
+        // if (fields.bldgSubdivision) row.push(p?.person?.addresses?.[0]?.bldg_subdivision ?? '');
+        // if (fields.barangay) row.push(p?.person?.addresses?.[0]?.barangay ?? '');
+        // if (fields.street) row.push(p?.person?.addresses?.[0]?.street ?? '');
+        // if (fields.streetNumber) row.push(p?.person?.addresses?.[0]?.street_number ?? '');
+        // if (fields.municipality) row.push(p?.person?.addresses?.[0]?.city_municipality ?? '');
+        // if (fields.province) row.push(p?.person?.addresses?.[0]?.province ?? '');
+        // if (fields.region) row.push(p?.person?.addresses?.[0]?.region ?? '');
+        // if (fields.postalCode) row.push(p?.person?.addresses?.[0]?.postal_code ?? '');
+        // if (fields.country) row.push(p?.person?.addresses?.[0]?.country ?? '');
+        // if (fields.isActive) row.push(p?.person?.addresses?.[0]?.is_active ? 'Yes' : 'No');
+        // if (fields.isCurrent) row.push(p?.person?.addresses?.[0]?.is_current ? 'Yes' : 'No');
+        // if (fields.type) row.push(p?.person?.addresses?.[0]?.type ?? '');
 
         //    Contact Information
         if (fields.contactType) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.contact_type).join(', ') : '');
@@ -552,11 +552,9 @@
         const body: any[][] = [];
 
         // if (fields.registrationNo) headers.push('Registration No');
-        if (fields.ID) headers.push('ID Number');
-        if (fields.shortName) headers.push('Short Name');
-        if (fields.firstName) headers.push('First Name');
-        if (fields.middleName) headers.push('Middle Name');
-        if (fields.lastName) headers.push('Last Name');
+        // if (fields.firstName) headers.push('First Name');
+        // if (fields.middleName) headers.push('Middle Name');
+        // if (fields.lastName) headers.push('Last Name');
         if (fields.name) headers.push('Name');
         if (fields.gender) headers.push('Gender');
         if (fields.religion) headers.push('Religion');
@@ -574,19 +572,19 @@
 
         //Address
     if (fields.fullAddress) headers.push('Full Address');
-    if (fields.addressType) headers.push('Address Type');
-    if (fields.bldgSubdivision) headers.push('BLDG Subdivision');
-    if (fields.barangay) headers.push('Barangay');
-    if (fields.street) headers.push('Street');
-    if (fields.streetNumber) headers.push('Street Number');
-    if (fields.municipality) headers.push('Municipality');
-    if (fields.province) headers.push('Province');
-    if (fields.region) headers.push('Region');
-    if (fields.postalCode) headers.push('Postal Code');
-    if (fields.country) headers.push('Country');
-    if (fields.isActive) headers.push('Is Active');
-    if (fields.isCurrent) headers.push('Is Current');
-    if (fields.type) headers.push('Address Type');
+    // if (fields.addressType) headers.push('Address Type');
+    // if (fields.bldgSubdivision) headers.push('BLDG Subdivision');
+    // if (fields.barangay) headers.push('Barangay');
+    // if (fields.street) headers.push('Street');
+    // if (fields.streetNumber) headers.push('Street Number');
+    // if (fields.municipality) headers.push('Municipality');
+    // if (fields.province) headers.push('Province');
+    // if (fields.region) headers.push('Region');
+    // if (fields.postalCode) headers.push('Postal Code');
+    // if (fields.country) headers.push('Country');
+    // if (fields.isActive) headers.push('Is Active');
+    // if (fields.isCurrent) headers.push('Is Current');
+    // if (fields.type) headers.push('Address Type');
 
       // Education Information
       if (fields.educationalAttainment) headers.push('Educational Attainment');
@@ -708,11 +706,9 @@
 
         filteredPDL.forEach((p, i) => {
             const row = [i + 1];
-            if (fields.ID) row.push(p?.id_number ?? '');
-            if (fields.shortName) row.push(p?.shortname ?? '');
-            if (fields.firstName) row.push(p?.person?.first_name ?? '');
-            if (fields.middleName) row.push(p?.person?.middle_name ?? '');
-            if (fields.lastName) row.push(p?.person?.last_name ?? '');
+            // if (fields.firstName) row.push(p?.person?.first_name ?? '');
+            // if (fields.middleName) row.push(p?.person?.middle_name ?? '');
+            // if (fields.lastName) row.push(p?.person?.last_name ?? '');
             if (fields.name) row.push(`${p?.person?.first_name ?? ''} ${p?.person?.last_name ?? ''}`.trim());
             if (fields.gender) row.push(p?.person?.gender?.gender_option ?? '');
             if (fields.religion) row.push(p?.person?.religion?.name ?? '');
@@ -730,19 +726,19 @@
 
             //Address
         if (fields.fullAddress) row.push(p?.person?.addresses?.[0]?.full_address ?? '');
-        if (fields.addressType) row.push(p?.person?.addresses?.[0]?.address_type ?? '');
-        if (fields.bldgSubdivision) row.push(p?.person?.addresses?.[0]?.bldg_subdivision ?? '');
-        if (fields.barangay) row.push(p?.person?.addresses?.[0]?.barangay ?? '');
-        if (fields.street) row.push(p?.person?.addresses?.[0]?.street ?? '');
-        if (fields.streetNumber) row.push(p?.person?.addresses?.[0]?.street_number ?? '');
-        if (fields.municipality) row.push(p?.person?.addresses?.[0]?.city_municipality ?? '');
-        if (fields.province) row.push(p?.person?.addresses?.[0]?.province ?? '');
-        if (fields.region) row.push(p?.person?.addresses?.[0]?.region ?? '');
-        if (fields.postalCode) row.push(p?.person?.addresses?.[0]?.postal_code ?? '');
-        if (fields.country) row.push(p?.person?.addresses?.[0]?.country ?? '');
-        if (fields.isActive) row.push(p?.person?.addresses?.[0]?.is_active ? 'Yes' : 'No');
-        if (fields.isCurrent) row.push(p?.person?.addresses?.[0]?.is_current ? 'Yes' : 'No');
-        if (fields.type) row.push(p?.person?.addresses?.[0]?.type ?? '');
+        // if (fields.addressType) row.push(p?.person?.addresses?.[0]?.address_type ?? '');
+        // if (fields.bldgSubdivision) row.push(p?.person?.addresses?.[0]?.bldg_subdivision ?? '');
+        // if (fields.barangay) row.push(p?.person?.addresses?.[0]?.barangay ?? '');
+        // if (fields.street) row.push(p?.person?.addresses?.[0]?.street ?? '');
+        // if (fields.streetNumber) row.push(p?.person?.addresses?.[0]?.street_number ?? '');
+        // if (fields.municipality) row.push(p?.person?.addresses?.[0]?.city_municipality ?? '');
+        // if (fields.province) row.push(p?.person?.addresses?.[0]?.province ?? '');
+        // if (fields.region) row.push(p?.person?.addresses?.[0]?.region ?? '');
+        // if (fields.postalCode) row.push(p?.person?.addresses?.[0]?.postal_code ?? '');
+        // if (fields.country) row.push(p?.person?.addresses?.[0]?.country ?? '');
+        // if (fields.isActive) row.push(p?.person?.addresses?.[0]?.is_active ? 'Yes' : 'No');
+        // if (fields.isCurrent) row.push(p?.person?.addresses?.[0]?.is_current ? 'Yes' : 'No');
+        // if (fields.type) row.push(p?.person?.addresses?.[0]?.type ?? '');
 
         //    Contact Information
         if (fields.contactType) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.contact_type).join(', ') : '');

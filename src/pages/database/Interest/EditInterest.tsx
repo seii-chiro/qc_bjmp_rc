@@ -66,8 +66,8 @@ const EditInterest = ({ interest, onClose }: { interest: any; onClose: () => voi
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Interest"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Interest
                     </Button>
                 </Form.Item>
                 

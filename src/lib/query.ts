@@ -18,6 +18,7 @@ import {
   EditResponse,
   GlobalSettingsResponse,
   GroupAffiliationResponse,
+  GroupRole,
   IncidentCategoryResponse,
   IncidentTypeResponse,
   MainGateLog,
@@ -985,3 +986,63 @@ export async function getIssueCategory(
   }
   return res.json();
 }
+
+export async function getGroup_Role(
+  token: string
+): Promise<GroupRole> {
+  const res = await fetch(`${BASE_URL}/api/standards/groups/`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch Group Role data.");
+  }
+
+  return res.json();
+}
+
+export const updateGroup_Roles = async (
+  token: string,
+  id: number,
+  updatedData: any
+) => {
+  const url = `${BASE_URL}/api/standards/groups/${id}/`;
+  const response = await fetch(url,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(updatedData),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to update Group Roles");
+  }
+
+  return response.json();
+};
+
+export const deleteGroup_Roles = async (token: string, id: number) => {
+  const response = await fetch(
+    `${BASE_URL}/api/standards/groups/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to delete Group Roles");
+  }
+
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
+};

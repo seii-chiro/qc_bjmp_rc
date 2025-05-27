@@ -152,8 +152,8 @@ const EditRank = ({ rank, onClose }: { rank: any; onClose: () => void }) => {
                     <Input type="number" />
                 </Form.Item>
                 <Form.Item>
-                    <Button className="flex justify-end ml-auto" type="primary" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Rank"}
+                    <Button className="flex justify-end ml-auto" type="primary" htmlType="submit" >
+                        Update Rank
                     </Button>
                 </Form.Item>
             </Form>

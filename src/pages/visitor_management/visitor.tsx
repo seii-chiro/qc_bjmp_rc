@@ -48,21 +48,21 @@ const Visitor = () => {
     const limit = 10;
     const [allVisitor, setAllVisitor] = useState<VisitorRecord[]>([]);
 
-    useEffect(() => {
-        const fetchAll = async () => {
-            const res = await fetch(`${BASE_URL}/api/visitors/visitor/?limit=10000`, {
-                headers: {
-                    Authorization: `Token ${token}`,
-                    "Content-Type": "application/json",
-                },
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setAllVisitor(data.results || []);
-            }
-        };
-        fetchAll();
-    }, [token]);
+    // useEffect(() => {
+    //     const fetchAll = async () => {
+    //         const res = await fetch(`${BASE_URL}/api/visitors/visitor/?limit=10000`, {
+    //             headers: {
+    //                 Authorization: `Token ${token}`,
+    //                 "Content-Type": "application/json",
+    //             },
+    //         });
+    //         if (res.ok) {
+    //             const data = await res.json();
+    //             setAllVisitor(data.results || []);
+    //         }
+    //     };
+    //     fetchAll();
+    // }, [token]);
 
     const fetchVisitors = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/visitors/visitor/?search=${search}`, {
@@ -186,32 +186,32 @@ const Visitor = () => {
     const [searchParams] = useSearchParams();
     const gender = searchParams.get("gender") || "all";
     const genderParam = searchParams.get("gender") || "all";
-    const genderList = genderParam !== "all" ? genderParam.split(",").map(decodeURIComponent) : [];
+const genderList = genderParam !== "all" ? genderParam.split(",").map(decodeURIComponent) : [];
 
-    const fetchVisitorGender = async (genders: string[]) => {
-        // Use a large limit to get all matching visitors
-        const url = `${BASE_URL}/api/visitors/visitor/?limit=10000`;
-        const res = await fetch(url, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
-        if (!res.ok) throw new Error("Network error");
+const fetchVisitorGender = async (genders: string[]) => {
+    // Use a large limit to get all matching visitors
+    const url = `${BASE_URL}/api/visitors/visitor/?gender=${genders.join(",")}&limit=${limit}`;
+    const res = await fetch(url, {
+        headers: {
+            Authorization: `Token ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+    if (!res.ok) throw new Error("Network error");
 
-        const result = await res.json();
+    const result = await res.json();
 
-        if (genders.length === 0 || genders[0] === "all") {
-            return result; // No filtering
-        }
+    if (genders.length === 0 || genders[0] === "all") {
+        return result; // No filtering
+    }
 
-        // If multiple genders, filter for any of them
-        result.results = result.results.filter(visitor => {
-            const genderOption = visitor?.person?.gender?.gender_option;
-            return genders.includes(genderOption);
-        });
-        return result;
-    };
+    // If multiple genders, filter for any of them
+    result.results = result.results.filter(visitor => {
+        const genderOption = visitor?.person?.gender?.gender_option;
+        return genders.includes(genderOption);
+    });
+    return result;
+};
     const { data: visitorGenderData, isLoading: visitorsByGenderLoading } = useQuery({
         queryKey: ["visitors", genderList],
         queryFn: () => fetchVisitorGender(genderList),
@@ -244,16 +244,16 @@ const genderFilteredVisitorIds = new Set(
             ...visitor,
             key: index + 1,
             id: visitor?.id,
-            name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
+            name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
             visitor_reg_no: visitor?.visitor_reg_no,
             visitor_type: visitor?.visitor_type,
             nationality: visitor?.person?.nationality,
             full_address: visitor?.person?.addresses[0]?.full_address ?? '',
             address: address,
-            gender:
-  (visitor?.person?.gender?.gender_option === "Male" || visitor?.person?.gender?.gender_option === "Female")
-    ? visitor?.person?.gender?.gender_option
-    : "Others",
+             gender:
+          (visitor?.person?.gender?.gender_option === "Male" || visitor?.person?.gender?.gender_option === "Female")
+            ? visitor?.person?.gender?.gender_option
+            : "Others",
             organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
             updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         };
@@ -308,34 +308,34 @@ const genderFilteredVisitorIds = new Set(
             onFilter: (value, record) => record.person?.last_name === value,
         },
         {
-            title: 'Gender',
-            key: 'gender',
-            render: (_, visitor) => {
-                // Show the actual gender value, fallback to "Others" if missing
-                return visitor?.person?.gender?.gender_option || "Others";
-            },
-            filters: [
-                { text: "Male", value: "Male" },
-                { text: "Female", value: "Female" },
-                { text: "Others", value: "Others" }
-            ],
-            onFilter: (value, record) => {
-                const genderOption = record?.person?.gender?.gender_option;
-                if (value === "Others") {
-                    return genderOption !== "Male" && genderOption !== "Female";
-                }
-                return genderOption === value;
-            },
-            sorter: (a, b) => {
-                const genderA = (a.person?.gender?.gender_option === "Male" || a.person?.gender?.gender_option === "Female")
-                    ? a.person?.gender?.gender_option
-                    : "Others";
-                const genderB = (b.person?.gender?.gender_option === "Male" || b.person?.gender?.gender_option === "Female")
-                    ? b.person?.gender?.gender_option
-                    : "Others";
-                return genderA.localeCompare(genderB);
-            }
-        },
+    title: 'Gender',
+    key: 'gender',
+    render: (_, visitor) => {
+        // Show the actual gender value, fallback to "Others" if missing
+        return visitor?.person?.gender?.gender_option || "Others";
+    },
+    filters: [
+        { text: "Male", value: "Male" },
+        { text: "Female", value: "Female" },
+        { text: "Others", value: "Others" }
+    ],
+    onFilter: (value, record) => {
+        const genderOption = record?.person?.gender?.gender_option;
+        if (value === "Others") {
+            return genderOption !== "Male" && genderOption !== "Female";
+        }
+        return genderOption === value;
+    },
+    sorter: (a, b) => {
+        const genderA = (a.person?.gender?.gender_option === "Male" || a.person?.gender?.gender_option === "Female")
+            ? a.person?.gender?.gender_option
+            : "Others";
+        const genderB = (b.person?.gender?.gender_option === "Male" || b.person?.gender?.gender_option === "Female")
+            ? b.person?.gender?.gender_option
+            : "Others";
+        return genderA.localeCompare(genderB);
+    }
+},
         {
             title: 'Visitor Type',
             dataIndex: 'visitor_type',
@@ -471,31 +471,33 @@ const handleExportPDF = async () => {
 
     // Decide if we are printing filtered data (all at once) or paginated chunks of full data
     if (debouncedSearch && debouncedSearch.trim().length > 0) {
-
+    // Print all filtered data at once
+    printSource = (searchData?.results || []).map((visitor, index) => {
         const barangay = visitor?.person?.addresses[0]?.barangay || '';
         const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
         const province = visitor?.person?.addresses[0]?.province || '';
-
         const addressParts = [barangay, cityMunicipality, province].filter(part => part);
         const address = addressParts.join(', ');
-        // Print all filtered data at once
-        printSource = (searchData?.results || []).map((visitor, index) => ({
-        key: index + 1,
-        id: visitor?.id,
-        visitor_reg_no: visitor?.visitor_reg_no,
-        name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
-        visitor_type: visitor?.visitor_type,
-        full_address: visitor?.person?.addresses[0]?.full_address ?? '',
-        address: address,
-        nationality: visitor?.person?.nationality,
-        gender: visitor?.person?.gender?.gender_option,
-        updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
-        }));
 
-        // Reset lastPrintIndex because search print is a full print
-        lastPrintIndexRef.current = 0;
+        return {
+            key: index + 1,
+            id: visitor?.id,
+            visitor_reg_no: visitor?.visitor_reg_no,
+            name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+            visitor_type: visitor?.visitor_type,
+            full_address: visitor?.person?.addresses[0]?.full_address ?? '',
+            address: address,
+            nationality: visitor?.person?.nationality,
+            gender: (visitor?.person?.gender?.gender_option === "Male" || visitor?.person?.gender?.gender_option === "Female")
+                ? visitor?.person?.gender?.gender_option
+                : "Others",
+            updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
+        };
+    });
 
-    } else {
+    // Reset lastPrintIndex because search print is a full print
+    lastPrintIndexRef.current = 0;
+} else {
     // Print MAX_ROWS_PER_PRINT rows starting from lastPrintIndexRef.current from all visitors
     const allData = await fetchAllVisitors();
     const allResults = allData?.results || [];
@@ -514,7 +516,7 @@ const handleExportPDF = async () => {
                 key: lastPrintIndexRef.current + index + 1,
                 id: visitor?.id,
                 visitor_reg_no: visitor?.visitor_reg_no,
-                name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
+                name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
                 visitor_type: visitor?.visitor_type,
                 full_address: visitor?.person?.addresses[0]?.full_address ?? '',
                 address: address,
@@ -533,8 +535,8 @@ const handleExportPDF = async () => {
         }
     }
 
-    const organizationName = printSource[0]?.organization || "";
-    const PreparedBy = printSource[0]?.updated || "";
+    const organizationName = dataSource[0]?.organization || "Bureau of Jail Management and Penology";
+    const PreparedBy = dataSource[0]?.updated || "";
     const today = new Date();
     const formattedDate = today.toISOString().split("T")[0];
     const reportReferenceNo = `TAL-${formattedDate}-XXX`;
@@ -572,6 +574,7 @@ const handleExportPDF = async () => {
         index + 1,
         item.visitor_reg_no,
         item.name,
+        item.gender,
         item.visitor_type,
         item.address,
         ];
@@ -582,7 +585,7 @@ const handleExportPDF = async () => {
         const pageData = tableData.slice(i, i + maxRowsPerPage);
 
         autoTable(doc, {
-        head: [["No.", "Visitor No.", "Name", "Visitor Type", "Address"]],
+        head: [["No.", "Visitor No.", "Name", "Gender", "Visitor Type", "Address"]],
         body: pageData,
         startY: startY,
         margin: { top: 0, left: 10, right: 10 },

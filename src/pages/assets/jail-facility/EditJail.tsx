@@ -391,8 +391,8 @@ const EditJail = ({ jail, onClose }: { jail: any; onClose: () => void }) => {
                         </Form.Item>
                 </div>
                 <Form.Item>
-                    <Button type="primary" className="mt-2 py-4 flex ml-auto bg-[#32507D]" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Jail Facility"}
+                    <Button type="primary" className="mt-2 py-4 flex ml-auto bg-[#32507D]" htmlType="submit">
+                        Update Jail Facility
                     </Button>
                 </Form.Item>
             </Form>

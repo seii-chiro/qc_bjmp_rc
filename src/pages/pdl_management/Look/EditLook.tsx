@@ -68,8 +68,8 @@ const EditLook = ({ look, onClose }: { look: any; onClose: () => void }) => {
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Look"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Look
                     </Button>
                 </Form.Item>
                 

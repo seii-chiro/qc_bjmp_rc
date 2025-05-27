@@ -68,8 +68,8 @@ const EditVisitorRelation = ({ visitorrelation, onClose }: { visitorrelation: an
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Visitor Relationship to PDL"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Visitor Relationship to PDL
                     </Button>
                 </Form.Item>
             </Form>

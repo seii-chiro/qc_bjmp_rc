@@ -67,7 +67,7 @@ const EditJailCategories = ({ category, onClose }: { category: any; onClose: () 
                 </Form.Item>
                 <Form.Item>
                     <Button type="primary" className="flex ml-auto" htmlType="submit">
-                        {isLoading ? "Updating..." : "Update Jail Category"}
+                        Update Jail Category
                     </Button>
                 </Form.Item>
             </Form>

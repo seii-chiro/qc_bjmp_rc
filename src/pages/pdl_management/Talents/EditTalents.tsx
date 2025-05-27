@@ -68,8 +68,8 @@ return (
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Talents"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Talents
                     </Button>
                 </Form.Item>
                 

@@ -81,8 +81,8 @@ const EditMultiBirth = ({ multibirth, onClose }: { multibirth: any; onClose: () 
                 </Form.Item>
             </div>
             <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Multi Birth Classification"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Multi Birth Classification
                     </Button>
                 </Form.Item>
             </Form>

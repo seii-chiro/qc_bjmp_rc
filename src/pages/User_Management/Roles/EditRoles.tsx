@@ -1,8 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
 import { Form, Input, Button, message } from "antd";
-import { updateGroup_Roles } from "@/lib/queries";
+import {  } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useEffect, useState } from "react";
+import { updateGroup_Roles } from "@/lib/query";
 
 const EditRoles = ({ role, onClose }: { role: any; onClose: () => void }) => {
     const token = useTokenStore().token;
@@ -56,8 +57,8 @@ const EditRoles = ({ role, onClose }: { role: any; onClose: () => void }) => {
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Role"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Role
                     </Button>
                 </Form.Item>
             </Form>

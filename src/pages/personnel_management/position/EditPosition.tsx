@@ -179,8 +179,8 @@ const EditPosition = ({ position, onClose }: { position: any; onClose: () => voi
                         ))}/>
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Position"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                        Update Position
                     </Button>
                 </Form.Item>
             </Form>

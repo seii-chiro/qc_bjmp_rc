@@ -65,8 +65,8 @@ const EditPlatform = ({ platform, onClose }: { platform: any; onClose: () => voi
                     <Input />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex justify-end ml-auto py-2" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Social Media Platform"}
+                    <Button type="primary" className="flex justify-end ml-auto py-2" htmlType="submit">
+                        Update Social Media Platform
                     </Button>
                 </Form.Item>
             </Form>

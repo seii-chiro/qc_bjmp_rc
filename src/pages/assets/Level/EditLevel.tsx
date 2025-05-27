@@ -136,8 +136,8 @@ const EditLevel = ({ level, onClose }: { level: any; onClose: () => void }) => {
                         />
                 </Form.Item>
                 <Form.Item>
-                    <Button type="primary" className="flex ml-auto" htmlType="submit" disabled={isLoading}>
-                        {isLoading ? "Updating..." : "Update Level"}
+                    <Button type="primary" className="flex ml-auto" htmlType="submit">
+                   Update Level
                     </Button>
                 </Form.Item>
             </Form>
