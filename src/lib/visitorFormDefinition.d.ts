@@ -230,7 +230,7 @@ export type PDLForm = {
     | "Convicted"
     | "Released"
     | "Hospitalized"
-    | "Commited";
+    | "Committed";
   expected_release_date?: string;
   look_id: number | null;
   date_of_admission?: string;

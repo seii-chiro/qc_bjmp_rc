@@ -131,7 +131,7 @@ const PdlRegistration = () => {
         org_id: 1,
         occupation_id: null,
         person_id: null,
-        status: "Commited",
+        status: "Committed",
         visitor_ids: [],
         pdl_alias: "",
         time_arrested: "",
@@ -952,7 +952,7 @@ const PdlRegistration = () => {
                                             { value: "Convicted", label: "Convicted" },
                                             { value: "Released", label: "Released" },
                                             { value: "Hospitalized", label: "Hospitalized" },
-                                            { value: "Commited", label: "Commited" },
+                                            { value: "Committed", label: "Committed" },
                                         ]}
                                         onChange={(value) => {
                                             setPdlForm((prev) => ({
