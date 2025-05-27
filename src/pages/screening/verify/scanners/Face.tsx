@@ -11,8 +11,8 @@ import { useTokenStore } from '@/store/useTokenStore'
 import { BASE_URL } from '@/lib/urls'
 import { Device } from '@/lib/definitions'
 import { verifyFaceInWatchlist } from '@/lib/threatQueries'
-import clsx from 'clsx'
 import { IoIosWarning } from "react-icons/io";
+import VisitorProfilePortrait from '../../VisitorProfilePortrait'
 
 type Props = {
   devices: Device[];
@@ -214,18 +214,6 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
     },
   });
 
-  let imageSrc = "";
-
-  if (lastScanned?.person?.media) {
-    const frontPicture = lastScanned?.person?.media?.find(
-      (media: { picture_view: string; }) => media?.picture_view === "Front"
-    )?.media_binary;
-
-    if (frontPicture) {
-      imageSrc = `data:image/jpeg;base64,${frontPicture}`;
-    }
-  }
-
   if (isFetching) {
     message.info("Processing scan...");
   }
@@ -394,57 +382,21 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
             </div>
           ) : (
             <div className='flex-1'>
-              <div className="flex flex-col items-center justify-center gap-2">
-                <div className="w-full flex items-center justify-center flex-col gap-10">
-                  <div className="w-[60%] rounded-md overflow-hidden object-cover">
-                    <img src={imageSrc || noImg} alt="Image of a person" className="w-full" />
-                  </div>
-                  <h1 className="text-4xl">{`${lastScanned?.person?.first_name ?? ""} ${lastScanned?.person?.last_name ?? ""}`}</h1>
-                </div>
-                <div className="w-full flex items-center justify-center">
-                  {
-                    lastScanned ? (
-                      <div className="w-[70%] text-3xl flex">
-                        <div className="flex items-center justify-between w-full">
-                          <div className="w-full flex justify-center items-center gap-2 flex-col">
-                            <div className="w-full flex justify-center items-center gap-2">
-                              <h1
-                                className={clsx(
-                                  'font-bold text-4xl',
-                                  lastScanned?.visitor_app_status === 'Verified'
-                                    ? 'text-green-500'
-                                    : 'text-red-500'
-                                )}
-                              >
-                                {lastScanned?.visitor_app_status}
-                              </h1>
-                              {lastScanned?.visitor_app_status === 'Verified' ? (
-                                <img src={check} alt="Check Mark" className="w-10 h-10" />
-                              ) : (
-                                <img src={ex} alt="X Mark" className="w-10 h-10" />
-                              )}
-                            </div>
-                            <span>
-                              {
-                                inWatchList && (
-                                  <span className='w-full flex items-center gap-1 text-base'>
-                                    <IoIosWarning color='orange' size={25} />
-                                    <span className='text-red-600'>{inWatchList}</span>
-                                  </span>
-                                )
-                              }
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-2xl font-semibold">Please Scan Your Face.</p>
-                      </div>
-                    )
-                  }
-                </div>
+              <div className='w-full flex items-center justify-center'>
+                {
+                  lastScanned?.visitor_app_status && (
+                    <div className="flex items-center justify-center gap-5">
+                      <h1 className="font-bold text-2xl text-green-700">{lastScanned?.visitor_app_status}</h1>
+                      {lastScanned?.visitor_app_status === "Verified" ? (
+                        <img src={check} className="w-10" alt="Check" />
+                      ) : (
+                        <img src={ex} className="w-10" alt="Close" />
+                      )}
+                    </div>
+                  )
+                }
               </div>
+              <VisitorProfilePortrait visitorData={lastScanned} />
             </div>
           )
         }

@@ -918,6 +918,28 @@ const PdlRegistration = () => {
                                         }}
                                     />
                                 </div>
+                                {/* <div className="flex flex-col mt-2 w-full">
+                                    <div className="flex gap-1 font-semibold">Status</div>
+                                    <Select
+                                        value={pdlForm?.status}
+                                        showSearch
+                                        optionFilterProp="label"
+                                        className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
+                                        options={[
+                                            { value: "Under Trial", label: "Under Trial" },
+                                            { value: "Convicted", label: "Convicted" },
+                                            { value: "Released", label: "Released" },
+                                            { value: "Hospitalized", label: "Hospitalized" },
+                                            { value: "Commited", label: "Commited" },
+                                        ]}
+                                        onChange={(value) => {
+                                            setPdlForm((prev) => ({
+                                                ...prev,
+                                                status: value,
+                                            }));
+                                        }}
+                                    />
+                                </div> */}
                                 <div className="flex flex-col mt-2 w-full">
                                     <div className="flex gap-1 font-semibold">Status</div>
                                     <Select

@@ -15,6 +15,7 @@ import { verifyFaceInWatchlist } from "@/lib/threatQueries";
 import { Signature } from "./Signature";
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
+import { useSystemSettingsStore } from "@/store/useSystemSettingStore";
 
 type Props = {
     visitorToEdit?: any;
@@ -38,64 +39,7 @@ type Props = {
     setEnrollRightThumbFinger: Dispatch<SetStateAction<BiometricRecordFace>>;
 }
 
-const captureLeftFingersPayload = {
-    TimeOut: 60,
-    Slap: 0,
-    FingerPosition: {
-        LEFT_LITTLE: false,
-        LEFT_RING: false,
-        LEFT_MIDDLE: false,
-        LEFT_INDEX: false,
-        RIGHT_INDEX: true,
-        RIGHT_MIDDLE: true,
-        RIGHT_RING: true,
-        RIGHT_LITTLE: true,
-        LEFT_THUMB: true,
-        RIGHT_THUMB: true,
-    },
-    NFIQ_Quality: 20
-}
-
-const captureRightFingersPayload = {
-    TimeOut: 60,
-    Slap: 1,
-    FingerPosition: {
-        LEFT_LITTLE: true,
-        LEFT_RING: true,
-        LEFT_MIDDLE: true,
-        LEFT_INDEX: true,
-        RIGHT_INDEX: false,
-        RIGHT_MIDDLE: false,
-        RIGHT_RING: false,
-        RIGHT_LITTLE: false,
-        LEFT_THUMB: true,
-        RIGHT_THUMB: true,
-    },
-    NFIQ_Quality: 20
-}
-
-const captureThumbsPayload = {
-    TimeOut: 60,
-    Slap: 2,
-    FingerPosition: {
-        LEFT_LITTLE: true,
-        LEFT_RING: true,
-        LEFT_MIDDLE: true,
-        LEFT_INDEX: true,
-        RIGHT_INDEX: true,
-        RIGHT_MIDDLE: true,
-        RIGHT_RING: true,
-        RIGHT_LITTLE: true,
-        LEFT_THUMB: false,
-        RIGHT_THUMB: false,
-    },
-    NFIQ_Quality: 20
-}
-
-const captureIrisPayload = { TimeOut: 10, IrisSide: 0 }
-
 const { Dragger } = Upload;
-
 
 const VisitorProfile = ({
     icao,
@@ -141,6 +85,7 @@ const VisitorProfile = ({
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isInWatchlist, setIsInWatchlist] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const { fingerScannerTimeout, irisScannerTimeout, nfiqQuality } = useSystemSettingsStore()
 
     const handleOpenPad = () => setIsModalOpen(true);
     const handleClosePad = () => setIsModalOpen(false);
@@ -149,6 +94,62 @@ const VisitorProfile = ({
         setPreviewUrl(dataUrl);
         setIsModalOpen(false);
     };
+
+    const captureLeftFingersPayload = {
+        TimeOut: +fingerScannerTimeout || 60,
+        Slap: 0,
+        FingerPosition: {
+            LEFT_LITTLE: false,
+            LEFT_RING: false,
+            LEFT_MIDDLE: false,
+            LEFT_INDEX: false,
+            RIGHT_INDEX: true,
+            RIGHT_MIDDLE: true,
+            RIGHT_RING: true,
+            RIGHT_LITTLE: true,
+            LEFT_THUMB: true,
+            RIGHT_THUMB: true,
+        },
+        NFIQ_Quality: +nfiqQuality || 20
+    }
+
+    const captureRightFingersPayload = {
+        TimeOut: +fingerScannerTimeout || 60,
+        Slap: 1,
+        FingerPosition: {
+            LEFT_LITTLE: true,
+            LEFT_RING: true,
+            LEFT_MIDDLE: true,
+            LEFT_INDEX: true,
+            RIGHT_INDEX: false,
+            RIGHT_MIDDLE: false,
+            RIGHT_RING: false,
+            RIGHT_LITTLE: false,
+            LEFT_THUMB: true,
+            RIGHT_THUMB: true,
+        },
+        NFIQ_Quality: +nfiqQuality || 20
+    }
+
+    const captureThumbsPayload = {
+        TimeOut: +fingerScannerTimeout || 60,
+        Slap: 2,
+        FingerPosition: {
+            LEFT_LITTLE: true,
+            LEFT_RING: true,
+            LEFT_MIDDLE: true,
+            LEFT_INDEX: true,
+            RIGHT_INDEX: true,
+            RIGHT_MIDDLE: true,
+            RIGHT_RING: true,
+            RIGHT_LITTLE: true,
+            LEFT_THUMB: false,
+            RIGHT_THUMB: false,
+        },
+        NFIQ_Quality: +nfiqQuality || 20
+    }
+
+    const captureIrisPayload = { TimeOut: +irisScannerTimeout || 60, IrisSide: 0 }
 
     const props: UploadProps = {
         name: 'file',

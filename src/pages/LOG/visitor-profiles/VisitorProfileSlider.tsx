@@ -11,6 +11,7 @@ import { useTokenStore } from '@/store/useTokenStore'
 import { BASE_URL } from '@/lib/urls'
 import dayjs from "dayjs";
 import clsx from 'clsx'
+import { useSystemSettingsStore } from '@/store/useSystemSettingStore'
 
 const VisitorProfileSlider = () => {
     const token = useTokenStore()?.token
@@ -19,9 +20,10 @@ const VisitorProfileSlider = () => {
     const autoPlayIntervalRef = useRef<NodeJS.Timeout | null>(null)
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+    const logRefetchInterval = useSystemSettingsStore((state) => state.logRefetchInterval);
 
     const { data: main_gate_logs_raw, isLoading: main_gate_logs_loading } = useQuery({
-        queryKey: ['main-gate-logs'],
+        queryKey: ['main-gate-logs', logRefetchInterval],
         queryFn: async () => {
             // /api/visit-logs/main-gate-visits/?filter_today=true
             const res = await fetch(`${BASE_URL}/api/visit-logs/main-gate-visits/`, {
@@ -35,7 +37,7 @@ const VisitorProfileSlider = () => {
             }
             return res.json()
         },
-        refetchInterval: 30000,
+        refetchInterval: +logRefetchInterval * 1000 || 30000,
     })
 
     const main_gate_logs = main_gate_logs_raw?.results || []

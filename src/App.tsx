@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import Spinner from "./components/loaders/Spinner.tsx";
 // import GeneralErrorElement from "./pages/error_pages/GeneralErrorElement.tsx";
 import { useAuthStore } from "./store/useAuthStore.ts";
@@ -115,14 +116,21 @@ import IncidentType from "./pages/Incidents/incident-type/IncidentType.tsx";
 import Settings from "./pages/Settings/Settings.tsx";
 import GeneralSettings from "./pages/Settings/general-setting/GeneralSettings.tsx";
 import SystemSettings from "./pages/Settings/system-settings/SystemSettings.tsx";
+import { useSystemSettingsStore } from "@/store/useSystemSettingStore.ts";
+import { useTokenStore } from "./store/useTokenStore.ts";
 
-// Lazy-loaded components
+
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
-/*const Login = React.lazy(() => import("./pages/Login")); */
 const RootLayout = React.lazy(() => import("./layout/RootLayout.tsx"));
 
 function App() {
+    const token = useTokenStore((state: { token: any; }) => state.token);
     const isAuthenticated = useAuthStore().isAuthenticated
+    const { fetchSystemSettings } = useSystemSettingsStore();
+
+    useEffect(() => {
+        fetchSystemSettings(token)
+    }, [fetchSystemSettings, token]);
 
     const router = createBrowserRouter([
         // {
