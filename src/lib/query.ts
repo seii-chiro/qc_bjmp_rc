@@ -730,6 +730,20 @@ export async function getWatchlistPerson(
   return res.json();
 }
 
+export const deletePerson = async (token: string, id: number) => {
+  const response = await fetch(`${BASE_URL}/api/standards/persons/${id}/`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to delete Watchlist Person");
+  }
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
+};
+
 export const deleteWatchlistPerson = async (token: string, id: number) => {
   const response = await fetch(
     `${BASE_URL}/api/whitelists/whitelisted-persons/${id}/`,
@@ -746,6 +760,24 @@ export const deleteWatchlistPerson = async (token: string, id: number) => {
   const text = await response.text();
   return text ? JSON.parse(text) : {};
 };
+
+export async function syncWatchlistBiometricDB(): Promise<{
+  message: string;
+  deleted_count: number;
+}> {
+  const res = await fetch(
+    `${BASE_URL_BIOMETRIC}/api/biometric/whitelist-biometric/sync_db_biometric/`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+  if (!res.ok) {
+    throw new Error("Failed to sync Watchlist data.");
+  }
+  return res.json();
+}
 
 export const deleteWatchlistPersonBiometric = async (
   token: string,
@@ -769,184 +801,187 @@ export const deleteWatchlistPersonBiometric = async (
 };
 
 export async function getGroupAffiliation(
-    token: string
-    ): Promise<GroupAffiliationResponse[]> {
-    const res = await fetch(`${BASE_URL}/api/service-providers/service-provider-group-affiliations/`, {
-        headers: {
+  token: string
+): Promise<GroupAffiliationResponse[]> {
+  const res = await fetch(
+    `${BASE_URL}/api/service-providers/service-provider-group-affiliations/`,
+    {
+      headers: {
         "Content-Type": "application/json",
         Authorization: `Token ${token}`,
-        },
-    });
-    if (!res.ok) {
-        throw new Error("Failed to fetch Group Affiliation data.");
+      },
     }
-    return res.json();
+  );
+  if (!res.ok) {
+    throw new Error("Failed to fetch Group Affiliation data.");
+  }
+  return res.json();
 }
 
 export const deleteGroupAffiliation = async (token: string, id: number) => {
-    const response = await fetch(
-        `${BASE_URL}/api/service-providers/service-provider-group-affiliations/${id}/`,
-        {
-        method: "DELETE",
-        headers: {
-            Authorization: `Token ${token}`,
-        },
-        }
-    );
-    if (!response.ok) {
-        throw new Error("Failed to delete Group Affiliations Person");
+  const response = await fetch(
+    `${BASE_URL}/api/service-providers/service-provider-group-affiliations/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Token ${token}`,
+      },
     }
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+  );
+  if (!response.ok) {
+    throw new Error("Failed to delete Group Affiliations Person");
+  }
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
 };
 
 export const patchGroupAffiliation = async (
-    token: string,
-    id: number,
-    data: Partial<EditResponse>
-    ): Promise<EditResponse> => {
-    const url = `${BASE_URL}/api/service-providers/service-provider-group-affiliations/${id}/`;
-    const res = await fetch(url, {
-        method: "PATCH",
-        headers: {
-        "Content-Type": "application/json",
-        Authorization: `Token ${token}`,
-        },
-        body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error("Failed to update Group Affiliation");
-    return res.json();
+  token: string,
+  id: number,
+  data: Partial<EditResponse>
+): Promise<EditResponse> => {
+  const url = `${BASE_URL}/api/service-providers/service-provider-group-affiliations/${id}/`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update Group Affiliation");
+  return res.json();
 };
 
 export async function getIncidentCategory(
-    token: string
-    ): Promise<IncidentCategoryResponse[]> {
-    const res = await fetch(`${BASE_URL}/api/incidents/incident-categories/`, {
-        headers: {
-        "Content-Type": "application/json",
-        Authorization: `Token ${token}`,
-        },
-    });
-    if (!res.ok) {
-        throw new Error("Failed to fetch Incident Category data.");
-    }
-    return res.json();
+  token: string
+): Promise<IncidentCategoryResponse[]> {
+  const res = await fetch(`${BASE_URL}/api/incidents/incident-categories/`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch Incident Category data.");
+  }
+  return res.json();
 }
 
 export const patchIncidentCategory = async (
-    token: string,
-    id: number,
-    data: Partial<IncidentCategoryResponse>
-    ): Promise<IncidentCategoryResponse> => {
-    const url = `${BASE_URL}/api/incidents/incident-categories/${id}/`;
-    const res = await fetch(url, {
-        method: "PATCH",
-        headers: {
-        "Content-Type": "application/json",
-        Authorization: `Token ${token}`,
-        },
-        body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error("Failed to update Incident Category");
-    return res.json();
+  token: string,
+  id: number,
+  data: Partial<IncidentCategoryResponse>
+): Promise<IncidentCategoryResponse> => {
+  const url = `${BASE_URL}/api/incidents/incident-categories/${id}/`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update Incident Category");
+  return res.json();
 };
 
 export const deleteIncidentCategory = async (token: string, id: number) => {
-    const response = await fetch(
-        `${BASE_URL}/api/incidents/incident-categories/${id}/`,
-        {
-        method: "DELETE",
-        headers: {
-            Authorization: `Token ${token}`,
-        },
-        }
-    );
-    if (!response.ok) {
-        throw new Error("Failed to delete Incident Category");
+  const response = await fetch(
+    `${BASE_URL}/api/incidents/incident-categories/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Token ${token}`,
+      },
     }
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+  );
+  if (!response.ok) {
+    throw new Error("Failed to delete Incident Category");
+  }
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
 };
 
 export async function getIncidentType(
-    token: string
-    ): Promise<IncidentCategoryResponse[]> {
-    const res = await fetch(`${BASE_URL}/api/incidents/incident-types/`, {
-        headers: {
-        "Content-Type": "application/json",
-        Authorization: `Token ${token}`,
-        },
-    });
-    if (!res.ok) {
-        throw new Error("Failed to fetch Incident Type data.");
-    }
-    return res.json();
+  token: string
+): Promise<IncidentCategoryResponse[]> {
+  const res = await fetch(`${BASE_URL}/api/incidents/incident-types/`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch Incident Type data.");
+  }
+  return res.json();
 }
 
 export const deleteIncidentType = async (token: string, id: number) => {
-    const response = await fetch(
-        `${BASE_URL}/api/incidents/incident-types/${id}/`,
-        {
-        method: "DELETE",
-        headers: {
-            Authorization: `Token ${token}`,
-        },
-        }
-    );
-    if (!response.ok) {
-        throw new Error("Failed to delete Incident Type");
+  const response = await fetch(
+    `${BASE_URL}/api/incidents/incident-types/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Token ${token}`,
+      },
     }
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
+  );
+  if (!response.ok) {
+    throw new Error("Failed to delete Incident Type");
+  }
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
 };
 
 export const patchIncidentType = async (
-    token: string,
-    id: number,
-    data: Partial<IncidentTypeResponse>
-    ): Promise<IncidentTypeResponse> => {
-    const url = `${BASE_URL}/api/incidents/incident-types/${id}/`;
-    const res = await fetch(url, {
-        method: "PATCH",
-        headers: {
-        "Content-Type": "application/json",
-        Authorization: `Token ${token}`,
-        },
-        body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error("Failed to update Incident Type");
-    return res.json();
+  token: string,
+  id: number,
+  data: Partial<IncidentTypeResponse>
+): Promise<IncidentTypeResponse> => {
+  const url = `${BASE_URL}/api/incidents/incident-types/${id}/`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update Incident Type");
+  return res.json();
 };
 
 export const patchSettings = async (
-    token: string,
-    id: number,
-    data: Partial<GlobalSettingsResponse>
-    ): Promise<GlobalSettingsResponse> => {
-    const url = `${BASE_URL}/api/codes/global-system-settings/${id}/`;
-    const res = await fetch(url, {
-        method: "PATCH",
-        headers: {
-        "Content-Type": "application/json",
-        Authorization: `Token ${token}`,
-        },
-        body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error("Failed to update Settings");
-    return res.json();
+  token: string,
+  id: number,
+  data: Partial<GlobalSettingsResponse>
+): Promise<GlobalSettingsResponse> => {
+  const url = `${BASE_URL}/api/codes/global-system-settings/${id}/`;
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to update Settings");
+  return res.json();
 };
 
 export async function getIssueCategory(
-    token: string
-    ): Promise<IssueCategory[]> {
-    const res = await fetch(`${BASE_URL}/api/issues/issue-categories/`, {
-        headers: {
-        "Content-Type": "application/json",
-        Authorization: `Token ${token}`,
-        },
-    });
-    if (!res.ok) {
-        throw new Error("Failed to fetch Issue Category data.");
-    }
-    return res.json();
+  token: string
+): Promise<IssueCategory[]> {
+  const res = await fetch(`${BASE_URL}/api/issues/issue-categories/`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch Issue Category data.");
+  }
+  return res.json();
 }
