@@ -8,15 +8,15 @@ import no_img from "@/assets/no-img.png"
 import noImg from "@/assets/no-img.webp"
 import check from "@/assets/Icons/check-mark.png"
 import ex from "@/assets/Icons/close.png"
-import { useVisitorLogStore } from '@/store/useVisitorLogStore'
 import { useTokenStore } from '@/store/useTokenStore'
 import { BASE_URL } from '@/lib/urls'
 import { Device } from '@/lib/definitions'
 import VisitorProfilePortrait from '../../VisitorProfilePortrait'
-// import { getPDLVisitStatuses } from '@/lib/additionalQueries'
+import { PaginatedResponse } from '@/lib/queries'
+import { useSystemSettingsStore } from '@/store/useSystemSettingStore'
 
 type Props = {
-    devices: Device[];
+    devices: PaginatedResponse<Device>;
     deviceLoading: boolean;
     selectedArea: string;
 }
@@ -24,7 +24,7 @@ type Props = {
 const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
     const [lastScanned, setLastScanned] = useState<any | null>(null);
     const token = useTokenStore()?.token;
-    const addOrRemoveVisitorLog = useVisitorLogStore((state) => state.addOrRemoveVisitorLog);
+    const fingerScannerTimeout = useSystemSettingsStore(state => state.fingerScannerTimeout);
 
     const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
     const [isFetching, setIsFetching] = useState(false);
@@ -36,7 +36,7 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
     const [ThumbFingerResponse, setThumbFingerResponse] = useState<CustomFingerResponse | null>(null)
     const [fingerprintVerificationResult, setFingerprintVerificationResult] = useState<any[] | null>(null)
     const [capturePayload, setCapturePayload] = useState<FingerprintData>({
-        TimeOut: 50,
+        TimeOut: +fingerScannerTimeout || 60,
         Slap: 0,
         FingerPosition: {
             LEFT_LITTLE: true,
@@ -60,6 +60,13 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
     ]
 
     const NFIQ_Quality_Options = [10, 20, 30, 40, 50]
+
+    useEffect(() => {
+        setCapturePayload(prev => ({
+            ...prev,
+            TimeOut: +fingerScannerTimeout || 60
+        }))
+    }, [fingerScannerTimeout]);
 
     const fingerprintDevices = useMemo(
         () =>
@@ -236,9 +243,6 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                     id_number = data.id_number;
                     binary_data = data.encrypted_id_number_qr;
 
-                    if (selectedArea === "Main Gate") {
-                        addOrRemoveVisitorLog(data);
-                    }
                     setLastScanned(data);
                 }
 
@@ -321,7 +325,7 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
         };
 
         fetchVisitorLog();
-    }, [token, addOrRemoveVisitorLog, setLastScanned, selectedDeviceId, fingerprintVerificationResult, selectedArea]);
+    }, [token, setLastScanned, selectedDeviceId, fingerprintVerificationResult, selectedArea]);
 
     useEffect(() => {
         // Only run if a new capture was successful

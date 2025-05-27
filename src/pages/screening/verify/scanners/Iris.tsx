@@ -7,14 +7,15 @@ import { useEffect, useState, useRef, useMemo } from "react"
 import noImg from "@/assets/no-img.webp"
 import check from "@/assets/Icons/check-mark.png"
 import ex from "@/assets/Icons/close.png"
-import { useVisitorLogStore } from '@/store/useVisitorLogStore'
 import { useTokenStore } from '@/store/useTokenStore'
 import { BASE_URL } from '@/lib/urls'
 import { Device } from '@/lib/definitions'
 import VisitorProfilePortrait from "../../VisitorProfilePortrait"
+import { useSystemSettingsStore } from "@/store/useSystemSettingStore"
+import { PaginatedResponse } from "@/lib/queries"
 
 type Props = {
-  devices: Device[];
+  devices: PaginatedResponse<Device>;
   deviceLoading: boolean;
   selectedArea: string;
 }
@@ -22,13 +23,13 @@ type Props = {
 const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
   const [lastScanned, setLastScanned] = useState<any | null>(null);
   const token = useTokenStore()?.token;
-  const addOrRemoveVisitorLog = useVisitorLogStore((state) => state.addOrRemoveVisitorLog);
+  const irisScannerTimeout = useSystemSettingsStore((state) => state?.irisScannerTimeout) || 60;
 
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const [irisCapturePayload, setIrisCapturePayload] = useState<IrisCapturePayload>({ TimeOut: 50, IrisSide: 0 })
+  const [irisCapturePayload, setIrisCapturePayload] = useState<IrisCapturePayload>({ TimeOut: irisScannerTimeout, IrisSide: 0 })
   const [irsCaptureResponse, setIrisCaptureResponse] = useState<IrisCaptureResponse | null>(null)
   const [irisScannerReady, setIrisScannerReady] = useState(false)
   const [irisVerificationResponse, setIrisVerificationResponse] = useState<any>(null)
@@ -40,6 +41,13 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
       ) || [],
     [devices]
   );
+
+  useEffect(() => {
+    setIrisCapturePayload((prev) => ({
+      ...prev,
+      TimeOut: irisScannerTimeout || 60,
+    }));
+  }, [irisScannerTimeout]);
 
   useEffect(() => {
     if (!deviceLoading && irisDevices.length > 0) {
@@ -109,11 +117,11 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
         if (!res.ok) throw new Error(`Failed to fetch visitor log. Status: ${res.status}`);
         visitorData = await res.json();
 
-        try {
-          addOrRemoveVisitorLog(visitorData);
-        } catch (storeErr) {
-          console.error("Failed to update visitor log store:", storeErr);
-        }
+        // try {
+        //   addOrRemoveVisitorLog(visitorData);
+        // } catch (storeErr) {
+        //   console.error("Failed to update visitor log store:", storeErr);
+        // }
 
         setLastScanned(visitorData);
       }
@@ -422,7 +430,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
           showSearch
           optionFilterProp="label"
           className="h-10 w-72"
-          options={irisDevices.map(device => ({
+          options={irisDevices.map((device: { device_name: any; id: any }) => ({
             label: device.device_name,
             value: device.id
           }))}
