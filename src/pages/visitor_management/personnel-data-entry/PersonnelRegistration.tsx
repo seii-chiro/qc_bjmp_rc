@@ -901,7 +901,7 @@ const PersonnelRegistration = () => {
                                         label: (
                                             <Tooltip title={`${ethnicity?.region ?? "-"} - ${ethnicity?.province ?? "-"}`}>
                                                 <span style={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>
-                                                    {`${ethnicity?.province} - ${ethnicity?.region}`}
+                                                    {`${ethnicity?.province ?? "-"} - ${ethnicity?.region ?? "-"}`}
                                                 </span>
                                             </Tooltip>
                                         )
