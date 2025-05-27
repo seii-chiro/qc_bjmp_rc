@@ -189,14 +189,8 @@ const Visitor = () => {
     const genderList = genderParam !== "all" ? genderParam.split(",").map(decodeURIComponent) : [];
 
     const fetchVisitorGender = async (genders: string[]) => {
-        const isOthers =
-            genders.includes("LGBTQ + TRANSGENDER") ||
-            genders.includes("LGBTQ + GAY / BISEXUAL") ||
-            genders.includes("LGBTQ + LESBIAN / BISEXUAL") ||
-            genders.includes("Others");
-
-        const url = `${BASE_URL}/api/visitors/visitor/?limit=5000`;
-
+        // Use a large limit to get all matching visitors
+        const url = `${BASE_URL}/api/visitors/visitor/?limit=10000`;
         const res = await fetch(url, {
             headers: {
                 Authorization: `Token ${token}`,
@@ -207,26 +201,15 @@ const Visitor = () => {
 
         const result = await res.json();
 
-        if (genders[0] === "all") {
+        if (genders.length === 0 || genders[0] === "all") {
             return result; // No filtering
         }
 
-        if (isOthers) {
-            const otherGenders = [
-                "LGBTQ + TRANSGENDER",
-                "LGBTQ + GAY / BISEXUAL",
-                "LGBTQ + LESBIAN / BISEXUAL"
-            ];
-            result.results = result.results.filter(visitor =>
-                otherGenders.includes(visitor?.person?.gender?.gender_option)
-            );
-            return result;
-        }
-
-        // Specific gender filtering (e.g., ["Male"], ["Female"])
-        result.results = result.results.filter(visitor =>
-            genders.includes(visitor?.person?.gender?.gender_option)
-        );
+        // If multiple genders, filter for any of them
+        result.results = result.results.filter(visitor => {
+            const genderOption = visitor?.person?.gender?.gender_option;
+            return genders.includes(genderOption);
+        });
         return result;
     };
     const { data: visitorGenderData, isLoading: visitorsByGenderLoading } = useQuery({
@@ -267,7 +250,10 @@ const genderFilteredVisitorIds = new Set(
             nationality: visitor?.person?.nationality,
             full_address: visitor?.person?.addresses[0]?.full_address ?? '',
             address: address,
-            gender: visitor?.person?.gender?.gender_option,
+            gender:
+  (visitor?.person?.gender?.gender_option === "Male" || visitor?.person?.gender?.gender_option === "Female")
+    ? visitor?.person?.gender?.gender_option
+    : "Others",
             organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
             updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         };
@@ -324,17 +310,31 @@ const genderFilteredVisitorIds = new Set(
         {
             title: 'Gender',
             key: 'gender',
-            render: (_, visitor) => visitor?.person?.gender?.gender_option ?? '',
-            sorter: (a, b) => a.person?.gender?.gender_option.localeCompare(b.person?.gender?.gender_option),
+            render: (_, visitor) => {
+                // Show the actual gender value, fallback to "Others" if missing
+                return visitor?.person?.gender?.gender_option || "Others";
+            },
             filters: [
-                ...Array.from(
-                    new Set(allVisitor.map(item => item.person?.gender?.gender_option))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
+                { text: "Male", value: "Male" },
+                { text: "Female", value: "Female" },
+                { text: "Others", value: "Others" }
             ],
-            onFilter: (value, record) => record.person?.gender?.gender_option === value,
+            onFilter: (value, record) => {
+                const genderOption = record?.person?.gender?.gender_option;
+                if (value === "Others") {
+                    return genderOption !== "Male" && genderOption !== "Female";
+                }
+                return genderOption === value;
+            },
+            sorter: (a, b) => {
+                const genderA = (a.person?.gender?.gender_option === "Male" || a.person?.gender?.gender_option === "Female")
+                    ? a.person?.gender?.gender_option
+                    : "Others";
+                const genderB = (b.person?.gender?.gender_option === "Male" || b.person?.gender?.gender_option === "Female")
+                    ? b.person?.gender?.gender_option
+                    : "Others";
+                return genderA.localeCompare(genderB);
+            }
         },
         {
             title: 'Visitor Type',

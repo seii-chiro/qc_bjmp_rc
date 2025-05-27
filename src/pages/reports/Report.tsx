@@ -30,12 +30,15 @@ const Report = () => {
     const [showDiagnosesFields, setShowDiagnosesFields ] = useState(false);
     const [showMediaRequirementsFields, setShowMediaRequirementsFields ] = useState(false);
     const [showMediaIdentifiersFields, setShowMediaIdentifiersFields ] = useState(false);
-
     const [showOtherPersonnelFields, setShowOtherPersonnelFields] = useState(false);
     const [showOtherVisitorFields, setShowOtherVisitorFields] = useState(false);
     const [showOtherPDLFields, setShowOtherPDLFields] = useState(false);
+    const [showOtherCaseFields, setShowOtherCaseFields] = useState(false);
     const [showAddressFields, setShowAddressFields] = useState(false);
     const [showEducationalFields, setShowEducationalFields] = useState(false);
+    const [showCaseFields, setShowCaseFields] = useState(false);
+    const [showOffenseFields, setShowOffenseFields] = useState(false);
+    const [showCourtBranchFields, setShowCourtBranchFields] = useState(false);
     const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
     const [preparedBy, setPreparedBy] = useState('');
     const [visitors, setVisitors] = useState([]);
@@ -609,6 +612,14 @@ const Report = () => {
             setShowDiagnosesFields={setShowDiagnosesFields}
             showSocialMediaFields={showSocialMediaFields}
             setShowSocialMediaFields={setShowSocialMediaFields}
+            showCaseFields={showCaseFields}
+            setShowCaseFields={setShowCaseFields}
+            showOffenseFields={showOffenseFields}
+            setShowOffenseFields={setShowOffenseFields}
+            showCourtBranchFields={showCourtBranchFields}
+            setShowCourtBranchFields={setShowCourtBranchFields}
+            showOtherCaseFields={showOtherCaseFields}
+            setShowOtherCaseFields={setShowOtherCaseFields}
           />
         </div>
         <div className="text-center flex justify-end gap-4">

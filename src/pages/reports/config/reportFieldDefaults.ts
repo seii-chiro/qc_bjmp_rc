@@ -1,3 +1,4 @@
+
 export const sharedFields = {
     ID: false,
     shortName: false,
@@ -6,6 +7,7 @@ export const sharedFields = {
     civilStatus: false,
     address: false,
     dateOfBirth: false,
+    placeOfBirth: false,
     religion: false,
     type: false,
     firstName: false,
@@ -151,11 +153,66 @@ export const defaultPersonnelFields = {
 export const defaultPDLFields = {
     ...sharedFields,
     ...extraFields,
+    status: false,
     visitationStatus: false,
     look: false,
     occupation: false,
     precinct: false,
     gangAffiliation: false,
+
+    //Case
+          //Offense
+            offense:false,
+            crimeCategory: false,
+            law: false,
+            crimeSeverity: false,
+            punishment: false,
+
+        //Court Branch
+            courtProvince: false,
+            courtRegion: false,
+            court: false,
+            branch: false,
+            judge: false,
+
+             //Other Case Details
+                bailRecommended: false,
+                fileNumber: false,
+                caseNumber: false,
+                dateCrimeCommitted: false,
+                dateCommitted: false,
+                caseName: false,
+                sentenceLength: false,
+                caseStatus: false,
+                // voterStatus: false,
+                // riskClassification: false,
+                // noTimesArrested: false,
+                // dateConvicted: false,
+                // dateReleased: false,
+                // dateHospitilized: false,
+                // dateofAdmission: false,
+                // expectedReleaseDate: false,
+                // personnelAppStatus: false,
+                //Jail
+        jailName: false,
+        jailType: false,
+        jailCategory: false,
+        emailAddress: false,
+        contactNumber: false, 
+        jailProvince: false,
+        jailMunicipality: false,
+        jailRegion: false,
+        jailBarangay: false,
+        jailStreet: false,
+        jailPostalCode: false,
+        securityLevel: false,
+
+        //Cell
+        cellName: false,
+        cellCapacity: false,
+        cellStatus: false,
+        floor: false,
+        
 };
 
 // Affiliation fields

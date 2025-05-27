@@ -392,20 +392,17 @@ const Dashboard = () => {
         navigate(`/jvms/pdls/pdl?gender=${encodeURIComponent(gender)}`);
     };
 
-    const visitorHandleClick = (gender: string) => {
-        if (gender === "Lgbtq+") {
-            const otherGenders = [
-                "LGBTQ + TRANSGENDER",
-                "LGBTQ + GAY / BISEXUAL",
-                "LGBTQ + LESBIAN / BISEXUAL"
-            ];
-            const encodedGenders = otherGenders.map(g => encodeURIComponent(g)).join(",");
-            navigate(`/jvms/visitors/visitor?gender=${encodedGenders}`);
-        } else {
-            navigate(`/jvms/visitors/visitor?gender=${encodeURIComponent(gender)}`);
-        }
-    };
-
+const visitorHandleClick = (gender: string) => {
+    if (gender === "Other") {
+        // Get all gender keys except Male and Female
+        const allGenders = Object.keys(summarydata?.success?.visitor_based_on_gender?.Active || {});
+        const otherGenders = allGenders.filter(g => g !== "Male" && g !== "Female");
+        const encodedGenders = otherGenders.map(g => encodeURIComponent(g)).join(",");
+        navigate(`/jvms/visitors/visitor?gender=${encodedGenders}`);
+    } else {
+        navigate(`/jvms/visitors/visitor?gender=${encodeURIComponent(gender)}`);
+    }
+};
     const personnelHandleClick = (gender: string) => {
         if (gender === "Lgbtq+") {
             const otherGenders = [
@@ -648,10 +645,10 @@ const Dashboard = () => {
                                             />
                                             <Card3
                                                 image={trans}
-                                                title="Lgbtq+"
+                                                title="Other"
                                                 count={visitorOtherCount || 0}
-                                                onClick={() => visitorHandleClick("Lgbtq+")}
-                                            />
+                                                onClick={() => visitorHandleClick("Other")}
+                                                />
                                             </>
                                         )}
                                         </div>

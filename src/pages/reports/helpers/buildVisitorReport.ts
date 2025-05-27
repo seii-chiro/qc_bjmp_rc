@@ -11,6 +11,7 @@
       if (fields.name) headers.push('Name');
       if (fields.gender) headers.push('Gender');
       if (fields.dateOfBirth) headers.push('Date of Birth');
+      if (fields.placeOfBirth) headers.push('Place of Birth');
       if (fields.civilStatus) headers.push('Civil Status');
       if (fields.religion) headers.push('Religion');
 
@@ -132,6 +133,7 @@
         if (fields.name) row.push(`${v?.person?.first_name ?? ''} ${v?.person?.last_name ?? ''}`.trim());
         if (fields.gender) row.push(v?.person?.gender?.gender_option ?? '');
         if (fields.dateOfBirth) row.push(v?.person?.date_of_birth ?? '');
+        if (fields.placeofBirth) row.push(v?.person?.place_of_birth ?? '');
         if (fields.civilStatus) row.push(v?.person?.civil_status ?? '');
         if (fields.religion) row.push(v?.person?.religion?.name ?? '');
         
@@ -288,6 +290,7 @@
       if (fields.gender) headers.push('Gender');
       if (fields.religion) headers.push('Religion');
       if (fields.dateOfBirth) headers.push('Date of Birth');
+      if (fields.placeOfBirth) headers.push('Place of Birth');
       if (fields.civilStatus) headers.push('Civil Status');
       
       //Personnel Information
@@ -424,6 +427,7 @@
         if (fields.gender) row.push(p?.person?.gender?.gender_option ?? '');
         if (fields.religion) row.push(p?.person?.religion?.name ?? '');
         if (fields.dateOfBirth) row.push(p?.person?.date_of_birth ?? '');
+        if (fields.placeOfBirth) row.push(p?.person?.place_of_births ?? '');
         if (fields.civilStatus) row.push(p?.civil_status ?? '');
 
         //Personnel Information
@@ -558,6 +562,7 @@
         if (fields.religion) headers.push('Religion');
         if (fields.status) headers.push('Status');
         if (fields.dateOfBirth) headers.push('Date of Birth');
+        if (fields.placeOfBirth) headers.push('Place of Birth');
         if (fields.civilStatus) headers.push('Civil Status');
 
         //PDL Information
@@ -566,8 +571,6 @@
         if (fields.look) headers.push('Look');
         if (fields.occupation) headers.push('Occupation');
         if (fields.precinct) headers.push('Precinct');
-
-
 
         //Address
     if (fields.fullAddress) headers.push('Full Address');
@@ -602,6 +605,31 @@
 
     //Biometrics
     if (fields.biometricStatus) headers.push('Biometric Status');
+
+    //Case
+        //Offense
+        if (fields.offense) headers.push('Offense');
+        if (fields.crimeCategory) headers.push('Crime Category');
+        if (fields.law) headers.push('Law');
+        if (fields.crimeSeverity) headers.push('Crime Severity');
+        if (fields.punishment) headers.push('Punishment');
+
+        //court branch
+        if (fields.court) headers.push('Court');
+        if (fields.branch) headers.push('Branch');
+        if (fields.judge) headers.push('Judge');
+        if (fields.courtProvince) headers.push('Court Province');
+        if (fields.courtRegion) headers.push('Court Region');
+
+        //Case Information
+        if (fields.bailRecommended) headers.push('Bail Recommended');
+        if (fields.fileNumber) headers.push('File Number');
+        if (fields.caseNumber) headers.push('Case Number');
+        if (fields.dateCrimeCommitted) headers.push('Date Crime Committed');
+        if (fields.dateCommitted) headers.push('Date Committed');
+        if (fields.caseName) headers.push('Case Name');
+        if (fields.caseStatus) headers.push('Case Status');
+        if (fields.sentenceLength) headers.push('Sentence Length');
 
       //Talents & Interests
       if (fields.talents) headers.push('Talents');
@@ -668,8 +696,9 @@
 
         const filteredPDL = selectedGender || selectedStatus
                 ? pdl.filter((item) => {
-                    const genderOption = item?.person?.gender?.gender_option ?? "";
+                    const genderOption = item?.person?.gender?.gender_option?.toLowerCase() || "";
                     const statusOption = item?.status?.toLowerCase() || "";
+
                     const genderMatches = !selectedGender || genderOption === selectedGender.toLowerCase();
                     const statusMatches = !selectedStatus || statusOption === selectedStatus.toLowerCase();
 
@@ -689,6 +718,7 @@
             if (fields.religion) row.push(p?.person?.religion?.name ?? '');
             if (fields.status) row.push(p?.status ?? '');
             if (fields.dateOfBirth) row.push(p?.person?.date_of_birth ?? '');
+            if (fields.placeOfBirth) row.push(p?.person?.place_of_birth ?? '');
             if (fields.civilStatus) row.push(p?.person?.civil_status ?? '');
 
             //PDL other Information
@@ -721,6 +751,49 @@
 
         //Biometrics
         if (fields.biometricStatus) row.push(p?.person?.biometric_status?.status ?? '');
+
+        //Case
+        //Offense
+        if (fields.offense) row.push(Array.isArray(p?.person?.cases) ? p.person.cases.map(c => c.offense).join(', ') : '');
+        if (fields.crimeCategory) row.push(Array.isArray(p?.person?.cases) ? p.person.cases.map(c => c.crime_category).join(', ') : '')
+        if (fields.law) row.push(Array.isArray(p?.person?.cases) ? p.person.cases.map(c => c.law).join(', ') : '');
+        if (fields.crimeSeverity) row.push(Array.isArray(p?.person?.cases) ? p.person.cases.map(c => c.crime_severity).join(', ') : '');
+        if (fields.punishment) row.push(Array.isArray(p?.person?.cases) ? p.person.cases.map(c => c.punishment).join(', ') : '');
+
+        //Court Branch
+        if (fields.court) row.push(p?.person?.cases?.[0]?.court_branch?.court ?? '');
+        if (fields.branch) row.push(p?.person?.cases?.[0]?.court_branch?.branch ?? '');
+        if (fields.judge) row.push(p?.person?.cases?.[0]?.court_branch?.judge ?? '');
+        if (fields.courtProvince) row.push(p?.person?.cases?.[0]?.court_branch?.province ?? '');
+        if (fields.courtRegion) row.push(p?.person?.cases?.[0]?.court_branch?.region ?? '');
+
+        //Case Information
+        if (fields.bailRecommended) row.push(p?.person?.cases?.[0]?.bail_recommended);
+        if (fields.fileNumber) row.push(p?.person?.cases?.[0]?.file_number ?? '');
+        if (fields.caseNumber) row.push(p?.person?.cases?.[0]?.case_number ?? '');
+        if (fields.dateCrimeCommitted) row.push(p?.person?.cases?.[0]?.date_crime_committed ?? '');
+        if (fields.dateCommitted) row.push(p?.person?.cases?.[0]?.date_committed ?? '');
+        if (fields.caseName) row.push(p?.person?.cases?.[0]?.name ?? '');
+        if (fields.caseStatus) row.push(p?.person?.cases?.[0]?.status ?? '');
+        if (fields.sentenceLength) row.push(p?.person?.cases?.[0]?.sentence_length ?? '');
+
+        //Jail
+        if (fields.jailName) row.push(p?.person?.jail?.jail_name ?? '');
+        if (fields.jailType) row.push(p?.person?.jail?.jail_type ?? '');
+        if (fields.jailCategory) row.push(p?.person?.jail?.jail_category ?? '');
+        if (fields.emailAddress) row.push(p?.person?.jail?.email_address ?? '');
+        if (fields.contactNumber) row.push(p?.person?.jail?.contact_number ?? '');
+        if (fields.jailProvince) row.push(p?.person?.jail?.jail_province ?? '');
+        if (fields.jailMunicipality) row.push(p?.person?.jail?.jail_city_municipality ?? '');
+        if (fields.jailRegion) row.push(p?.person?.jail?.jail_region ?? '');
+        if (fields.jailBarangay) row.push(p?.person?.jail?.jail_barangay ?? '');
+        if (fields.jailStreet) row.push(p?.person?.jail?.jail_street ?? '');
+        if (fields.jailPostalCode) row.push(p?.person?.jail?.jail_postal_code ?? '');
+        if (fields.securityLevel) row.push(p?.person?.jail?.securityLevel ?? '');
+
+        //Cell
+        if (fields.cellName) row.push(p?.person?.jail?.securityLevel ?? '');
+
 
         // Education Information
         if (fields.educationalAttainment) row.push(p?.person?.education_backgrounds?.[0]?.educational_attainment ?? '');
@@ -756,7 +829,6 @@
         if (fields.endDate) row.push(p?.person?.employment_histories?.end_date ?? '');
         if (fields.location) row.push(p?.person?.employment_histories?.location ?? '');
         if (fields.responsibilities) row.push(p?.person?.employment_histories?.responsibilities ?? '');
-
         
         // Social Media
         if (fields.platform) row.push(Array.isArray(p?.person?.social_media_accounts) ? p.person.social_media_accounts.map(s => s.platform).join(', ') : '');
