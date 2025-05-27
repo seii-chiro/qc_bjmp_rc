@@ -15,7 +15,7 @@ import Remarks from "@/pages/visitor_management/visitor-data-entry/Remarks";
 import VisitorProfile from "@/pages/visitor_management/visitor-data-entry/visitorprofile";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
-import { DatePicker, Input, message, Modal, Select } from "antd";
+import { DatePicker, Input, message, Modal, Select, Tooltip } from "antd";
 import Table, { ColumnsType } from "antd/es/table";
 import dayjs from "dayjs";
 import { Plus } from "lucide-react";
@@ -1118,7 +1118,13 @@ const PersonnelUpdate = () => {
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={ethnicities?.map(ethnicity => ({
                                         value: ethnicity?.id,
-                                        label: ethnicity?.region
+                                        label: (
+                                            <Tooltip title={`${ethnicity?.region ?? "-"} - ${ethnicity?.province ?? "-"}`}>
+                                                <span style={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>
+                                                    {`${ethnicity?.province} - ${ethnicity?.region}`}
+                                                </span>
+                                            </Tooltip>
+                                        )
                                     }))}
                                     onChange={value => {
                                         setPersonForm(prev => ({
