@@ -288,28 +288,6 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
             <div className="w-[50%] bg-blue-500 text-white font-semibold px-3 py-1.5 rounded flex justify-center items-center">
               <button onClick={handleCaptureFace}>Capture Face</button>
             </div>
-            {
-              // icao ? (
-              //   <div className="w-[50%] bg-green-500 text-white font-semibold px-3 py-1.5 rounded flex justify-center items-center">
-              //     {
-              //       verifyFaceMutation?.isPending ? (
-              //         <button>
-              //           Verifying
-              //           <span className="animate-bounceDot1">.</span>
-              //           <span className="animate-bounceDot2">.</span>
-              //           <span className="animate-bounceDot3">.</span>
-              //         </button>
-              //       ) : (
-              //         <button onClick={handleVerifyFace}>Verify Face</button>
-              //       )
-              //     }
-              //   </div>
-              // ) : (
-              //   <div className="w-[50%] bg-gray-200 text-white font-semibold px-3 py-1.5 rounded flex justify-center items-center">
-              //     <button>Verify Face</button>
-              //   </div>
-              // )
-            }
           </div>
         </div>
 
