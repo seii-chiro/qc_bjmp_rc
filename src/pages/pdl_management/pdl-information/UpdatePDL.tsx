@@ -997,7 +997,7 @@ const UpdatePDL = () => {
             media_requirement_data: pdlData?.person.media_requirements ?? [],
             diagnosis_data: pdlData?.person.diagnoses ?? [],
             religion_id: pdlData?.person.religion?.id ?? 1,
-            media_data: [],
+            media_data: pdlData?.person.media ?? [],
             multiple_birth_sibling_data:
                 pdlData?.person?.multiple_birth_siblings?.map((sibling: any) => ({
                     ...sibling,
@@ -1056,7 +1056,6 @@ const UpdatePDL = () => {
                     (occupation) => occupation?.name === pdlData?.occupation
                 )?.id ?? null,
             status: pdlData?.status ?? "",
-            visitor_ids: [],
             pdl_alias: pdlData?.shortname ?? "",
             time_arrested: "",
             remarks_data:
@@ -1107,6 +1106,7 @@ const UpdatePDL = () => {
                     ...pdlVisitor,
                     visitor: pdlVisitor?.id,
                 })) ?? [],
+            visitor_ids: pdlData?.visitor?.map((pdlVisitor: { id: any }) => pdlVisitor.id) ?? [],
             precinct_id:
                 precincts?.results?.find(
                     (precinct) =>
@@ -1163,7 +1163,7 @@ const UpdatePDL = () => {
     if (error) return <div className="w-full h-[90vh] flex items-center justify-center">{error?.message}</div>;
 
     // console.log("PDL Data:", pdlData)
-    console.log("Person Form:", personForm)
+    // console.log("Person Form:", personForm)
 
     return (
         <div className="bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5">
