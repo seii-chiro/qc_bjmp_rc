@@ -21,7 +21,6 @@ const Image = ({ src, alt, className }: { src: string, alt: string, className: s
 const PdlProfilePortrait = ({ visitorData = {} }) => {
     const token = useTokenStore()?.token
     const modalContentRef = useRef(null);
-    console.log(visitorData)
     const selectedVisitor = visitorData || {};
 
     const { data: visitorStatus } = useQuery({
