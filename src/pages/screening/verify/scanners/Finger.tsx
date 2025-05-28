@@ -5,7 +5,6 @@ import { useMutation } from '@tanstack/react-query'
 import { Checkbox, message, Select } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
 import no_img from "@/assets/no-img.png"
-import noImg from "@/assets/no-img.webp"
 import check from "@/assets/Icons/check-mark.png"
 import ex from "@/assets/Icons/close.png"
 import { useTokenStore } from '@/store/useTokenStore'
@@ -14,6 +13,7 @@ import { Device } from '@/lib/definitions'
 import VisitorProfilePortrait from '../../VisitorProfilePortrait'
 import { PaginatedResponse } from '@/lib/queries'
 import { useSystemSettingsStore } from '@/store/useSystemSettingStore'
+import PdlProfilePortrait from '../../PdlProfilePortrait'
 
 type Props = {
     devices: PaginatedResponse<Device>;
@@ -29,6 +29,8 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
     const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
     const [isFetching, setIsFetching] = useState(false);
     const [error, setError] = useState<Error | null>(null);
+
+    const [lastScannedPdl, setLastScannedPdl] = useState<any | null>(null);
 
     const [fingerScannerReady, setFingerScannerReady] = useState(false)
     const [LeftFingerResponse, setLeftFingerResponse] = useState<CustomFingerResponse | null>(null)
@@ -208,9 +210,12 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                 let id_number: string | null = null;
                 let binary_data: string | null = null;
                 let person_id: string | null = null;
+                let pdlId: string | null = null;
 
                 if (isPDLStation) {
                     person_id = fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.id;
+                    pdlId = fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.pdl?.id
+
 
                     if (!person_id) {
                         if (fingerprintVerificationResult) {
@@ -218,6 +223,8 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                         }
                         return;
                     }
+
+
                 } else {
                     id_number = fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.visitor?.id_number;
                     person_id = fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.id;
@@ -671,49 +678,52 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                 </div>
                 {
                     selectedArea?.toLowerCase() === "pdl station" ? (
-                        <div className='flex-1'>
-                            <div className="flex flex-col items-center justify-center">
-                                <div className="w-full flex items-center justify-center flex-col gap-10">
-                                    <div className="w-[60%] rounded-md overflow-hidden object-cover">
-                                        {
-                                            fingerprintVerificationResult?.[0]?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data ? (
-                                                <img src={`data:image/jpeg;base64,${fingerprintVerificationResult?.[0]?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data}`} alt="Image of a person" className="w-full" />
-                                            ) : (
-                                                <img src={noImg} alt="Image of a person" className="w-full" />
-                                            )
-                                        }
-                                    </div>
-                                    <h1 className="text-4xl font-semibold">
-                                        {`${fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.first_name ?? ""} ${fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.middle_name ?? ""} ${fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.last_name ?? ""}`}
-                                    </h1>
-                                </div>
-                                {
-                                    lastScanned && (
-                                        <div className="w-full flex items-center justify-center">
-                                            <div className="w-[50%] text-3xl flex">
-                                                <div className="flex items-center justify-between w-full">
-                                                    <div className="flex-[2] flex gap-12">
+                        // <div className='flex-1'>
+                        //     <div className="flex flex-col items-center justify-center">
+                        //         <div className="w-full flex items-center justify-center flex-col gap-10">
+                        //             <div className="w-[60%] rounded-md overflow-hidden object-cover">
+                        //                 {
+                        //                     fingerprintVerificationResult?.[0]?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data ? (
+                        //                         <img src={`data:image/jpeg;base64,${fingerprintVerificationResult?.[0]?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data}`} alt="Image of a person" className="w-full" />
+                        //                     ) : (
+                        //                         <img src={noImg} alt="Image of a person" className="w-full" />
+                        //                     )
+                        //                 }
+                        //             </div>
+                        //             <h1 className="text-4xl font-semibold">
+                        //                 {`${fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.first_name ?? ""} ${fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.middle_name ?? ""} ${fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.last_name ?? ""}`}
+                        //             </h1>
+                        //         </div>
+                        //         {
+                        //             lastScanned && (
+                        //                 <div className="w-full flex items-center justify-center">
+                        //                     <div className="w-[50%] text-3xl flex">
+                        //                         <div className="flex items-center justify-between w-full">
+                        //                             <div className="flex-[2] flex gap-12">
 
-                                                        <>
-                                                            <span>STATUS:</span>
-                                                            <span>ALLOWED VISIT</span>
-                                                        </>
+                        //                                 <>
+                        //                                     <span>STATUS:</span>
+                        //                                     <span>ALLOWED VISIT</span>
+                        //                                 </>
 
-                                                    </div>
-                                                    <div className="flex justify-end flex-1 gap-4">
-                                                        <div className="w-10">
-                                                            <img src={check} alt="check icon" />
-                                                        </div>
-                                                        {/* <div className="w-10">
-                                                            <img src={ex} alt="close icon" />
-                                                        </div> */}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )
-                                }
-                            </div>
+                        //                             </div>
+                        //                             <div className="flex justify-end flex-1 gap-4">
+                        //                                 <div className="w-10">
+                        //                                     <img src={check} alt="check icon" />
+                        //                                 </div>
+                        //                                 {/* <div className="w-10">
+                        //                                     <img src={ex} alt="close icon" />
+                        //                                 </div> */}
+                        //                             </div>
+                        //                         </div>
+                        //                     </div>
+                        //                 </div>
+                        //             )
+                        //         }
+                        //     </div>
+                        // </div>
+                        <div className="flex-1">
+                            <PdlProfilePortrait visitorData={lastScannedPdl} />
                         </div>
                     ) : (
                         <div className='flex-1'>
