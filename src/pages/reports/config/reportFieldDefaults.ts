@@ -199,12 +199,7 @@ export const defaultPDLFields = {
         jailCategory: false,
         emailAddress: false,
         contactNumber: false, 
-        jailProvince: false,
-        jailMunicipality: false,
-        jailRegion: false,
-        jailBarangay: false,
-        jailStreet: false,
-        jailPostalCode: false,
+        jailAddress: false,
         securityLevel: false,
 
         //Cell

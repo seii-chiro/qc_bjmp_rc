@@ -51,6 +51,18 @@ const PDLtable = () => {
     //     fetchAll();
     // }, [token]);
 
+    const fetchPDLs = async (search: string) => {
+        const res = await fetch(`${BASE_URL}/api/pdls/pdl/?search=${search}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
     useEffect(() => {
         const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
         return () => clearTimeout(timeout);
@@ -58,7 +70,7 @@ const PDLtable = () => {
 
     const { data: searchData, isLoading: searchLoading } = useQuery({
         queryKey: ["pdls", debouncedSearch],
-        queryFn: () => fetchPdls(debouncedSearch),
+        queryFn: () => fetchPDLs(debouncedSearch),
         behavior: keepPreviousData(),
         enabled: debouncedSearch.length > 0,
     });
@@ -368,7 +380,8 @@ const PDLtable = () => {
             },
         });
         if (!res.ok) throw new Error("Network error");
-        return res.json(); 
+        const data = await res.json();
+        return data;
     };
 
     const lastPrintIndexRef = useRef(0);
@@ -527,7 +540,7 @@ const handleExportPDF = async () => {
 
         const fullDataSource = await fetchAllPDLs(); 
         const exportData = fullDataSource?.results.map(pdl => {
-            const name = `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? ''}`.trim();
+            const name = `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ? pdl?.person?.middle_name[0] + '.' : ''} ${pdl?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
             return {
                 "Name": name,
                 "Dorm": pdl?.cell?.cell_name,
@@ -548,7 +561,7 @@ const handleExportPDF = async () => {
         try {
             const fullDataSource = await fetchAllPDLs();
             const exportData = fullDataSource?.results.map(pdl => {
-                const name = `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? ''}`.trim();
+                const name = `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ? pdl?.person?.middle_name[0] + '.' : ''} ${pdl?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
             return {
                 "Name": name,
                 "Dorm": pdl?.cell?.cell_name,
@@ -559,10 +572,22 @@ const handleExportPDF = async () => {
             };
             }) || [];
 
-            return exportData;
-        } catch (error) {
-            console.error("Error exporting CSV:", error);
-        }
+            const csvContent = [
+            Object.keys(exportData[0]).join(","), // Header row
+            ...exportData.map(item => Object.values(item).join(",")) // Data rows
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "PDL.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (error) {
+        console.error("Error exporting CSV:", error);
+    }
     };
 
     const menu = (

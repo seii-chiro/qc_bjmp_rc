@@ -330,7 +330,6 @@ const Personnel = () => {
         });
         if (!res.ok) throw new Error("Network error");
         const data = await res.json();
-        console.log("Fetched personnel data:", data); // Log the full response
         return data;
     };
 
