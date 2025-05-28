@@ -556,7 +556,7 @@ const VisitorProfile = ({
                 messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult1({ message: "Match not found." });
-                messageApi.info(error?.message);
+                messageApi.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -574,7 +574,7 @@ const VisitorProfile = ({
                 messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult2({ message: "Match not found." });
-                messageApi.info(error?.message);
+                messageApi.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -592,7 +592,7 @@ const VisitorProfile = ({
                 messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult3({ message: "Match not found." });
-                messageApi.info(error?.message);
+                messageApi.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -610,7 +610,7 @@ const VisitorProfile = ({
                 messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult4({ message: "Match not found." });
-                messageApi.info(error?.message);
+                messageApi.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -628,7 +628,7 @@ const VisitorProfile = ({
                 messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult5({ message: "Match not found." });
-                messageApi.info(error?.message);
+                messageApi.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -646,7 +646,7 @@ const VisitorProfile = ({
                 messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult6({ message: "Match not found." });
-                messageApi.info(error?.message);
+                messageApi.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -664,7 +664,7 @@ const VisitorProfile = ({
                 messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult7({ message: "Match not found." });
-                messageApi.info(error?.message);
+                messageApi.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -682,7 +682,7 @@ const VisitorProfile = ({
                 messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult8({ message: "Match not found." });
-                messageApi.info(error?.message);
+                messageApi.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -700,7 +700,7 @@ const VisitorProfile = ({
                 messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult9({ message: "Match not found." });
-                messageApi.info(error?.message);
+                messageApi.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -718,7 +718,7 @@ const VisitorProfile = ({
                 messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult10({ message: "Match not found." });
-                messageApi.info(error?.message);
+                messageApi.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
