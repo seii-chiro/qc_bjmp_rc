@@ -207,7 +207,13 @@ export const defaultPDLFields = {
         cellCapacity: false,
         cellStatus: false,
         floor: false,
-        
+
+        //Visitor
+        registrationNo: false,
+        visitor: false,
+        visitorType: false,
+        requirement: false,
+        remarks: false,
 };
 
 // Affiliation fields

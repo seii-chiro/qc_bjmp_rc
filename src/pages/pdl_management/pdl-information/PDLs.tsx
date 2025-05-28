@@ -35,22 +35,6 @@ const PDLtable = () => {
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [allPDLs, setAllPDLs] = useState<PDLs[]>([]);
 
-    // useEffect(() => {
-    //     const fetchAll = async () => {
-    //         const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
-    //             headers: {
-    //                 Authorization: `Token ${token}`,
-    //                 "Content-Type": "application/json",
-    //             },
-    //         });
-    //         if (res.ok) {
-    //             const data = await res.json();
-    //             setAllPDLs(data.results || []);
-    //         }
-    //     };
-    //     fetchAll();
-    // }, [token]);
-
     const fetchPDLs = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/pdls/pdl/?search=${search}`, {
             headers: {
@@ -78,7 +62,6 @@ const PDLtable = () => {
     const { data: pdlData, isFetching } = useQuery({
         queryKey: ['pdls', 'pdls-table', page],
         queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
-            // Add offset parameter for Django REST Framework's pagination
             const offset = (page - 1) * limit;
             const res = await fetch(
                 `${BASE_URL}/api/pdls/pdl/?page=${page}&limit=${limit}&offset=${offset}`,
@@ -107,7 +90,7 @@ const PDLtable = () => {
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deletePDL(token ?? "", id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["pdl"] });
+            queryClient.invalidateQueries({ queryKey: ["pdls"] });
             messageApi.success("PDL deleted successfully");
         },
         onError: (error: any) => {
@@ -119,7 +102,7 @@ const PDLtable = () => {
         mutationFn: (updated: PDLs) =>
             patchPDL(token ?? "", updated.id, updated),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["pdl"] });
+            queryClient.invalidateQueries({ queryKey: ["pdls"] });
             messageApi.success("PDL updated successfully");
             setIsEditModalOpen(false);
         },
@@ -142,52 +125,58 @@ const PDLtable = () => {
 
     const [searchParams] = useSearchParams();
     const gender = searchParams.get("gender") || "all";
-    const genderParam = searchParams.get("gender") || "all";
-    const genderList = genderParam !== "all" ? genderParam.split(",").map(decodeURIComponent) : [];
+    const genderList = gender !== "all" ? gender.split(",").map(decodeURIComponent) : [];
 
-    const fetchPDLGender = async (genders: string[]) => {
-        const url = `${BASE_URL}/api/pdls/pdl/?gender=${genders}&limit=${limit}`;
-
-        const res = await fetch(url, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
+    const { data: pdlsGenderData, isLoading: pdlsByGenderLoading } = useQuery({
+            queryKey: ['pdls', 'pdls-table', page, genderList],
+            queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
+                const offset = (page - 1) * limit;
+                const res = await fetch(
+                    `${BASE_URL}/api/pdls/pdl/?gender=${encodeURIComponent(genderList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Token ${token}`,
+                        },
+                    }
+                );
+        
+                if (!res.ok) {
+                    throw new Error('Failed to fetch PDL Gender data.');
+                }
+        
+                return res.json();
             },
+            enabled: !!token,
         });
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-    };
-
-    const { data: pdlGenderData, isLoading: pdlByGenderLoading } = useQuery({
-        queryKey: ["pdl", genderList],
-        queryFn: () => fetchPDLGender(genderList),
-        enabled: !!token,
-    });
 
     const genderFilteredPDLIds = new Set(
-        (pdlGenderData?.results || []).map(pdl => pdl.id)
+        (pdlsGenderData?.results || []).map(pdl => pdl.id)
     );
 
     const status = searchParams.get("status") || "all";
-    const statusParam = searchParams.get("status") || "all";
-    const statusList = statusParam !== "all" ? statusParam.split(",").map(decodeURIComponent) : [];
-
-    const fetchPDLStatus = async (status: string[]) => {
-        const url = `${BASE_URL}/api/pdls/pdl/?status=${status}&limit=${limit}`;
-
-        const res = await fetch(url, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-    };
+    const statusList = status !== "all" ? status.split(",").map(decodeURIComponent) : [];
 
     const { data: pdlStatusData, isLoading: pdlByStatusLoading } = useQuery({
-        queryKey: ["pdl", statusList],
-        queryFn: () => fetchPDLStatus(statusList),
+        queryKey: ['pdls', 'pdls-table', page, statusList],
+            queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
+                const offset = (page - 1) * limit;
+                const res = await fetch(
+                    `${BASE_URL}/api/pdls/pdl/?status=${encodeURIComponent(statusList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Token ${token}`,
+                        },
+                    }
+                );
+        
+                if (!res.ok) {
+                    throw new Error('Failed to fetch PDL Status data.');
+                }
+        
+                return res.json();
+            },
         enabled: !!token,
     });
 
@@ -600,6 +589,14 @@ const handleExportPDF = async () => {
             </Menu.Item>
         </Menu>
     );
+
+        const totalRecords = debouncedSearch 
+    ? pdlData?.count || 0
+    : gender !== "all" 
+    ? pdlsGenderData?.count || 0 
+    : status !== "all"
+    ? pdlStatusData?.count || 0
+    : pdlData?.count || 0; 
     return (
         <div>
             {contextHolder}
@@ -625,7 +622,7 @@ const handleExportPDF = async () => {
             </div>
             <Table
                 columns={columns}
-                loading={isFetching || searchLoading || pdlByGenderLoading || pdlByStatusLoading}
+                loading={isFetching || searchLoading || pdlsByGenderLoading || pdlByStatusLoading}
                 scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
                 dataSource={
                     debouncedSearch
@@ -650,7 +647,7 @@ const handleExportPDF = async () => {
                             updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
                         }))
                         : gender !== "all"
-                            ? (pdlGenderData?.results || []).map((pdl, index) => ({
+                            ? (pdlsGenderData?.results || []).map((pdl, index) => ({
                                 ...pdl,
                                 key: index + 1,
                                 id: pdl?.id ?? 'N/A',
@@ -696,12 +693,12 @@ const handleExportPDF = async () => {
                         : filteredData
                 }
                 pagination={
-                    debouncedSearch || gender !== "all" || status !== "all"
+                    debouncedSearch
                         ? false
                         : {
                             current: page,
                             pageSize: limit,
-                            total: pdlData?.count || 0, // Use backend total count
+                            total: totalRecords,
                             onChange: (newPage) => setPage(newPage),
                             showSizeChanger: false,
                         }

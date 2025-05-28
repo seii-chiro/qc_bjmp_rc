@@ -59,6 +59,10 @@ interface FieldSelectorProps {
   setShowOtherCaseFields?: (show: boolean) => void;
   showJailFields: boolean;
   setShowJailFields: ( show: boolean) => void;
+  showVisitorFields: boolean;
+  setShowVisitorFields: ( show: boolean) => void;
+  showCellFields: boolean;
+  setShowCellFields: ( show: boolean) => void;
 }
 
 const FieldSelector: React.FC<FieldSelectorProps> = ({
@@ -115,12 +119,13 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
   showOtherCaseFields = false,
   setShowOtherCaseFields = () => {},
   showJailFields = false,
-  setShowJailFields = () => {}
+  setShowJailFields = () => {},
+  showVisitorFields = false,
+  setShowVisitorFields = () => {},
+  showCellFields = false,
+  setShowCellFields = () => {},
 }) => (
   <fieldset className="border border-gray-300 rounded-md p-4">
-    <legend className="text-lg font-semibold text-[#1E365D] mb-4">
-      Select Fields to Display:
-    </legend>
     <div className="mb-2 flex gap-2">
       <div className="mb-2 flex gap-2 items-center">
         <input
@@ -400,6 +405,28 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 onClick={() => setShowJailFields(!showJailFields)}
               >
                 Jail
+              </button>
+              <button
+                type="button"
+                className={`px-3 py-1 rounded font-semibold transition-colors
+                  ${showCellFields
+                    ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
+                    : 'bg-[#1E365D] text-white'}
+                `}
+                onClick={() => setShowCellFields(!showCellFields)}
+              >
+                Cell
+              </button>
+              <button
+                type="button"
+                className={`px-3 py-1 rounded font-semibold transition-colors
+                  ${showVisitorFields
+                    ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
+                    : 'bg-[#1E365D] text-white'}
+                `}
+                onClick={() => setShowVisitorFields(!showVisitorFields)}
+              >
+                Visitor
               </button>
               <button
                 type="button"
@@ -1082,6 +1109,101 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                   caseName: 'Case Name',
                   caseStatus: 'Case Status',
                   sentenceLength: 'Sentence Length'
+                }[field]}
+              </span>
+            </label>
+          ))}
+        </div>
+      )}
+      {/* Jail */}
+      {selectedType === 'pdl' && showJailFields && (
+        <div className="w-full">
+          <span className="block font-semibold text-gray-700 mb-2">Jail</span>
+          {[
+            'jailName',
+            'jailType',
+            'jailCategory',
+            'emailAddress',
+            'contactNumber',
+            'jailAddress',
+            'securityLevel',
+          ].map((field) => (
+            <label key={field} className="inline-flex items-center gap-2 mr-4 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={pdlFields[field]}
+                onChange={() => handleFieldChange(field)}
+                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+              />
+              <span>
+                {{
+                  jailName: 'Jail Name',
+                  jailType: 'Jail Type',
+                  jailCategory: 'Jail Category',
+                  emailAddress: 'Email Address',
+                  contactNumber: 'Contact Number',
+                  jailAddress: 'Jail Address',
+                  securityLevel: 'Security Level',
+                }[field]}
+              </span>
+            </label>
+          ))}
+        </div>
+      )}
+      {/* Jail */}
+      {selectedType === 'pdl' && showCellFields && (
+        <div className="w-full">
+          <span className="block font-semibold text-gray-700 mb-2">Jail</span>
+          {[
+            'cellName',
+            'cellCapacity',
+            'cellStatus',
+            'floor',
+          ].map((field) => (
+            <label key={field} className="inline-flex items-center gap-2 mr-4 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={pdlFields[field]}
+                onChange={() => handleFieldChange(field)}
+                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+              />
+              <span>
+                {{
+                  cellName: 'Dorm Name',
+                  cellCapacity: 'Dorm Capacity',
+                  cellStatus: 'Dorm Status',
+                  floor: 'Floor',
+                }[field]}
+              </span>
+            </label>
+          ))}
+        </div>
+      )}
+      {/* Visitor */}
+      {selectedType === 'pdl' && showVisitorFields && (
+        <div className="w-full">
+          <span className="block font-semibold text-gray-700 mb-2">Visitor</span>
+          {[
+            'registrationNo',
+            'visitor',
+            'visitorType',
+            'requirement',
+            'remarks'
+          ].map((field) => (
+            <label key={field} className="inline-flex items-center gap-2 mr-4 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={pdlFields[field]}
+                onChange={() => handleFieldChange(field)}
+                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+              />
+              <span>
+                {{
+                  registrationNo: 'Registration No.',
+                  visitor: 'Visitor',
+                  visitorType: 'Visitor Type',
+                  requirement: 'Requirement',
+                  remarks: 'Remarks'
                 }[field]}
               </span>
             </label>

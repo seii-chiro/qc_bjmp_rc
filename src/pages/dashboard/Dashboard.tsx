@@ -403,7 +403,6 @@ const Dashboard = () => {
 
 const visitorHandleClick = (gender: string) => {
     if (gender === "Other") {
-        // Get all gender keys except Male and Female
         const allGenders = Object.keys(summarydata?.success?.visitor_based_on_gender?.Active || {});
         const otherGenders = allGenders.filter(g => g !== "Male" && g !== "Female");
         const encodedGenders = otherGenders.map(g => encodeURIComponent(g)).join(",");
@@ -413,12 +412,9 @@ const visitorHandleClick = (gender: string) => {
     }
 };
     const personnelHandleClick = (gender: string) => {
-        if (gender === "Lgbtq+") {
-            const otherGenders = [
-                "LGBTQ + TRANSGENDER",
-                "LGBTQ + GAY / BISEXUAL",
-                "LGBTQ + LESBIAN / BISEXUAL"
-            ];
+        if (gender === "Other") {
+        const allGenders = Object.keys(summarydata?.success?.personnel_based_on_gender?.Active || {});
+        const otherGenders = allGenders.filter(g => g !== "Male" && g !== "Female");
             const encodedGenders = otherGenders.map(g => encodeURIComponent(g)).join(",");
             navigate(`/jvms/personnels/personnel?gender=${encodedGenders}`);
         } else {
@@ -719,7 +715,7 @@ const visitorHandleClick = (gender: string) => {
                                             />
                                             <Card3
                                                 image={trans}
-                                                title="Lgbtq+"
+                                                title="Other"
                                                 count={personnelOtherCount || 0}
                                                 onClick={() => personnelHandleClick("Lgbtq+")}
                                             />

@@ -41,6 +41,8 @@ const Report = () => {
     const [showCaseFields, setShowCaseFields] = useState(false);
     const [showOffenseFields, setShowOffenseFields] = useState(false);
     const [showCourtBranchFields, setShowCourtBranchFields] = useState(false);
+    const [showVisitorFields, setShowVisitorFields] = useState(false);
+    const [showCellFields, setShowCellFields] = useState(false);
     const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
     const [preparedBy, setPreparedBy] = useState('');
     const [visitors, setVisitors] = useState([]);
@@ -48,6 +50,7 @@ const Report = () => {
     const [pdl, setPDL] = useState([]);
     const [affiliation, setAffiliation] = useState([]);
     const [selectedType, setSelectedType] = useState('visitor');
+    const [reportName, setReportName] = useState('Visitor Report');
     const [selectedGender, setSelectedGender] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
     // const [onlyMaleVisitors, setOnlyMaleVisitors] = useState(false);
@@ -204,6 +207,7 @@ const Report = () => {
     }, [organizationData]);
 
   const generatePDF = async () => {
+    const preparedByText = UserData ? `${UserData.first_name} ${UserData.last_name}` : preparedBy;
     const today = new Date();
     const formattedDate = today.toISOString().split('T')[0];
     const reportReferenceNo = `TAL-${formattedDate}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
@@ -249,17 +253,13 @@ const Report = () => {
       body = b;
     }
 
-    // Limit max columns to 9
-    const MAX_COLUMNS = 9;
-    const totalColumns = headers.length;
-    const hiddenColumnsCount = totalColumns > MAX_COLUMNS ? totalColumns - MAX_COLUMNS : 0;
+   // Update the widths array to set a fixed width for the "No." column
+  const displayedHeaders = headers;
+  const displayedBody = body;
 
-    // Trim headers and body columns if exceed MAX_COLUMNS
-    const displayedHeaders = headers.slice(0, MAX_COLUMNS);
-    const displayedBody = body.map(row => row.slice(0, MAX_COLUMNS));
-
-    const columnThreshold = 7; // to switch page orientation
+    const columnThreshold = 6; // to witch page orientation
     const pageOrientation = displayedHeaders.length > columnThreshold ? 'landscape' : 'portrait';
+    const columnWidths = ['auto', ...Array(displayedHeaders.length - 1).fill('*')];
 
     
     const docDefinition = {
@@ -292,7 +292,7 @@ const Report = () => {
                     { text: `Report Date: `, bold: true },
                     formattedDate + '\n',
                     { text: `Prepared By: `, bold: true },
-                    preparedBy + '\n',
+                    preparedByText + '\n',
                     { text: `Department/Unit: `, bold: true },
                     'IT\n',
                     { text: `Report Reference No.: `, bold: true },
@@ -317,27 +317,20 @@ const Report = () => {
           ],
           margin: [0, 0, 0, 20],
         },
-
-        // Show message if columns cut off
-        ...(hiddenColumnsCount > 0
-          ? [{
-              text: `Note: Only first ${MAX_COLUMNS} fields are displayed. ${hiddenColumnsCount} more field(s) not shown.`,
-              italics: true,
-              margin: [0, 0, 0, 10],
-              color: 'red',
-              fontSize: 10,
-            }]
-          : []),
-
         {
           style: 'tableExample',
           table: {
             headerRows: 1,
-            widths: Array(displayedHeaders.length).fill('*'),
+            widths: columnWidths,
             body: [
               displayedHeaders.map(header => ({ text: header, style: 'tableHeader', noWrap: false })),
               ...displayedBody.map(row =>
-                row.map(cell => ({ text: cell, noWrap: false }))
+                 row.map(cell => ({
+              text: cell,
+              noWrap: false, 
+              alignment: 'left', 
+              fontSize: 8
+            }))
               ),
             ],
           },
@@ -353,6 +346,7 @@ const Report = () => {
             paddingRight: () => 4,
           },
           pageBreak: 'auto',
+          width: '100%',
         },
       ],
       footer: (currentPage: number, pageCount: number) => ({
@@ -512,6 +506,27 @@ const Report = () => {
         );
       }
     };
+
+    useEffect(() => {
+    switch (selectedType) {
+      case 'visitor':
+        setReportName('Visitor Report');
+        break;
+      case 'personnel':
+        setReportName('Personnel Report');
+        break;
+      case 'pdl':
+        setReportName('PDL Report');
+        break;
+      case 'affiliation':
+        setReportName('Affiliation Report');
+        break;
+      default:
+        setReportName('Visitor Report');
+        break;
+    }
+  }, [selectedType]);
+
     useEffect(() => {
       let allChecked = false;
       if (selectedType === 'visitor') {
@@ -532,7 +547,7 @@ const Report = () => {
 
     return (
       <div className="p-8 max-w-7xl mx-auto bg-white rounded-lg shadow-sm border border-gray-100">
-        <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">Reports</h2>
+         <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">{reportName}</h2>
 
           {/* Loading State */}
           {(visitorsLoading && selectedType === 'visitor') ||
@@ -648,6 +663,10 @@ const Report = () => {
             setShowOtherCaseFields={setShowOtherCaseFields}
             showJailFields={showJailFields}
             setShowJailFields={setShowJailFields}
+            showVisitorFields={showVisitorFields}
+            setShowVisitorFields={setShowVisitorFields}
+            showCellFields={showCellFields}
+            setShowCellFields={setShowCellFields}
           />
         </div>
         <div className="text-center flex justify-end gap-4">

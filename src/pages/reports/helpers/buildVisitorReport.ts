@@ -3,7 +3,7 @@
       const body: any[][] = [];
 
       //Visitor Information Headers
-      if (fields.registrationNo) headers.push('Visitor Reg No');
+      if (fields.registrationNo) headers.push('Registration No');
     //   if (fields.ID) headers.push('ID Number');
     //   if (fields.firstName) headers.push('First Name');
     //   if (fields.middleName) headers.push('Middle Name');
@@ -11,7 +11,7 @@
       if (fields.name) headers.push('Name');
       if (fields.gender) headers.push('Gender');
       if (fields.dateOfBirth) headers.push('Date of Birth');
-      if (fields.placeOfBirth) headers.push('Place of Birth');
+      // if (fields.placeOfBirth) headers.push('Place of Birth');
       if (fields.civilStatus) headers.push('Civil Status');
       if (fields.religion) headers.push('Religion');
 
@@ -133,7 +133,7 @@
         if (fields.name) row.push(`${v?.person?.first_name ?? ''} ${v?.person?.last_name ?? ''}`.trim());
         if (fields.gender) row.push(v?.person?.gender?.gender_option ?? '');
         if (fields.dateOfBirth) row.push(v?.person?.date_of_birth ?? '');
-        if (fields.placeofBirth) row.push(v?.person?.place_of_birth ?? '');
+        // if (fields.placeofBirth) row.push(v?.person?.place_of_birth ?? '');
         if (fields.civilStatus) row.push(v?.person?.civil_status ?? '');
         if (fields.religion) row.push(v?.person?.religion?.name ?? '');
         
@@ -601,6 +601,13 @@
       if (fields.value) headers.push('Value');
       if (fields.mobileImei) headers.push('Mobile IMEI');
 
+    //Visitor
+    if (fields.registrationNo) headers.push('Registration No.');
+    if (fields.visitor) headers.push('Visitor');
+    if (fields.visitorType) headers.push('Visitor Type');
+    if (fields.requirement) headers.push('Visitor Requirements');
+    if (fields.remarks) headers.push('Remarks');
+
     //Biometrics
     if (fields.biometricStatus) headers.push('Biometric Status');
 
@@ -638,6 +645,11 @@
         if (fields.jailAddress) headers.push('Jail Address');
         if (fields.securityLevel) headers.push('Security Level');
 
+        //Cell
+        if (fields.cellName) headers.push('Dorm Name');
+        if (fields.cellStatus) headers.push('Dorm Status');
+        if (fields.floor) headers.push('Annex');
+        
       //Talents & Interests
       if (fields.talents) headers.push('Talents');
       if (fields.skills) headers.push('Skills');
@@ -754,6 +766,13 @@
         if (fields.value) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.value).join(', ') : '');
         if (fields.mobileImei) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.mobile_imei).join(', ') : '');
 
+        //Visitor
+        if (fields.registrationNo) row.push(Array.isArray(p?.visitor) ? p.visitor.map(v => v.visitor_reg_no).join(', ') : '');
+        if (fields.visitor) row.push(Array.isArray(p?.visitor) ? p.visitor.map(v => v.person).join(', ') : '');
+        if (fields.visitorType) row.push(Array.isArray(p?.visitor) ? p.visitor.map(v => v.visitor_type).join(', ') : '');
+        if (fields.requirement) row.push(Array.isArray(p?.visitor) ? p.visitor.map(v => v.requirement).join(', ') : '');
+        if (fields.remarks) row.push(Array.isArray(p?.visitor) ? p.visitor.map(v => v.remarks).join(', ') : '');
+
         //Biometrics
         if (fields.biometricStatus) row.push(p?.person?.biometric_status?.status ?? '');
 
@@ -783,18 +802,18 @@
         if (fields.sentenceLength) row.push(p?.person?.cases?.[0]?.sentence_length ?? '');
 
         //Jail
-        if (fields.jailName) row.push(p?.person?.jail?.jail_name ?? '');
-        if (fields.jailType) row.push(p?.person?.jail?.jail_type ?? '');
-        if (fields.jailCategory) row.push(p?.person?.jail?.jail_category ?? '');
-        if (fields.emailAddress) row.push(p?.person?.jail?.email_address ?? '');
-        if (fields.contactNumber) row.push(p?.person?.jail?.contact_number ?? '');
+        if (fields.jailName) row.push(p?.jail?.jail_name ?? '');
+        if (fields.jailType) row.push(p?.jail?.jail_type ?? '');
+        if (fields.jailCategory) row.push(p?.jail?.jail_category ?? '');
+        if (fields.emailAddress) row.push(p?.jail?.email_address ?? '');
+        if (fields.contactNumber) row.push(p?.jail?.contact_number ?? '');
         if (fields.jailAddress) {
-            const postalCode = p?.person?.jail?.jail_postal_code ?? '';
-            const province = p?.person?.jail?.jail_province ?? '';
-            const municipality = p?.person?.jail?.jail_city_municipality ?? '';
-            const region = p?.person?.jail?.jail_region ?? '';
-            const barangay = p?.person?.jail?.jail_barangay ?? '';
-            const street = p?.person?.jail?.jail_street ?? '';
+            const postalCode = p?.jail?.jail_postal_code ?? '';
+            const province = p?.jail?.jail_province ?? '';
+            const municipality = p?.jail?.jail_city_municipality ?? '';
+            const region = p?.jail?.jail_region ?? '';
+            const barangay = p?.jail?.jail_barangay ?? '';
+            const street = p?.jail?.jail_street ?? '';
 
             const fullAddress = [street, barangay, municipality, province, region, postalCode]
                 .filter(part => part) // Remove any empty parts
@@ -802,10 +821,12 @@
 
             row.push(fullAddress);
         }
-        if (fields.securityLevel) row.push(p?.person?.jail?.securityLevel ?? '');
+        if (fields.securityLevel) row.push(p?.jail?.security_level ?? '');
 
         //Cell
-        if (fields.cellName) row.push(p?.person?.jail?.securityLevel ?? '');
+        if (fields.cellName) row.push(p?.cell?.cell_name ?? '');
+        if (fields.cellStatus) row.push(p?.cell?.cell_status ?? '');
+        if (fields.floor) row.push(p?.cell?.floor ?? '');
 
 
         // Education Information

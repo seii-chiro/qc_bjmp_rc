@@ -48,22 +48,6 @@ const Visitor = () => {
     const limit = 10;
     const [allVisitor, setAllVisitor] = useState<VisitorRecord[]>([]);
 
-    // useEffect(() => {
-    //     const fetchAll = async () => {
-    //         const res = await fetch(`${BASE_URL}/api/visitors/visitor/?limit=10000`, {
-    //             headers: {
-    //                 Authorization: `Token ${token}`,
-    //                 "Content-Type": "application/json",
-    //             },
-    //         });
-    //         if (res.ok) {
-    //             const data = await res.json();
-    //             setAllVisitor(data.results || []);
-    //         }
-    //     };
-    //     fetchAll();
-    // }, [token]);
-
     const fetchVisitors = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/visitors/visitor/?search=${search}`, {
             headers: {
@@ -166,70 +150,37 @@ const Visitor = () => {
         (m: any) => m.name?.toLowerCase() === "cohabitation"
     );
 
-    
-// const fetchVisitorGender = async (gender: string) => {
-//     const genderQuery = gender !== "all" ? `gender=${encodeURIComponent(gender)}` : "";
-//     // Set a large limit to get all visitors for this gender (if API supports it)
-//     const query = genderQuery ? `?${genderQuery}&limit=5000` : "?limit=5000";
+const [searchParams] = useSearchParams();
+const gender = searchParams.get("gender") || "all";
+const genderList = gender !== "all" ? gender.split(",").map(decodeURIComponent) : [];
 
-//     const url = `${BASE_URL}/api/visitors/visitor${query}`;
+const { data: visitorGenderData, isLoading: visitorsByGenderLoading } = useQuery({
+    queryKey: ["visitors", 'visitor-table', page, genderList],
+    queryFn: async (): Promise<PaginatedResponse<NewVisitorType>> => {
+        const offset = (page - 1) * limit;
+        const res = await fetch(
+            `${BASE_URL}/api/visitors/visitor/?gender=${encodeURIComponent(genderList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Token ${token}`,
+                },
+            }
+        );
 
-//     const res = await fetch(url, {
-//         headers: {
-//         Authorization: `Token ${token}`,
-//         "Content-Type": "application/json",
-//         },
-//     });
-//     if (!res.ok) throw new Error("Network error");
-//     return res.json();
-// };
-    const [searchParams] = useSearchParams();
-    const gender = searchParams.get("gender") || "all";
-    const genderParam = searchParams.get("gender") || "all";
-const genderList = genderParam !== "all" ? genderParam.split(",").map(decodeURIComponent) : [];
+        if (!res.ok) {
+            throw new Error('Failed to fetch Visitors data.');
+        }
 
-const fetchVisitorGender = async (genders: string[]) => {
-    // Use a large limit to get all matching visitors
-    const url = `${BASE_URL}/api/visitors/visitor/?gender=${genders.join(",")}&limit=${limit}`;
-    const res = await fetch(url, {
-        headers: {
-            Authorization: `Token ${token}`,
-            "Content-Type": "application/json",
-        },
-    });
-    if (!res.ok) throw new Error("Network error");
+        return res.json();
+    },
+    enabled: !!token,
+});
 
-    const result = await res.json();
-
-    if (genders.length === 0 || genders[0] === "all") {
-        return result; // No filtering
-    }
-
-    // If multiple genders, filter for any of them
-    result.results = result.results.filter(visitor => {
-        const genderOption = visitor?.person?.gender?.gender_option;
-        return genders.includes(genderOption);
-    });
-    return result;
-};
-    const { data: visitorGenderData, isLoading: visitorsByGenderLoading } = useQuery({
-        queryKey: ["visitors", genderList],
-        queryFn: () => fetchVisitorGender(genderList),
-        enabled: !!token,
-    });
-    // // This uses the `gender` param directly (e.g., from searchParams or state)
-    // const { data: visitorGenderData, isLoading: visitorsByGenderLoading } = useQuery({
-    // queryKey: ["pdls", gender],
-    // queryFn: () => fetchVisitorGender(gender),
-    // enabled: !!token,
-    // });
-
-    // Step 1: Extract IDs from gender-filtered API data
 const genderFilteredVisitorIds = new Set(
     (visitorGenderData?.results || []).map(visitor => visitor.id)
 );
 
-    // Step 2: Filter full data (data?.results) to only include visitors matching gender filter
     const dataSource = (data?.results || []).filter(visitor =>
         gender === "all" ? true : genderFilteredVisitorIds.has(visitor.id)
     ).map((visitor, index) => {
@@ -250,10 +201,7 @@ const genderFilteredVisitorIds = new Set(
             nationality: visitor?.person?.nationality,
             full_address: visitor?.person?.addresses[0]?.full_address ?? '',
             address: address,
-             gender:
-          (visitor?.person?.gender?.gender_option === "Male" || visitor?.person?.gender?.gender_option === "Female")
-            ? visitor?.person?.gender?.gender_option
-            : "Others",
+             gender: visitor?.person?.gender?.gender_option ?? '',
             organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
             updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         };
@@ -308,34 +256,20 @@ const genderFilteredVisitorIds = new Set(
             onFilter: (value, record) => record.person?.last_name === value,
         },
         {
-    title: 'Gender',
-    key: 'gender',
-    render: (_, visitor) => {
-        // Show the actual gender value, fallback to "Others" if missing
-        return visitor?.person?.gender?.gender_option || "Others";
-    },
-    filters: [
-        { text: "Male", value: "Male" },
-        { text: "Female", value: "Female" },
-        { text: "Others", value: "Others" }
-    ],
-    onFilter: (value, record) => {
-        const genderOption = record?.person?.gender?.gender_option;
-        if (value === "Others") {
-            return genderOption !== "Male" && genderOption !== "Female";
-        }
-        return genderOption === value;
-    },
-    sorter: (a, b) => {
-        const genderA = (a.person?.gender?.gender_option === "Male" || a.person?.gender?.gender_option === "Female")
-            ? a.person?.gender?.gender_option
-            : "Others";
-        const genderB = (b.person?.gender?.gender_option === "Male" || b.person?.gender?.gender_option === "Female")
-            ? b.person?.gender?.gender_option
-            : "Others";
-        return genderA.localeCompare(genderB);
-    }
-},
+            title: 'Gender',
+            dataIndex: 'gender',
+            key: 'gender',
+            sorter: (a, b) => a.gender.localeCompare(b.gender),
+            filters: [
+                ...Array.from(
+                    new Set(allVisitor.map(item => item.gender))
+                ).map(gender => ({
+                    text: gender,
+                    value: gender,
+                }))
+            ],
+            onFilter: (value, record) => record.gender === value,
+        },
         {
             title: 'Visitor Type',
             dataIndex: 'visitor_type',
@@ -457,7 +391,6 @@ const genderFilteredVisitorIds = new Set(
     };
 
 const lastPrintIndexRef = useRef(0);
-
 const handleExportPDF = async () => {
     setIsLoading(true);
     setLoadingMessage("Generating PDF... Please wait.");
@@ -637,20 +570,13 @@ const handleExportPDF = async () => {
 
         // Map to prepare export data, excluding unnecessary fields
         const exportData = fullDataSource?.results.map(visitor => {
-            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
-
-             const barangay = visitor?.person?.addresses[0]?.barangay || '';
-            const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
-            const province = visitor?.person?.addresses[0]?.province || '';
-
-            const addressParts = [barangay, cityMunicipality, province].filter(part => part);
-            const address = addressParts.join(', ');
+            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
             return {
                 "Registration No.": visitor?.visitor_reg_no,
                 "Name":name,
                 "Gender": visitor?.person?.gender?.gender_option, // Include constructed name
                 "Visitor Type": visitor?.visitor_type,
-                "Address": address,
+                "Address": visitor?.person?.addresses[0]?.full_address ?? '',
                 
             };
         }) || [];
@@ -665,20 +591,13 @@ const handleExportCSV = async () => {
     try {
         const fullDataSource = await fetchAllVisitors();
         const exportData = fullDataSource?.results.map(visitor => {
-            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
-
-             const barangay = visitor?.person?.addresses[0]?.barangay || '';
-            const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
-            const province = visitor?.person?.addresses[0]?.province || '';
-
-            const addressParts = [barangay, cityMunicipality, province].filter(part => part);
-            const address = addressParts.join(', ');
+            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
             return {
                 "Registration No.": visitor?.visitor_reg_no,
                 "Name": name,
                 "Gender": visitor?.person?.gender?.gender_option,
                 "Visitor Type": visitor?.visitor_type,
-                "Address": address,
+                "Address": visitor?.person?.addresses[0]?.full_address ?? '',
                 
             };
         }) || [];
@@ -747,6 +666,13 @@ const handleExportCSV = async () => {
         pdf.addImage(imgData, 'PNG', x, y, finalImgWidth, finalImgHeight);
         pdf.save('visitor-profile.pdf');
     };
+
+    const totalRecords = debouncedSearch 
+    ? data?.count || 0
+    : gender !== "all" 
+    ? visitorGenderData?.count || 0 
+    : data?.count || 0; 
+
     return (
         <div>
             <div className="h-[90vh] flex flex-col">
@@ -777,7 +703,6 @@ const handleExportCSV = async () => {
                         />
                     </div>
                 </div>
-
                 <div className="flex-grow overflow-y-auto overflow-x-auto">
                     <Table
                         loading={isFetching || searchLoading || visitorsByGenderLoading}
@@ -815,19 +740,18 @@ const handleExportCSV = async () => {
                         }
                         scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
                         pagination={
-                            debouncedSearch || gender !== "all"
-                            ? false // Disable pagination when searching or filtering by gender
+                            debouncedSearch
+                            ? false 
                             : {
                                 current: page,
                                 pageSize: limit,
-                                total: data?.count || 0,
+                                total: totalRecords,
                                 onChange: (newPage) => setPage(newPage),
                                 showSizeChanger: false,
                                 }
                         }
                         rowKey="id"
                     />
-
                 </div>
             </div>
             <Modal
