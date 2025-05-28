@@ -57,6 +57,8 @@ interface FieldSelectorProps {
   setShowCourtBranchFields?: (show: boolean) => void;
   showOtherCaseFields?: boolean;
   setShowOtherCaseFields?: (show: boolean) => void;
+  showJailFields: boolean;
+  setShowJailFields: ( show: boolean) => void;
 }
 
 const FieldSelector: React.FC<FieldSelectorProps> = ({
@@ -112,6 +114,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
   setShowCourtBranchFields = () => {},
   showOtherCaseFields = false,
   setShowOtherCaseFields = () => {},
+  showJailFields = false,
+  setShowJailFields = () => {}
 }) => (
   <fieldset className="border border-gray-300 rounded-md p-4">
     <legend className="text-lg font-semibold text-[#1E365D] mb-4">
@@ -385,6 +389,17 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 onClick={() => setShowOtherPDLFields(!showOtherPDLFields)}
               >
                 Other Information
+              </button>
+              <button
+                type="button"
+                className={`px-3 py-1 rounded font-semibold transition-colors
+                  ${showJailFields
+                    ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
+                    : 'bg-[#1E365D] text-white'}
+                `}
+                onClick={() => setShowJailFields(!showJailFields)}
+              >
+                Jail
               </button>
               <button
                 type="button"
@@ -1036,12 +1051,19 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
           ))}
         </div>
       )}
-      {/* PDL Court Branch */}
+      {/* PDL Other Case Details */}
       {selectedType === 'pdl' && showOtherCaseFields && (
         <div className="w-full">
           <span className="block font-semibold text-gray-700 mb-2">Other Case Details</span>
           {[
-
+            'bailRecommended',
+            'fileNumber',
+            'caseNumber',
+            'dateCrimeCommitted',
+            'dateCommitted',
+            'caseName',
+            'caseStatus',
+            'sentenceLength',
           ].map((field) => (
             <label key={field} className="inline-flex items-center gap-2 mr-4 cursor-pointer select-none">
               <input
@@ -1052,7 +1074,14 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
               />
               <span>
                 {{
-
+                  bailRecommended: 'Bail Recommended',
+                  fileNumber: 'File Number',
+                  caseNumber: 'Case Number',
+                  dateCrimeCommitted: 'Date Crime Committed',
+                  dateCommitted: 'Date Committed',
+                  caseName: 'Case Name',
+                  caseStatus: 'Case Status',
+                  sentenceLength: 'Sentence Length'
                 }[field]}
               </span>
             </label>

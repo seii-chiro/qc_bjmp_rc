@@ -452,7 +452,8 @@ const genderFilteredVisitorIds = new Set(
             },
         });
         if (!res.ok) throw new Error("Network error");
-        return res.json();
+        const data = await res.json();
+        return data;
     };
 
 const lastPrintIndexRef = useRef(0);
@@ -636,14 +637,21 @@ const handleExportPDF = async () => {
 
         // Map to prepare export data, excluding unnecessary fields
         const exportData = fullDataSource?.results.map(visitor => {
-            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
+            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
+
+             const barangay = visitor?.person?.addresses[0]?.barangay || '';
+            const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
+            const province = visitor?.person?.addresses[0]?.province || '';
+
+            const addressParts = [barangay, cityMunicipality, province].filter(part => part);
+            const address = addressParts.join(', ');
             return {
                 "Registration No.": visitor?.visitor_reg_no,
-                "Name":name, // Include constructed name
+                "Name":name,
+                "Gender": visitor?.person?.gender?.gender_option, // Include constructed name
                 "Visitor Type": visitor?.visitor_type,
-                "Address": visitor?.person?.addresses[0]?.full_address ?? '',
-                "Nationality": visitor?.person?.nationality,
-                "Gender": visitor?.person?.gender?.gender_option,
+                "Address": address,
+                
             };
         }) || [];
 
@@ -653,15 +661,54 @@ const handleExportPDF = async () => {
         XLSX.writeFile(wb, "Visitor.xlsx");
     };
 
+const handleExportCSV = async () => {
+    try {
+        const fullDataSource = await fetchAllVisitors();
+        const exportData = fullDataSource?.results.map(visitor => {
+            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
+
+             const barangay = visitor?.person?.addresses[0]?.barangay || '';
+            const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
+            const province = visitor?.person?.addresses[0]?.province || '';
+
+            const addressParts = [barangay, cityMunicipality, province].filter(part => part);
+            const address = addressParts.join(', ');
+            return {
+                "Registration No.": visitor?.visitor_reg_no,
+                "Name": name,
+                "Gender": visitor?.person?.gender?.gender_option,
+                "Visitor Type": visitor?.visitor_type,
+                "Address": address,
+                
+            };
+        }) || [];
+
+        const csvContent = [
+            Object.keys(exportData[0]).join(","), // Header row
+            ...exportData.map(item => Object.values(item).join(",")) // Data rows
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "Visitor.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (error) {
+        console.error("Error exporting CSV:", error);
+    }
+};
+
     const menu = (
         <Menu>
             <Menu.Item>
                 <a onClick={handleExportExcel}>Export Excel</a>
             </Menu.Item>
             <Menu.Item>
-                <CSVLink data={dataSource.map(({ id, organization, updated, ...rest }) => rest)} filename="Visitors.csv">
-                    Export CSV
-                </CSVLink>
+                <a onClick={handleExportCSV}>Export CSV</a>
+                    
             </Menu.Item>
         </Menu>
     );

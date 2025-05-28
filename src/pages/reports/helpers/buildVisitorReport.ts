@@ -629,6 +629,15 @@
         if (fields.caseStatus) headers.push('Case Status');
         if (fields.sentenceLength) headers.push('Sentence Length');
 
+        //Jail 
+        if (fields.jailName) headers.push('Jail Name');
+        if (fields.jailType) headers.push('Jail Type');
+        if (fields.jailCategory) headers.push('Jail Category');
+        if (fields.emailAddress) headers.push('Email Address');
+        if (fields.contactNumber) headers.push('Contact Number');
+        if (fields.jailAddress) headers.push('Jail Address');
+        if (fields.securityLevel) headers.push('Security Level');
+
       //Talents & Interests
       if (fields.talents) headers.push('Talents');
       if (fields.skills) headers.push('Skills');
@@ -779,12 +788,20 @@
         if (fields.jailCategory) row.push(p?.person?.jail?.jail_category ?? '');
         if (fields.emailAddress) row.push(p?.person?.jail?.email_address ?? '');
         if (fields.contactNumber) row.push(p?.person?.jail?.contact_number ?? '');
-        if (fields.jailProvince) row.push(p?.person?.jail?.jail_province ?? '');
-        if (fields.jailMunicipality) row.push(p?.person?.jail?.jail_city_municipality ?? '');
-        if (fields.jailRegion) row.push(p?.person?.jail?.jail_region ?? '');
-        if (fields.jailBarangay) row.push(p?.person?.jail?.jail_barangay ?? '');
-        if (fields.jailStreet) row.push(p?.person?.jail?.jail_street ?? '');
-        if (fields.jailPostalCode) row.push(p?.person?.jail?.jail_postal_code ?? '');
+        if (fields.jailAddress) {
+            const postalCode = p?.person?.jail?.jail_postal_code ?? '';
+            const province = p?.person?.jail?.jail_province ?? '';
+            const municipality = p?.person?.jail?.jail_city_municipality ?? '';
+            const region = p?.person?.jail?.jail_region ?? '';
+            const barangay = p?.person?.jail?.jail_barangay ?? '';
+            const street = p?.person?.jail?.jail_street ?? '';
+
+            const fullAddress = [street, barangay, municipality, province, region, postalCode]
+                .filter(part => part) // Remove any empty parts
+                .join(', '); // Join with a comma and space
+
+            row.push(fullAddress);
+        }
         if (fields.securityLevel) row.push(p?.person?.jail?.securityLevel ?? '');
 
         //Cell

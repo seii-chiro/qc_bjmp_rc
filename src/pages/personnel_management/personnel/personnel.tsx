@@ -321,13 +321,6 @@ const Personnel = () => {
         },
     ];
 
-    const handleExportExcel = () => {
-        const ws = XLSX.utils.json_to_sheet(dataSource);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Personnel");
-        XLSX.writeFile(wb, "Personnel.xlsx");
-    };
-
     const fetchAllPersonnels = async () => {
         const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
             headers: {
@@ -336,7 +329,8 @@ const Personnel = () => {
             },
         });
         if (!res.ok) throw new Error("Network error");
-        return res.json();
+        const data = await res.json();
+        return data;
     };
 
     const lastPrintIndexRef = useRef(0); 
@@ -491,15 +485,68 @@ const Personnel = () => {
         setPdfDataUrl(null);
     };
 
+    const handleExportExcel = async () => {
+        // Fetch all visitors if necessary
+        const fullDataSource = await fetchAllPersonnels(); // Ensure this fetches all data
+
+        // Map to prepare export data, excluding unnecessary fields
+        const exportData = fullDataSource?.results.map(personnel => {
+            const name = `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim()
+            return {
+                "Registration No.": personnel?.personnel_reg_no,
+                "Name": name,
+                "Gender": personnel?.person?.gender?.gender_option,
+                "Rank": personnel?.rank,
+                "Status": personnel?.status,
+            };
+        }) || [];
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Personnel");
+        XLSX.writeFile(wb, "Personnel.xlsx");
+    };
+
+const handleExportCSV = async () => {
+    try {
+        const fullDataSource = await fetchAllPersonnels();
+        const exportData = fullDataSource?.results.map(personnel => {
+            const name = `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
+            return {
+                "Registration No.": personnel?.personnel_reg_no,
+                "Name": name,
+                "Gender": personnel?.person?.gender?.gender_option,
+                "Rank": personnel?.rank,
+                "Status": personnel?.status,
+            };
+        }) || [];
+
+        const csvContent = [
+            Object.keys(exportData[0]).join(","), // Header row
+            ...exportData.map(item => Object.values(item).join(",")) // Data rows
+        ].join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "Personnel.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (error) {
+        console.error("Error exporting CSV:", error);
+    }
+};
+
     const menu = (
         <Menu>
             <Menu.Item>
                 <a onClick={handleExportExcel}>Export Excel</a>
             </Menu.Item>
             <Menu.Item>
-                <CSVLink data={dataSource} filename="Personnel.csv">
-                    Export CSV
-                </CSVLink>
+                <a onClick={handleExportCSV}>Export CSV</a>
+                    
             </Menu.Item>
         </Menu>
     );

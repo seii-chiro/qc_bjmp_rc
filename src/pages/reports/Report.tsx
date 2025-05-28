@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { defaultAffiliationFields, defaultPDLFields, defaultPersonnelFields, defaultVisitorFields } from './config/reportFieldDefaults';
 import logoBase64 from '@/pages/reports/assets/logoBase64';
 import FieldSelector from './components/FieldSelector';
+import { getUser } from '@/lib/queries';
 
 const { Option } = Select;
 
@@ -34,6 +35,7 @@ const Report = () => {
     const [showOtherVisitorFields, setShowOtherVisitorFields] = useState(false);
     const [showOtherPDLFields, setShowOtherPDLFields] = useState(false);
     const [showOtherCaseFields, setShowOtherCaseFields] = useState(false);
+    const [ showJailFields, setShowJailFields ] = useState(false);
     const [showAddressFields, setShowAddressFields] = useState(false);
     const [showEducationalFields, setShowEducationalFields] = useState(false);
     const [showCaseFields, setShowCaseFields] = useState(false);
@@ -45,7 +47,6 @@ const Report = () => {
     const [personnel, setPersonnel] = useState([]);
     const [pdl, setPDL] = useState([]);
     const [affiliation, setAffiliation] = useState([]);
-    const [, set] = useState([]);
     const [selectedType, setSelectedType] = useState('visitor');
     const [selectedGender, setSelectedGender] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
@@ -185,6 +186,11 @@ const Report = () => {
         if (!res.ok) throw new Error("Network error");
         return res.json();
     };
+
+    const { data: UserData } = useQuery({
+        queryKey: ['user'],
+        queryFn: () => getUser(token ?? "")
+    })
 
     const { data: organizationData } = useQuery({
         queryKey: ['org'],
@@ -521,10 +527,6 @@ const Report = () => {
     }, [visitorFields, personnelFields, pdlFields, affiliationFields, selectedType]);
 
     const handlePrintClick = () => {
-      if (!preparedBy.trim()) {
-        message.warning('Please enter your name in the "Prepared By" field before generating the report.');
-        return;
-      }
       generatePDF();
     };
 
@@ -586,9 +588,10 @@ const Report = () => {
                 id="preparedBy"
                 type="text"
                 className="p-1 border border-gray-300 rounded-md text-gray-800 text-lg outline-none"
-                value={preparedBy}
+                value={UserData ? `${UserData.first_name} ${UserData.last_name}` : preparedBy}
                 onChange={(e) => setPreparedBy(e.target.value)}
                 placeholder="Enter your name"
+                readOnly
               />
             </div>
           </div>
@@ -643,6 +646,8 @@ const Report = () => {
             setShowCourtBranchFields={setShowCourtBranchFields}
             showOtherCaseFields={showOtherCaseFields}
             setShowOtherCaseFields={setShowOtherCaseFields}
+            showJailFields={showJailFields}
+            setShowJailFields={setShowJailFields}
           />
         </div>
         <div className="text-center flex justify-end gap-4">
