@@ -216,7 +216,6 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                     person_id = fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.id;
                     pdlId = fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.pdl?.id
 
-
                     if (!person_id) {
                         if (fingerprintVerificationResult) {
                             message.warning("No person ID found.");
@@ -224,6 +223,18 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                         return;
                     }
 
+                    const res = await fetch(`${BASE_URL}/api/pdls/pdl/${pdlId}`, {
+                        method: 'get',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Token ${token}`
+                        },
+                    });
+
+                    if (!res.ok) throw new Error(`Failed to fetch PDL. Status: ${res.status}`);
+                    const pdlData = await res.json();
+
+                    setLastScannedPdl(pdlData);
 
                 } else {
                     id_number = fingerprintVerificationResult?.[0]?.data?.[0]?.biometric?.person_data?.visitor?.id_number;
