@@ -2475,7 +2475,7 @@ export async function getCurrentUser(token: string): Promise<UserAccounts> {
 
 export async function getVisitorAppStatus(
   token: string
-): Promise<VisitorAppStatus[]> {
+): Promise<PaginatedResponse<VisitorAppStatus>> {
   const res = await fetch(
     `${BASE_URL}/api/visitors/visitor-application-status/`,
     {
