@@ -88,7 +88,23 @@ export const verifyFingerprint = async (verificationPayload: {
   });
 
   if (!response.ok) {
-    throw new Error("No Matches Found");
+    // Try to parse the error body (if it’s JSON)
+    let errorBody;
+    try {
+      errorBody = await response.json();
+    } catch {
+      throw new Error(`Unexpected error: ${response.statusText}`);
+    }
+
+    if (response.status === 500) {
+      throw new Error(
+        `${errorBody?.message ?? "Internal Server Error"} - ${
+          errorBody?.details ?? "No additional details"
+        }`
+      );
+    }
+
+    throw new Error(errorBody?.message ?? "No Matches Found");
   }
 
   return response.json();
