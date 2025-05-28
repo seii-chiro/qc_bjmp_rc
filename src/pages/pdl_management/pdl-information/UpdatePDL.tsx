@@ -997,7 +997,10 @@ const UpdatePDL = () => {
             media_requirement_data: pdlData?.person.media_requirements ?? [],
             diagnosis_data: pdlData?.person.diagnoses ?? [],
             religion_id: pdlData?.person.religion?.id ?? 1,
-            media_data: pdlData?.person.media ?? [],
+            media_data: pdlData?.person.media?.map((media: any) => ({
+                ...media,
+                media_base64: media?.media_binary
+            })) ?? [],
             multiple_birth_sibling_data:
                 pdlData?.person?.multiple_birth_siblings?.map((sibling: any) => ({
                     ...sibling,
