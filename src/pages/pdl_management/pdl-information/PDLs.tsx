@@ -360,33 +360,6 @@ const PDLtable = () => {
         },
     ]
 
-    const handleExportExcel = () => {
-        const ws = XLSX.utils.json_to_sheet(dataSource);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "PDL");
-        XLSX.writeFile(wb, "PDL.xlsx");
-    };
-
-    // useEffect(() => {
-    //     const fetchAllPDLs = async () => {
-    //         try {
-    //             const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
-    //                 headers: {
-    //                     Authorization: `Token ${token}`,
-    //                     "Content-Type": "application/json",
-    //                 },
-    //             });
-    //             if (!res.ok) throw new Error("Network error");
-    //             const data = await res.json();
-    //             setAllPDLs(data.results || []);
-    //         } catch (error) {
-    //             console.error("Error fetching PDLs:", error);
-    //         }
-    //     };
-
-    //     fetchAllPDLs();
-    // }, [token, BASE_URL]); 
-
     const fetchAllPDLs = async () => {
         const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
             headers: {
@@ -550,15 +523,55 @@ const handleExportPDF = async () => {
         setPdfDataUrl(null);
     };
 
+    const handleExportExcel = async () => {
+
+        const fullDataSource = await fetchAllPDLs(); 
+        const exportData = fullDataSource?.results.map(pdl => {
+            const name = `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? ''}`.trim();
+            return {
+                "Name": name,
+                "Dorm": pdl?.cell?.cell_name,
+                "Annex": pdl?.cell?.floor,
+                "Visitation Status": pdl?.visitation_status,
+                "Status": pdl?.status,
+                "Date of Admission": pdl?.date_of_admission
+            };
+        }) || [];
+        
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "PDL");
+        XLSX.writeFile(wb, "PDL.xlsx");
+    };
+
+    const handleExportCSV = async () => {
+        try {
+            const fullDataSource = await fetchAllPDLs();
+            const exportData = fullDataSource?.results.map(pdl => {
+                const name = `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? ''}`.trim();
+            return {
+                "Name": name,
+                "Dorm": pdl?.cell?.cell_name,
+                "Annex": pdl?.cell?.floor,
+                "Visitation Status": pdl?.visitation_status,
+                "Status": pdl?.status,
+                "Date of Admission": pdl?.date_of_admission
+            };
+            }) || [];
+
+            return exportData;
+        } catch (error) {
+            console.error("Error exporting CSV:", error);
+        }
+    };
+
     const menu = (
         <Menu>
             <Menu.Item>
                 <a onClick={handleExportExcel}>Export Excel</a>
             </Menu.Item>
             <Menu.Item>
-                <CSVLink data={dataSource} filename="PDL.csv">
-                    Export CSV
-                </CSVLink>
+                <a onClick={handleExportCSV}>Export CSV</a>
             </Menu.Item>
         </Menu>
     );
