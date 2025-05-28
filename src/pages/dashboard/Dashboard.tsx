@@ -86,6 +86,15 @@ const Dashboard = () => {
         queryFn: fetchSettings,
     });
 
+    const selectedJail = systemsettingdata?.results[0]?.jail_facility?.jail_name || 'BJMP Quezon City Jail - Male Dormitory';
+
+    // Function to determine the title based on selected jail
+    const getJailTitle = (jail) => {
+        return jail.includes('QUEZON CITY JAIL-FEMALE DORM') ? 
+            'BJMP Quezon City Jail - Female Dormitory Dashboard' : 
+            'BJMP Quezon City Jail - Male Dormitory Dashboard';
+    };
+
     const [frequency, setFrequency] = useState('quarterly'); 
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -446,7 +455,7 @@ const visitorHandleClick = (gender: string) => {
                             </div>
                             <div className='mb-6 md:mb-0 text-center md:text-right'>
                                 <h1 className="text-4xl font-extrabold text-[#32507D]">
-                                    BJMP Quezon City Jail - Male Dormitory Dashboard
+                                    {getJailTitle(selectedJail)}
                                 </h1>
                                 <p className="text-sm">{currentDate} at {time}</p>
                             </div>

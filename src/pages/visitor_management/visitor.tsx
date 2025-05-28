@@ -26,7 +26,7 @@ import { Visitor as NewVisitorType } from "@/lib/pdl-definitions";
 
 type Visitor = VisitorRecord;
 
-const Visitor = () => {
+const Visitor = async () => {
     const [searchText, setSearchText] = useState("");
 
     const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -630,8 +630,9 @@ const handleExportPDF = async () => {
         setPdfDataUrl(null);
     };
 
-    const handleExportExcel = async () => {
-        // Fetch all visitors if necessary
+const handleExportExcel = async () => {
+    try {
+        // Fetch all visitors
         const fullDataSource = await fetchAllVisitors(); // Ensure this fetches all data
 
         // Map to prepare export data, excluding unnecessary fields
@@ -639,7 +640,7 @@ const handleExportPDF = async () => {
             const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
             return {
                 "Registration No.": visitor?.visitor_reg_no,
-                "Name":name, // Include constructed name
+                "Name": name, // Include constructed name
                 "Visitor Type": visitor?.visitor_type,
                 "Address": visitor?.person?.addresses[0]?.full_address ?? '',
                 "Nationality": visitor?.person?.nationality,
@@ -651,20 +652,45 @@ const handleExportPDF = async () => {
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Visitor");
         XLSX.writeFile(wb, "Visitor.xlsx");
-    };
+    } catch (error) {
+        console.error("Error exporting Excel:", error);
+    }
+};
 
-    const menu = (
-        <Menu>
-            <Menu.Item>
-                <a onClick={handleExportExcel}>Export Excel</a>
-            </Menu.Item>
-            <Menu.Item>
-                <CSVLink data={dataSource.map(({ id, organization, updated, ...rest }) => rest)} filename="Visitors.csv">
-                    Export CSV
-                </CSVLink>
-            </Menu.Item>
-        </Menu>
-    );
+const handleExportCSV = async () => {
+    try {
+        const fullDataSource = await fetchAllVisitors();
+
+        const exportData = fullDataSource?.results.map(visitor => {
+            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
+            return {
+                "Registration No.": visitor?.visitor_reg_no,
+                "Name": name,
+                "Visitor Type": visitor?.visitor_type,
+                "Address": visitor?.person?.addresses[0]?.full_address ?? '',
+                "Nationality": visitor?.person?.nationality,
+                "Gender": visitor?.person?.gender?.gender_option,
+            };
+        }) || [];
+
+        return exportData;
+    } catch (error) {
+        console.error("Error exporting CSV:", error);
+    }
+};
+
+const menu = (
+    <Menu>
+        <Menu.Item>
+            <a onClick={handleExportExcel}>Export Excel</a>
+        </Menu.Item>
+        <Menu.Item>
+            <CSVLink data={await handleExportCSV()} filename="Visitors.csv">
+                Export CSV
+            </CSVLink>
+        </Menu.Item>
+    </Menu>
+);
 
     const handleDownloadPDF = async () => {
         if (!modalContentRef.current) return;
