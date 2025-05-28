@@ -1294,7 +1294,7 @@ export async function getSystem_Setting(
   return res.json();
 }
 
-export async function getUser(token: string): Promise<User[]> {
+export async function getUser(token: string): Promise<User> {
   const res = await fetch(USER.getUSER, {
     headers: {
       "Content-Type": "application/json",
