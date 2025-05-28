@@ -2,7 +2,6 @@ import { PDLs } from "@/lib/pdl-definitions";
 import { getUser } from "@/lib/queries";
 import { deletePDL, patchPDL } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
-import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -13,12 +12,11 @@ import { useEffect, useRef, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
-import { NavLink, useLocation, useSearchParams } from "react-router-dom";
+import { NavLink, useSearchParams } from "react-router-dom";
 import { BASE_URL } from "@/lib/urls";
 import { PaginatedResponse } from "@/pages/personnel_management/personnel/personnel-backup";
 
 const PDLtable = () => {
-    const location = useLocation();
     const [loadingMessage, setLoadingMessage] = useState("");
     const [searchText, setSearchText] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -132,7 +130,7 @@ const PDLtable = () => {
             queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
                 const offset = (page - 1) * limit;
                 const res = await fetch(
-                    `${BASE_URL}/api/pdls/pdl/?gender=${encodeURIComponent(genderList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                    `${BASE_URL}/api/pdls/pdl/?gender=${encodeURIComponent (genderList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
                     {
                         headers: {
                             'Content-Type': 'application/json',
