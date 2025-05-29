@@ -4,7 +4,7 @@ import { BASE_URL } from '@/lib/urls';
 import { useTokenStore } from '@/store/useTokenStore';
 import * as XLSX from 'xlsx';
 // import bjmp from '../../assets/Logo/QCJMD.png';
-import { message, Select } from 'antd';
+import { Select } from 'antd';
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 pdfMake.vfs = pdfFonts.vfs;
@@ -24,7 +24,7 @@ const Report = () => {
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [showEmploymentFields, setShowEmploymentFields] = useState(false);
     const [showIdentifierFields, setShowIdentifierFields] = useState(false);
-    const [showContactFields, setShowContactFields] = useState(false);
+    // const [showContactFields, setShowContactFields] = useState(false);
     const [showTalentsFields, setShowTalentsFields] = useState(false);
     const [showSocialMediaFields, setShowSocialMediaFields ] = useState(false);
     const [showAffiliationFields, setShowAffiliationFields ] = useState(false);
@@ -36,7 +36,7 @@ const Report = () => {
     const [showOtherPDLFields, setShowOtherPDLFields] = useState(false);
     const [showOtherCaseFields, setShowOtherCaseFields] = useState(false);
     const [ showJailFields, setShowJailFields ] = useState(false);
-    const [showAddressFields, setShowAddressFields] = useState(false);
+    // const [showAddressFields, setShowAddressFields] = useState(false);
     const [showEducationalFields, setShowEducationalFields] = useState(false);
     const [showCaseFields, setShowCaseFields] = useState(false);
     const [showOffenseFields, setShowOffenseFields] = useState(false);
@@ -96,16 +96,6 @@ const Report = () => {
         };
 
         const fetchAffiliation = async () => {
-            try {
-                setAffiliationLoading(true);
-                const data = await fetchAllAffiliation();
-                setAffiliation(data.results || []);
-            } finally {
-                setAffiliationLoading(false);
-            }
-        };
-
-        const fetchDeviceSettings = async () => {
             try {
                 setAffiliationLoading(true);
                 const data = await fetchAllAffiliation();
@@ -178,18 +168,6 @@ const Report = () => {
         return res.json();
     };
 
-        const fetchAllDeviceSettings = async () => {
-        const res = await fetch(`${BASE_URL}/api/codes/device-settings/`, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
-
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-    };
-
     const { data: UserData } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
@@ -231,7 +209,6 @@ const Report = () => {
     setIsLoading(true);
     setLoadingMessage('Generating PDF... Please wait.');
 
-    // Build headers and body rows based on selectedType
     let headers: string[] = ['No.'];
     let body: any[][] = [];
 
@@ -253,11 +230,10 @@ const Report = () => {
       body = b;
     }
 
-   // Update the widths array to set a fixed width for the "No." column
   const displayedHeaders = headers;
   const displayedBody = body;
 
-    const columnThreshold = 6; // to witch page orientation
+    const columnThreshold = 7; 
     const pageOrientation = displayedHeaders.length > columnThreshold ? 'landscape' : 'portrait';
     const columnWidths = ['auto', ...Array(displayedHeaders.length - 1).fill('*')];
 
@@ -352,7 +328,7 @@ const Report = () => {
       footer: (currentPage: number, pageCount: number) => ({
         columns: [
           {
-            text: `Document Version: 1.0\nConfidentiality Level: Internal use only\nContact Info: ${preparedBy}\nTimestamp of Last Update: ${formattedDate}`,
+            text: `Document Version: 1.0\nConfidentiality Level: Internal use only\nContact Info: ${UserData ? `${UserData.first_name} ${UserData.last_name}` : preparedBy}\nTimestamp of Last Update: ${formattedDate}`,
             fontSize: 8,
             alignment: 'left',
             margin: [40, 10],
@@ -418,10 +394,6 @@ const Report = () => {
   };
 
   const handleDownloadExcel = () => {
-    if (!preparedBy.trim()) {
-      message.warning('Please enter your name in the "Prepared By" field before downloading the Excel report.');
-      return;
-    }
     const { headers, body } = getCurrentHeadersAndBody();
     const wsData = [headers, ...body];
     const ws = XLSX.utils.aoa_to_sheet(wsData);
@@ -431,10 +403,6 @@ const Report = () => {
   };
 
   const handleDownloadCSV = () => {
-    if (!preparedBy.trim()) {
-      message.warning('Please enter your name in the "Prepared By" field before downloading the CSV report.');
-      return;
-    }
     const { headers, body } = getCurrentHeadersAndBody();
     const rows = [headers, ...body];
     const csvContent = rows.map(row =>
@@ -486,26 +454,26 @@ const Report = () => {
         }
     };
 
-    const handleSelectAllCheckbox = (checked: boolean) => {
-      setSelectAllFields(checked);
-      if (selectedType === 'visitor') {
-        setVisitorFields(prev =>
-          Object.fromEntries(Object.keys(prev).map(k => [k, checked]))
-        );
-      } else if (selectedType === 'personnel') {
-        setPersonnelFields(prev =>
-          Object.fromEntries(Object.keys(prev).map(k => [k, checked]))
-        );
-      } else if (selectedType === 'pdl') {
-        setPDLFields(prev =>
-          Object.fromEntries(Object.keys(prev).map(k => [k, checked]))
-        );
-      } else if (selectedType === 'affiliation') {
-        setAffiliationFields(prev =>
-          Object.fromEntries(Object.keys(prev).map(k => [k, checked]))
-        );
-      }
-    };
+    // const handleSelectAllCheckbox = (checked: boolean) => {
+    //   setSelectAllFields(checked);
+    //   if (selectedType === 'visitor') {
+    //     setVisitorFields(prev =>
+    //       Object.fromEntries(Object.keys(prev).map(k => [k, checked]))
+    //     );
+    //   } else if (selectedType === 'personnel') {
+    //     setPersonnelFields(prev =>
+    //       Object.fromEntries(Object.keys(prev).map(k => [k, checked]))
+    //     );
+    //   } else if (selectedType === 'pdl') {
+    //     setPDLFields(prev =>
+    //       Object.fromEntries(Object.keys(prev).map(k => [k, checked]))
+    //     );
+    //   } else if (selectedType === 'affiliation') {
+    //     setAffiliationFields(prev =>
+    //       Object.fromEntries(Object.keys(prev).map(k => [k, checked]))
+    //     );
+    //   }
+    // };
 
     useEffect(() => {
     switch (selectedType) {
@@ -547,18 +515,17 @@ const Report = () => {
 
     return (
       <div className="p-8 max-w-7xl mx-auto bg-white rounded-lg shadow-sm border border-gray-100">
-         <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">{reportName}</h2>
-
+        <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">{reportName}</h2>
           {/* Loading State */}
           {(visitorsLoading && selectedType === 'visitor') ||
           (personnelLoading && selectedType === 'personnel') ? (
-            <p className="mb-6 text-center text-yellow-600 font-semibold">
+            <p className="mb-6 text-center text-[#C69F08] font-bold">
               Loading data, please wait...
             </p>
           ) : null}
         {/* Controls Section */}
         <div className="mb-8 space-y-6">
-          <div className="flex flex-wrap gap-6 items-end">
+          <div className="flex flex-wrap gap-4 items-end">
             {/* Select Type */}
             <div className="flex flex-col flex-1 min-w-[200px]">
               <label htmlFor="selectType" className="mb-2 font-medium text-gray-700">
@@ -615,7 +582,7 @@ const Report = () => {
           <FieldSelector
             selectedType={selectedType}
             selectAllFields={selectAllFields}
-            handleSelectAllCheckbox={handleSelectAllCheckbox}
+            // handleSelectAllCheckbox={handleSelectAllCheckbox}
             handleFieldChange={handleFieldChange}
             visitorFields={visitorFields}
             personnelFields={personnelFields}
@@ -629,16 +596,16 @@ const Report = () => {
             setShowEmploymentFields={setShowEmploymentFields}
             showIdentifierFields={showIdentifierFields}
             setShowIdentifierFields={setShowIdentifierFields}
-            showContactFields={showContactFields}
-            setShowContactFields={setShowContactFields}
+            // showContactFields={showContactFields}
+            // setShowContactFields={setShowContactFields}
             showTalentsFields={showTalentsFields}
             setShowTalentsFields={setShowTalentsFields}
             showOtherPersonnelFields={showOtherPersonnelFields}
             setShowOtherPersonnelFields={setShowOtherPersonnelFields}
             showOtherVisitorFields={showOtherVisitorFields}
             setShowOtherVisitorFields={setShowOtherVisitorFields}
-            showAddressFields={showAddressFields}
-            setShowAddressFields={setShowAddressFields}
+            // showAddressFields={showAddressFields}
+            // setShowAddressFields={setShowAddressFields}
             showEducationalFields={showEducationalFields}
             setShowEducationalFields={setShowEducationalFields}
             showOtherPDLFields={showOtherPDLFields}

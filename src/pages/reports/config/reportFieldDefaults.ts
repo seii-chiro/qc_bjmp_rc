@@ -2,37 +2,37 @@
 export const sharedFields = {
     ID: false,
     shortName: false,
-    name: false,
-    gender: false,
-    civilStatus: false,
-    address: false,
-    dateOfBirth: false,
-    placeOfBirth: false,
-    religion: false,
+    name: true,
+    age: true,
+    gender: true,
+    civilStatus: true,
+    address: true,
+    dateOfBirth: true,
+    placeOfBirth: true,
+    religion: true,
     type: false,
     firstName: false,
     middleName: false,
     lastName: false,
-    age: false
 };
 
 // All possible fields for visitor/personnel/pdl
 const extraFields = {
     // Address
-    addressType: false,
-    barangay: false,
-    bldgSubdivision: false,
-    country: false,
+    // addressType: false,
+    // barangay: false,
+    // bldgSubdivision: false,
+    // country: false,
     fullAddress: false,
-    isActive: false,
-    isCurrent: false,
-    municipality: false,
-    province: false,
-    street: false,
-    postalCode: false,
-    region: false,
-    streetNumber: false,
-    type: false,
+    // isActive: false,
+    // isCurrent: false,
+    // municipality: false,
+    // province: false,
+    // street: false,
+    // postalCode: false,
+    // region: false,
+    // streetNumber: false,
+    // type: false,
     // Contact
     contactType: false,
     value: false,
@@ -132,13 +132,13 @@ const extraFields = {
 export const defaultVisitorFields = {
     ...sharedFields,
     ...extraFields,
-    registrationNo: false,
+    registrationNo: true,
 };
 
 export const defaultPersonnelFields = {
     ...sharedFields,
     ...extraFields,
-    registrationNo: false,
+    registrationNo: true,
     role: false,
     personnelType: false,
     position: false,
@@ -218,6 +218,14 @@ export const defaultPDLFields = {
 
 // Affiliation fields
 export const defaultAffiliationFields = {
-    affiliationType: false,
-    description: false,
+    affiliationType: true,
+    description: true,
+};
+
+//Device
+export const defaultDeviceSettingFields = {
+    device: true,
+    key: true,
+    value: true,
+    description: true,
 };

@@ -1,3 +1,5 @@
+import { calculateAge } from "@/functions/calculateAge";
+
     export const buildVisitorReport = (visitors: any[], fields: any, selectedGender: string | null) => {
       const headers: string[] = [];
       const body: any[][] = [];
@@ -9,6 +11,7 @@
     //   if (fields.middleName) headers.push('Middle Name');
     //   if (fields.lastName) headers.push('Last Name');
       if (fields.name) headers.push('Name');
+      if (fields.age) headers.push('Age');
       if (fields.gender) headers.push('Gender');
       if (fields.dateOfBirth) headers.push('Date of Birth');
       // if (fields.placeOfBirth) headers.push('Place of Birth');
@@ -17,6 +20,7 @@
 
           //Address
     if (fields.fullAddress) headers.push('Full Address');
+    if (fields.value) headers.push('Mobile Number');
     // if (fields.addressType) headers.push('Address Type');
     // if (fields.bldgSubdivision) headers.push('BLDG Subdivision');
     // if (fields.barangay) headers.push('Barangay');
@@ -46,9 +50,9 @@
       if (fields.honorsRecieved) headers.push('Honors Received');
 
       // Contact Information
-      if (fields.contactType) headers.push('Contact Type');
-      if (fields.value) headers.push('Value');
-      if (fields.mobileImei) headers.push('Mobile IMEI');
+      // if (fields.contactType) headers.push('Contact Type');
+      
+      // if (fields.mobileImei) headers.push('Mobile IMEI');
 
       //Biometrics
         if (fields.biometricStatus) headers.push('Biometric Status');
@@ -131,6 +135,10 @@
         // if (fields.middleName) row.push(v?.person?.middle_name ?? '');
         // if (fields.lastName) row.push(v?.person?.last_name ?? '');
         if (fields.name) row.push(`${v?.person?.first_name ?? ''} ${v?.person?.last_name ?? ''}`.trim());
+        if (fields.age) {
+            const age = v?.person?.date_of_birth ? String(calculateAge(v.person.date_of_birth)) : '';
+            row.push(age || ''); // Ensure a value is present
+        }
         if (fields.gender) row.push(v?.person?.gender?.gender_option ?? '');
         if (fields.dateOfBirth) row.push(v?.person?.date_of_birth ?? '');
         // if (fields.placeofBirth) row.push(v?.person?.place_of_birth ?? '');
@@ -139,6 +147,7 @@
         
         //Address
         if (fields.fullAddress) row.push(v?.person?.addresses?.[0]?.full_address ?? '');
+        if (fields.value) row.push(Array.isArray(v?.person?.contacts) ? v.person.contacts.map(c => c.value).join(', ') : '');
         // if (fields.addressType) row.push(v?.person?.addresses?.[0]?.address_type ?? '');
         // if (fields.bldgSubdivision) row.push(v?.person?.addresses?.[0]?.bldg_subdivision ?? '');
         // if (fields.barangay) row.push(v?.person?.addresses?.[0]?.barangay ?? '');
@@ -168,9 +177,9 @@
         if (fields.honorsRecieved) row.push(v?.person?.education_backgrounds?.[0]?.honors_received ?? '');
 
         //    Contact Information
-        if (fields.contactType) row.push(Array.isArray(v?.person?.contacts) ? v.person.contacts.map(c => c.contact_type).join(', ') : '');
-        if (fields.value) row.push(Array.isArray(v?.person?.contacts) ? v.person.contacts.map(c => c.value).join(', ') : '');
-        if (fields.mobileImei) row.push(Array.isArray(v?.person?.contacts) ? v.person.contacts.map(c => c.mobile_imei).join(', ') : '');
+        // if (fields.contactType) row.push(Array.isArray(v?.person?.contacts) ? v.person.contacts.map(c => c.contact_type).join(', ') : '');
+        
+        // if (fields.mobileImei) row.push(Array.isArray(v?.person?.contacts) ? v.person.contacts.map(c => c.mobile_imei).join(', ') : '');
 
         //Biometrics
         if (fields.biometricStatus) row.push(v?.person?.biometric_status?.status ?? '');
@@ -287,11 +296,12 @@
     //   if (fields.middleName) headers.push('Middle Name');
     //   if (fields.lastName) headers.push('Last Name');
       if (fields.name) headers.push('Name');
+      if (fields.age) headers.push('Age');
       if (fields.gender) headers.push('Gender');
-      if (fields.religion) headers.push('Religion');
       if (fields.dateOfBirth) headers.push('Date of Birth');
       if (fields.placeOfBirth) headers.push('Place of Birth');
       if (fields.civilStatus) headers.push('Civil Status');
+      if (fields.religion) headers.push('Religion');
       
       //Personnel Information
     if (fields.role) headers.push('Role');
@@ -323,9 +333,9 @@
     // if (fields.type) headers.push('Address Type');
 
     //    Contact Information
-      if (fields.contactType) headers.push('Contact Type');
-      if (fields.value) headers.push('Value');
-      if (fields.mobileImei) headers.push('Mobile IMEI');
+      // if (fields.contactType) headers.push('Contact Type');
+      if (fields.value) headers.push('Mobile Number');
+      // if (fields.mobileImei) headers.push('Mobile IMEI');
 
     
 
@@ -424,11 +434,16 @@
         // if (fields.middleName) row.push(p?.person?.middle_name ?? '');
         // if (fields.lastName) row.push(p?.person?.last_name ?? '');
         if (fields.name) row.push(`${p?.person?.first_name ?? ''} ${p?.person?.last_name ?? ''}`.trim());
+        if (fields.age) {
+            const age = p?.person?.date_of_birth ? String(calculateAge(p.person.date_of_birth)) : '';
+            if (age) row.push(age);
+        }
         if (fields.gender) row.push(p?.person?.gender?.gender_option ?? '');
-        if (fields.religion) row.push(p?.person?.religion?.name ?? '');
+        
         if (fields.dateOfBirth) row.push(p?.person?.date_of_birth ?? '');
-        if (fields.placeOfBirth) row.push(p?.person?.place_of_births ?? '');
-        if (fields.civilStatus) row.push(p?.civil_status ?? '');
+        if (fields.placeOfBirth) row.push(p?.person?.place_of_birth ?? '');
+        if (fields.civilStatus) row.push(p?.person?.civil_status ?? '');
+        if (fields.religion) row.push(p?.person?.religion?.name ?? '');
 
         //Personnel Information
         if (fields.role) row.push(p?.role ?? '');
@@ -460,9 +475,9 @@
         // if (fields.type) row.push(p?.person?.addresses?.[0]?.type ?? '');
 
         //    Contact Information
-        if (fields.contactType) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.contact_type).join(', ') : '');
+        // if (fields.contactType) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.contact_type).join(', ') : '');
         if (fields.value) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.value).join(', ') : '');
-        if (fields.mobileImei) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.mobile_imei).join(', ') : '');
+        // if (fields.mobileImei) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.mobile_imei).join(', ') : '');
 
         // Education Information
         if (fields.educationalAttainment) row.push(p?.person?.education_backgrounds?.[0]?.educational_attainment ?? '');
@@ -556,12 +571,14 @@
         // if (fields.middleName) headers.push('Middle Name');
         // if (fields.lastName) headers.push('Last Name');
         if (fields.name) headers.push('Name');
+        if (fields.age) headers.push('Age');
         if (fields.gender) headers.push('Gender');
-        if (fields.religion) headers.push('Religion');
         if (fields.status) headers.push('Status');
         if (fields.dateOfBirth) headers.push('Date of Birth');
         if (fields.placeOfBirth) headers.push('Place of Birth');
         if (fields.civilStatus) headers.push('Civil Status');
+        if (fields.religion) headers.push('Religion');
+        if (fields.fullAddress) headers.push('Full Address');
 
         //PDL Information
         if (fields.visitationStatus) headers.push('Visitation Status');
@@ -571,7 +588,7 @@
         if (fields.precinct) headers.push('Precinct');
 
         //Address
-    if (fields.fullAddress) headers.push('Full Address');
+    
     // if (fields.addressType) headers.push('Address Type');
     // if (fields.bldgSubdivision) headers.push('BLDG Subdivision');
     // if (fields.barangay) headers.push('Barangay');
@@ -597,9 +614,9 @@
       if (fields.institutionAddress) headers.push('Institution Address');
       if (fields.honorsRecieved) headers.push('Honors Received');
     //    Contact Information
-      if (fields.contactType) headers.push('Contact Type');
-      if (fields.value) headers.push('Value');
-      if (fields.mobileImei) headers.push('Mobile IMEI');
+      // if (fields.contactType) headers.push('Contact Type');
+      if (fields.value) headers.push('Mobile Number');
+      // if (fields.mobileImei) headers.push('Mobile IMEI');
 
     //Visitor
     if (fields.registrationNo) headers.push('Registration No.');
@@ -731,12 +748,18 @@
             // if (fields.middleName) row.push(p?.person?.middle_name ?? '');
             // if (fields.lastName) row.push(p?.person?.last_name ?? '');
             if (fields.name) row.push(`${p?.person?.first_name ?? ''} ${p?.person?.last_name ?? ''}`.trim());
+            if (fields.age) {
+                const age = p?.person?.date_of_birth ? String(calculateAge(p.person.date_of_birth)) : '';
+                if (age) row.push(age);
+            }
             if (fields.gender) row.push(p?.person?.gender?.gender_option ?? '');
-            if (fields.religion) row.push(p?.person?.religion?.name ?? '');
+            
             if (fields.status) row.push(p?.status ?? '');
             if (fields.dateOfBirth) row.push(p?.person?.date_of_birth ?? '');
             if (fields.placeOfBirth) row.push(p?.person?.place_of_birth ?? '');
             if (fields.civilStatus) row.push(p?.person?.civil_status ?? '');
+            if (fields.religion) row.push(p?.person?.religion?.name ?? '');
+            if (fields.fullAddress) row.push(p?.person?.addresses?.[0]?.full_address ?? '');
 
             //PDL other Information
             if (fields.visitationStatus) row.push(p?.visitation_status ?? '');
@@ -746,7 +769,7 @@
             if (fields.precinct) row.push(p?.precinct ?? '');
 
             //Address
-        if (fields.fullAddress) row.push(p?.person?.addresses?.[0]?.full_address ?? '');
+        
         // if (fields.addressType) row.push(p?.person?.addresses?.[0]?.address_type ?? '');
         // if (fields.bldgSubdivision) row.push(p?.person?.addresses?.[0]?.bldg_subdivision ?? '');
         // if (fields.barangay) row.push(p?.person?.addresses?.[0]?.barangay ?? '');
@@ -762,9 +785,9 @@
         // if (fields.type) row.push(p?.person?.addresses?.[0]?.type ?? '');
 
         //    Contact Information
-        if (fields.contactType) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.contact_type).join(', ') : '');
+        // if (fields.contactType) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.contact_type).join(', ') : '');
         if (fields.value) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.value).join(', ') : '');
-        if (fields.mobileImei) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.mobile_imei).join(', ') : '');
+        // if (fields.mobileImei) row.push(Array.isArray(p?.person?.contacts) ? p.person.contacts.map(c => c.mobile_imei).join(', ') : '');
 
         //Visitor
         if (fields.registrationNo) row.push(Array.isArray(p?.visitor) ? p.visitor.map(v => v.visitor_reg_no).join(', ') : '');
@@ -906,7 +929,7 @@
         return { headers, body };
         };
 
-        export const buildAffiliationReport = (affiliation: any, fields: any,) => {
+    export const buildAffiliationReport = (affiliation: any, fields: any,) => {
         const headers: string[] = [];
         const body: any[][] = [];
         if (fields.affiliationType) headers.push('Affiliation Type');

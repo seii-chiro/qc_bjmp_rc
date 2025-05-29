@@ -23,22 +23,23 @@ import { PiFolderUserDuotone } from "react-icons/pi";
 import { BASE_URL } from "@/lib/urls";
 import { PaginatedResponse } from "../personnel_management/personnel/personnel-backup";
 import { Visitor as NewVisitorType } from "@/lib/pdl-definitions";
+import dayjs from "dayjs";
 
-type Visitor = VisitorRecord;
+type VisitorResponse = VisitorRecord;
 
-const Visitor = () => {
+const Visitor = ({ visitor_log, visitHistory }: { visitor_log: any, visitHistory: any[] }) => {
     const [searchText, setSearchText] = useState("");
 
     const [debouncedSearch, setDebouncedSearch] = useState("");
      const [loadingMessage, setLoadingMessage] = useState("");
-    const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
+    const [selectedVisitor, setSelectedVisitor] = useState<VisitorResponse | null>(null);
     const queryClient = useQueryClient();
     const token = useTokenStore().token;
     const modalContentRef = useRef<HTMLDivElement>(null);
     const [messageApi, contextHolder] = message.useMessage();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [selectEditVisitor, setEditSelectedVisitor] = useState<Visitor | null>(null);
+    const [selectEditVisitor, setEditSelectedVisitor] = useState<VisitorResponse | null>(null);
     const [visitorVisits, setVisitorVisits] = useState(selectedVisitor?.main_gate_visits || []);
     const [showAllVisits, setShowAllVisits] = useState(false);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
@@ -119,6 +120,19 @@ const Visitor = () => {
             messageApi.error(error.message || "Failed to delete Visitor");
         },
     });
+
+    const visitor = visitor_log?.visitor;
+
+    const visitHistoryForVisitor = visitHistory?.filter(log => log?.person === visitor_log?.person)
+
+    const sortedVisitHistory = visitHistoryForVisitor
+        ?.slice() // create a shallow copy
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 3);
+
+
+    const displayedVisitHistory = sortedVisitHistory || [];
+
 
     const leftSideImage = selectedVisitor?.person?.media?.find(
         (m: any) => m.picture_view === "Left"
@@ -216,7 +230,7 @@ const genderFilteredVisitorIds = new Set(
     });
 
 
-    const columns: ColumnsType<Visitor> = [
+    const columns: ColumnsType<VisitorResponse> = [
         {
             title: 'No.',
             key: 'no',
@@ -357,7 +371,7 @@ const genderFilteredVisitorIds = new Set(
 
     ];
 
-    const handleRowClick = async (record: Visitor) => {
+    const handleRowClick = async (record: VisitorResponse) => {
         setSelectedVisitor(null);
         try {
             const visitorDetails = await getVisitorSpecificById(record.id, token);
@@ -678,15 +692,15 @@ const handleExportCSV = async () => {
             <div className="h-[90vh] flex flex-col">
                 {contextHolder}
                 <h1 className="text-3xl font-bold text-[#1E365D]">Visitor</h1>
-                <div className="flex my-4 justify-between">
+                <div className="flex my-1 justify-between">
                     <div className="flex gap-2">
-                        <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
+                        <Dropdown className="bg-[#1E365D] py-1 px-5 rounded-md text-white" overlay={menu}>
                             <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
                                 <GoDownload /> Export
                             </a>
                         </Dropdown>
                        <button 
-                            className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                            className={`bg-[#1E365D] py-1 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
                             onClick={handleExportPDF} 
                             disabled={isLoading}
                         >
@@ -703,7 +717,7 @@ const handleExportCSV = async () => {
                         />
                     </div>
                 </div>
-                <div className="flex-grow overflow-y-auto overflow-x-auto">
+                <div className="overflow-x-auto">
                     <Table
                         loading={isFetching || searchLoading || visitorsByGenderLoading}
                         columns={columns}
@@ -738,7 +752,7 @@ const handleExportCSV = async () => {
                                 }))
                             : filteredData
                         }
-                        scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
+                        scroll={{ x: 800 }}
                         pagination={
                             debouncedSearch
                             ? false 
@@ -817,64 +831,45 @@ const handleExportCSV = async () => {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {visitorVisits?.length > 0 ? (
-                                                                (showAllVisits
-                                                                    ? [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-                                                                    : [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(0, 3)
-                                                                ).reduce((acc, visit, index, arr) => {
-                                                                    const login = new Date(visit.created_at);
-                                                                    let logout;
-
-                                                                    if (arr[index + 1]) {
-                                                                        const nextVisitDate = new Date(arr[index + 1].created_at);
-                                                                        // Check if the date matches
-                                                                        if (login.toDateString() === nextVisitDate.toDateString()) {
-                                                                            logout = nextVisitDate;
+                                                            {displayedVisitHistory && displayedVisitHistory.length > 0 ? (
+                                                                displayedVisitHistory.map((visit, index) => {
+                                                                    const login = new Date(visit.timestamp_in);
+                                                                    const logout = visit.timestamp_out ? new Date(visit.timestamp_out) : null;
+                                                                    const duration_in_sec = visit?.duration ? visit?.duration : 0;
+                                                                    let durationDisplay = "...";
+                                                                    if (visit.timestamp_out) {
+                                                                        const minutes = Math.floor(duration_in_sec / 60);
+                                                                        const hours = Math.floor(minutes / 60);
+                                                                        if (duration_in_sec < 60) {
+                                                                            durationDisplay = `${duration_in_sec?.toFixed(0)}s`;
+                                                                        } else if (minutes < 60) {
+                                                                            durationDisplay = `${minutes}m`;
                                                                         } else {
-                                                                            logout = new Date(visit.updated_at);
+                                                                            durationDisplay = `${hours}h ${minutes % 60}m`;
                                                                         }
-                                                                    } else {
-                                                                        logout = new Date(visit.updated_at); // Fallback for the last visit
                                                                     }
-
-                                                                    // Check if the login time is already a logout time in the accumulated logouts
-                                                                    const lastLogout = acc.length > 0 ? acc[acc.length - 1].logout : null;
-
-                                                                    if (lastLogout && login.getTime() <= lastLogout.getTime()) {
-                                                                        return acc; // Skip this visit as it's not a valid login
-                                                                    }
-
-                                                                    // If valid, push to the accumulator
-                                                                    acc.push({ login, logout });
-                                                                    return acc;
-                                                                }, []).map(({ login, logout }, index) => {
-                                                                    const durationMs = logout.getTime() - login.getTime();
-                                                                    const durationMins = Math.floor(durationMs / 60000);
-                                                                    const hours = Math.floor(durationMins / 60);
-                                                                    const minutes = durationMins % 60;
-
                                                                     return (
                                                                         <tr key={index}>
-                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                {login.toLocaleDateString()}
+                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                                {dayjs(login).format("YYYY-MM-DD")}
                                                                             </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                {`${hours}h ${minutes}m`}
+                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                                {!visit.timestamp_out ? "..." : durationDisplay}
                                                                             </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
+                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
                                                                                 {login.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                                                             </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                {logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                                {visit.isCurrent ? <span className="text-green-600 font-semibold">...</span> : (logout
+                                                                                    ? logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                                                                                    : "-")}
                                                                             </td>
                                                                         </tr>
                                                                     );
                                                                 })
                                                             ) : (
                                                                 <tr>
-                                                                    <td colSpan={4} className="text-center text-[9px] text-gray-500 py-2">
-                                                                        No visitor history found
-                                                                    </td>
+                                                                    <td colSpan={4} className="text-center text-xs py-2">No visit history found.</td>
                                                                 </tr>
                                                             )}
                                                         </tbody>

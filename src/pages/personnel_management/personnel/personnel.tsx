@@ -620,10 +620,10 @@ const handleExportCSV = async () => {
                                 }))
                             : filteredData
                 }
-                scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
+                scroll={{ x: 800}}
                 pagination={
                     debouncedSearch
-                        ? false // Hide pagination when searching
+                        ? false 
                         : {
                             current: page,
                             pageSize: limit,

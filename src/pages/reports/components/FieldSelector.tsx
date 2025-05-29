@@ -1,15 +1,12 @@
-import React from 'react';
 
 interface FieldSelectorProps {
   selectedType: string;
   selectAllFields: boolean;
-  handleSelectAllCheckbox: (checked: boolean) => void;
   handleFieldChange: (field: string) => void;
   visitorFields: Record<string, boolean>;
   personnelFields: Record<string, boolean>;
   pdlFields: Record<string, boolean>;
   affiliationFields: Record<string, boolean>;
-
   //gender and status filters
   selectedGender: string;
   setSelectedGender: (gender: string) => void;
@@ -21,16 +18,16 @@ interface FieldSelectorProps {
   setShowEmploymentFields: (show: boolean) => void;
   showIdentifierFields: boolean;
   setShowIdentifierFields: (show: boolean) => void;
-  showContactFields: boolean;
-  setShowContactFields: (show: boolean) => void;
+  // showContactFields: boolean;
+  // setShowContactFields: (show: boolean) => void;
   showTalentsFields: boolean;
   setShowTalentsFields: (show: boolean) => void;
   showOtherPersonnelFields: boolean;
   setShowOtherPersonnelFields: (show: boolean) => void;
   showOtherVisitorFields?: boolean;
   setShowOtherVisitorFields?: (show: boolean) => void;
-  showAddressFields?: boolean;
-  setShowAddressFields?: (show: boolean) => void;
+  // showAddressFields?: boolean;
+  // setShowAddressFields?: (show: boolean) => void;
   showEducationalFields?: boolean;
   setShowEducationalFields?: (show: boolean) => void;
   showOtherPDLFields?: boolean;
@@ -67,8 +64,7 @@ interface FieldSelectorProps {
 
 const FieldSelector: React.FC<FieldSelectorProps> = ({
   selectedType,
-  selectAllFields,
-  handleSelectAllCheckbox,
+  // selectAllFields,
   handleFieldChange,
   visitorFields,
   personnelFields,
@@ -82,16 +78,16 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
   setShowEmploymentFields,
   showIdentifierFields,
   setShowIdentifierFields,
-  showContactFields,
-  setShowContactFields,
+  // showContactFields,
+  // setShowContactFields,
   showTalentsFields,
   setShowTalentsFields,
   showOtherPersonnelFields,
   setShowOtherPersonnelFields,
   showOtherVisitorFields = false,
   setShowOtherVisitorFields = () => {},
-  showAddressFields = false,
-  setShowAddressFields = () => {},
+  // showAddressFields = false,
+  // setShowAddressFields = () => {},
   showEducationalFields = false,
   setShowEducationalFields = () => {},
   showOtherPDLFields = false,
@@ -105,7 +101,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
   showMediaRequirementsFields = false,
   setShowMediaRequirementsFields = () => {},
   showMediaIdentifiersFields = false,
-  // setShowMediaIdentifiersFields = () => {},
+  setShowMediaIdentifiersFields = () => {},
   // showMultipleBirthSiblingFields = false,
   // setShowMultipleBirthSiblingFields = () => {},
   // showFamilyRecordFields = false,
@@ -125,26 +121,18 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
   showCellFields = false,
   setShowCellFields = () => {},
 }) => (
-  <fieldset className="border border-gray-300 rounded-md p-4">
-    <div className="mb-2 flex gap-2">
-      <div className="mb-2 flex gap-2 items-center">
-        <input
-          type="checkbox"
-          id="selectAllFields"
-          checked={selectAllFields}
-          onChange={e => handleSelectAllCheckbox(e.target.checked)}
-          className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
-        />
-        <label htmlFor="selectAllFields" className="font-medium text-gray-700 cursor-pointer">
-          Select All Fields
-        </label>
-      </div>
-    </div>
+  <div>
+  <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+  {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && (
+    <>
+  <fieldset className="border col-span-1 border-gray-300 rounded-md p-4 h-fit">
+    {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && (
+  <legend className='px-2'>Personal Information</legend>
+)}
     <div className="flex flex-wrap gap-4">
       {/* Visitor & Personnel Information */}
       {(selectedType === 'visitor' || selectedType === 'personnel') && (
-        <div className="w-full mt-4">
-          <span className="block font-semibold text-gray-700 mb-2">Personal Information</span>
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-1">
           {[
             'registrationNo',
             // 'ID',
@@ -153,11 +141,14 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
             // 'middleName',
             // 'lastName',
             'name',
+            'age',
             'gender',
             'dateOfBirth',
+            'placeOfBirth',
             'civilStatus',
             'religion',
             'fullAddress',
+            'value',
           ].map((field) => (
             <label key={field} className="inline-flex items-center gap-2 mr-4 cursor-pointer select-none">
               <input
@@ -170,7 +161,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                     : pdlFields[field]
                 }
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox accent-[#1E365D] h-5 w-5 text-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -181,22 +172,23 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                   // middleName: 'Middle Name',
                   // lastName: 'Last Name',
                   name: 'Full Name',
+                  age: 'Age',
                   gender: 'Gender',
                   dateOfBirth: 'Date of Birth',
+                  placeOfBirth: 'Place of Birth',
                   civilStatus: 'Civil Status',
                   religion: 'Religion',
                   fullAddress: 'Address',
+                  value: 'Mobile Number',
                 }[field]}
               </span>
             </label>
           ))}
         </div>
       )}
-
       {/* PDL Information */}
       {selectedType === 'pdl' && (
-        <div className="w-full mt-4">
-          <span className="block font-semibold text-gray-700 mb-2">PDL Information</span>
+        <div className="w-full grid grid-cols-1 md:grid-cols-2">
           {[
             // 'ID',
             // 'shortName',
@@ -204,8 +196,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
             // 'middleName',
             // 'lastName',
             'name',
+            'age',
             'gender',
-            'status',
             'dateOfBirth',
             'placeOfBirth',
             'civilStatus',
@@ -217,7 +209,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="checkbox"
                 checked={pdlFields[field]}
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 accent-[#1E365D] text-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -227,8 +219,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                   // middleName: 'Middle Name',
                   // lastName: 'Last Name',
                   name: 'Full Name',
+                  age: 'Age',
                   gender: 'Gender',
-                  status: 'Status',
                   dateOfBirth: 'Date of Birth',
                   placeOfBirth: 'Place of Birth',
                   civilStatus: 'Civil Status',
@@ -240,40 +232,100 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
           ))}
         </div>
       )}
-      {/* Place this row above your field groups */}
+    </div>
+     {/* Gender Filter */}
+  {(selectedType === 'visitor' && visitorFields.gender) ||
+  (selectedType === 'personnel' && personnelFields.gender) ||
+  (selectedType === 'pdl' && pdlFields.gender) ? (
+    <div className="mt-4">
+      <label className="text-gray-700 font-semibold mr-2 block">
+        Filter {selectedType === 'visitor' ? 'Visitor' : selectedType === 'personnel' ? 'Personnel' : 'PDL'} by Gender:
+      </label>
+      <select
+        className="w-full border rounded px-3 py-2 mt-1 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1E365D] focus:border-transparent"
+        value={selectedGender}
+        onChange={(e) => setSelectedGender(e.target.value)}
+      >
+        <option value="">All</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="lgbtq + transgender">LGBTQ + TRANSGENDER</option>
+        <option value="lgbtq + gay / bisexual">LGBTQ + GAY / BISEXUAL</option>
+        <option value="lgbtq + lesbian / bisexual">LGBTQ + LESBIAN / BISEXUAL</option>
+      </select>
+    </div>
+  ) : null}
+  {/*Personnel Status Filter */}
+    {(selectedType === 'personnel' && personnelFields.status) ? (
+      <div className="mt-2">
+        <label className="text-gray-700 font-semibold mr-2 block">
+          Filter Personnel by Status:
+        </label>
+        <select
+          className="w-full border rounded px-3 py-2 mt-1 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1E365D] focus:border-transparent"
+          value={selectedStatus}
+          onChange={(e) => setSelectedStatus(e.target.value)}
+        >
+          <option value="">All</option>
+          <option value="on duty">On Duty</option>
+          <option value="off duty">Off Duty</option>
+        </select>
+      </div>
+    ) : null}
+
+    {/*PDL Status Filter */}
+    {(selectedType === 'pdl' && pdlFields.status) ? (
+      <div className="mt-2">
+        <label className="text-gray-700 font-semibold mr-2 block">
+          Filter PDL by Status:
+        </label>
+        <select
+          className="w-full border rounded px-3 py-2 mt-1 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1E365D] focus:border-transparent"
+          value={selectedStatus}
+          onChange={(e) => setSelectedStatus(e.target.value)}
+        >
+          <option value="">All</option>
+          <option value="committed">Committed</option>
+          <option value="convicted">Convicted</option>
+          <option value="released">Released</option>
+          <option value="hospitalized">Hospitalized</option>
+        </select>
+      </div>
+    ) : null}
+  </fieldset>
+  <fieldset className="border col-span-2 border-gray-300 grid grid-cols-1 md:grid-cols-3 rounded-md p-4">
+    {/* Place this row above your field groups */}
+    <legend className='px-2'>Additional Information</legend>
       {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && (
         <>
-        <div className="flex flex-wrap gap-2">
-          {/* <button
-            type="button"
-            className={`px-3 py-1 rounded font-semibold transition-colors
-              ${showAddressFields
-                ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                : 'bg-[#1E365D] text-white'}
-            `}
-            onClick={() => setShowAddressFields(!showAddressFields)}
-          >
-            {showAddressFields ? '' : ''} Address
-          </button> */}
-          <button
-            type="button"
-            className={`px-3 py-1 rounded font-semibold transition-colors
-              ${showContactFields
-                ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                : 'bg-[#1E365D] text-white'}
-            `}
-            onClick={() => setShowContactFields(!showContactFields)}
-          >
-            {showContactFields ? '' : ''} Contact Information
-          </button>
+        <div className='grid col-span-1 border-r-2 pr-4 gap-1 border-gray-400'>
           <button
             type="button"
             className={`px-3 py-1 rounded font-semibold transition-colors
               ${showEducationalFields
-                ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                : 'bg-[#1E365D] text-white'}
+                ? 'bg-[#1E365D] text-white'
+                : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
             `}
-            onClick={() => setShowEducationalFields(!showEducationalFields)}
+            onClick={() => {
+              setShowEducationalFields(!showEducationalFields);
+              setShowTalentsFields(false);
+              setShowIdentifierFields(false);
+              setShowEmploymentFields(false);
+              setShowSocialMediaFields(false);
+              setShowAffiliationFields(false);
+              setShowDiagnosesFields(false);
+              setShowMediaRequirementsFields(false);
+              setShowMediaIdentifiersFields(false);
+              setShowOtherPersonnelFields(false);
+              setShowOtherVisitorFields(false);
+              setShowOtherPDLFields(false);
+              setShowCaseFields(false);
+              setShowOffenseFields(false);
+              setShowCourtBranchFields(false);
+              setShowOtherCaseFields(false);
+              setShowJailFields(false);
+              setShowCellFields(false);
+            }}
           >
             {showEducationalFields ? '' : ''} Educational Background
           </button>
@@ -281,10 +333,29 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
             type="button"
             className={`px-3 py-1 rounded font-semibold transition-colors
               ${showTalentsFields
-                ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                : 'bg-[#1E365D] text-white'}
+                ? 'bg-[#1E365D] text-white'
+                : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
             `}
-            onClick={() => setShowTalentsFields(!showTalentsFields)}
+            onClick={() => {
+              setShowTalentsFields(!showTalentsFields);
+              setShowEducationalFields(false);
+              setShowIdentifierFields(false);
+              setShowEmploymentFields(false);
+              setShowSocialMediaFields(false);
+              setShowAffiliationFields(false);
+              setShowDiagnosesFields(false);
+              setShowMediaRequirementsFields(false);
+              setShowMediaIdentifiersFields(false);
+              setShowOtherPersonnelFields(false);
+              setShowOtherVisitorFields(false);
+              setShowOtherPDLFields(false);
+              setShowCaseFields(false);
+              setShowOffenseFields(false);
+              setShowCourtBranchFields(false);
+              setShowOtherCaseFields(false);
+              setShowJailFields(false);
+              setShowCellFields(false);
+            }}
           >
             {showTalentsFields ? '' : ''} Talents & Interests
           </button>
@@ -292,10 +363,30 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
             type="button"
             className={`px-3 py-1 rounded font-semibold transition-colors
               ${showIdentifierFields
-                ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                : 'bg-[#1E365D] text-white'}
+                ? 'bg-[#1E365D] text-white'
+                : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
             `}
-            onClick={() => setShowIdentifierFields(!showIdentifierFields)}
+            onClick={() => {
+              setShowIdentifierFields(!showIdentifierFields)
+              setShowTalentsFields(false);
+              setShowEducationalFields(false);
+              setShowEmploymentFields(false);
+              setShowSocialMediaFields(false);
+              setShowAffiliationFields(false);
+              setShowDiagnosesFields(false);
+              setShowMediaRequirementsFields(false);
+              setShowMediaIdentifiersFields(false);
+              setShowOtherPersonnelFields(false);
+              setShowOtherVisitorFields(false);
+              setShowOtherPDLFields(false);
+              setShowCaseFields(false);
+              setShowOffenseFields(false);
+              setShowCourtBranchFields(false);
+              setShowOtherCaseFields(false);
+              setShowJailFields(false);
+              setShowCellFields(false);
+
+            }}
           >
             {showIdentifierFields ? '' : ''} Identifier
           </button>
@@ -303,10 +394,29 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
             type="button"
             className={`px-3 py-1 rounded font-semibold transition-colors
               ${showEmploymentFields
-                ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                : 'bg-[#1E365D] text-white'}
+                ? 'bg-[#1E365D] text-white'
+                : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
             `}
-            onClick={() => setShowEmploymentFields(!showEmploymentFields)}
+            onClick={() => {
+              setShowEmploymentFields(!showEmploymentFields)
+              setShowTalentsFields(false);
+              setShowEducationalFields(false);
+              setShowIdentifierFields(false);
+              setShowSocialMediaFields(false);
+              setShowAffiliationFields(false);
+              setShowDiagnosesFields(false);
+              setShowMediaRequirementsFields(false);
+              setShowMediaIdentifiersFields(false);
+              setShowOtherPersonnelFields(false);
+              setShowOtherVisitorFields(false);
+              setShowOtherPDLFields(false);
+              setShowCaseFields(false);
+              setShowOffenseFields(false);
+              setShowCourtBranchFields(false);
+              setShowOtherCaseFields(false);
+              setShowJailFields(false);
+              setShowCellFields(false);
+            }}
           >
             {showEmploymentFields ? '' : ''} Employment History
           </button>
@@ -314,10 +424,29 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
             type="button"
             className={`px-3 py-1 rounded font-semibold transition-colors
               ${showSocialMediaFields
-                ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                : 'bg-[#1E365D] text-white'}
+                ? 'bg-[#1E365D] text-white'
+                : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
             `}
-            onClick={() => setShowSocialMediaFields(!showSocialMediaFields)}
+            onClick={() => {
+              setShowSocialMediaFields(!showSocialMediaFields)
+              setShowTalentsFields(false);
+              setShowEducationalFields(false);
+              setShowIdentifierFields(false);
+              setShowEmploymentFields(false);
+              setShowAffiliationFields(false);
+              setShowDiagnosesFields(false);
+              setShowMediaRequirementsFields(false);
+              setShowMediaIdentifiersFields(false);
+              setShowOtherPersonnelFields(false);
+              setShowOtherVisitorFields(false);
+              setShowOtherPDLFields(false);
+              setShowCaseFields(false);
+              setShowOffenseFields(false);
+              setShowCourtBranchFields(false);
+              setShowOtherCaseFields(false);
+              setShowJailFields(false);
+              setShowCellFields(false)
+            }}
           >
             {showSocialMediaFields ? '' : ''} Social Media
           </button>
@@ -325,10 +454,29 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
             type="button"
             className={`px-3 py-1 rounded font-semibold transition-colors
               ${showAffiliationFields
-                ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                : 'bg-[#1E365D] text-white'}
+                ? 'bg-[#1E365D] text-white'
+                : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
             `}
-            onClick={() => setShowAffiliationFields(!showAffiliationFields)}
+            onClick={() => {
+              setShowAffiliationFields(!showAffiliationFields)
+              setShowTalentsFields(false);
+              setShowEducationalFields(false);
+              setShowIdentifierFields(false);
+              setShowEmploymentFields(false);
+              setShowSocialMediaFields(false);
+              setShowDiagnosesFields(false);
+              setShowMediaRequirementsFields(false);
+              setShowMediaIdentifiersFields(false);
+              setShowOtherPersonnelFields(false);
+              setShowOtherVisitorFields(false);
+              setShowOtherPDLFields(false);
+              setShowCaseFields(false);
+              setShowOffenseFields(false);
+              setShowCourtBranchFields(false);
+              setShowOtherCaseFields(false);
+              setShowJailFields(false);
+              setShowCellFields(false);
+            }}
           >
             {showAffiliationFields ? '' : ''} Affiliation
           </button>
@@ -336,10 +484,29 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
             type="button"
             className={`px-3 py-1 rounded font-semibold transition-colors
               ${showDiagnosesFields
-                ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                : 'bg-[#1E365D] text-white'}
+                ? 'bg-[#1E365D] text-white'
+                : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
             `}
-            onClick={() => setShowDiagnosesFields(!showDiagnosesFields)}
+            onClick={() => {
+              setShowDiagnosesFields(!showDiagnosesFields)
+              setShowTalentsFields(false);
+              setShowEducationalFields(false);
+              setShowIdentifierFields(false);
+              setShowEmploymentFields(false);
+              setShowSocialMediaFields(false);
+              setShowAffiliationFields(false);
+              setShowMediaRequirementsFields(false);
+              setShowMediaIdentifiersFields(false);
+              setShowOtherPersonnelFields(false);
+              setShowOtherVisitorFields(false);
+              setShowOtherPDLFields(false);
+              setShowCaseFields(false);
+              setShowOffenseFields(false);
+              setShowCourtBranchFields(false);
+              setShowOtherCaseFields(false);
+              setShowJailFields(false);
+              setShowCellFields(false);
+            }}
           >
             {showDiagnosesFields ? '' : ''} Diagnoses
           </button>
@@ -347,22 +514,82 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
             type="button"
             className={`px-3 py-1 rounded font-semibold transition-colors
               ${showMediaRequirementsFields
-                ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                : 'bg-[#1E365D] text-white'}
+                ? 'bg-[#1E365D] text-white'
+                : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
             `}
-            onClick={() => setShowMediaRequirementsFields(!showMediaRequirementsFields)}
+            onClick={() => {
+              setShowMediaRequirementsFields(!showMediaRequirementsFields);
+              setShowTalentsFields(false);
+              setShowEducationalFields(false);
+              setShowIdentifierFields(false);
+              setShowEmploymentFields(false);
+              setShowSocialMediaFields(false);
+              setShowAffiliationFields(false);
+              setShowDiagnosesFields(false);
+              setShowOtherPersonnelFields(false);
+              setShowMediaIdentifiersFields(false);
+              setShowOtherVisitorFields(false);
+              setShowOtherPDLFields(false);
+              setShowCaseFields(false);
+              setShowOffenseFields(false);
+              setShowCourtBranchFields(false);
+              setShowOtherCaseFields(false);
+            }}
           >
             {showMediaRequirementsFields ? '' : ''} Media Requirements
+          </button>
+          <button
+            type="button"
+            className={`px-3 py-1 rounded font-semibold transition-colors
+              ${showMediaIdentifiersFields
+                ? 'bg-[#1E365D] text-white'
+                : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
+            `}
+            onClick={() => {
+              setShowMediaIdentifiersFields(!showMediaIdentifiersFields);
+              setShowMediaRequirementsFields(false);
+              setShowTalentsFields(false);
+              setShowEducationalFields(false);
+              setShowIdentifierFields(false);
+              setShowEmploymentFields(false);
+              setShowSocialMediaFields(false);
+              setShowAffiliationFields(false);
+              setShowDiagnosesFields(false);
+              setShowOtherPersonnelFields(false);
+              setShowOtherVisitorFields(false);
+              setShowOtherPDLFields(false);
+              setShowCaseFields(false);
+              setShowOffenseFields(false);
+              setShowCourtBranchFields(false);
+              setShowOtherCaseFields(false);
+            }}
+          >
+            {showMediaIdentifiersFields ? '' : ''} Media Identifier
           </button>
           {selectedType === 'personnel' && (
             <button
               type="button"
               className={`px-3 py-1 rounded font-semibold transition-colors
                 ${showOtherPersonnelFields
-                  ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                  : 'bg-[#1E365D] text-white'}
+                  ? 'bg-[#1E365D] text-white'
+                  : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
               `}
-              onClick={() => setShowOtherPersonnelFields(!showOtherPersonnelFields)}
+              onClick={() => {
+                setShowOtherPersonnelFields(!showOtherPersonnelFields);
+                setShowTalentsFields(false);
+                setShowEducationalFields(false);
+                setShowIdentifierFields(false);
+                setShowEmploymentFields(false);
+                setShowSocialMediaFields(false);
+                setShowAffiliationFields(false);
+                setShowDiagnosesFields(false);
+                setShowMediaRequirementsFields(false);
+                setShowCaseFields(false);
+                setShowMediaIdentifiersFields(false);
+                setShowOffenseFields(false);
+                setShowCourtBranchFields(false);
+                setShowOtherCaseFields(false);
+              }}
             >
               {showOtherPersonnelFields ? '' : ''} Other Personnel Information
             </button>
@@ -372,26 +599,57 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
               type="button"
               className={`px-3 py-1 rounded font-semibold transition-colors
                 ${showOtherVisitorFields
-                  ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                  : 'bg-[#1E365D] text-white'}
+                  ? 'bg-[#1E365D] text-white'
+                  : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
               `}
-              onClick={() => setShowOtherVisitorFields(!showOtherVisitorFields)}
+              onClick={() => {
+                setShowOtherVisitorFields(!showOtherVisitorFields)
+                setShowTalentsFields(false);
+                setShowEducationalFields(false);
+                setShowIdentifierFields(false);
+                setShowEmploymentFields(false);
+                setShowSocialMediaFields(false);
+                setShowAffiliationFields(false);
+                setShowDiagnosesFields(false);
+                setShowMediaRequirementsFields(false);
+                setShowMediaIdentifiersFields(false);
+                setShowCaseFields(false);
+                setShowOffenseFields(false);
+                setShowCourtBranchFields(false);
+                setShowOtherCaseFields(false);
+              }}
             >
               {showOtherVisitorFields ? '' : ''} Other Visitor Information
             </button>
           )}
-        </div>
-        <div className='flex flex-col gap-2 mb-4'>
           {selectedType === 'pdl' && (
-            <div className='flex flex-wrap gap-2 mb-4'>
+            <div className='flex flex-col gap-1'>
               <button
                 type="button"
                 className={`px-3 py-1 rounded font-semibold transition-colors
                   ${showOtherPDLFields
-                    ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                    : 'bg-[#1E365D] text-white'}
+                    ? 'bg-[#1E365D] text-white'
+                    : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
                 `}
-                onClick={() => setShowOtherPDLFields(!showOtherPDLFields)}
+                onClick={() => {
+                  setShowOtherPDLFields(!showOtherPDLFields);
+                  setShowTalentsFields(false);
+                  setShowEducationalFields(false);
+                  setShowIdentifierFields(false);
+                  setShowEmploymentFields(false);
+                  setShowSocialMediaFields(false);
+                  setShowAffiliationFields(false);
+                  setShowDiagnosesFields(false);
+                  setShowMediaRequirementsFields(false);
+                  setShowMediaIdentifiersFields(false);
+                  setShowCaseFields(false);
+                  setShowOffenseFields(false);
+                  setShowJailFields(false);
+                  setShowCellFields(false);
+                  setShowVisitorFields(false);
+                  setShowCourtBranchFields(false);
+                  setShowOtherCaseFields(false);
+                }}
               >
                 Other Information
               </button>
@@ -399,10 +657,26 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="button"
                 className={`px-3 py-1 rounded font-semibold transition-colors
                   ${showJailFields
-                    ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                    : 'bg-[#1E365D] text-white'}
+                    ? 'bg-[#1E365D] text-white'
+                    : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
                 `}
-                onClick={() => setShowJailFields(!showJailFields)}
+                onClick={() => {
+                  setShowJailFields(!showJailFields);
+                  setShowOtherPDLFields(false);
+                  setShowTalentsFields(false);
+                  setShowEducationalFields(false);
+                  setShowIdentifierFields(false);
+                  setShowEmploymentFields(false);
+                  setShowSocialMediaFields(false);
+                  setShowAffiliationFields(false);
+                  setShowDiagnosesFields(false);
+                  setShowMediaRequirementsFields(false);
+                  setShowCaseFields(false);
+                  setShowOffenseFields(false);
+                  setShowCellFields(false);
+                  setShowVisitorFields(false);
+                  setShowCourtBranchFields(false);
+                  setShowOtherCaseFields(false);}}
               >
                 Jail
               </button>
@@ -410,10 +684,27 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="button"
                 className={`px-3 py-1 rounded font-semibold transition-colors
                   ${showCellFields
-                    ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                    : 'bg-[#1E365D] text-white'}
+                    ? 'bg-[#1E365D] text-white'
+                    : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
                 `}
-                onClick={() => setShowCellFields(!showCellFields)}
+                onClick={() => {
+                  setShowCellFields(!showCellFields)
+                  setShowOtherPDLFields(false);
+                  setShowTalentsFields(false);
+                  setShowEducationalFields(false);
+                  setShowIdentifierFields(false);
+                  setShowEmploymentFields(false);
+                  setShowSocialMediaFields(false);
+                  setShowAffiliationFields(false);
+                  setShowDiagnosesFields(false);
+                  setShowMediaRequirementsFields(false);
+                  setShowCaseFields(false);
+                  setShowOffenseFields(false);
+                  setShowJailFields(false);
+                  setShowVisitorFields(false);
+                  setShowCourtBranchFields(false);
+                  setShowOtherCaseFields(false);
+                }}
               >
                 Cell
               </button>
@@ -421,10 +712,27 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="button"
                 className={`px-3 py-1 rounded font-semibold transition-colors
                   ${showVisitorFields
-                    ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                    : 'bg-[#1E365D] text-white'}
+                    ? 'bg-[#1E365D] text-white'
+                    : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
                 `}
-                onClick={() => setShowVisitorFields(!showVisitorFields)}
+                onClick={() => {
+                  setShowVisitorFields(!showVisitorFields);
+                  setShowOtherPDLFields(false);
+                  setShowTalentsFields(false);
+                  setShowEducationalFields(false);
+                  setShowIdentifierFields(false);
+                  setShowEmploymentFields(false);
+                  setShowSocialMediaFields(false);
+                  setShowAffiliationFields(false);
+                  setShowDiagnosesFields(false);
+                  setShowMediaRequirementsFields(false);
+                  setShowCaseFields(false);
+                  setShowOffenseFields(false);
+                  setShowJailFields(false);
+                  setShowCellFields(false);
+                  setShowCourtBranchFields(false);
+                  setShowOtherCaseFields(false);
+                }}
               >
                 Visitor
               </button>
@@ -432,143 +740,124 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="button"
                 className={`px-3 py-1 rounded font-semibold transition-colors
                   ${showCaseFields
-                    ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                    : 'bg-[#1E365D] text-white'}
+                    ? 'bg-[#1E365D] text-white'
+                    : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
                 `}
-                onClick={() => setShowCaseFields(!showCaseFields)}
+                onClick={() => {
+                  setShowCaseFields(!showCaseFields);
+                setShowOtherPDLFields(false);
+                  setShowTalentsFields(false);
+                  setShowEducationalFields(false);
+                  setShowIdentifierFields(false);
+                  setShowEmploymentFields(false);
+                  setShowSocialMediaFields(false);
+                  setShowAffiliationFields(false);
+                  setShowDiagnosesFields(false);
+                  setShowOffenseFields(false);
+                  setShowMediaRequirementsFields(false);
+                  setShowJailFields(false);
+                  setShowCellFields(false);
+                  setShowVisitorFields(false);
+                }}
               >
                 Case Information
               </button>
             </div>
           )}
-        {/* Show Offense and Court Branch toggles only if Case Information is shown and selectedType is 'pdl' */}
-          {selectedType === 'pdl' && showCaseFields && (
-            <div className="flex flex-wrap gap-2">
+        </div>
+        </>
+      )}
+      {selectedType === 'pdl' && showCaseFields && (
+            <div className='border-r-2 pr-4 space-y-1 h-fit gap-1 border-gray-400 ml-4'>
               <button
                 type="button"
-                className={`px-3 py-1 rounded font-semibold transition-colors
+                className={`px-3 py-1 w-full rounded font-semibold transition-colors
                   ${showOffenseFields
-                    ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                    : 'bg-[#1E365D] text-white'}
+                    ? 'bg-[#1E365D] text-white'
+                    : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
                 `}
-                onClick={() => setShowOffenseFields(!showOffenseFields)}
+                onClick={() =>{
+                  setShowOffenseFields(!showOffenseFields);
+                  setShowOtherPDLFields(false);
+                  setShowTalentsFields(false);
+                  setShowEducationalFields(false);
+                  setShowIdentifierFields(false);
+                  setShowEmploymentFields(false);
+                  setShowSocialMediaFields(false);
+                  setShowAffiliationFields(false);
+                  setShowMediaIdentifiersFields(false);
+                  setShowDiagnosesFields(false);
+                  setShowMediaRequirementsFields(false);
+                  setShowJailFields(false);
+                  setShowCellFields(false);
+                  setShowVisitorFields(false);
+                  setShowCourtBranchFields(false);
+                  setShowOtherCaseFields(false);
+                }}
               >
-                {showOffenseFields ? 'Hide' : 'Show'} Offense Information
+                {showOffenseFields ? '' : ''} Offense Information
               </button>
               <button
                 type="button"
-                className={`px-3 py-1 rounded font-semibold transition-colors
+                className={`px-3 py-1 rounded w-full font-semibold transition-colors
                   ${showCourtBranchFields
-                    ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                    : 'bg-[#1E365D] text-white'}
+                    ? 'bg-[#1E365D] text-white'
+                    : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
                 `}
-                onClick={() => setShowCourtBranchFields(!showCourtBranchFields)}
+                onClick={() =>{
+                  setShowCourtBranchFields(!showCourtBranchFields);
+                  setShowOffenseFields(false);
+                  setShowOtherPDLFields(false);
+                  setShowTalentsFields(false);
+                  setShowEducationalFields(false);
+                  setShowIdentifierFields(false);
+                  setShowEmploymentFields(false);
+                  setShowSocialMediaFields(false);
+                  setShowAffiliationFields(false);
+                  setShowMediaIdentifiersFields(false);
+                  setShowDiagnosesFields(false);
+                  setShowMediaRequirementsFields(false);
+                  setShowJailFields(false);
+                  setShowCellFields(false);
+                  setShowVisitorFields(false);
+                  setShowOtherCaseFields(false);}}
               >
-                {showCourtBranchFields ? 'Hide' : 'Show'} Court Branch Information
+                {showCourtBranchFields ? '' : ''} Court Branch Information
               </button>
               <button
                 type="button"
-                className={`px-3 py-1 rounded font-semibold transition-colors
+                className={`px-3 py-1 w-full rounded font-semibold transition-colors
                   ${showOtherCaseFields
-                    ? 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'
-                    : 'bg-[#1E365D] text-white'}
+                    ? 'bg-[#1E365D] text-white'
+                    : 'bg-white text-[#1E365D] border-2 border-[#1E365D] shadow'}
                 `}
-                onClick={() => setShowOtherCaseFields(!showOtherCaseFields)}
+                onClick={() => {
+                  setShowOtherCaseFields(!showOtherCaseFields);
+                  setShowOffenseFields(false);
+                  setShowOtherPDLFields(false);
+                  setShowTalentsFields(false);
+                  setShowEducationalFields(false);
+                  setShowIdentifierFields(false);
+                  setShowEmploymentFields(false);
+                  setShowSocialMediaFields(false);
+                  setShowAffiliationFields(false);
+                  setShowDiagnosesFields(false);
+                  setShowMediaIdentifiersFields(false);
+                  setShowMediaRequirementsFields(false);
+                  setShowJailFields(false);
+                  setShowCellFields(false);
+                  setShowVisitorFields(false);
+                  setShowCourtBranchFields(false);
+                }}
               >
-                {showOtherCaseFields ? 'Hide' : 'Show'} Other Case Details
+                {showOtherCaseFields ? '' : ''} Other Case Details
               </button>
             </div>
           )}
-        </div>
-        
-        </>
-      )}
-      {/* Address
-      {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && showAddressFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Addresses</span>
-          {[
-            'addressType',
-            'barangay',
-            'bldg_subdivision',
-            'country',
-            'fullAddress',
-            'isActive',
-            'isCurrent',
-            'municipality',
-            'province',
-            'street',
-            'postalCode',
-            'region',
-            'streetNumber',
-          ].map((field) => (
-            <label key={field} className="inline-flex items-center gap-2 mr-4 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={
-                  selectedType === 'visitor'
-                    ? visitorFields[field]
-                    : selectedType === 'personnel'
-                    ? personnelFields[field]
-                    : pdlFields[field]
-                }
-                onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
-              />
-              <span>
-                {{
-                  addressType: 'Address Type',
-                  barangay: 'Barangay',
-                  bldg_subdivision: 'Building/Subdivision',
-                  country: 'Country',
-                  fullAddress: 'Full Address',
-                  isActive: 'Is Active',
-                  isCurrent: 'Is Current',
-                  municipality: 'Municipality',
-                  province: 'Province',
-                  street: 'Street',
-                  postalCode: 'Postal Code',
-                  region: 'Region',
-                  streetNumber: 'Street Number',
-                }[field]}
-              </span>
-            </label>
-          ))}
-        </div>
-      )} */}
-      {/* Contact Information */}
-      {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && showContactFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Contact Information</span>
-          {['contactType', 'value', 'mobileImei'].map((field) => (
-            <label key={field} className="inline-flex items-center gap-2 mr-4 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={
-                  selectedType === 'visitor'
-                    ? visitorFields[field]
-                    :selectedType === 'personnel'
-                    ? personnelFields[field]
-                    : pdlFields[field]
-                }
-                onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
-              />
-              <span>
-                {{
-                  contactType: 'Contact Type',
-                  value: 'Value',
-                  mobileImei: 'Mobile IMEI',
-                }[field]}
-              </span>
-            </label>
-          ))}
-        </div>
-      )}
       {/* Educational Background */}
       {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && showEducationalFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Educational Background</span>
+        <div className="w-full flex flex-col col-span-2 gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Educational Background</span>
           {[
             'educationalAttainment',
             'institutionName',
@@ -592,7 +881,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                     // : personnelFields[field]
                 }
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -613,8 +902,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
       )}
       {/* Talents & Interests */}
       {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && showTalentsFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Talents & Interests</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Talents & Interests</span>
           {['talents', 'skills', 'interests', 'sports', 'musicalInstruments'].map((field) => (
             <label key={field} className="inline-flex items-center gap-2 mr-4 cursor-pointer select-none">
               <input
@@ -627,7 +916,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                     : pdlFields[field]
                 }
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -644,8 +933,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
       )}
       {/* Identifier Fields */}
       {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && showIdentifierFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Identifiers</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Identifiers</span>
           {[
             'identifierType',
             'identifierIDNumber',
@@ -665,7 +954,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                     : pdlFields[field]
                 }
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -683,8 +972,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
       )}
       {/* Employment History */}
       {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && showEmploymentFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Employment History</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Employment History</span>
           {[
             'employmentName',
             'jobTitle',
@@ -705,7 +994,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                     : pdlFields[field]
                 }
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -724,8 +1013,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
       )}
       {/* Social Media */}
       {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && showSocialMediaFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Social Media</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Social Media</span>
           {[
             'platform',
             'handle',
@@ -743,7 +1032,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                     : pdlFields[field]
                 }
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -757,11 +1046,10 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
           ))}
         </div>
       )}
-
       {/* Affiliation */}
       {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && showAffiliationFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Affiliatiob</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Affiliation</span>
           {[
             'organizationName',
             'roleorPosition',
@@ -780,7 +1068,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                     : pdlFields[field]
                 }
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -795,11 +1083,10 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
           ))}
         </div>
       )}
-
       {/* Diagnoses */}
       {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && showDiagnosesFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Diagnoses</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Diagnoses</span>
           {[
             'healthCondition',
             'healthConditionCategory',
@@ -817,7 +1104,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                     : pdlFields[field]
                 }
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -831,11 +1118,10 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
           ))}
         </div>
       )}
-
       {/* Media Requirements */}
       {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && showMediaRequirementsFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Media Requirements</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Media Requirements</span>
           {[
             'requirementsName',
             'requirementIssuedBy',
@@ -855,7 +1141,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                     : pdlFields[field]
                 }
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -871,11 +1157,10 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
           ))}
         </div>
       )}
-
       {/* Media Identifiers */}
       {(selectedType === 'visitor' || selectedType === 'personnel' || selectedType === 'pdl') && showMediaIdentifiersFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Media Requirements</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Media Identifier</span>
           {[
             'mediaIdentityIdNumber',
             'mediaIdentityIssuedBy',
@@ -896,7 +1181,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                     : pdlFields[field]
                 }
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -913,12 +1198,10 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
           ))}
         </div>
       )}
-
-
       {/* Visitor Other Information Group */}
       {selectedType === 'visitor' && showOtherVisitorFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Other Visitor Information</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Other Visitor Information</span>
           {[
             'type',
             'biometricStatus',
@@ -928,7 +1211,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="checkbox"
                 checked={visitorFields[field]}
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -942,8 +1225,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
       )}
       {/* Personnel Other Information Group */}
       {selectedType === 'personnel' && showOtherPersonnelFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Other Personnel Information</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Other Personnel Information</span>
           {[
             'role',
             'personnelType',
@@ -962,7 +1245,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="checkbox"
                 checked={personnelFields[field]}
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -985,9 +1268,10 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
       )}
       {/* PDL Other Information Group */}
       {selectedType === 'pdl' && showOtherPDLFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Other Information</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Other Information</span>
           {[
+            'status',
             'biometricStatus',
             'visitationStatus',
             'gangAffiliation',
@@ -1000,10 +1284,11 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="checkbox"
                 checked={pdlFields[field]}
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
+                  status: 'Status',
                   biometricStatus: 'Biometrics Status',
                   visitationStatus: 'Visitation Status',
                   gangAffiliation: 'Gang Affiliation',
@@ -1018,8 +1303,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
       )}
       {/* PDL Offense */}
       {selectedType === 'pdl' && showOffenseFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Offense</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Offense</span>
           {[
             'offense',
             'crimeCategory',
@@ -1032,7 +1317,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="checkbox"
                 checked={pdlFields[field]}
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -1049,8 +1334,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
       )}
       {/* PDL Court Branch */}
       {selectedType === 'pdl' && showCourtBranchFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Court Branch</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Court Branch</span>
           {[
             'court',
             'branch',
@@ -1063,7 +1348,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="checkbox"
                 checked={pdlFields[field]}
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -1080,8 +1365,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
       )}
       {/* PDL Other Case Details */}
       {selectedType === 'pdl' && showOtherCaseFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Other Case Details</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Other Case Details</span>
           {[
             'bailRecommended',
             'fileNumber',
@@ -1097,7 +1382,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="checkbox"
                 checked={pdlFields[field]}
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -1117,8 +1402,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
       )}
       {/* Jail */}
       {selectedType === 'pdl' && showJailFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Jail</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Jail</span>
           {[
             'jailName',
             'jailType',
@@ -1133,7 +1418,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="checkbox"
                 checked={pdlFields[field]}
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -1150,10 +1435,10 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
           ))}
         </div>
       )}
-      {/* Jail */}
+      {/* Cell */}
       {selectedType === 'pdl' && showCellFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Jail</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Cell</span>
           {[
             'cellName',
             'cellCapacity',
@@ -1165,7 +1450,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="checkbox"
                 checked={pdlFields[field]}
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -1181,8 +1466,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
       )}
       {/* Visitor */}
       {selectedType === 'pdl' && showVisitorFields && (
-        <div className="w-full">
-          <span className="block font-semibold text-gray-700 mb-2">Visitor</span>
+        <div className="w-full flex flex-col gap-1 ml-5">
+          <span className="block font-bold text-[#1E365D] mb-2">Visitor</span>
           {[
             'registrationNo',
             'visitor',
@@ -1195,7 +1480,7 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
                 type="checkbox"
                 checked={pdlFields[field]}
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox h-5 w-5 text-[#1E365D] accent-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -1210,17 +1495,21 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
           ))}
         </div>
       )}
-      {/* Affiliation Fields Group */}
-      {selectedType === 'affiliation' && (
-        <div className="w-full mt-4">
-          <span className="block font-semibold text-gray-700 mb-2">Affiliation Fields</span>
+  </fieldset>
+  </>
+  )}
+  </div>
+  {selectedType === 'affiliation' && (
+    <fieldset className="border border-gray-300 rounded-md p-4 mt-3">
+    <legend className="block font-semibold text-gray-700 px-2">Affiliation Fields</legend>
+        <div className="w-full mt-2">
           {['affiliationType', 'description'].map((field) => (
             <label key={field} className="inline-flex items-center gap-2 mr-4 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={affiliationFields[field]}
                 onChange={() => handleFieldChange(field)}
-                className="form-checkbox h-5 w-5 text-[#1E365D] border-[#1E365D]"
+                className="form-checkbox accent-[#1E365D] h-5 w-5 text-[#1E365D] border-[#1E365D]"
               />
               <span>
                 {{
@@ -1231,70 +1520,9 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
             </label>
           ))}
         </div>
-      )}
-
-    </div>
-    {/* Gender Filter */}
-    {(selectedType === 'visitor' && visitorFields.gender) ||
-    (selectedType === 'personnel' && personnelFields.gender) ||
-    (selectedType === 'pdl' && pdlFields.gender) ? (
-      <div className="mt-2">
-        <label className="text-gray-700 font-semibold mr-2">
-          Filter {selectedType === 'visitor' ? 'Visitor' : selectedType === 'personnel' ? 'Personnel' : 'PDL'} by Gender:
-        </label>
-        <select
-          className="border rounded px-2 py-1"
-          value={selectedGender}
-          onChange={(e) => setSelectedGender(e.target.value)}
-        >
-          <option value="">All</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-          <option value="lgbtq + transgender">LGBTQ + TRANSGENDER</option>
-          <option value="lgbtq + gay / bisexual">LGBTQ + GAY / BISEXUAL</option>
-          <option value="lgbtq + lesbian / bisexual">LGBTQ + LESBIAN / BISEXUAL</option>
-        </select>
-      </div>
-    ) : null}
-    {/*Personnel Status Filter */}
-    {(selectedType === 'personnel' && personnelFields.status) ? (
-      <div className="mt-2">
-        <label className="text-gray-700 font-semibold mr-2">
-          Filter Personnel by Status:
-        </label>
-        <select
-          className="border rounded px-2 py-1"
-          value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value)}
-        >
-          <option value="">All</option>
-          <option value="on duty">On Duty</option>
-          <option value="off duty">Off Duty</option>
-        </select>
-      </div>
-    ) : null}
-
-    {/*PDL Status Filter */}
-    {(selectedType === 'pdl' && pdlFields.status) ? (
-      <div className="mt-2">
-        <label className="text-gray-700 font-semibold mr-2">
-          Filter PDL by Status:
-        </label>
-        <select
-          className="border rounded px-2 py-1"
-          value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value)}
-        >
-          <option value="">All</option>
-          <option value="committed">Committed</option>
-          <option value="convicted">Convicted</option>
-          <option value="released">Released</option>
-          <option value="hospitalized">Hospitalized</option>
-        </select>
-      </div>
-    ) : null}
-    
   </fieldset>
+    )}
+  </div>
 );
 
 export default FieldSelector;

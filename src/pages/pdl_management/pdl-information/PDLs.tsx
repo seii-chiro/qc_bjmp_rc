@@ -621,7 +621,7 @@ const handleExportPDF = async () => {
             <Table
                 columns={columns}
                 loading={isFetching || searchLoading || pdlsByGenderLoading || pdlByStatusLoading}
-                scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
+                scroll={{ x: 800 }}
                 dataSource={
                     debouncedSearch
                         ? (searchData?.results || []).map((pdl, index) => ({

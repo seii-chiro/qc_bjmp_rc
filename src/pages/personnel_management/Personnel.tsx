@@ -1,4 +1,4 @@
-import { GodotLink, Header } from "../assets/components/link"
+import { GodotLink } from "../assets/components/link"
 
 const Personnels = () => {
     return (
@@ -14,33 +14,6 @@ const Personnels = () => {
                         <GodotLink link="ranks" title="Ranks" />
                         <GodotLink link="positions" title="Positions" />
                         <GodotLink link="employment-type" title="Employment Type" />
-                    </div>
-                </div>
-                <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
-                    <Header title="MAINTENANCE" />
-                    <div className="flex flex-wrap justify-between gap-5 mt-2">
-                        <div className="w-96">
-                            <GodotLink link="affiliation-type" title="Affiliation Types" />
-                            <GodotLink link="gender" title="Gender" />
-                            <GodotLink link="civil-status" title="Civil Status" />
-                            <GodotLink link="record-status" title="Record Status" />
-                            <GodotLink link="/jvms/maintenance/religion" title="Religion" />
-                            <GodotLink link="/jvms/maintenance/occupation" title="Occupation" />
-                            <GodotLink link="/jvms/maintenance/educational-attainments" title="Educational Attainments" />
-
-                        </div>
-                        <div className="w-96">
-                            <GodotLink link="id-types" title="ID-Types" />
-                            <GodotLink link="social-media-platforms" title="Social Media Platforms" />
-                            <GodotLink link="/jvms/maintenance/prefixes" title="Prefixes" />
-                            <GodotLink link="/jvms/maintenance/suffixes" title="Suffixes" />
-                        </div>
-                        <div className="w-96">
-                            {/* <GodotLink link="/jvms/maintenance/contact-types" title="Contact Types" />
-                            <GodotLink link="/jvms/maintenance/address-types" title="Address Types" /> */}
-                            <GodotLink link="/jvms/maintenance/nationalities" title="Nationalities" />
-                            <GodotLink link="/jvms/maintenance/multi-birth-classification" title="Multi Birth Classication" />
-                        </div>
                     </div>
                 </div>
             </div>
