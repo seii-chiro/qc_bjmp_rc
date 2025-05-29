@@ -118,6 +118,7 @@ import GeneralSettings from "./pages/Settings/general-setting/GeneralSettings.ts
 import SystemSettings from "./pages/Settings/system-settings/SystemSettings.tsx";
 import { useSystemSettingsStore } from "@/store/useSystemSettingStore.ts";
 import { useTokenStore } from "./store/useTokenStore.ts";
+import OasisAlertForm from "./pages/oasis/OasisAlertForm.tsx";
 
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -621,6 +622,10 @@ function App() {
                 {
                     path: "service-provider",
                     element: <ServiceProvider />
+                },
+                {
+                    path: "oasis",
+                    element: <OasisAlertForm />
                 },
                 {
                     path: "person",
