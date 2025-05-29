@@ -27,8 +27,6 @@ const IncidentForm = ({ incidentCategory, refetchIncidentTypes, editRecord, onCl
         name: null
     })
 
-    console.log(editRecord)
-
     useEffect(() => {
         if (editRecord) {
             setIncidentForm({
