@@ -37,6 +37,7 @@ import {
 import { PDLs } from "./pdl-definitions";
 import { PaginatedResponse } from "./queries";
 import { BASE_URL, BASE_URL_BIOMETRIC } from "./urls";
+import { IncidentFormCategory } from "@/pages/Incidents/incident-category/AddIncidentCategory";
 
 export const deletePDL = async (token: string, id: number) => {
   const response = await fetch(`${BASE_URL}/api/pdls/pdl/${id}/`, {
@@ -870,6 +871,23 @@ export async function getIncidentCategory(
   }
   return res.json();
 }
+
+export const postIncidentCategory = async (
+  token: string,
+  data: IncidentFormCategory
+): Promise<IncidentCategoryResponse> => {
+  const url = `${BASE_URL}/api/incidents/incident-categories/`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to add Incident Category");
+  return res.json();
+};
 
 export const patchIncidentCategory = async (
   token: string,
