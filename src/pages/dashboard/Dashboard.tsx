@@ -842,7 +842,6 @@ const visitorHandleClick = (gender: string) => {
                                             </ResponsiveContainer>
                                             )}
                                         </div>
-
                                         <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
                                             {isPDLEnteredExitLoading ? (
                                             <>

@@ -1,6 +1,7 @@
 import { getSummary_Card } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
+import * as XLSX from 'xlsx';
 
 const DashboardSummary = () => {
     const token = useTokenStore().token;
@@ -18,9 +19,49 @@ const DashboardSummary = () => {
     .filter(([key]) => key !== "Male" && key !== "Female")
     .reduce((total, [, value]) => total + (value ?? 0), 0);
 
+const exportToExcel = (summarydata, visitorOtherCount, personnelOtherCount) => {
+const data = [
+    {
+        "Summary of PDLs": "Released PDL",
+        "Total": summarydata?.success?.total_pdl_by_status?.Released?.Active || 0,
+    },
+    {
+        "Summary of PDLs": "Hospitalized PDL",
+        "Total": summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active || 0,
+    },
+    {
+        "Summary of PDLs": "Convicted PDL",
+        "Total": summarydata?.success?.total_pdl_by_status?.Convicted?.Active || 0,
+    },
+    {
+        "Summary of PDLs": "Committed PDL",
+        "Total": summarydata?.success?.total_pdl_by_status?.Committed?.Active || 0,
+    },
+    {
+        "Summary of PDLs": "Jail Population",
+        "Total": (
+            (summarydata?.success?.total_pdl_by_status?.Released?.Active || 0) +
+            (summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active || 0) +
+            (summarydata?.success?.total_pdl_by_status?.Convicted?.Active || 0) +
+            (summarydata?.success?.total_pdl_by_status?.Committed?.Active || 0)
+        ),
+    },
+];
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Summary');
+
+    XLSX.writeFile(workbook, 'PDL_Summary.xlsx');
+};
+
     return (
         <div className="md:px-20">
-            <h1 className="text-3xl font-bold text-[#1E365D]">BJMP Quezon City Jail - Male Dormitory</h1>
+            <div>
+                <h1 className="text-3xl font-bold text-[#1E365D]">BJMP Quezon City Jail - Male Dormitory</h1>
+                <button onClick={() => exportToExcel(summarydata, visitorOtherCount, personnelOtherCount)}>
+                    Download Excel
+                </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 mt-5 gap-10">
                 <div className="flex flex-col gap-5">
                     <fieldset className="border col-span-1 mt-2 border-gray-300 rounded-md p-4 h-fit">
@@ -143,7 +184,7 @@ const DashboardSummary = () => {
                             </div>
                             <div className="flex items-center justify-between ">
                                 <p className='px-2 font-bold text-[#1E365D]'>Off-Duty</p>
-                                <p className='px-2 font-bold text-[#1E365D]'>{summarydata?.success?.visitor_based_on_gender?.Active?.Female ?? 0 }</p>
+                                <p className='px-2 font-bold text-[#1E365D]'>{summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0}</p>
                             </div>
                             <div className="flex items-center justify-between ">
                                 <p className='px-2 font-bold text-[#1E365D]'>On-leave</p>
@@ -164,6 +205,9 @@ const DashboardSummary = () => {
             </div>
             <div className="mt-5">
                 <h1 className='px-2 font-semibold text-lg text-[#1E365D]'>Summary of Entry / Exit in Jail Premises</h1>
+                <div>
+                    
+                </div>
             </div>
         </div>
     )
