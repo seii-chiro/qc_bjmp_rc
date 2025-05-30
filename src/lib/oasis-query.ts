@@ -465,3 +465,21 @@ export async function generateOASISAlertXML(
 
   return res.text();
 }
+
+export async function generateOASISAlertXMLII(
+  token: string,
+  url: string
+): Promise<string> {
+  const res = await fetch(`${BASE_URL}/${url}`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch OASIS Alert XML.");
+  }
+
+  return res.text();
+}
