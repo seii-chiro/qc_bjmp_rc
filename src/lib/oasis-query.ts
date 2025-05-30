@@ -1,11 +1,18 @@
 import {
+  OASISAudience,
   OASISCategory,
   OASISCertainty,
   OASISCode,
   OASISEventCode,
+  OASISEventType,
+  OASISGeocodeRef,
+  OASISInstruction,
   OASISLanguage,
   OASISMessageType,
   OASISNote,
+  OASISParameter,
+  OASISParameterReference,
+  OASISResponseType,
   OASISRestrictions,
   OASISScope,
   OASISSeverity,
@@ -214,6 +221,131 @@ export async function getOASISScopes(
 
   if (!res.ok) {
     throw new Error("Failed to fetch Scopes.");
+  }
+
+  return res.json();
+}
+
+export async function getOASISResponseTypes(
+  token: string
+): Promise<PaginatedResponse<OASISResponseType>> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-response-type/`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch Response Types.");
+  }
+
+  return res.json();
+}
+
+export async function getOASISAudience(
+  token: string
+): Promise<PaginatedResponse<OASISAudience>> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-audience/`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch audience.");
+  }
+
+  return res.json();
+}
+
+export async function getOASISParameter(
+  token: string
+): Promise<PaginatedResponse<OASISParameter>> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/parameter/`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch parameters.");
+  }
+
+  return res.json();
+}
+
+export async function getOASISParameterReference(
+  token: string
+): Promise<PaginatedResponse<OASISParameterReference>> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-parameter-reference/`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch parameter references.");
+  }
+
+  return res.json();
+}
+
+export async function getOASISInstructions(
+  token: string
+): Promise<PaginatedResponse<OASISInstruction>> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-instruction/`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch instructions.");
+  }
+
+  return res.json();
+}
+
+export async function getOASISGeocodeRefs(
+  token: string
+): Promise<PaginatedResponse<OASISGeocodeRef>> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-geocode-reference/`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch Geocode References.");
+  }
+
+  return res.json();
+}
+
+export async function getOASISEventTypes(
+  token: string
+): Promise<PaginatedResponse<OASISEventType>> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/event-type/`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch Event Types.");
   }
 
   return res.json();
