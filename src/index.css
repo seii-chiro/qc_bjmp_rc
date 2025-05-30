@@ -57,6 +57,15 @@ a.active div {
   scrollbar-width: thin; /* Makes scrollbar thin in Firefox */
 }
 
+.custom-scrollbar-h::-webkit-scrollbar {
+  height: 8px;
+}
+
+.custom-scrollbar-h::-webkit-scrollbar-thumb {
+  background: #999;
+  border-radius: 10px;
+}
+
 @layer base {
   :root {
     --radius: 0.5rem;
