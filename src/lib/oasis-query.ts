@@ -401,6 +401,50 @@ export async function postOASISAlertNotification(
   return res.json();
 }
 
+export async function getOASISAlertNotification(
+  token: string
+): Promise<PaginatedResponse<OASISAlertNotification>> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/user-alert-notification/`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch OASIS Alert Notifications.");
+  }
+
+  return res.json();
+}
+
+export async function updateOASISAlertNotifStatus(
+  token: string,
+  notif_id: number,
+  payload: { status: "read" | "unread" }
+): Promise<OASISAlertNotification> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/user-alert-notification/${notif_id}/`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to update OASIS Alert Notification Status.");
+  }
+
+  return res.json();
+}
+
 export async function generateOASISAlertXML(
   token: string,
   alert_id: number
