@@ -1,34 +1,31 @@
-.container {
-  background: #fff;
-  padding: 20px;
-  max-width: 900px;
-  margin: auto;
-  margin-top: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-h1,
-h2 {
+.oasis-container h1,
+.oasis-container h2 {
   text-align: center;
 }
-form {
+
+.oasis-container form {
   margin-top: 20px;
 }
-.form-group {
+
+.oasis-container .form-group {
   margin-bottom: 12px;
 }
-label {
+
+.oasis-container label {
   font-weight: bold;
   display: block;
 }
-small {
+
+.oasis-container small {
   font-style: italic;
   color: #555;
   display: block;
   margin-bottom: 4px;
 }
-input,
-textarea,
-select {
+
+.oasis-container input,
+.oasis-container textarea,
+.oasis-container select {
   width: 100%;
   padding: 8px;
   box-sizing: border-box;
@@ -36,15 +33,17 @@ select {
   border-radius: 4px;
 }
 
-fieldset {
+.oasis-container fieldset {
   margin-bottom: 20px;
   border: 1px solid #ccc;
   padding: 10px;
 }
-legend {
+
+.oasis-container legend {
   font-weight: bold;
 }
-.xml-output {
+
+.oasis-container .xml-output {
   background: #eee;
   padding: 10px;
   white-space: pre-wrap;

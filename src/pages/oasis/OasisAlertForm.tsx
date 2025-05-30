@@ -230,7 +230,7 @@ const OasisAlertForm = () => {
     console.log(OASISAlertForm);
 
     return (
-        <div className="container">
+        <div className="oasis-container">
             <h1>OASIS CAP v1.2 Full Alert Form - Ver 02.00</h1>
             <form id="cap-form">
                 <fieldset>
