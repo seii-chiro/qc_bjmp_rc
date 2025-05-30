@@ -1,20 +1,48 @@
 import { OASISAlertFormType } from "@/lib/oasis-definitions";
-import { getOASISCategories, getOASISCertainty, getOASISCodes, getOASISEventCodes, getOASISLanguages, getOASISMessageTypes, getOASISNotes, getOASISRestrictions, getOASISScopes, getOASISSeverity, getOASISStatus, getOASISUrgency } from "@/lib/oasis-query";
+import {
+    generateOASISAlertXML,
+    getOASISAudience,
+    getOASISCategories,
+    getOASISCertainty,
+    getOASISCodes,
+    getOASISEventCodes,
+    getOASISEventTypes,
+    getOASISGeocodeRefs,
+    getOASISInstructions,
+    getOASISLanguages,
+    getOASISMessageTypes,
+    getOASISNotes,
+    getOASISParameterReference,
+    getOASISResponseTypes,
+    getOASISRestrictions,
+    getOASISScopes,
+    getOASISSeverity,
+    getOASISStatus,
+    getOASISUrgency,
+    postOASISAlert,
+    postOASISAlertNotification,
+} from "@/lib/oasis-query";
 import "@/pages/oasis/oasisStyle.css";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useQuery } from "@tanstack/react-query";
-import { Input, Select } from "antd";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Button, Input, message, Select } from "antd";
 import { useState } from "react";
 
-const { Option } = Select;
+const { Option, OptGroup } = Select;
+
+function escapeXml(xml: string) {
+    return xml
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
 
 const OasisAlertForm = () => {
-    const token = useTokenStore()?.token
+    const token = useTokenStore()?.token;
 
     const [OASISAlertForm, setOASISAlertForm] = useState<OASISAlertFormType>({
         addresses: null,
         code: null,
-        identifier: null,
         incidents: null,
         msg_type_id: null,
         note: null,
@@ -25,100 +53,181 @@ const OasisAlertForm = () => {
         sent: null,
         source: null,
         status_id: null,
-        infos: [{
-            alert_id: null,
-            audience_id: null,
-            category_id: null,
-            certainty_id: null,
-            contact: null,
-            description: null,
-            effective: null,
-            event: null,
-            event_code: null,
-            expires: null,
-            headline: null,
-            instruction_id: null,
-            language_id: null,
-            onset: null,
-            response_type_id: null,
-            sender_name: null,
-            severity_id: null,
-            urgency_id: null,
-            web: null,
-            areas: [{
-                altitude: null,
-                area_desc: null,
-                ceiling: null,
-                circle: null,
-                geocode: null,
-                info_id: null,
-                polygon: null,
-            }],
-        }]
-    })
+        infos: [
+            {
+                audience: null,
+                category_id: null,
+                certainty_id: null,
+                contact: null,
+                description: null,
+                effective: null,
+                event: null,
+                event_code: null,
+                expires: null,
+                headline: null,
+                instruction: null,
+                language_id: null,
+                onset: null,
+                response_type: null,
+                sender_name: "Bureau of Jail Management and Penology",
+                severity_id: null,
+                urgency_id: null,
+                web: null,
+                parameter: null,
+                areas: [
+                    {
+                        altitude: null,
+                        area_desc: null,
+                        ceiling: null,
+                        circle: null,
+                        geocode: null,
+                        polygon: null,
+                    },
+                ],
+            },
+        ],
+    });
+
     const [searchInputs, setSearchInputs] = useState<{ [key: string]: string }>({});
+    const [generatedAlertXML, setGeneratedAlertXML] = useState<string | null>(null)
+    console.log(generatedAlertXML)
 
     const { data: restrictions, isLoading: restrictionsLoading } = useQuery({
-        queryKey: ['OASIS-CAP-Restriction'],
-        queryFn: () => getOASISRestrictions(token ?? "")
-    })
+        queryKey: ["OASIS-CAP-Restriction"],
+        queryFn: () => getOASISRestrictions(token ?? ""),
+    });
 
     const { data: status, isLoading: statusLoading } = useQuery({
-        queryKey: ['OASIS-CAP-Status'],
-        queryFn: () => getOASISStatus(token ?? "")
-    })
+        queryKey: ["OASIS-CAP-Status"],
+        queryFn: () => getOASISStatus(token ?? ""),
+    });
 
     const { data: messageTypes, isLoading: messageTypesLoading } = useQuery({
-        queryKey: ['OASIS-CAP-Message-Types'],
-        queryFn: () => getOASISMessageTypes(token ?? "")
-    })
+        queryKey: ["OASIS-CAP-Message-Types"],
+        queryFn: () => getOASISMessageTypes(token ?? ""),
+    });
 
     const { data: codes, isLoading: codesLoading } = useQuery({
-        queryKey: ['OASIS-CAP-Codes'],
-        queryFn: () => getOASISCodes(token ?? "")
-    })
+        queryKey: ["OASIS-CAP-Codes"],
+        queryFn: () => getOASISCodes(token ?? ""),
+    });
 
     const { data: notes, isLoading: notesLoading } = useQuery({
-        queryKey: ['OASIS-CAP-Notes'],
-        queryFn: () => getOASISNotes(token ?? "")
-    })
+        queryKey: ["OASIS-CAP-Notes"],
+        queryFn: () => getOASISNotes(token ?? ""),
+    });
 
     const { data: eventCodes, isLoading: eventCodesLoading } = useQuery({
-        queryKey: ['OASIS-CAP-Event-Codes'],
-        queryFn: () => getOASISEventCodes(token ?? "")
-    })
+        queryKey: ["OASIS-CAP-Event-Codes"],
+        queryFn: () => getOASISEventCodes(token ?? ""),
+    });
 
     const { data: certainties, isLoading: certaintiesLoading } = useQuery({
-        queryKey: ['OASIS-CAP-Certainties'],
-        queryFn: () => getOASISCertainty(token ?? "")
-    })
+        queryKey: ["OASIS-CAP-Certainties"],
+        queryFn: () => getOASISCertainty(token ?? ""),
+    });
 
     const { data: urgencies, isLoading: urgenciesLoading } = useQuery({
-        queryKey: ['OASIS-CAP-Urgencies'],
-        queryFn: () => getOASISUrgency(token ?? "")
-    })
+        queryKey: ["OASIS-CAP-Urgencies"],
+        queryFn: () => getOASISUrgency(token ?? ""),
+    });
 
     const { data: severities, isLoading: severitiesLoading } = useQuery({
-        queryKey: ['OASIS-CAP-Severities'],
-        queryFn: () => getOASISSeverity(token ?? "")
-    })
+        queryKey: ["OASIS-CAP-Severities"],
+        queryFn: () => getOASISSeverity(token ?? ""),
+    });
 
     const { data: categories, isLoading: categoriesLoading } = useQuery({
-        queryKey: ['OASIS-CAP-Categories'],
-        queryFn: () => getOASISCategories(token ?? "")
-    })
+        queryKey: ["OASIS-CAP-Categories"],
+        queryFn: () => getOASISCategories(token ?? ""),
+    });
 
     const { data: languages, isLoading: languagesLoading } = useQuery({
-        queryKey: ['OASIS-CAP-Languages'],
-        queryFn: () => getOASISLanguages(token ?? "")
-    })
+        queryKey: ["OASIS-CAP-Languages"],
+        queryFn: () => getOASISLanguages(token ?? ""),
+    });
 
     const { data: scopes, isLoading: scopesLoading } = useQuery({
-        queryKey: ['OASIS-CAP-Ccopes'],
-        queryFn: () => getOASISScopes(token ?? "")
+        queryKey: ["OASIS-CAP-Scopes"],
+        queryFn: () => getOASISScopes(token ?? ""),
+    });
+
+    const { data: responseTypes, isLoading: responseTypesLoading } = useQuery({
+        queryKey: ["OASIS-CAP-ResponseTypes"],
+        queryFn: () => getOASISResponseTypes(token ?? ""),
+    });
+
+    const { data: audience, isLoading: audienceLoading } = useQuery({
+        queryKey: ["OASIS-CAP-Audience"],
+        queryFn: () => getOASISAudience(token ?? ""),
+    });
+
+    const { data: parameterRefs, isLoading: parameterRefsLoading } = useQuery({
+        queryKey: ["OASIS-CAP-Parameter-References"],
+        queryFn: () => getOASISParameterReference(token ?? ""),
+    });
+
+    const { data: instructions, isLoading: instructionsLoading } = useQuery({
+        queryKey: ["OASIS-CAP-Instructions"],
+        queryFn: () => getOASISInstructions(token ?? ""),
+    });
+
+    const categorizedInstructions = instructions?.results?.reduce<Record<string, typeof instructions.results[0][]>>((acc, curr) => {
+        const category = curr.category || "Uncategorized";
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(curr);
+        return acc;
+    }, {});
+
+    const { data: eventTypes, isLoading: eventTypesLoading } = useQuery({
+        queryKey: ["OASIS-CAP-Event-Types"],
+        queryFn: () => getOASISEventTypes(token ?? ""),
+    });
+
+    const categorizedEvents = eventTypes?.results?.reduce<Record<string, typeof eventTypes.results[0][]>>((acc, curr) => {
+        const category = curr.category || "Uncategorized";
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(curr);
+        return acc;
+    }, {});
+
+    const { data: geocodeRefs, isLoading: geocodeRefsLoading } = useQuery({
+        queryKey: ["OASIS-CAP-Geocode-Refs"],
+        queryFn: () => getOASISGeocodeRefs(token ?? ""),
+    });
+
+    const categorizedGeocodes = geocodeRefs?.results?.reduce<Record<string, typeof geocodeRefs.results[0][]>>((acc, curr) => {
+        const category = curr.group || "Uncategorized";
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(curr);
+        return acc;
+    }, {});
+
+    const addOASISAlertNotifMutation = useMutation({
+        mutationKey: ['add-OASIS-Alert-Notification'],
+        mutationFn: (alert_id: number) => postOASISAlertNotification(token ?? "", { alert_id }),
+        onSuccess: () => {
+            message.success("Successfully sent alerts!")
+        },
+        onError: (err) => message.error(err.message)
     })
 
-    console.log(OASISAlertForm)
+    const addOASISAlertMutation = useMutation({
+        mutationKey: ['add-OASIS-Alert'],
+        mutationFn: () => postOASISAlert(token ?? "", OASISAlertForm),
+        onSuccess: async (data) => {
+            message.success("Successfully generated an alert!")
+            if (data?.id) {
+                addOASISAlertNotifMutation.mutate(data?.id)
+                const generatedXML = await generateOASISAlertXML(token ?? "", data?.id)
+                setGeneratedAlertXML(generatedXML)
+            }
+        },
+        onError: (err) => message.error(err.message)
+    })
+
+    console.log(categorizedGeocodes)
+    console.log(OASISAlertForm);
 
     return (
         <div className="container">
@@ -147,19 +256,38 @@ const OasisAlertForm = () => {
                             Format is agency-defined but typically includes alphanumeric
                             values (e.g., <code>BJMP20240528-001</code>).
                         </small>
-                        <Input className="h-[2.625rem]" id="identifier" required />
+                        <Input
+                            className="h-[2.625rem]"
+                            id="identifier"
+                            placeholder="This field is autogenerated."
+                            disabled
+                        // required
+                        // onChange={e => setOASISAlertForm(prev => ({ ...prev, identifier: e.target.value }))}
+                        />
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="sender">Sender *</label>
                         <small>Originator email or ID</small>
-                        <Input className="h-[2.625rem]" id="sender" type="email" required />
+                        <Input
+                            className="h-[2.625rem]"
+                            id="sender"
+                            type="email"
+                            required
+                            onChange={e => setOASISAlertForm(prev => ({ ...prev, sender: e.target.value }))}
+                        />
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="sent">Sent *</label>
                         <small>Time message sent (ISO 8601)</small>
-                        <Input className="h-[2.625rem]" id="sent" type="datetime-local" required />
+                        <Input
+                            className="h-[2.625rem]"
+                            id="sent"
+                            type="datetime-local"
+                            required
+                            onChange={e => setOASISAlertForm(prev => ({ ...prev, sent: e.target.value }))}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -190,17 +318,17 @@ const OasisAlertForm = () => {
                             showSearch
                             allowClear
                             optionLabelProp="label"
-                            onChange={value => setOASISAlertForm(prev => ({ ...prev, status_id: value }))}
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({ ...prev, status_id: value }))
+                            }
                         >
                             {status?.results?.map((item, index) => (
-                                <Option
-                                    key={index}
-                                    value={item?.id}
-                                    label={item?.description}
-                                >
+                                <Option key={index} value={item?.id} label={item?.description}>
                                     <div className="flex flex-col">
                                         <span>{item?.code}</span>
-                                        <span className="text-xs text-gray-500">{item?.description}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
                                     </div>
                                 </Option>
                             ))}
@@ -233,17 +361,17 @@ const OasisAlertForm = () => {
                             showSearch
                             allowClear
                             optionLabelProp="label"
-                            onChange={value => setOASISAlertForm(prev => ({ ...prev, msg_type_id: value }))}
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({ ...prev, msg_type_id: value }))
+                            }
                         >
                             {messageTypes?.results?.map((item, index) => (
-                                <Option
-                                    key={index}
-                                    value={item?.id}
-                                    label={item?.description}
-                                >
+                                <Option key={index} value={item?.id} label={item?.description}>
                                     <div className="flex flex-col">
                                         <span>{item?.code}</span>
-                                        <span className="text-xs text-gray-500">{item?.description}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
                                     </div>
                                 </Option>
                             ))}
@@ -262,7 +390,11 @@ const OasisAlertForm = () => {
                             <code>DOST-PHIVOLCS Seismic Network</code> or{" "}
                             <code>Municipal DRRMO Field Report</code>
                         </small>
-                        <Input className="h-[2.625rem]" id="source" />
+                        <Input
+                            className="h-[2.625rem]"
+                            id="source"
+                            onChange={e => setOASISAlertForm(prev => ({ ...prev, source: e.target.value }))}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -291,22 +423,20 @@ const OasisAlertForm = () => {
                             showSearch
                             allowClear
                             optionLabelProp="label"
-                            onChange={value =>
-                                setOASISAlertForm(prev => ({
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({
                                     ...prev,
-                                    scope_id: value
+                                    scope_id: value,
                                 }))
                             }
                         >
                             {scopes?.results?.map((item, index) => (
-                                <Option
-                                    key={index}
-                                    value={item?.id}
-                                    label={item?.description}
-                                >
+                                <Option key={index} value={item?.id} label={item?.code}>
                                     <div className="flex flex-col">
                                         <span>{item?.code}</span>
-                                        <span className="text-xs text-gray-500">{item?.description}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
                                     </div>
                                 </Option>
                             ))}
@@ -335,14 +465,19 @@ const OasisAlertForm = () => {
                             showSearch
                             allowClear
                             optionLabelProp="label"
-                            onChange={value => setOASISAlertForm(prev => ({ ...prev, restriction: value }))}
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({ ...prev, restriction: value }))
+                            }
                             onSearch={(value) =>
                                 setSearchInputs((prev) => ({ ...prev, restriction: value }))
                             }
                             onBlur={() => {
                                 const typed = searchInputs["restriction"];
                                 if (typed) {
-                                    setOASISAlertForm((prev) => ({ ...prev, restriction: typed }));
+                                    setOASISAlertForm((prev) => ({
+                                        ...prev,
+                                        restriction: typed,
+                                    }));
                                     setSearchInputs((prev) => ({ ...prev, restriction: "" }));
                                 }
                             }}
@@ -355,7 +490,9 @@ const OasisAlertForm = () => {
                                 >
                                     <div className="flex flex-col">
                                         <span>{item?.restriction_text}</span>
-                                        <span className="text-xs text-gray-500">{item?.description}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
                                     </div>
                                 </Option>
                             ))}
@@ -373,7 +510,11 @@ const OasisAlertForm = () => {
                             authorized recipients. Example:{" "}
                             <code>mayor@city.gov governor@province.gov.ph</code>
                         </small>
-                        <textarea id="addresses"></textarea>
+                        <Input.TextArea
+                            id="addresses"
+                            className="!h-20"
+                            onChange={e => setOASISAlertForm(prev => ({ ...prev, addresses: e.target.value }))}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -396,7 +537,9 @@ const OasisAlertForm = () => {
                             showSearch
                             allowClear
                             optionLabelProp="label"
-                            onChange={value => setOASISAlertForm(prev => ({ ...prev, code: value }))}
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({ ...prev, code: value }))
+                            }
                             onSearch={(value) =>
                                 setSearchInputs((prev) => ({ ...prev, code: value }))
                             }
@@ -409,14 +552,12 @@ const OasisAlertForm = () => {
                             }}
                         >
                             {codes?.results?.map((item, index) => (
-                                <Option
-                                    key={index}
-                                    value={item?.code}
-                                    label={item?.code}
-                                >
+                                <Option key={index} value={item?.code} label={item?.code}>
                                     <div className="flex flex-col">
                                         <span>{item?.code}</span>
-                                        <span className="text-xs text-gray-500">{item?.description}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
                                     </div>
                                 </Option>
                             ))}
@@ -446,7 +587,9 @@ const OasisAlertForm = () => {
                             showSearch
                             allowClear
                             optionLabelProp="label"
-                            onChange={value => setOASISAlertForm(prev => ({ ...prev, note: value }))}
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({ ...prev, note: value }))
+                            }
                             onSearch={(value) =>
                                 setSearchInputs((prev) => ({ ...prev, note: value }))
                             }
@@ -466,7 +609,9 @@ const OasisAlertForm = () => {
                                 >
                                     <div className="flex flex-col">
                                         <span>{item?.note_text}</span>
-                                        <span className="text-xs text-gray-500">{item?.description}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
                                     </div>
                                 </Option>
                             ))}
@@ -487,7 +632,11 @@ const OasisAlertForm = () => {
                                 ndrrmc@ocd.gov.ph,ND20240527-001,2025-05-27T08:00:00+08:00
                             </code>
                         </small>
-                        <textarea id="references"></textarea>
+                        <Input.TextArea
+                            id="references"
+                            className="!h-20"
+                            onChange={e => setOASISAlertForm(prev => ({ ...prev, references: e.target.value }))}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -500,7 +649,11 @@ const OasisAlertForm = () => {
                             included, separated by spaces. Example:{" "}
                             <code>INC2024-045 INC2024-046</code>
                         </small>
-                        <Input className="h-[2.625rem]" id="incidents" />
+                        <Input
+                            className="h-[2.625rem]"
+                            id="incidents"
+                            onChange={e => setOASISAlertForm(prev => ({ ...prev, incidents: e.target.value }))}
+                        />
                     </div>
                 </fieldset>
 
@@ -536,8 +689,8 @@ const OasisAlertForm = () => {
                             showSearch
                             allowClear
                             optionLabelProp="label"
-                            onChange={value =>
-                                setOASISAlertForm(prev => ({
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({
                                     ...prev,
                                     infos: prev.infos
                                         ? [
@@ -552,14 +705,14 @@ const OasisAlertForm = () => {
                             }
                         >
                             {languages?.results?.map((item, index) => (
-                                <Option
-                                    key={index}
-                                    value={item?.id}
-                                    label={item?.description}
-                                >
+                                <Option key={index} value={item?.id} label={`${item?.name} - ${item?.code}`}>
                                     <div className="flex flex-col">
-                                        <span>{item?.name} - {item?.code}</span>
-                                        <span className="text-xs text-gray-500">{item?.description}</span>
+                                        <span>
+                                            {item?.name} - {item?.code}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
                                     </div>
                                 </Option>
                             ))}
@@ -581,8 +734,8 @@ const OasisAlertForm = () => {
                             showSearch
                             allowClear
                             optionLabelProp="label"
-                            onChange={value =>
-                                setOASISAlertForm(prev => ({
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({
                                     ...prev,
                                     infos: prev.infos
                                         ? [
@@ -597,14 +750,12 @@ const OasisAlertForm = () => {
                             }
                         >
                             {categories?.results?.map((item, index) => (
-                                <Option
-                                    key={index}
-                                    value={item?.id}
-                                    label={item?.description}
-                                >
+                                <Option key={index} value={item?.id} label={item?.description}>
                                     <div className="flex flex-col">
                                         <span>{item?.code}</span>
-                                        <span className="text-xs text-gray-500">{item?.description}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
                                     </div>
                                 </Option>
                             ))}
@@ -623,46 +774,66 @@ const OasisAlertForm = () => {
                             hazard naming conventions.
                         </small>
                         <Select
-                            value={OASISAlertForm?.code}
+                            value={OASISAlertForm?.infos?.[0]?.event}
                             id="eventDropdown"
                             className="w-full h-[2.625rem]"
-                            placeholder="Select event or enter a event code"
-                            loading={eventCodesLoading}
+                            placeholder="Select event or enter a custom event"
+                            loading={eventTypesLoading}
                             showSearch
                             allowClear
                             optionLabelProp="label"
-                            onChange={value => setOASISAlertForm(prev => ({ ...prev, event: value }))}
-                            onSearch={(value) =>
-                                setSearchInputs((prev) => ({ ...prev, code: value }))
+                            onSearch={(value) => setSearchInputs((prev) => ({ ...prev, event: value }))}
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({
+                                    ...prev,
+                                    infos: prev.infos
+                                        ? [
+                                            {
+                                                ...prev.infos[0],
+                                                event: value ?? null,
+                                            },
+                                            ...prev.infos.slice(1),
+                                        ]
+                                        : [],
+                                }))
                             }
                             onBlur={() => {
-                                const typed = searchInputs["code"];
+                                const typed = searchInputs["event"];
                                 if (typed) {
-                                    setOASISAlertForm((prev) => ({ ...prev, code: typed }));
-                                    setSearchInputs((prev) => ({ ...prev, code: "" }));
+                                    setOASISAlertForm((prev) => ({
+                                        ...prev,
+                                        infos: prev.infos
+                                            ? [
+                                                {
+                                                    ...prev.infos[0],
+                                                    event: typed,
+                                                },
+                                                ...prev.infos.slice(1),
+                                            ]
+                                            : [],
+                                    }));
+                                    setSearchInputs((prev) => ({ ...prev, event: "" }));
                                 }
                             }}
                         >
-                            {codes?.results?.map((item, index) => (
-                                <Option
-                                    key={index}
-                                    value={item?.code}
-                                    label={item?.code}
-                                >
-                                    <div className="flex flex-col">
-                                        <span>{item?.code}</span>
-                                        <span className="text-xs text-gray-500">{item?.description}</span>
-                                    </div>
-                                </Option>
+                            {Object.entries(categorizedEvents ?? {}).map(([category, items]) => (
+                                <OptGroup key={category} label={category}>
+                                    {items?.map((item) => (
+                                        <Option
+                                            key={item.id}
+                                            value={item.name}
+                                        >
+                                            <div className="flex flex-col">
+                                                <span>{item.name}</span>
+                                                <span className="text-xs text-gray-500">
+                                                    {item.description}
+                                                </span>
+                                            </div>
+                                        </Option>
+                                    ))}
+                                </OptGroup>
                             ))}
                         </Select>
-
-                        <Input className="h-[2.625rem]"
-                            type="text"
-                            id="event"
-                            name="event"
-                            placeholder="Enter a custom event here"
-                        />
                     </div>
 
                     <div className="form-group">
@@ -677,27 +848,62 @@ const OasisAlertForm = () => {
                             Multiple values may be included if needed. This element is
                             optional in CAP v1.2.
                         </small>
-                        <select
-                            id="responseTypeDropdown"
-                            onchange="document.getElementById('responseType').value=this.value"
+                        <Select
+                            value={OASISAlertForm?.infos?.[0]?.response_type}
+                            id="eventDropdown"
+                            className="w-full h-[2.625rem]"
+                            placeholder="Select a response type or enter a custom response type"
+                            loading={responseTypesLoading}
+                            showSearch
+                            allowClear
+                            optionLabelProp="label"
+                            onSearch={(value) =>
+                                setSearchInputs((prev) => ({ ...prev, responseType: value }))
+                            }
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({
+                                    ...prev,
+                                    infos: prev.infos
+                                        ? [
+                                            {
+                                                ...prev.infos[0],
+                                                response_type: value ?? null,
+                                            },
+                                            ...prev.infos.slice(1),
+                                        ]
+                                        : [],
+                                }))
+                            }
+                            onBlur={() => {
+                                const typed = searchInputs["responseType"];
+                                if (typed) {
+                                    setOASISAlertForm((prev) => ({
+                                        ...prev,
+                                        infos: prev.infos
+                                            ? [
+                                                {
+                                                    ...prev.infos[0],
+                                                    response_type: typed,
+                                                },
+                                                ...prev.infos.slice(1),
+                                            ]
+                                            : [],
+                                    }));
+                                    setSearchInputs((prev) => ({ ...prev, responseType: "" }));
+                                }
+                            }}
                         >
-                            <option value="">-- Select a Response Type --</option>
-                            <option>Shelter</option>
-                            <option>Evacuate</option>
-                            <option>Prepare</option>
-                            <option>Execute</option>
-                            <option>Avoid</option>
-                            <option>Monitor</option>
-                            <option>Assess</option>
-                            <option>AllClear</option>
-                            <option>None</option>
-                        </select>
-                        <Input className="h-[2.625rem]"
-                            type="text"
-                            id="responseType"
-                            name="responseType"
-                            placeholder="Enter a custom response type here"
-                        />
+                            {responseTypes?.results?.map((item, index) => (
+                                <Option key={index} value={item?.code} label={item?.code}>
+                                    <div className="flex flex-col">
+                                        <span>{item?.code}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
+                                    </div>
+                                </Option>
+                            ))}
+                        </Select>
                     </div>
 
                     <div className="form-group">
@@ -726,8 +932,8 @@ const OasisAlertForm = () => {
                             showSearch
                             allowClear
                             optionLabelProp="label"
-                            onChange={value =>
-                                setOASISAlertForm(prev => ({
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({
                                     ...prev,
                                     infos: prev.infos
                                         ? [
@@ -742,14 +948,12 @@ const OasisAlertForm = () => {
                             }
                         >
                             {urgencies?.results?.map((item, index) => (
-                                <Option
-                                    key={index}
-                                    value={item?.id}
-                                    label={item?.description}
-                                >
+                                <Option key={index} value={item?.id} label={item?.code}>
                                     <div className="flex flex-col">
                                         <span>{item?.code}</span>
-                                        <span className="text-xs text-gray-500">{item?.description}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
                                     </div>
                                 </Option>
                             ))}
@@ -779,8 +983,8 @@ const OasisAlertForm = () => {
                             showSearch
                             allowClear
                             optionLabelProp="label"
-                            onChange={value =>
-                                setOASISAlertForm(prev => ({
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({
                                     ...prev,
                                     infos: prev.infos
                                         ? [
@@ -795,14 +999,12 @@ const OasisAlertForm = () => {
                             }
                         >
                             {severities?.results?.map((item, index) => (
-                                <Option
-                                    key={index}
-                                    value={item?.id}
-                                    label={item?.description}
-                                >
+                                <Option key={index} value={item?.id} label={item?.code}>
                                     <div className="flex flex-col">
                                         <span>{item?.code}</span>
-                                        <span className="text-xs text-gray-500">{item?.description}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
                                     </div>
                                 </Option>
                             ))}
@@ -833,8 +1035,8 @@ const OasisAlertForm = () => {
                             showSearch
                             allowClear
                             optionLabelProp="label"
-                            onChange={value =>
-                                setOASISAlertForm(prev => ({
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({
                                     ...prev,
                                     infos: prev.infos
                                         ? [
@@ -849,14 +1051,12 @@ const OasisAlertForm = () => {
                             }
                         >
                             {certainties?.results?.map((item, index) => (
-                                <Option
-                                    key={index}
-                                    value={item?.id}
-                                    label={item?.description}
-                                >
+                                <Option key={index} value={item?.id} label={item?.code}>
                                     <div className="flex flex-col">
                                         <span>{item?.code}</span>
-                                        <span className="text-xs text-gray-500">{item?.description}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
                                     </div>
                                 </Option>
                             ))}
@@ -869,35 +1069,62 @@ const OasisAlertForm = () => {
                             Human-readable description of who the alert is intended for. Helps
                             clarify the <code>scope</code> of the alert. Optional field.
                         </small>
-                        <select
+                        <Select
+                            value={OASISAlertForm?.infos?.[0]?.audience}
                             id="audienceDropdown"
-                            onchange="document.getElementById('audience').value=this.value"
+                            className="w-full h-[2.625rem]"
+                            placeholder="Select an audience or enter a custom audience"
+                            loading={audienceLoading}
+                            showSearch
+                            allowClear
+                            optionLabelProp="label"
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({
+                                    ...prev,
+                                    infos: prev.infos
+                                        ? [
+                                            {
+                                                ...prev.infos[0],
+                                                audience: value ?? null,
+                                            },
+                                            ...prev.infos.slice(1),
+                                        ]
+                                        : [],
+                                }))
+                            }
+                            onSearch={(value) =>
+                                setSearchInputs((prev) => ({ ...prev, audience: value }))
+                            }
+                            onBlur={() => {
+                                const typed = searchInputs["audience"];
+                                if (typed) {
+                                    setOASISAlertForm((prev) => ({
+                                        ...prev,
+                                        infos: prev.infos
+                                            ? [
+                                                {
+                                                    ...prev.infos[0],
+                                                    audience: typed ?? null,
+                                                },
+                                                ...prev.infos.slice(1),
+                                            ]
+                                            : [],
+                                    }));
+                                    setSearchInputs((prev) => ({ ...prev, audience: "" }));
+                                }
+                            }}
                         >
-                            <option value="">-- Select Intended Audience --</option>
-                            <option value="General Public">General Public</option>
-                            <option value="Emergency Responders">Emergency Responders</option>
-                            <option value="Government Agencies">Government Agencies</option>
-                            <option value="Private Organizations">
-                                Private Organizations
-                            </option>
-                            <option value="Media Outlets">Media Outlets</option>
-                            <option value="Military Personnel">Military Personnel</option>
-                            <option value="Educational Institutions">
-                                Educational Institutions
-                            </option>
-                            <option value="Healthcare Facilities">
-                                Healthcare Facilities
-                            </option>
-                            <option value="Residents of Affected Area">
-                                Residents of Affected Area
-                            </option>
-                        </select>
-                        <Input className="h-[2.625rem]"
-                            type="text"
-                            id="audience"
-                            name="audience"
-                            placeholder="Enter a custom audience here"
-                        />
+                            {audience?.results?.map((item, index) => (
+                                <Option key={index} value={item?.audience_text} label={item?.audience_text}>
+                                    <div className="flex flex-col">
+                                        <span>{item?.audience_text}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
+                                    </div>
+                                </Option>
+                            ))}
+                        </Select>
                     </div>
 
                     <div className="form-group">
@@ -916,8 +1143,8 @@ const OasisAlertForm = () => {
                             showSearch
                             allowClear
                             optionLabelProp="label"
-                            onChange={value =>
-                                setOASISAlertForm(prev => ({
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({
                                     ...prev,
                                     infos: prev.infos
                                         ? [
@@ -932,14 +1159,14 @@ const OasisAlertForm = () => {
                             }
                         >
                             {eventCodes?.results?.map((item, index) => (
-                                <Option
-                                    key={index}
-                                    value={item?.id}
-                                    label={item?.description}
-                                >
+                                <Option key={index} value={item?.id} label={`${item?.value_name} (${item?.value})`}>
                                     <div className="flex flex-col">
-                                        <span>{item?.value_name} ({item?.value})</span>
-                                        <span className="text-xs text-gray-500">{item?.description}</span>
+                                        <span>
+                                            {item?.value_name} ({item?.value})
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
                                     </div>
                                 </Option>
                             ))}
@@ -956,7 +1183,22 @@ const OasisAlertForm = () => {
                             be considered the effective time. Format must follow ISO 8601
                             (e.g., <code>2025-05-28T11:11:00+08:00</code>).
                         </small>
-                        <Input className="h-[2.625rem]" id="effective" type="datetime-local" />
+                        <Input
+                            className="h-[2.625rem]"
+                            id="effective"
+                            type="datetime-local"
+                            value={OASISAlertForm.infos?.[0]?.effective ?? ''}
+                            onChange={(e) => {
+                                setOASISAlertForm(prevForm => ({
+                                    ...prevForm,
+                                    infos: prevForm.infos?.map((info, index) =>
+                                        index === 0
+                                            ? { ...info, effective: e.target.value }
+                                            : info
+                                    ) ?? []
+                                }));
+                            }}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -968,9 +1210,23 @@ const OasisAlertForm = () => {
                             CAP v1.2. Format must follow ISO 8601 (e.g.,{" "}
                             <code>2025-05-28T11:11:00+08:00</code>).
                         </small>
-                        <Input className="h-[2.625rem]" id="onset" type="datetime-local" />
+                        <Input
+                            className="h-[2.625rem]"
+                            id="onset"
+                            type="datetime-local"
+                            value={OASISAlertForm.infos?.[0]?.onset ?? ''}
+                            onChange={(e) => {
+                                setOASISAlertForm(prevForm => ({
+                                    ...prevForm,
+                                    infos: prevForm.infos?.map((info, index) =>
+                                        index === 0
+                                            ? { ...info, onset: e.target.value }
+                                            : info
+                                    ) ?? []
+                                }));
+                            }}
+                        />
                     </div>
-
                     <div className="form-group">
                         <label htmlFor="expires">Expires</label>
                         <small>
@@ -980,7 +1236,22 @@ const OasisAlertForm = () => {
                             is optional in CAP v1.2, but strongly recommended. Format must
                             follow ISO 8601 (e.g., <code>2025-05-28T13:30:00+08:00</code>).
                         </small>
-                        <Input className="h-[2.625rem]" id="expires" type="datetime-local" />
+                        <Input
+                            className="h-[2.625rem]"
+                            id="expires"
+                            type="datetime-local"
+                            value={OASISAlertForm.infos?.[0]?.expires ?? ''}
+                            onChange={(e) => {
+                                setOASISAlertForm(prevForm => ({
+                                    ...prevForm,
+                                    infos: prevForm.infos?.map((info, index) =>
+                                        index === 0
+                                            ? { ...info, expires: e.target.value }
+                                            : info
+                                    ) ?? []
+                                }));
+                            }}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -999,9 +1270,20 @@ const OasisAlertForm = () => {
                                 Administration (PAGASA)
                             </code>
                         </small>
-                        <Input className="h-[2.625rem]"
+                        <Input
+                            className="h-[2.625rem]"
                             id="senderName"
-                            value="Bureau of Jail Management and Penology"
+                            value={OASISAlertForm?.infos?.[0]?.sender_name ?? ''}
+                            onChange={(e) => {
+                                setOASISAlertForm(prevForm => ({
+                                    ...prevForm,
+                                    infos: prevForm.infos?.map((info, index) =>
+                                        index === 0
+                                            ? { ...info, sender_name: e.target.value }
+                                            : info
+                                    ) ?? []
+                                }));
+                            }}
                         />
                     </div>
 
@@ -1015,7 +1297,21 @@ const OasisAlertForm = () => {
                             essence of the alert. Example:{" "}
                             <code>Flash Flood Warning in Metro Manila</code>
                         </small>
-                        <Input className="h-[2.625rem]" id="headline" />
+                        <Input
+                            className="h-[2.625rem]"
+                            id="headline"
+                            value={OASISAlertForm.infos?.[0]?.headline ?? ''}
+                            onChange={(e) => {
+                                setOASISAlertForm(prevForm => ({
+                                    ...prevForm,
+                                    infos: prevForm.infos?.map((info, index) =>
+                                        index === 0
+                                            ? { ...info, headline: e.target.value }
+                                            : info
+                                    ) ?? []
+                                }));
+                            }}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -1033,7 +1329,21 @@ const OasisAlertForm = () => {
                                 areas of Metro Manila from 4 PM to 10 PM.
                             </code>
                         </small>
-                        <textarea id="description"></textarea>
+                        <Input.TextArea
+                            id="decription"
+                            className="!h-20"
+                            value={OASISAlertForm.infos?.[0]?.description ?? ''}
+                            onChange={(e) => {
+                                setOASISAlertForm(prevForm => ({
+                                    ...prevForm,
+                                    infos: prevForm.infos?.map((info, index) =>
+                                        index === 0
+                                            ? { ...info, description: e.target.value }
+                                            : info
+                                    ) ?? []
+                                }));
+                            }}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -1043,54 +1353,69 @@ const OasisAlertForm = () => {
                             alert. This is often provided to guide the public or responders on
                             how to protect life and property (Optional).
                         </small>
-                        <select
-                            id="instructionDropDown"
-                            onchange="document.getElementById('instruction').value=this.value"
+                        <Select
+                            value={OASISAlertForm?.infos?.[0]?.instruction}
+                            placeholder="Select an instruction or enter a custom instruction."
+                            showSearch
+                            allowClear
+                            loading={instructionsLoading}
+                            optionLabelProp="label"
+                            className="w-full h-[2.625rem]"
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({
+                                    ...prev,
+                                    infos: prev.infos
+                                        ? [
+                                            {
+                                                ...prev.infos[0],
+                                                instruction: value ?? null,
+                                            },
+                                            ...prev.infos.slice(1),
+                                        ]
+                                        : [],
+                                }))
+                            }
+                            onSearch={(value) =>
+                                setSearchInputs((prev) => ({ ...prev, instruction: value }))
+                            }
+                            onBlur={() => {
+                                const typed = searchInputs["instruction"];
+                                if (typed) {
+                                    setOASISAlertForm((prev) => ({
+                                        ...prev,
+                                        infos: prev.infos
+                                            ? [
+                                                {
+                                                    ...prev.infos[0],
+                                                    instruction: typed ?? null,
+                                                },
+                                                ...prev.infos.slice(1),
+                                            ]
+                                            : [],
+                                    }));
+                                    setSearchInputs((prev) => ({ ...prev, instruction: "" }));
+                                }
+                            }}
                         >
-                            <option value="">-- Select Instruction --</option>
-                            <optgroup label="🚨 General Emergency">
-                                <option>Shelter in place</option>
-                                <option>Evacuate immediately</option>
-                                <option>Follow local authority instructions</option>
-                                <option>Remain indoors</option>
-                                <option>Stay tuned to media updates</option>
-                            </optgroup>
-                            <optgroup label="🌪️ Weather and Natural Disasters">
-                                <option>Move to higher ground</option>
-                                <option>Avoid low-lying areas</option>
-                                <option>Close windows and doors</option>
-                                <option>Seek sturdy shelter</option>
-                                <option>Do not attempt to cross flooded roads</option>
-                            </optgroup>
-                            <optgroup label="🔥 Fire and Hazard">
-                                <option>Shut off gas and electricity</option>
-                                <option>Do not use elevators</option>
-                                <option>Use stairs for evacuation</option>
-                                <option>Wear protective masks</option>
-                                <option>Leave the area immediately</option>
-                            </optgroup>
-                            <optgroup label="☣️ Health and Contamination">
-                                <option>Wear an N95 mask</option>
-                                <option>Wash hands frequently</option>
-                                <option>Avoid contact with others</option>
-                                <option>Seek medical attention if symptoms appear</option>
-                                <option>Do not consume local water supply</option>
-                            </optgroup>
-                            <optgroup label="🚓 Security or Civil Disturbance">
-                                <option>Avoid affected areas</option>
-                                <option>Report suspicious activity</option>
-                                <option>Do not approach armed individuals</option>
-                                <option>Follow curfew orders</option>
-                                <option>Limit travel</option>
-                            </optgroup>
-                        </select>
-
-                        <Input className="h-[2.625rem]"
-                            type="text"
-                            id="instruction"
-                            name="instruction"
-                            placeholder="Enter a custom description here"
-                        />
+                            {Object.entries(categorizedInstructions ?? {}).map(([category, items]) => (
+                                <OptGroup key={category} label={category}>
+                                    {items?.map((item) => (
+                                        <Option
+                                            key={item.id}
+                                            value={item.instruction_text}
+                                            label={item.instruction_text}
+                                        >
+                                            <div className="flex flex-col">
+                                                <span>{item.instruction_text}</span>
+                                                <span className="text-xs text-gray-500">
+                                                    {item.description}
+                                                </span>
+                                            </div>
+                                        </Option>
+                                    ))}
+                                </OptGroup>
+                            ))}
+                        </Select>
                     </div>
 
                     <div className="form-group">
@@ -1102,7 +1427,22 @@ const OasisAlertForm = () => {
                             about the alert. It is optional in CAP v1.2. The value must be a
                             valid absolute URL (e.g., <code>https://www.ndrrmc.gov.ph</code>).
                         </small>
-                        <Input className="h-[2.625rem]" id="web" type="url" />
+                        <Input
+                            className="h-[2.625rem]"
+                            id="web"
+                            type="url"
+                            value={OASISAlertForm.infos?.[0]?.web ?? ''}
+                            onChange={(e) => {
+                                setOASISAlertForm(prevForm => ({
+                                    ...prevForm,
+                                    infos: prevForm.infos?.map((info, index) =>
+                                        index === 0
+                                            ? { ...info, web: e.target.value }
+                                            : info
+                                    ) ?? []
+                                }));
+                            }}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -1118,7 +1458,21 @@ const OasisAlertForm = () => {
                                 ops@ndrrmc.gov.ph
                             </code>
                         </small>
-                        <Input className="h-[2.625rem]" id="contact" />
+                        <Input
+                            className="h-[2.625rem]"
+                            id="contact"
+                            value={OASISAlertForm.infos?.[0]?.contact ?? ''}
+                            onChange={(e) => {
+                                setOASISAlertForm(prevForm => ({
+                                    ...prevForm,
+                                    infos: prevForm.infos?.map((info, index) =>
+                                        index === 0
+                                            ? { ...info, contact: e.target.value }
+                                            : info
+                                    ) ?? []
+                                }));
+                            }}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -1133,38 +1487,62 @@ const OasisAlertForm = () => {
                             <code>eventCode:12345</code> or <code>hazardLevel:Red</code>
                         </small>
 
-                        <select
+                        <Select
+                            value={OASISAlertForm?.infos?.[0]?.parameter}
                             id="parameterDropdown"
-                            onchange="document.getElementById('parameter').value=this.value"
+                            className="w-full h-[2.625rem]"
+                            placeholder="Select parameter or enter a custom parameter"
+                            loading={parameterRefsLoading}
+                            showSearch
+                            allowClear
+                            optionLabelProp="label"
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({
+                                    ...prev,
+                                    infos: prev.infos
+                                        ? [
+                                            {
+                                                ...prev.infos[0],
+                                                parameter: value ?? null,
+                                            },
+                                            ...prev.infos.slice(1),
+                                        ]
+                                        : [],
+                                }))
+                            }
+                            onSearch={(value) =>
+                                setSearchInputs((prev) => ({ ...prev, parameter: value }))
+                            }
+                            onBlur={() => {
+                                const typed = searchInputs["parameter"];
+                                if (typed) {
+                                    setOASISAlertForm((prev) => ({
+                                        ...prev,
+                                        infos: prev.infos
+                                            ? [
+                                                {
+                                                    ...prev.infos[0],
+                                                    parameter: typed ?? null,
+                                                },
+                                                ...prev.infos.slice(1),
+                                            ]
+                                            : [],
+                                    }));
+                                    setSearchInputs((prev) => ({ ...prev, parameter: "" }));
+                                }
+                            }}
                         >
-                            <option value="">-- Select Parameter --</option>
-                            <option value="alertLevel=Red">alertLevel = Red</option>
-                            <option value="alertLevel=Orange">alertLevel = Orange</option>
-                            <option value="alertLevel=Yellow">alertLevel = Yellow</option>
-
-                            <option value="hazardCode=EQ">
-                                hazardCode = EQ (Earthquake)
-                            </option>
-                            <option value="hazardCode=TC">
-                                hazardCode = TC (Tropical Cyclone)
-                            </option>
-                            <option value="hazardCode=FL">hazardCode = FL (Flood)</option>
-
-                            <option value="severityIndex=5">severityIndex = 5</option>
-                            <option value="urgencyMinutes=15">urgencyMinutes = 15</option>
-
-                            <option value="ndrrmcFlag=true">ndrrmcFlag = true</option>
-                            <option value="issuedBy=PHIVOLCS">issuedBy = PHIVOLCS</option>
-                            <option value="issuedBy=PAGASA">issuedBy = PAGASA</option>
-
-                            <option value="drillCode=EVAC2024">drillCode = EVAC2024</option>
-                        </select>
-                        <Input className="h-[2.625rem]"
-                            type="text"
-                            id="parameter"
-                            name="parameter"
-                            placeholder="Enter a custom parameter here"
-                        />
+                            {parameterRefs?.results?.map((item, index) => (
+                                <Option key={index} value={item?.final_parameter} label={item?.final_parameter}>
+                                    <div className="flex flex-col">
+                                        <span>{item?.final_parameter}</span>
+                                        <span className="text-xs text-gray-500">
+                                            {item?.description}
+                                        </span>
+                                    </div>
+                                </Option>
+                            ))}
+                        </Select>
                     </div>
                 </fieldset>
 
@@ -1194,14 +1572,34 @@ const OasisAlertForm = () => {
                             <code>Metro Manila</code>, <code>Eastern Visayas</code>,{" "}
                             <code>Barangay 45, Tacloban City</code>
                         </small>
-                        <textarea id="areaDesc" required></textarea>
+                        <Input.TextArea
+                            id="areaDesc"
+                            className="!h-20"
+                            value={OASISAlertForm.infos?.[0]?.areas?.[0]?.area_desc ?? ''}
+                            onChange={(e) => {
+                                setOASISAlertForm(prevForm => ({
+                                    ...prevForm,
+                                    infos: prevForm.infos?.map((info, infoIndex) =>
+                                        infoIndex === 0
+                                            ? {
+                                                ...info,
+                                                areas: info.areas?.map((area, areaIndex) =>
+                                                    areaIndex === 0
+                                                        ? { ...area, area_desc: e.target.value }
+                                                        : area
+                                                ) ?? []
+                                            }
+                                            : info
+                                    ) ?? []
+                                }));
+                            }}
+                        />
                     </div>
-
                     <div className="form-group">
                         <label htmlFor="polygon">Polygon</label>
                         <small>
                             A set of points describing a polygon that outlines the affected
-                            area on the earth’s surface. Each point is represented as a pair
+                            area on the earth's surface. Each point is represented as a pair
                             of latitude and longitude values separated by a comma, and points
                             are separated by a space. The first and last points should be the
                             same to close the polygon. This element is optional in CAP v1.2
@@ -1211,7 +1609,28 @@ const OasisAlertForm = () => {
                                 14.5995,120.9842
                             </code>
                         </small>
-                        <textarea id="polygon"></textarea>
+                        <Input.TextArea
+                            id="polygon"
+                            className="!h-20"
+                            value={OASISAlertForm.infos?.[0]?.areas?.[0]?.polygon ?? ''}
+                            onChange={(e) => {
+                                setOASISAlertForm(prevForm => ({
+                                    ...prevForm,
+                                    infos: prevForm.infos?.map((info, infoIndex) =>
+                                        infoIndex === 0
+                                            ? {
+                                                ...info,
+                                                areas: info.areas?.map((area, areaIndex) =>
+                                                    areaIndex === 0
+                                                        ? { ...area, polygon: e.target.value }
+                                                        : area
+                                                ) ?? []
+                                            }
+                                            : info
+                                    ) ?? []
+                                }));
+                            }}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -1225,7 +1644,28 @@ const OasisAlertForm = () => {
                             (This defines a circle centered at 14.5995°N, 120.9842°E with a
                             10-km radius.)
                         </small>
-                        <textarea id="circle"></textarea>
+                        <Input.TextArea
+                            id="circle"
+                            className="!h-20"
+                            value={OASISAlertForm.infos?.[0]?.areas?.[0]?.circle ?? ''}
+                            onChange={(e) => {
+                                setOASISAlertForm(prevForm => ({
+                                    ...prevForm,
+                                    infos: prevForm.infos?.map((info, infoIndex) =>
+                                        infoIndex === 0
+                                            ? {
+                                                ...info,
+                                                areas: info.areas?.map((area, areaIndex) =>
+                                                    areaIndex === 0
+                                                        ? { ...area, circle: e.target.value }
+                                                        : area
+                                                ) ?? []
+                                            }
+                                            : info
+                                    ) ?? []
+                                }));
+                            }}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -1239,38 +1679,78 @@ const OasisAlertForm = () => {
                             broadcast targeting, or decision-support tools. Example:{" "}
                             <code>UGC: PHZ001</code> or <code>P-CODE: PH010100000</code>
                         </small>
-                        <select
+                        <Select
+                            value={OASISAlertForm?.infos?.[0]?.areas?.[0]?.geocode}
                             id="geocodeDropdown"
-                            onchange="document.getElementById('geocode').value=this.value"
+                            className="w-full h-[2.625rem]"
+                            placeholder="Select a geocode or enter a custom geocode."
+                            loading={geocodeRefsLoading}
+                            showSearch
+                            allowClear
+                            optionLabelProp="label"
+                            onSearch={(value) => setSearchInputs((prev) => ({ ...prev, geocode: value }))} // Changed from 'event' to 'geocode'
+                            onChange={(value) =>
+                                setOASISAlertForm((prev) => ({
+                                    ...prev,
+                                    infos: prev.infos?.map((info, infoIndex) =>
+                                        infoIndex === 0
+                                            ? {
+                                                ...info,
+                                                areas: info.areas?.map((area, areaIndex) =>
+                                                    areaIndex === 0
+                                                        ? { ...area, geocode: value ?? null } // Update geocode in areas
+                                                        : area
+                                                ) ?? []
+                                            }
+                                            : info
+                                    ) ?? []
+                                }))
+                            }
+                            onBlur={() => {
+                                const typed = searchInputs["geocode"]; // Changed from 'event' to 'geocode'
+                                if (typed) {
+                                    setOASISAlertForm((prev) => ({
+                                        ...prev,
+                                        infos: prev.infos?.map((info, infoIndex) =>
+                                            infoIndex === 0
+                                                ? {
+                                                    ...info,
+                                                    areas: info.areas?.map((area, areaIndex) =>
+                                                        areaIndex === 0
+                                                            ? { ...area, geocode: typed } // Update geocode in areas
+                                                            : area
+                                                    ) ?? []
+                                                }
+                                                : info
+                                        ) ?? []
+                                    }));
+                                    setSearchInputs((prev) => ({ ...prev, geocode: "" })); // Changed from 'event' to 'geocode'
+                                }
+                            }}
                         >
-                            <option value="">-- Select Geocode --</option>
-                            <optgroup label="UGC (Universal Geographic Code)">
-                                <option>UGC: PHZ001</option>
-                                <option>UGC: PHZ002</option>
-                            </optgroup>
-                            <optgroup label="P-CODE (Humanitarian)">
-                                <option>P-CODE: PH010100000</option>
-                                <option>P-CODE: PH020200000</option>
-                            </optgroup>
-                            <optgroup label="PSGC (Philippine Statistical Code)">
-                                <option>PSGC: 012800000</option>
-                                <option>PSGC: 035401000</option>
-                            </optgroup>
-                            <optgroup label="Barangay Code">
-                                <option>Barangay: 137602001</option>
-                                <option>Barangay: 137602002</option>
-                            </optgroup>
-                            <optgroup label="ISO 3166-2:PH">
-                                <option>ISO: PH-NCR</option>
-                                <option>ISO: PH-05</option>
-                            </optgroup>
-                        </select>
-                        <Input className="h-[2.625rem]"
-                            type="text"
-                            id="geocode"
-                            name="geocode"
-                            placeholder="Enter a custom geo code here"
-                        />
+                            {Object.entries(categorizedGeocodes ?? {}).map(([category, items]) => {
+                                const firstItem = items?.[0];
+                                const groupLabel = firstItem?.value_name ? `${firstItem.value_name} (${category})` : category;
+
+                                return (
+                                    <OptGroup key={category} label={groupLabel}>
+                                        {items?.map((item) => (
+                                            <Option
+                                                key={item.id}
+                                                value={item.final_value}
+                                            >
+                                                <div className="flex flex-col">
+                                                    <span>{item.final_value}</span>
+                                                    <span className="text-xs text-gray-500">
+                                                        {item.location_name} - {item.description}
+                                                    </span>
+                                                </div>
+                                            </Option>
+                                        ))}
+                                    </OptGroup>
+                                );
+                            })}
+                        </Select>
                     </div>
 
                     <div className="form-group">
@@ -1284,7 +1764,28 @@ const OasisAlertForm = () => {
                             vertical range. Example: <code>100</code> (indicates the area is
                             affected starting at 100 meters elevation)
                         </small>
-                        <Input className="h-[2.625rem]" id="altitude" />
+                        <Input
+                            className="h-[2.625rem]"
+                            id="altitude"
+                            value={OASISAlertForm.infos?.[0]?.areas?.[0]?.altitude ?? ''}
+                            onChange={(e) => {
+                                setOASISAlertForm(prevForm => ({
+                                    ...prevForm,
+                                    infos: prevForm.infos?.map((info, infoIndex) =>
+                                        infoIndex === 0
+                                            ? {
+                                                ...info,
+                                                areas: info.areas?.map((area, areaIndex) =>
+                                                    areaIndex === 0
+                                                        ? { ...area, altitude: e.target.value }
+                                                        : area
+                                                ) ?? []
+                                            }
+                                            : info
+                                    ) ?? []
+                                }));
+                            }}
+                        />
                     </div>
 
                     <div className="form-group">
@@ -1298,17 +1799,59 @@ const OasisAlertForm = () => {
                             hazards, or mountainous areas. Example: <code>2000</code>{" "}
                             (indicates the alert applies up to 2000 meters elevation)
                         </small>
-                        <Input className="h-[2.625rem]" id="ceiling" />
+                        <Input
+                            className="h-[2.625rem]"
+                            id="ceiling"
+                            value={OASISAlertForm.infos?.[0]?.areas?.[0]?.ceiling ?? ''}
+                            onChange={(e) => {
+                                setOASISAlertForm(prevForm => ({
+                                    ...prevForm,
+                                    infos: prevForm.infos?.map((info, infoIndex) =>
+                                        infoIndex === 0
+                                            ? {
+                                                ...info,
+                                                areas: info.areas?.map((area, areaIndex) =>
+                                                    areaIndex === 0
+                                                        ? { ...area, ceiling: e.target.value }
+                                                        : area
+                                                ) ?? []
+                                            }
+                                            : info
+                                    ) ?? []
+                                }));
+                            }}
+                        />
                     </div>
                 </fieldset>
 
-                <button type="submit">Generate CAP XML</button>
-                <button id="downloadXml" style={{ display: "none", marginTop: "10px" }}>
+                <div className="w-full flex justify-end">
+                    <Button
+                        type="primary"
+                        onClick={() => addOASISAlertMutation.mutate()}
+                        loading={addOASISAlertMutation.isPending}
+                    >
+                        Generate CAP XML
+                    </Button>
+                </div>
+                <button
+                    type="button"
+                    id="downloadXml"
+                    style={{ display: "none", marginTop: "10px" }}
+                >
                     Download XML
                 </button>
             </form>
             <h2>Generated XML Output</h2>
-            <pre id="xmlOutput" className="xml-output"></pre>
+            <div className="p-4 bg-black text-green-400 font-mono text-sm overflow-auto max-h-[70vh] rounded-md">
+                <pre
+                    className="whitespace-pre-wrap"
+                    dangerouslySetInnerHTML={{
+                        __html: generatedAlertXML
+                            ? escapeXml(generatedAlertXML)
+                            : "Loading...",
+                    }}
+                />
+            </div>
         </div>
     );
 };
