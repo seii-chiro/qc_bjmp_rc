@@ -1,4 +1,5 @@
 import {
+  OASISAlertFormType,
   OASISAudience,
   OASISCategory,
   OASISCertainty,
@@ -19,6 +20,10 @@ import {
   OASISStatus,
   OASISUrgency,
 } from "./oasis-definitions";
+import {
+  OASISAlert,
+  OASISAlertNotification,
+} from "./oasis-response-definition";
 import { PaginatedResponse } from "./queries";
 import { BASE_URL } from "./urls";
 
@@ -349,4 +354,70 @@ export async function getOASISEventTypes(
   }
 
   return res.json();
+}
+
+export async function postOASISAlert(
+  token: string,
+  payload: OASISAlertFormType
+): Promise<OASISAlert> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/alert/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function postOASISAlertNotification(
+  token: string,
+  payload: { alert_id: number }
+): Promise<OASISAlertNotification> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/user-alert-notification/`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function generateOASISAlertXML(
+  token: string,
+  alert_id: number
+): Promise<string> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/alert/${alert_id}/to-xml/`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch OASIS Alert XML.");
+  }
+
+  return res.text();
 }
