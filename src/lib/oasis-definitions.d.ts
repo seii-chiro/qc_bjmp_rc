@@ -179,6 +179,8 @@ export type OASISGeocodeRef = {
   value: string;
   location_name: string;
   description: string;
+  group: string;
+  final_value: string;
 };
 
 export type OASISEventType = {
