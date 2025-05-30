@@ -6,12 +6,11 @@ import { Outlet } from "react-router-dom";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { useLocation } from "react-router-dom";
 import { Breadcrumb } from "@/components/Breadcrumb.tsx";
-import { Avatar, Dropdown, Button, Modal, MenuProps } from 'antd';
+import { Button, Modal } from 'antd';
 import { useTokenStore } from "@/store/useTokenStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUserStore } from "@/store/useUserStore.ts";
-import profile_fallback from "@/assets/profile_placeholder.jpg"
-
+import UserProfileNotifs from "@/components/UserProfileNotifs.tsx";
 
 const RootLayout = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -21,7 +20,6 @@ const RootLayout = () => {
     const { clearUser, user } = useUserStore();
 
     const location = useLocation();
-    // const routeTitle = location.pathname === "/" ? "DASHBOARD" : location.pathname.slice(1).toUpperCase()
 
     const showModal = () => {
         setIsModalOpen(true);
@@ -38,19 +36,9 @@ const RootLayout = () => {
         setIsModalOpen(false);
     };
 
-    const items: MenuProps['items'] = [
-        {
-            key: '1',
-            label: (
-                <button
-                    className="w-full text-left font-semibold"
-                    onClick={showModal}
-                >
-                    Logout
-                </button>
-            ),
-        },
-    ];
+    const handleLogout = () => {
+        showModal();
+    };
 
     return (
         <>
@@ -68,8 +56,10 @@ const RootLayout = () => {
                     </Button>
                 ]}
             >
-                <h2 className="font-bold text-lg">Are you sure that you want to logout?</h2>
-                <p>All unsaved changes will be lost.</p>
+                <div className="flex flex-col items-start">
+                    <h2 className="font-bold text-lg">Are you sure that you want to logout?</h2>
+                    <p>All unsaved changes will be lost.</p>
+                </div>
             </Modal>
 
             <div className="flex">
@@ -89,16 +79,10 @@ const RootLayout = () => {
                             <h2 className="font-bold">
                                 <Breadcrumb url={location.pathname} />
                             </h2>
-                            <Dropdown menu={{ items }} placement="bottomRight" arrow>
-                                <Avatar
-                                    className="absolute right-[2%]"
-                                    src={user?.first_name || user?.last_name ? undefined : profile_fallback}
-                                    alt="Profile"
-                                >
-                                    {(user?.first_name || user?.last_name) &&
-                                        `${user?.first_name?.charAt(0)?.toUpperCase() ?? ""}${user?.last_name?.charAt(0)?.toUpperCase() ?? ""}`}
-                                </Avatar>
-                            </Dropdown>
+                            <UserProfileNotifs
+                                user={user}
+                                onLogout={handleLogout}
+                            />
                         </header>
                         <div className="outlet-container w-full relative px-5">
                             <Outlet />
