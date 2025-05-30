@@ -46,6 +46,7 @@ type Info = {
 
 export type OASISAlert = {
   id: number;
+  alert: string;
   created_by: string;
   updated_by: string;
   record_status: string;
@@ -65,6 +66,7 @@ export type OASISAlert = {
   note: string;
   references: string;
   incidents: string;
+  to_xml_link: string;
 };
 
 export type OASISAlertNotification = {
@@ -73,7 +75,7 @@ export type OASISAlertNotification = {
   updated_by: string;
   record_status: string;
   user: string;
-  alert: string;
+  alert: OASISAlert;
   created_at: string;
   updated_at: string;
   status: "unread" | "read";
