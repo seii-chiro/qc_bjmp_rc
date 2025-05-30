@@ -1,5 +1,5 @@
 import { UserAccounts } from "@/lib/definitions";
-import { Avatar, Badge, Dropdown, List, Button, Typography, Empty, Spin, Divider, message } from "antd"
+import { Avatar, Badge, Dropdown, List, Button, Typography, Empty, Spin, message } from "antd"
 import { BellOutlined, LogoutOutlined } from '@ant-design/icons';
 import profile_fallback from "@/assets/profile_placeholder.jpg"
 import { useTokenStore } from "@/store/useTokenStore";
@@ -33,7 +33,17 @@ const UserProfileNotifs = ({ user, onLogout }: Props) => {
         onError: (err) => message.error(err.message)
     });
 
-    const notifications = OASISAlertNotfication?.results || [];
+    const notifications = (OASISAlertNotfication?.results || [])
+        .slice()
+        .sort((a, b) => {
+            // Unread first
+            if (a.status === "unread" && b.status !== "unread") return -1;
+            if (a.status !== "unread" && b.status === "unread") return 1;
+            // Latest first (by created_at or notified_at)
+            const dateA = new Date(a.created_at || a.notified_at || 0).getTime();
+            const dateB = new Date(b.created_at || b.notified_at || 0).getTime();
+            return dateB - dateA;
+        });
     const unreadCount = notifications.filter(notif => notif?.status === "unread").length;
 
     const formatTimeAgo = (dateString: string) => {
@@ -127,9 +137,11 @@ const UserProfileNotifs = ({ user, onLogout }: Props) => {
                     </div>
                 )}
             </div>
+        </div>
+    );
 
-            <Divider className="my-0" />
-
+    const profileDropdown = (
+        <div className="w-40 max-h-96 overflow-hidden flex flex-col bg-white border border-gray-500/35 rounded-md">
             <div className="p-2">
                 <Button
                     type="text"
@@ -141,7 +153,7 @@ const UserProfileNotifs = ({ user, onLogout }: Props) => {
                     Logout
                 </Button>
             </div>
-        </div>
+        </div >
     );
 
     // This stops other components hover when dropdown is open but
@@ -158,41 +170,47 @@ const UserProfileNotifs = ({ user, onLogout }: Props) => {
     // }, [dropdownOpen]);
 
     return (
-        <Dropdown
-            dropdownRender={() => dropdownContent}
-            placement="bottomRight"
-            arrow
-            trigger={['click']}
-            open={dropdownOpen}
-            onOpenChange={setDropdownOpen}
-        >
-            {dropdownOpen ? (
+        <div className="flex gap-4 absolute right-[2%] items-center">
+            <Dropdown
+                dropdownRender={() => dropdownContent}
+                placement="bottomRight"
+                arrow
+                trigger={['click']}
+                open={dropdownOpen}
+                onOpenChange={setDropdownOpen}
+            >
+                {
+                    dropdownOpen ? (
+                        <BellOutlined className="text-gray-500" size={30} />
+                    ) : (
+                        <Badge
+                            className="cursor-pointer"
+                            count={unreadCount}
+                            overflowCount={99}
+                            size="small"
+                        >
+                            <BellOutlined className="text-gray-500" size={30} />
+                        </Badge>
+                    )
+                }
+            </Dropdown>
+
+            <Dropdown
+                dropdownRender={() => profileDropdown}
+                placement="bottomRight"
+                arrow
+                trigger={['click']}
+            >
                 <Avatar
                     src={user?.first_name || user?.last_name ? undefined : profile_fallback}
                     alt="Profile"
-                    className="absolute right-[2%] cursor-pointer"
+                    className="cursor-pointer"
                 >
                     {(user?.first_name || user?.last_name) &&
                         `${user?.first_name?.charAt(0)?.toUpperCase() ?? ""}${user?.last_name?.charAt(0)?.toUpperCase() ?? ""}`}
                 </Avatar>
-            ) : (
-                <Badge
-                    className="absolute right-[2%] cursor-pointer"
-                    count={unreadCount}
-                    overflowCount={99}
-                    size="small"
-                >
-                    <Avatar
-                        src={user?.first_name || user?.last_name ? undefined : profile_fallback}
-                        alt="Profile"
-                        className="cursor-pointer"
-                    >
-                        {(user?.first_name || user?.last_name) &&
-                            `${user?.first_name?.charAt(0)?.toUpperCase() ?? ""}${user?.last_name?.charAt(0)?.toUpperCase() ?? ""}`}
-                    </Avatar>
-                </Badge>
-            )}
-        </Dropdown>
+            </Dropdown>
+        </div>
     )
 }
 
