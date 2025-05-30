@@ -4,7 +4,7 @@ export type OASISAlertFormType = {
   status_id: number | null;
   msg_type_id: number | null;
   scope_id: number | null;
-  identifier: string | null;
+  identifier?: string | null;
   sender: string | null;
   sent: string | null;
   source: string | null;
@@ -19,7 +19,7 @@ export type OASISAlertFormType = {
 };
 
 export type Info = {
-  alert_id: number | null;
+  alert_id?: number | null;
   language_id: number | null;
   category_id: number | null;
   response_type: string | null;
@@ -44,7 +44,7 @@ export type Info = {
 };
 
 export type Area = {
-  info_id: number | null;
+  info_id?: number | null;
   area_desc: string | null;
   polygon: string | null;
   circle: string | null;
