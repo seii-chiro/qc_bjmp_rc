@@ -11,7 +11,7 @@ import {
     message,
     Modal,
 } from "antd";
-import { BellOutlined, LogoutOutlined } from "@ant-design/icons";
+import { LogoutOutlined } from "@ant-design/icons";
 import profile_fallback from "@/assets/profile_placeholder.jpg";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -21,6 +21,7 @@ import {
 } from "@/lib/oasis-query";
 import { useState } from "react";
 import XMLPreview from "./XMLPreview";
+import { FaRegBell } from "react-icons/fa";
 
 const { Text } = Typography;
 
@@ -104,8 +105,8 @@ const UserProfileNotifs = ({ user, onLogout }: Props) => {
                     <Text strong className="text-base">
                         Notifications
                     </Text>
-                    <Badge count={unreadCount} overflowCount={99} size="small">
-                        <BellOutlined className="text-gray-500" />
+                    <Badge count={unreadCount} overflowCount={99} size="small" color="blue">
+                        <FaRegBell />
                     </Badge>
                 </div>
             </div>
@@ -214,15 +215,18 @@ const UserProfileNotifs = ({ user, onLogout }: Props) => {
                     onOpenChange={setDropdownOpen}
                 >
                     {dropdownOpen ? (
-                        <BellOutlined className="text-gray-500" size={30} />
+                        <FaRegBell />
                     ) : (
                         <Badge
+                            color="blue"
                             className="cursor-pointer"
                             count={unreadCount}
                             overflowCount={99}
                             size="small"
                         >
-                            <BellOutlined className="text-gray-500" size={30} />
+                            <FaRegBell
+                                size={18}
+                            />
                         </Badge>
                     )}
                 </Dropdown>
