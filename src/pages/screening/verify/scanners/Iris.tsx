@@ -32,7 +32,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
   const [irisCapturePayload, setIrisCapturePayload] = useState<IrisCapturePayload>({ TimeOut: irisScannerTimeout, IrisSide: 0 })
   const [irsCaptureResponse, setIrisCaptureResponse] = useState<IrisCaptureResponse | null>(null)
   const [irisScannerReady, setIrisScannerReady] = useState(false)
-  const [irisVerificationResponse, setIrisVerificationResponse] = useState<any>(null)
+  // const [irisVerificationResponse, setIrisVerificationResponse] = useState<any>(null)
   const [lastScannedPdl, setLastScannedPdl] = useState<any | null>(null);
 
   const irisDevices = useMemo(
@@ -194,7 +194,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
     // Only process the data if a match was found AND we're not already processing
     if (data?.message === "Match found." && !processingRef.current) {
       processVisitorLog(data);
-      setIrisVerificationResponse(data)
+      // setIrisVerificationResponse(data)
     }
   };
 

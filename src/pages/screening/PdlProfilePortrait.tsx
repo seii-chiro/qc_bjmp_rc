@@ -1,6 +1,9 @@
 import { useRef } from 'react';
 import noimg from "@/assets/noimg.png"
 import dayjs from 'dayjs';
+import { useQuery } from '@tanstack/react-query';
+import { getVisitorAppStatus } from '@/lib/queries';
+import { useTokenStore } from '@/store/useTokenStore';
 
 const Info = ({ title, info }: { title: string, info: string }) => (
     <div className="flex items-center">
@@ -16,9 +19,15 @@ const Image = ({ src, alt, className }: { src: string, alt: string, className: s
 );
 
 const PdlProfilePortrait = ({ visitorData = {} }) => {
+    const token = useTokenStore()?.token
     const modalContentRef = useRef(null);
-    console.log(visitorData)
     const selectedVisitor = visitorData || {};
+
+    const { data: visitorStatus } = useQuery({
+        queryKey: ['visitor-app-status'],
+        queryFn: () => getVisitorAppStatus(token ?? ""),
+        staleTime: 10 * 60 * 1000
+    })
 
     let ProfileImage = "";
     if (visitorData?.person?.media) {
@@ -175,56 +184,44 @@ const PdlProfilePortrait = ({ visitorData = {} }) => {
                         <div className="w-full flex flex-col">
                             <div className="flex text-center mb-1">
                                 <div className="flex-grow">
-                                    <h1 className="text-[#404958] text-sm">PDL Basic Info</h1>
+                                    <h1 className="text-[#404958] text-sm">Visitor Basic Info</h1>
                                 </div>
-                                <div className="flex-grow">
+                                {/* <div className="flex-grow">
                                     <h1 className="text-[#404958] text-sm">Cell Assigned</h1>
-                                </div>
+                                </div> */}
                             </div>
                             <div className="overflow-y-auto pb-1">
                                 <table className="w-full border-collapse">
                                     <thead>
                                         <tr className="bg-[#2F3237] text-white text-xs">
-                                            <th className="py-1 px-2">PDL NO.</th>
-                                            <th className="py-1 px-2">Surname</th>
-                                            <th className="py-1 px-2">First Name</th>
-                                            <th className="py-1 px-2">Middle Name</th>
-                                            <th className="py-1 px-2">Level</th>
-                                            <th className="py-1 px-2">Annex</th>
-                                            <th className="py-1 px-2">Dorm</th>
+                                            <th className="py-1 px-2">Visitor No.</th>
+                                            <th className="py-1 px-2">Full Name</th>
+                                            <th className="py-1 px-2">Visitor Type</th>
+                                            <th className="py-1 px-2">Visitation Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {selectedVisitor?.pdls?.length > 0 ? (
-                                            selectedVisitor?.pdls?.map((pdlItem, index) => (
+                                        {selectedVisitor?.visitor?.length > 0 ? (
+                                            selectedVisitor?.visitor?.map((pdlItem, index) => (
                                                 <tr key={index}>
                                                     <td className="text-center text-[9px] font-light">
-                                                        {pdlItem?.pdl?.person?.id || ""}
+                                                        {pdlItem?.visitor_reg_no || "N/A"}
                                                     </td>
                                                     <td className="text-center text-[9px] font-light">
-                                                        {pdlItem?.pdl?.person?.last_name || ""}
+                                                        {pdlItem?.person || "N/A"}
                                                     </td>
                                                     <td className="text-center text-[9px] font-light">
-                                                        {pdlItem?.pdl?.person?.first_name || ""}
+                                                        {pdlItem?.visitor_type || "N/A"}
                                                     </td>
                                                     <td className="text-center text-[9px] font-light">
-                                                        {pdlItem?.pdl?.person?.middle_name || ""}
-                                                    </td>
-                                                    <td className="text-center text-[9px] font-light">
-                                                        {pdlItem?.pdl?.cell?.cell_name || ""}
-                                                    </td>
-                                                    <td className="text-center text-[9px] font-light">
-                                                        {pdlItem?.pdl?.cell?.floor?.split("(")[1]?.replace(")", "") || ""}
-                                                    </td>
-                                                    <td className="text-center text-[9px] font-light">
-                                                        {pdlItem?.pdl?.cell?.floor || ""}
+                                                        {visitorStatus?.results?.find(status => status?.id === pdlItem?.visitor_app_status)?.status || "N/A"}
                                                     </td>
                                                 </tr>
                                             ))
                                         ) : (
                                             <tr>
                                                 <td colSpan={7} className="text-center text-[9px] text-gray-500 py-2">
-                                                    No PDL records found.
+                                                    No visitor records found.
                                                 </td>
                                             </tr>
                                         )}

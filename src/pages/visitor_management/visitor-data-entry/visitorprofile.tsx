@@ -551,8 +551,13 @@ const VisitorProfile = ({
             messageApi.info("Match Found");
         },
         onError: (error) => {
-            setFingerprintVerificationResult1({ message: "Match not found." });
-            messageApi.info(error?.message);
+            if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
+                setFingerprintVerificationResult1({ message: error.message });
+                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+            } else {
+                setFingerprintVerificationResult1({ message: "Match not found." });
+                messageApi.info(`${error?.message}: Match Not Found.`);
+            }
         },
     });
 
@@ -564,8 +569,13 @@ const VisitorProfile = ({
             messageApi.info("Match Found");
         },
         onError: (error) => {
-            setFingerprintVerificationResult2({ message: "Match not found." });
-            messageApi.info(error?.message);
+            if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
+                setFingerprintVerificationResult2({ message: error.message });
+                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+            } else {
+                setFingerprintVerificationResult2({ message: "Match not found." });
+                messageApi.info(`${error?.message}: Match Not Found.`);
+            }
         },
     });
 
@@ -577,8 +587,13 @@ const VisitorProfile = ({
             messageApi.info("Match Found");
         },
         onError: (error) => {
-            setFingerprintVerificationResult3({ message: "Match not found." });
-            messageApi.info(error?.message);
+            if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
+                setFingerprintVerificationResult3({ message: error.message });
+                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+            } else {
+                setFingerprintVerificationResult3({ message: "Match not found." });
+                messageApi.info(`${error?.message}: Match Not Found.`);
+            }
         },
     });
 
@@ -590,8 +605,13 @@ const VisitorProfile = ({
             messageApi.info("Match Found");
         },
         onError: (error) => {
-            setFingerprintVerificationResult4({ message: "Match not found." });
-            messageApi.info(error?.message);
+            if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
+                setFingerprintVerificationResult4({ message: error.message });
+                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+            } else {
+                setFingerprintVerificationResult4({ message: "Match not found." });
+                messageApi.info(`${error?.message}: Match Not Found.`);
+            }
         },
     });
 
@@ -603,8 +623,13 @@ const VisitorProfile = ({
             messageApi.info("Match Found");
         },
         onError: (error) => {
-            setFingerprintVerificationResult5({ message: "Match not found." });
-            messageApi.info(error?.message);
+            if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
+                setFingerprintVerificationResult5({ message: error.message });
+                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+            } else {
+                setFingerprintVerificationResult5({ message: "Match not found." });
+                messageApi.info(`${error?.message}: Match Not Found.`);
+            }
         },
     });
 
@@ -616,8 +641,13 @@ const VisitorProfile = ({
             messageApi.info("Match Found");
         },
         onError: (error) => {
-            setFingerprintVerificationResult6({ message: "Match not found." });
-            messageApi.info(error?.message);
+            if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
+                setFingerprintVerificationResult6({ message: error.message });
+                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+            } else {
+                setFingerprintVerificationResult6({ message: "Match not found." });
+                messageApi.info(`${error?.message}: Match Not Found.`);
+            }
         },
     });
 
@@ -629,8 +659,13 @@ const VisitorProfile = ({
             messageApi.info("Match Found");
         },
         onError: (error) => {
-            setFingerprintVerificationResult7({ message: "Match not found." });
-            messageApi.info(error?.message);
+            if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
+                setFingerprintVerificationResult7({ message: error.message });
+                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+            } else {
+                setFingerprintVerificationResult7({ message: "Match not found." });
+                messageApi.info(`${error?.message}: Match Not Found.`);
+            }
         },
     });
 
@@ -642,8 +677,13 @@ const VisitorProfile = ({
             messageApi.info("Match Found");
         },
         onError: (error) => {
-            setFingerprintVerificationResult8({ message: "Match not found." });
-            messageApi.info(error?.message);
+            if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
+                setFingerprintVerificationResult8({ message: error.message });
+                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+            } else {
+                setFingerprintVerificationResult8({ message: "Match not found." });
+                messageApi.info(`${error?.message}: Match Not Found.`);
+            }
         },
     });
 
@@ -655,8 +695,13 @@ const VisitorProfile = ({
             messageApi.info("Match Found");
         },
         onError: (error) => {
-            setFingerprintVerificationResult9({ message: "Match not found." });
-            messageApi.info(error?.message);
+            if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
+                setFingerprintVerificationResult9({ message: error.message });
+                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+            } else {
+                setFingerprintVerificationResult9({ message: "Match not found." });
+                messageApi.info(`${error?.message}: Match Not Found.`);
+            }
         },
     });
 
@@ -668,8 +713,13 @@ const VisitorProfile = ({
             messageApi.info("Match Found");
         },
         onError: (error) => {
-            setFingerprintVerificationResult10({ message: "Match not found." });
-            messageApi.info(error?.message);
+            if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
+                setFingerprintVerificationResult10({ message: error.message });
+                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+            } else {
+                setFingerprintVerificationResult10({ message: "Match not found." });
+                messageApi.info(`${error?.message}: Match Not Found.`);
+            }
         },
     });
 
@@ -1160,12 +1210,16 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LL</p>
                                             {
-                                                fingerprintVerificationResult2 && LeftFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
-                                                    fingerprintVerificationResult2?.message === "Match found." ?
-                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
+                                                fingerprintVerificationResult2 &&
+                                                LeftFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
+                                                    fingerprintVerificationResult2?.message === "Match found." ||
+                                                        fingerprintVerificationResult2?.message ===
+                                                        "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated" ? (
+                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p>
+                                                    ) : (
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
+                                                    )
                                                 )
-
                                             }
                                             {
                                                 LeftFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
@@ -1179,12 +1233,16 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LR</p>
                                             {
-                                                fingerprintVerificationResult3 && LeftFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
-                                                    fingerprintVerificationResult3?.message === "Match found." ?
-                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
+                                                fingerprintVerificationResult3 &&
+                                                LeftFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
+                                                    fingerprintVerificationResult3?.message === "Match found." ||
+                                                        fingerprintVerificationResult3?.message ===
+                                                        "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated" ? (
+                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p>
+                                                    ) : (
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
+                                                    )
                                                 )
-
                                             }
                                             {
                                                 LeftFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
@@ -1198,12 +1256,16 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LM</p>
                                             {
-                                                fingerprintVerificationResult4 && LeftFingerResponse?.CapturedFingers?.[2]?.FingerBitmapStr && (
-                                                    fingerprintVerificationResult4?.message === "Match found." ?
-                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
+                                                fingerprintVerificationResult4 &&
+                                                LeftFingerResponse?.CapturedFingers?.[2]?.FingerBitmapStr && (
+                                                    fingerprintVerificationResult4?.message === "Match found." ||
+                                                        fingerprintVerificationResult4?.message ===
+                                                        "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated" ? (
+                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p>
+                                                    ) : (
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
+                                                    )
                                                 )
-
                                             }
                                             {
                                                 LeftFingerResponse?.CapturedFingers?.[2]?.FingerBitmapStr && (
@@ -1217,12 +1279,16 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LI</p>
                                             {
-                                                fingerprintVerificationResult5 && LeftFingerResponse?.CapturedFingers?.[3]?.FingerBitmapStr && (
-                                                    fingerprintVerificationResult5?.message === "Match found." ?
-                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
+                                                fingerprintVerificationResult5 &&
+                                                LeftFingerResponse?.CapturedFingers?.[3]?.FingerBitmapStr && (
+                                                    fingerprintVerificationResult5?.message === "Match found." ||
+                                                        fingerprintVerificationResult5?.message ===
+                                                        "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated" ? (
+                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p>
+                                                    ) : (
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
+                                                    )
                                                 )
-
                                             }
                                             {
                                                 LeftFingerResponse?.CapturedFingers?.[3]?.FingerBitmapStr && (
@@ -1258,12 +1324,16 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RI</p>
                                             {
-                                                fingerprintVerificationResult7 && RightFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
-                                                    fingerprintVerificationResult7?.message === "Match found." ?
-                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
+                                                fingerprintVerificationResult7 &&
+                                                RightFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
+                                                    fingerprintVerificationResult7?.message === "Match found." ||
+                                                        fingerprintVerificationResult7?.message ===
+                                                        "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated" ? (
+                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p>
+                                                    ) : (
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
+                                                    )
                                                 )
-
                                             }
                                             {
                                                 RightFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
@@ -1277,12 +1347,16 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RM</p>
                                             {
-                                                fingerprintVerificationResult8 && RightFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
-                                                    fingerprintVerificationResult8?.message === "Match found." ?
-                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
+                                                fingerprintVerificationResult8 &&
+                                                RightFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
+                                                    fingerprintVerificationResult8?.message === "Match found." ||
+                                                        fingerprintVerificationResult8?.message ===
+                                                        "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated" ? (
+                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p>
+                                                    ) : (
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
+                                                    )
                                                 )
-
                                             }
                                             {
                                                 RightFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
@@ -1296,12 +1370,16 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RI</p>
                                             {
-                                                fingerprintVerificationResult9 && RightFingerResponse?.CapturedFingers?.[2]?.FingerBitmapStr && (
-                                                    fingerprintVerificationResult9?.message === "Match found." ?
-                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
+                                                fingerprintVerificationResult9 &&
+                                                RightFingerResponse?.CapturedFingers?.[2]?.FingerBitmapStr && (
+                                                    fingerprintVerificationResult9?.message === "Match found." ||
+                                                        fingerprintVerificationResult9?.message ===
+                                                        "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated" ? (
+                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p>
+                                                    ) : (
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
+                                                    )
                                                 )
-
                                             }
                                             {
                                                 RightFingerResponse?.CapturedFingers?.[2]?.FingerBitmapStr && (
@@ -1315,12 +1393,16 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RL</p>
                                             {
-                                                fingerprintVerificationResult10 && RightFingerResponse?.CapturedFingers?.[3]?.FingerBitmapStr && (
-                                                    fingerprintVerificationResult10?.message === "Match found." ?
-                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
+                                                fingerprintVerificationResult10 &&
+                                                RightFingerResponse?.CapturedFingers?.[3]?.FingerBitmapStr && (
+                                                    fingerprintVerificationResult10?.message === "Match found." ||
+                                                        fingerprintVerificationResult10?.message ===
+                                                        "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated" ? (
+                                                        <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p>
+                                                    ) : (
                                                         <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
+                                                    )
                                                 )
-
                                             }
                                             {
                                                 RightFingerResponse?.CapturedFingers?.[3]?.FingerBitmapStr && (
@@ -1357,12 +1439,16 @@ const VisitorProfile = ({
                                             <div className="w-32 h-32 border rounded-md relative">
                                                 <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LT</p>
                                                 {
-                                                    fingerprintVerificationResult1 && ThumbFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
-                                                        fingerprintVerificationResult1?.message === "Match found." ?
-                                                            <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
+                                                    fingerprintVerificationResult1 &&
+                                                    ThumbFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
+                                                        fingerprintVerificationResult1?.message === "Match found." ||
+                                                            fingerprintVerificationResult1?.message ===
+                                                            "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated" ? (
+                                                            <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p>
+                                                        ) : (
                                                             <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
+                                                        )
                                                     )
-
                                                 }
                                                 {
                                                     ThumbFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
@@ -1376,12 +1462,16 @@ const VisitorProfile = ({
                                             <div className="w-32 h-32 border rounded-md relative">
                                                 <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RT</p>
                                                 {
-                                                    fingerprintVerificationResult6 && ThumbFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
-                                                        fingerprintVerificationResult6?.message === "Match found." ?
-                                                            <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p> :
+                                                    fingerprintVerificationResult6 &&
+                                                    ThumbFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
+                                                        fingerprintVerificationResult6?.message === "Match found." ||
+                                                            fingerprintVerificationResult6?.message ===
+                                                            "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated" ? (
+                                                            <p className="h-4 w-4 text-sm bg-red-500 absolute right-0"></p>
+                                                        ) : (
                                                             <p className="h-4 w-4 text-sm bg-green-500 absolute right-0"></p>
+                                                        )
                                                     )
-
                                                 }
                                                 {
                                                     ThumbFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (

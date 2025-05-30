@@ -1,0 +1,83 @@
+type Area = {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  info: string;
+  created_at: string;
+  updated_at: string;
+  area_desc: string;
+  polygon: string;
+  circle: string;
+  geocode: string;
+  altitude: string;
+  ceiling: string;
+};
+
+type Info = {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  alert: string;
+  language: string;
+  category: string;
+  urgency: string;
+  severity: string;
+  certainty: string;
+  areas: Area[];
+  created_at: string;
+  updated_at: string;
+  event: string;
+  response_type: string;
+  audience: string;
+  parameter: string;
+  event_code: string;
+  effective: string;
+  onset: string;
+  expires: string;
+  sender_name: string;
+  headline: string;
+  description: string;
+  instruction: string;
+  web: string;
+  contact: string;
+};
+
+export type OASISAlert = {
+  id: number;
+  alert: string;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  status: string;
+  msg_type: string;
+  scope: string;
+  infos: Info[];
+  created_at: string;
+  updated_at: string;
+  identifier: string;
+  sender: string;
+  sent: string;
+  source: string;
+  restriction: string;
+  addresses: string;
+  code: string;
+  note: string;
+  references: string;
+  incidents: string;
+  to_xml_link: string;
+};
+
+export type OASISAlertNotification = {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  user: string;
+  alert: OASISAlert;
+  created_at: string;
+  updated_at: string;
+  status: "unread" | "read";
+  notified_at: string;
+};

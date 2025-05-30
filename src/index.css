@@ -39,6 +39,33 @@ a.active div {
   -ms-overflow-style: none; /* Hides scrollbar in IE/Edge */
 }
 
+.scrollbar-thin::-webkit-scrollbar {
+  width: 2px; /* Thin width for vertical scrollbar */
+  height: 2px; /* Thin height for horizontal scrollbar */
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent; /* Optional: Makes track invisible */
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3); /* Makes scrollbar thumb visible but subtle */
+  border-radius: 10px; /* Rounded corners for a smoother appearance */
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin; /* Makes scrollbar thin in Firefox */
+}
+
+.custom-scrollbar-h::-webkit-scrollbar {
+  height: 8px;
+}
+
+.custom-scrollbar-h::-webkit-scrollbar-thumb {
+  background: #999;
+  border-radius: 10px;
+}
+
 @layer base {
   :root {
     --radius: 0.5rem;
@@ -122,4 +149,3 @@ a.active div {
 .custom-shape4 {
   clip-path: polygon(0 0, 84% 0, 100% 100%, 0 100%);
 }
-

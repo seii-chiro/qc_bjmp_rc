@@ -118,6 +118,7 @@ import GeneralSettings from "./pages/Settings/general-setting/GeneralSettings.ts
 import SystemSettings from "./pages/Settings/system-settings/SystemSettings.tsx";
 import { useSystemSettingsStore } from "@/store/useSystemSettingStore.ts";
 import { useTokenStore } from "./store/useTokenStore.ts";
+import OasisAlertForm from "./pages/oasis/OasisAlertForm.tsx";
 import MainReport from "./pages/reports/MainReport.tsx";
 import DashboardSummary from "./pages/reports/modules/DashboardSummary.tsx";
 import SummaryCount from "./pages/reports/modules/SummaryCount.tsx";
@@ -657,6 +658,10 @@ function App() {
                 {
                     path: "service-provider",
                     element: <ServiceProvider />
+                },
+                {
+                    path: "oasis",
+                    element: <OasisAlertForm />
                 },
                 {
                     path: "person",

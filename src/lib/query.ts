@@ -1,3 +1,4 @@
+import { IncidentFormType } from "@/pages/Incidents/incident-type/IncidentForm";
 import {
   CourtBranch,
   CourtRecord,
@@ -34,7 +35,9 @@ import {
   WatchlistPerson,
 } from "./issues-difinitions";
 import { PDLs } from "./pdl-definitions";
+import { PaginatedResponse } from "./queries";
 import { BASE_URL, BASE_URL_BIOMETRIC } from "./urls";
+import { IncidentFormCategory } from "@/pages/Incidents/incident-category/AddIncidentCategory";
 
 export const deletePDL = async (token: string, id: number) => {
   const response = await fetch(`${BASE_URL}/api/pdls/pdl/${id}/`, {
@@ -856,7 +859,7 @@ export const patchGroupAffiliation = async (
 
 export async function getIncidentCategory(
   token: string
-): Promise<IncidentCategoryResponse[]> {
+): Promise<PaginatedResponse<IncidentCategoryResponse>> {
   const res = await fetch(`${BASE_URL}/api/incidents/incident-categories/`, {
     headers: {
       "Content-Type": "application/json",
@@ -868,6 +871,23 @@ export async function getIncidentCategory(
   }
   return res.json();
 }
+
+export const postIncidentCategory = async (
+  token: string,
+  data: IncidentFormCategory
+): Promise<IncidentCategoryResponse> => {
+  const url = `${BASE_URL}/api/incidents/incident-categories/`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to add Incident Category");
+  return res.json();
+};
 
 export const patchIncidentCategory = async (
   token: string,
@@ -906,7 +926,7 @@ export const deleteIncidentCategory = async (token: string, id: number) => {
 
 export async function getIncidentType(
   token: string
-): Promise<IncidentCategoryResponse[]> {
+): Promise<PaginatedResponse<IncidentTypeResponse>> {
   const res = await fetch(`${BASE_URL}/api/incidents/incident-types/`, {
     headers: {
       "Content-Type": "application/json",
@@ -918,6 +938,23 @@ export async function getIncidentType(
   }
   return res.json();
 }
+
+export const postIncidentType = async (
+  token: string,
+  data: IncidentFormType
+): Promise<IncidentTypeResponse> => {
+  const url = `${BASE_URL}/api/incidents/incident-types/`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to add an Incident Type");
+  return res.json();
+};
 
 export const deleteIncidentType = async (token: string, id: number) => {
   const response = await fetch(
@@ -987,9 +1024,7 @@ export async function getIssueCategory(
   return res.json();
 }
 
-export async function getGroup_Role(
-  token: string
-): Promise<GroupRole> {
+export async function getGroup_Role(token: string): Promise<GroupRole> {
   const res = await fetch(`${BASE_URL}/api/standards/groups/`, {
     headers: {
       "Content-Type": "application/json",
@@ -1010,16 +1045,14 @@ export const updateGroup_Roles = async (
   updatedData: any
 ) => {
   const url = `${BASE_URL}/api/standards/groups/${id}/`;
-  const response = await fetch(url,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Token ${token}`,
-      },
-      body: JSON.stringify(updatedData),
-    }
-  );
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(updatedData),
+  });
 
   if (!response.ok) {
     throw new Error("Failed to update Group Roles");
@@ -1029,15 +1062,12 @@ export const updateGroup_Roles = async (
 };
 
 export const deleteGroup_Roles = async (token: string, id: number) => {
-  const response = await fetch(
-    `${BASE_URL}/api/standards/groups/${id}/`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization: `Token ${token}`,
-      },
-    }
-  );
+  const response = await fetch(`${BASE_URL}/api/standards/groups/${id}/`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  });
 
   if (!response.ok) {
     throw new Error("Failed to delete Group Roles");

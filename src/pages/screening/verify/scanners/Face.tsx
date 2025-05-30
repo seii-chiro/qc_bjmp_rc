@@ -21,7 +21,7 @@ type Props = {
 const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
   const [icao, setIcao] = useState("")
   const [verificationPayload, setVerificationPayload] = useState({ template: '', type: 'face' })
-  const [verificationResult, setVerificationResult] = useState<any | null>(null)
+  // const [verificationResult, setVerificationResult] = useState<any | null>(null)
 
   const [lastScanned, setLastScanned] = useState<any | null>(null);
   const [lastScannedPdl, setLastScannedPdl] = useState<any | null>(null);
@@ -196,7 +196,7 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
       message.info("Match Found");
       // Process visitor log after successful verification
       processVisitorLog(data);
-      setVerificationResult(data)
+      // setVerificationResult(data)
     },
     onError: (error) => {
       console.error("Biometric enrollment failed:", error);

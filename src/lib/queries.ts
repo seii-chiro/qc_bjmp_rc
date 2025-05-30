@@ -1294,7 +1294,7 @@ export async function getSystem_Setting(
   return res.json();
 }
 
-export async function getUser(token: string): Promise<User[]> {
+export async function getUser(token: string): Promise<User> {
   const res = await fetch(USER.getUSER, {
     headers: {
       "Content-Type": "application/json",
@@ -2475,7 +2475,7 @@ export async function getCurrentUser(token: string): Promise<UserAccounts> {
 
 export async function getVisitorAppStatus(
   token: string
-): Promise<VisitorAppStatus[]> {
+): Promise<PaginatedResponse<VisitorAppStatus>> {
   const res = await fetch(
     `${BASE_URL}/api/visitors/visitor-application-status/`,
     {

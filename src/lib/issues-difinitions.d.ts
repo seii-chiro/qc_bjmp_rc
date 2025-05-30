@@ -930,7 +930,7 @@ export interface EditResponse {
   description: string;
 }
 
-export interface IncidentCategoryResponse {
+export type IncidentCategoryResponse = {
   id: number;
   created_by: string;
   updated_by: string;
@@ -939,9 +939,9 @@ export interface IncidentCategoryResponse {
   updated_at: string; // or Date
   category_name: string;
   description: string;
-}
+};
 
-export interface IncidentTypeResponse {
+export type IncidentTypeResponse = {
   id: number;
   created_by: string;
   updated_by: string;
@@ -950,7 +950,8 @@ export interface IncidentTypeResponse {
   updated_at: string; // or Date
   name: string;
   description: string;
-}
+  category: string;
+};
 
 export interface GlobalSettingsResponse {
   id: number;

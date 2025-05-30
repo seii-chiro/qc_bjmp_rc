@@ -22,14 +22,14 @@ const IncidentCategory = () => {
     const token = useTokenStore().token;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const queryClient = useQueryClient();
-    const [messageApi, contextHolder] = message.useMessage();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [IncidentCategory, setIncidentCategory] = useState<IncidentCategoryResponse | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+    const [editRecord, setEditRecord] = useState<Partial<IncidentCategoryResponse> | undefined>(undefined);
 
-    const { data } = useQuery({
+    const { data, refetch: refetchIncidentCategories } = useQuery({
         queryKey: ["incident-category"],
         queryFn: () => getIncidentCategory(token ?? ""),
     });
@@ -43,19 +43,26 @@ const IncidentCategory = () => {
         mutationFn: (id: number) => deleteIncidentCategory(token ?? "", id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["incident-category"] });
-            messageApi.success("Incident Category deleted successfully");
+            message.success("Incident Category deleted successfully");
         },
-        onError: (error: any) => {
-            messageApi.error(error.message || "Failed to delete Incident Category");
+        onError: (error) => {
+            message.error(error.message || "Failed to delete Incident Category");
         },
     });
 
-    const showModal = () => {
+    const showEditModal = (record: Partial<IncidentCategoryResponse>) => {
+        setEditRecord(record);
         setIsModalOpen(true);
     };
-    
+
+    const showModal = () => {
+        setEditRecord(undefined);
+        setIsModalOpen(true);
+    };
+
     const handleCancel = () => {
         setIsModalOpen(false);
+        setEditRecord(undefined);
     };
 
     const dataSource = data?.results?.map((incident_category, index) => ({
@@ -63,7 +70,7 @@ const IncidentCategory = () => {
         id: incident_category?.id,
         category_name: incident_category?.category_name ?? "N/A",
         description: incident_category?.description ?? "N/A",
-        organization: incident_category?.organization ?? 'Bureau of Jail Management and Penology',
+        organization: 'Bureau of Jail Management and Penology',
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
@@ -112,17 +119,31 @@ const IncidentCategory = () => {
             title: "Actions",
             key: "actions",
             align: "center",
-            render: (_: any, record: IncidentCategoryResponse) => (
+            render: (_, record: IncidentCategoryResponse) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
-                    <Button type="link" onClick={() => {
-                    setIncidentCategory(record);
-                    setIsEditModalOpen(true);
-                }}>
-                    <AiOutlineEdit />
-                </Button>
-                <Button type="link" danger onClick={() => deleteMutation.mutate(record.id)}>
-                    <AiOutlineDelete />
-                </Button>
+                    <Button
+                        type="link"
+                        onClick={() => showEditModal(record)}>
+                        <AiOutlineEdit />
+                    </Button>
+                    <Button
+                        type="link"
+                        danger
+                        onClick={() => {
+                            Modal.confirm({
+                                centered: true,
+                                title: 'Are you sure?',
+                                content: `Delete "${record.category_name}" incident category?`,
+                                okText: 'Yes, delete it',
+                                cancelText: 'Cancel',
+                                onOk: () => {
+                                    deleteMutation.mutate(record?.id);
+                                }
+                            });
+                        }}
+                    >
+                        <AiOutlineDelete />
+                    </Button>
                 </div>
             ),
         },
@@ -139,30 +160,30 @@ const IncidentCategory = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
-    
+        const organizationName = dataSource[0]?.organization || "";
+        const PreparedBy = dataSource[0]?.updated_by || '';
+
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-    
-        const maxRowsPerPage = 29; 
-    
+
+        const maxRowsPerPage = 29;
+
         let startY = headerHeight;
-    
+
         const addHeader = () => {
-            const pageWidth = doc.internal.pageSize.getWidth(); 
+            const pageWidth = doc.internal.pageSize.getWidth();
             const imageWidth = 30;
-            const imageHeight = 30; 
-            const margin = 10; 
+            const imageHeight = 30;
+            const margin = 10;
             const imageX = pageWidth - imageWidth - margin;
             const imageY = 12;
-        
+
             doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-        
+
             doc.setTextColor(0, 102, 204);
             doc.setFontSize(16);
-            doc.text("Incident Category Report", 10, 15); 
+            doc.text("Incident Category Report", 10, 15);
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(10);
             doc.text(`Organization Name: ${organizationName}`, 10, 25);
@@ -171,37 +192,37 @@ const IncidentCategory = () => {
             doc.text("Department/ Unit: IT", 10, 40);
             doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
         };
-        
-    
-        addHeader(); 
-    
+
+
+        addHeader();
+
         const tableData = dataSource.map((item, index) => [
             index + 1,
             item.name,
             item.description,
         ]);
-    
+
         for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
-    
-            autoTable(doc, { 
+
+            autoTable(doc, {
                 head: [['No.', 'Incident Category', 'Description']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
                 didDrawPage: function (data) {
                     if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                        addHeader(); 
+                        addHeader();
                     }
                 },
             });
-    
+
             if (i + maxRowsPerPage < tableData.length) {
                 doc.addPage();
                 startY = headerHeight;
             }
         }
-    
+
         const pageCount = doc.internal.getNumberOfPages();
         for (let page = 1; page <= pageCount; page++) {
             doc.setPage(page);
@@ -218,7 +239,7 @@ const IncidentCategory = () => {
             doc.text(footerText, footerX, footerY);
             doc.text(`${page} / ${pageCount}`, pageX, footerY);
         }
-    
+
         const pdfOutput = doc.output('datauristring');
         setPdfDataUrl(pdfOutput);
         setIsPdfModalOpen(true);
@@ -226,7 +247,7 @@ const IncidentCategory = () => {
 
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
-        setPdfDataUrl(null); 
+        setPdfDataUrl(null);
     };
 
     const menu = (
@@ -244,48 +265,47 @@ const IncidentCategory = () => {
 
     return (
         <div>
-            {contextHolder}
             <h1 className="text-3xl font-bold text-[#1E365D]">Incident Category</h1>
             <div className="flex justify-between items-center gap-2 my-4">
-            <div className="flex gap-2">
-                        <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-                            <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
-                                <GoDownload /> Export
-                            </a>
-                        </Dropdown>
-                        <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
-                            Print Report
-                        </button>
-                    </div>
+                <div className="flex gap-2">
+                    <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
+                        <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
+                            <GoDownload /> Export
+                        </a>
+                    </Dropdown>
+                    <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
+                        Print Report
+                    </button>
+                </div>
                 <div className="flex gap-2">
                     <div className="flex-1 relative flex items-center justify-end">
-                    <input
-                        placeholder="Search"
-                        type="text"
-                        onChange={(e) => setSearchText(e.target.value)}
-                        className="border border-gray-400 h-10 w-80 rounded-md px-2 active:outline-none focus:outline-none"
-                    />
-                    <LuSearch className="absolute right-[1%] text-gray-400" />
+                        <input
+                            placeholder="Search"
+                            type="text"
+                            onChange={(e) => setSearchText(e.target.value)}
+                            className="border border-gray-400 h-10 w-80 rounded-md px-2 active:outline-none focus:outline-none"
+                        />
+                        <LuSearch className="absolute right-[1%] text-gray-400" />
+                    </div>
+                    <button type="button" className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center" onClick={showModal}>
+                        <GoPlus />
+                        Add Category
+                    </button>
                 </div>
-                <button type="button" className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center" onClick={showModal}>
-                    <GoPlus />
-                    Add Interest
-                </button>
-                </div>
-                
+
             </div>
             <div>
                 <Table
-                        className="overflow-x-auto"
-                        columns={columns}
-                        dataSource={filteredData}
-                        scroll={{ x: 'max-content' }} 
-                        pagination={{
-                            current: pagination.current,
-                            pageSize: pagination.pageSize,
-                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
-                        }}
-                    />
+                    className="overflow-x-auto"
+                    columns={columns}
+                    dataSource={filteredData}
+                    scroll={{ x: 'max-content' }}
+                    pagination={{
+                        current: pagination.current,
+                        pageSize: pagination.pageSize,
+                        onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                    }}
+                />
             </div>
             <Modal
                 title="Incident Category Report"
@@ -303,15 +323,20 @@ const IncidentCategory = () => {
                 )}
             </Modal>
             <Modal
+                centered
                 className="overflow-y-auto rounded-lg scrollbar-hide"
                 title="Add Incident Category"
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
                 width="30%"
-                style={{ maxHeight: "80vh", overflowY: "auto" }} 
+                style={{ maxHeight: "80vh", overflowY: "auto" }}
             >
-                <AddIncidentCategory onClose={handleCancel} />
+                <AddIncidentCategory
+                    editRecord={editRecord}
+                    refetchIncidentCategories={refetchIncidentCategories}
+                    onClose={handleCancel}
+                />
             </Modal>
         </div>
     )

@@ -1,0 +1,51 @@
+.oasis-container h1,
+.oasis-container h2 {
+  text-align: center;
+}
+
+.oasis-container form {
+  margin-top: 20px;
+}
+
+.oasis-container .form-group {
+  margin-bottom: 12px;
+}
+
+.oasis-container label {
+  font-weight: bold;
+  display: block;
+}
+
+.oasis-container small {
+  font-style: italic;
+  color: #555;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.oasis-container input,
+.oasis-container textarea,
+.oasis-container select {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 1px solid black;
+  border-radius: 4px;
+}
+
+.oasis-container fieldset {
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+.oasis-container legend {
+  font-weight: bold;
+}
+
+.oasis-container .xml-output {
+  background: #eee;
+  padding: 10px;
+  white-space: pre-wrap;
+  border: 1px solid #ccc;
+}
