@@ -19,7 +19,6 @@ import release from '../../assets/Icons/release.png';
 import hospital from '../../assets/Icons/hospital.png';
 import prison from '../../assets/Icons/prison.png';
 import release_pdl from '../../assets/Icons/release_pdl.png'
-import convicted from '../../assets/Icons/convicted.png'
 import trans from '../../assets/Icons/trans.png'
 import pdl_enter from '../../assets/Icons/pdl_entered.png'
 import exited from '../../assets/Icons/exited.png'
@@ -142,10 +141,7 @@ const Dashboard = () => {
 
 
     const quarterlyCounts = quarterlyData?.success?.quarterly_pdl_summary || {};
-    const totalConvictedCount = isFormChanged && dateField === 'date_convicted'
-        ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
-        : summarydata?.success?.total_pdl_by_status?.Convicted?.Active ?? 0;
-
+    
     const totalReleasedCount = isFormChanged && dateField === 'date_released'
         ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
         : summarydata?.success?.total_pdl_by_status?.Released?.Active ?? 0;
@@ -156,7 +152,11 @@ const Dashboard = () => {
 
     const totalHospitalizedCount = isFormChanged && dateField === 'date_hospitalized'
         ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
-        : summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active ?? 0
+        : summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active ?? 0;
+
+    {/* const totalConvictedCount = dateField === 'date_convicted'
+        ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
+        : 0; */}
     
      const handleDateFieldChange = (value) => {
         setDateField(value);
@@ -228,7 +228,7 @@ const Dashboard = () => {
 
     const onOffDutyPersonnelData = [
         { name: 'Entered', value: summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0},
-        { name: 'Exited', value: summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0},
+        { name: 'Exited', value: summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0,},
     ];
 
     const EmergencyMalfunctionData = [
@@ -315,42 +315,6 @@ const Dashboard = () => {
                 <div className='flex flex-col'>
                     <div className='text-[#1E365D] font-extrabold text-3xl'>{count}</div>
                     <p className='text-[#121D26] text-lg font-semibold'>{title}</p>
-                </div>
-            </div>
-        );
-    };
-
-        const Card4 = (props: {
-        title: string;
-        image: string;
-        count: number | string;
-        linkto?: string;
-        state?: any;
-        onClick?: () => void; 
-    }) => {
-        const navigate = useNavigate();
-        const { title, image, count, linkto, state, onClick } = props;
-
-        const handleClick = () => {
-            if (onClick) {
-                onClick(); 
-            }
-            if (linkto) {
-                navigate(linkto, { state });
-            }
-        };
-
-        return (
-            <div
-                className='rounded-lg flex flex-grow items-center gap-2 px-2 py-[4.5px] w-full bg-[#F6F7FB] hover:cursor-pointer'
-                onClick={handleClick}
-            >
-                <div className='bg-[#D3DFF0] rounded-full'>
-                    <img src={image} className='w-10' alt={title} />
-                </div>
-                <div className='flex flex-col'>
-                    <div className='text-[#1E365D] font-extrabold text-3xl'>{count}</div>
-                    <p className='text-[#121D26] text-base font-semibold'>{title}</p>
                 </div>
             </div>
         );
@@ -492,6 +456,7 @@ const visitorHandleClick = (gender: string) => {
                                 <p className="text-sm">{currentDate} at {time}</p>
                             </div>
                         </div>
+
                         {/* 1ST ROW */}
                         <div className="w-full flex flex-col lg:flex-row gap-2 mt-2">
                             {/* Cards Column */}
@@ -539,29 +504,22 @@ const visitorHandleClick = (gender: string) => {
                                             <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
                                             <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
                                             <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
                                         </>
                                     ) : (
                                         <>
-                                            <Card4
-                                                image={convicted} 
-                                                title="Convicted PDL" 
-                                                count={totalReleasedCount} 
-                                                onClick={() => pdlstatusHandleClick("Released")}
-                                            />
-                                            <Card4
+                                            <Card3 
                                                 image={release_pdl} 
                                                 title="Released PDL" 
                                                 count={totalReleasedCount} 
                                                 onClick={() => pdlstatusHandleClick("Released")}
                                             />
-                                            <Card4
+                                            <Card3 
                                                 image={prison} 
                                                 title='Committed PDL' 
                                                 count={totalAdmissionCount} 
                                                 onClick={() => pdlstatusHandleClick("Committed")}
                                             />
-                                            <Card4
+                                            <Card3 
                                                 image={hospital} 
                                                 title='Hospitalized PDL' 
                                                 count={totalHospitalizedCount} 
@@ -708,7 +666,7 @@ const visitorHandleClick = (gender: string) => {
                                         <Title title="Personnel Based on their Gender" />
                                     </div>
                                     <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
-                                        <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-64 min-h-[180px]">
+                                        <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-60 min-h-[100px]" : "h-64 min-h-[180px]"}`}>
                                         {isPersonnelGenderLoading ? (
                                             <Skeleton.Input active className="w-full h-full rounded-lg" />
                                         ) : (
@@ -778,35 +736,28 @@ const visitorHandleClick = (gender: string) => {
                                         <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
                                         <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
                                         <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
                                     </>
                                     ) : (
-                                    <div className="flex flex-wrap gap-2">
-                                        <Card4 
-                                            image={convicted} 
-                                            title="Convicted PDL" 
-                                            count={totalConvictedCount} 
-                                            onClick={() => pdlstatusHandleClick("Convicted")}
-                                        />
-                                        <Card4 
-                                            image={release_pdl} 
-                                            title="Released PDL" 
-                                            count={totalReleasedCount} 
-                                            onClick={() => pdlstatusHandleClick("Released")}
-                                        />
-                                        <Card4
-                                            image={prison} 
-                                            title='Committed PDL' 
-                                            count={totalAdmissionCount} 
-                                            onClick={() => pdlstatusHandleClick("Committed")}
-                                        />
-                                        <Card4
-                                            image={hospital} 
-                                            title='Hospitalized PDL' 
-                                            count={totalHospitalizedCount} 
-                                            onClick={() => pdlstatusHandleClick("Hospitalized")}
-                                        />
-                                    </div>
+                                    <>
+                                        <Card3 
+                                                image={release_pdl} 
+                                                title="Released PDL" 
+                                                count={totalReleasedCount} 
+                                                onClick={() => pdlstatusHandleClick("Released")}
+                                            />
+                                            <Card3 
+                                                image={prison} 
+                                                title='Committed PDL' 
+                                                count={totalAdmissionCount} 
+                                                onClick={() => pdlstatusHandleClick("Committed")}
+                                            />
+                                            <Card3 
+                                                image={hospital} 
+                                                title='Hospitalized PDL' 
+                                                count={totalHospitalizedCount} 
+                                                onClick={() => pdlstatusHandleClick("Hospitalized")}
+                                            />
+                                    </>
                                     )}
                                 </div>
                                 )}
@@ -842,6 +793,7 @@ const visitorHandleClick = (gender: string) => {
                                             </ResponsiveContainer>
                                             )}
                                         </div>
+
                                         <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
                                             {isPDLEnteredExitLoading ? (
                                             <>
@@ -1533,7 +1485,7 @@ const visitorHandleClick = (gender: string) => {
                     onOk={handleOk}
                     onCancel={handleCancel}
                     footer={null}
-                    width="50%"
+                    width="30%"
                     >
                     <label className="w-full text-[16px] font-semibold">
                         Periodical:

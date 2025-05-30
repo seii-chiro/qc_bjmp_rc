@@ -23,22 +23,23 @@ import { PiFolderUserDuotone } from "react-icons/pi";
 import { BASE_URL } from "@/lib/urls";
 import { PaginatedResponse } from "../personnel_management/personnel/personnel-backup";
 import { Visitor as NewVisitorType } from "@/lib/pdl-definitions";
+import dayjs from "dayjs";
 
-type Visitor = VisitorRecord;
+type VisitorResponse = VisitorRecord;
 
-const Visitor = () => {
+const Visitor = ({ visitor_log, visitHistory }: { visitor_log: any, visitHistory: any[] }) => {
     const [searchText, setSearchText] = useState("");
 
     const [debouncedSearch, setDebouncedSearch] = useState("");
      const [loadingMessage, setLoadingMessage] = useState("");
-    const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
+    const [selectedVisitor, setSelectedVisitor] = useState<VisitorResponse | null>(null);
     const queryClient = useQueryClient();
     const token = useTokenStore().token;
     const modalContentRef = useRef<HTMLDivElement>(null);
     const [messageApi, contextHolder] = message.useMessage();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [selectEditVisitor, setEditSelectedVisitor] = useState<Visitor | null>(null);
+    const [selectEditVisitor, setEditSelectedVisitor] = useState<VisitorResponse | null>(null);
     const [visitorVisits, setVisitorVisits] = useState(selectedVisitor?.main_gate_visits || []);
     const [showAllVisits, setShowAllVisits] = useState(false);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
@@ -47,22 +48,6 @@ const Visitor = () => {
     const [page, setPage] = useState(1);
     const limit = 10;
     const [allVisitor, setAllVisitor] = useState<VisitorRecord[]>([]);
-
-    // useEffect(() => {
-    //     const fetchAll = async () => {
-    //         const res = await fetch(`${BASE_URL}/api/visitors/visitor/?limit=10000`, {
-    //             headers: {
-    //                 Authorization: `Token ${token}`,
-    //                 "Content-Type": "application/json",
-    //             },
-    //         });
-    //         if (res.ok) {
-    //             const data = await res.json();
-    //             setAllVisitor(data.results || []);
-    //         }
-    //     };
-    //     fetchAll();
-    // }, [token]);
 
     const fetchVisitors = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/visitors/visitor/?search=${search}`, {
@@ -136,6 +121,19 @@ const Visitor = () => {
         },
     });
 
+    const visitor = visitor_log?.visitor;
+
+    const visitHistoryForVisitor = visitHistory?.filter(log => log?.person === visitor_log?.person)
+
+    const sortedVisitHistory = visitHistoryForVisitor
+        ?.slice() // create a shallow copy
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 3);
+
+
+    const displayedVisitHistory = sortedVisitHistory || [];
+
+
     const leftSideImage = selectedVisitor?.person?.media?.find(
         (m: any) => m.picture_view === "Left"
     );
@@ -166,70 +164,37 @@ const Visitor = () => {
         (m: any) => m.name?.toLowerCase() === "cohabitation"
     );
 
-    
-// const fetchVisitorGender = async (gender: string) => {
-//     const genderQuery = gender !== "all" ? `gender=${encodeURIComponent(gender)}` : "";
-//     // Set a large limit to get all visitors for this gender (if API supports it)
-//     const query = genderQuery ? `?${genderQuery}&limit=5000` : "?limit=5000";
+const [searchParams] = useSearchParams();
+const gender = searchParams.get("gender") || "all";
+const genderList = gender !== "all" ? gender.split(",").map(decodeURIComponent) : [];
 
-//     const url = `${BASE_URL}/api/visitors/visitor${query}`;
+const { data: visitorGenderData, isLoading: visitorsByGenderLoading } = useQuery({
+    queryKey: ["visitors", 'visitor-table', page, genderList],
+    queryFn: async (): Promise<PaginatedResponse<NewVisitorType>> => {
+        const offset = (page - 1) * limit;
+        const res = await fetch(
+            `${BASE_URL}/api/visitors/visitor/?gender=${encodeURIComponent(genderList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Token ${token}`,
+                },
+            }
+        );
 
-//     const res = await fetch(url, {
-//         headers: {
-//         Authorization: `Token ${token}`,
-//         "Content-Type": "application/json",
-//         },
-//     });
-//     if (!res.ok) throw new Error("Network error");
-//     return res.json();
-// };
-    const [searchParams] = useSearchParams();
-    const gender = searchParams.get("gender") || "all";
-    const genderParam = searchParams.get("gender") || "all";
-const genderList = genderParam !== "all" ? genderParam.split(",").map(decodeURIComponent) : [];
+        if (!res.ok) {
+            throw new Error('Failed to fetch Visitors data.');
+        }
 
-const fetchVisitorGender = async (genders: string[]) => {
-    // Use a large limit to get all matching visitors
-    const url = `${BASE_URL}/api/visitors/visitor/?gender=${genders.join(",")}&limit=${limit}`;
-    const res = await fetch(url, {
-        headers: {
-            Authorization: `Token ${token}`,
-            "Content-Type": "application/json",
-        },
-    });
-    if (!res.ok) throw new Error("Network error");
+        return res.json();
+    },
+    enabled: !!token,
+});
 
-    const result = await res.json();
-
-    if (genders.length === 0 || genders[0] === "all") {
-        return result; // No filtering
-    }
-
-    // If multiple genders, filter for any of them
-    result.results = result.results.filter(visitor => {
-        const genderOption = visitor?.person?.gender?.gender_option;
-        return genders.includes(genderOption);
-    });
-    return result;
-};
-    const { data: visitorGenderData, isLoading: visitorsByGenderLoading } = useQuery({
-        queryKey: ["visitors", genderList],
-        queryFn: () => fetchVisitorGender(genderList),
-        enabled: !!token,
-    });
-    // // This uses the `gender` param directly (e.g., from searchParams or state)
-    // const { data: visitorGenderData, isLoading: visitorsByGenderLoading } = useQuery({
-    // queryKey: ["pdls", gender],
-    // queryFn: () => fetchVisitorGender(gender),
-    // enabled: !!token,
-    // });
-
-    // Step 1: Extract IDs from gender-filtered API data
 const genderFilteredVisitorIds = new Set(
     (visitorGenderData?.results || []).map(visitor => visitor.id)
 );
 
-    // Step 2: Filter full data (data?.results) to only include visitors matching gender filter
     const dataSource = (data?.results || []).filter(visitor =>
         gender === "all" ? true : genderFilteredVisitorIds.has(visitor.id)
     ).map((visitor, index) => {
@@ -250,10 +215,7 @@ const genderFilteredVisitorIds = new Set(
             nationality: visitor?.person?.nationality,
             full_address: visitor?.person?.addresses[0]?.full_address ?? '',
             address: address,
-             gender:
-          (visitor?.person?.gender?.gender_option === "Male" || visitor?.person?.gender?.gender_option === "Female")
-            ? visitor?.person?.gender?.gender_option
-            : "Others",
+             gender: visitor?.person?.gender?.gender_option ?? '',
             organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
             updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         };
@@ -268,7 +230,7 @@ const genderFilteredVisitorIds = new Set(
     });
 
 
-    const columns: ColumnsType<Visitor> = [
+    const columns: ColumnsType<VisitorResponse> = [
         {
             title: 'No.',
             key: 'no',
@@ -308,34 +270,20 @@ const genderFilteredVisitorIds = new Set(
             onFilter: (value, record) => record.person?.last_name === value,
         },
         {
-    title: 'Gender',
-    key: 'gender',
-    render: (_, visitor) => {
-        // Show the actual gender value, fallback to "Others" if missing
-        return visitor?.person?.gender?.gender_option || "Others";
-    },
-    filters: [
-        { text: "Male", value: "Male" },
-        { text: "Female", value: "Female" },
-        { text: "Others", value: "Others" }
-    ],
-    onFilter: (value, record) => {
-        const genderOption = record?.person?.gender?.gender_option;
-        if (value === "Others") {
-            return genderOption !== "Male" && genderOption !== "Female";
-        }
-        return genderOption === value;
-    },
-    sorter: (a, b) => {
-        const genderA = (a.person?.gender?.gender_option === "Male" || a.person?.gender?.gender_option === "Female")
-            ? a.person?.gender?.gender_option
-            : "Others";
-        const genderB = (b.person?.gender?.gender_option === "Male" || b.person?.gender?.gender_option === "Female")
-            ? b.person?.gender?.gender_option
-            : "Others";
-        return genderA.localeCompare(genderB);
-    }
-},
+            title: 'Gender',
+            dataIndex: 'gender',
+            key: 'gender',
+            sorter: (a, b) => a.gender.localeCompare(b.gender),
+            filters: [
+                ...Array.from(
+                    new Set(allVisitor.map(item => item.gender))
+                ).map(gender => ({
+                    text: gender,
+                    value: gender,
+                }))
+            ],
+            onFilter: (value, record) => record.gender === value,
+        },
         {
             title: 'Visitor Type',
             dataIndex: 'visitor_type',
@@ -423,7 +371,7 @@ const genderFilteredVisitorIds = new Set(
 
     ];
 
-    const handleRowClick = async (record: Visitor) => {
+    const handleRowClick = async (record: VisitorResponse) => {
         setSelectedVisitor(null);
         try {
             const visitorDetails = await getVisitorSpecificById(record.id, token);
@@ -457,7 +405,6 @@ const genderFilteredVisitorIds = new Set(
     };
 
 const lastPrintIndexRef = useRef(0);
-
 const handleExportPDF = async () => {
     setIsLoading(true);
     setLoadingMessage("Generating PDF... Please wait.");
@@ -637,20 +584,13 @@ const handleExportPDF = async () => {
 
         // Map to prepare export data, excluding unnecessary fields
         const exportData = fullDataSource?.results.map(visitor => {
-            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
-
-             const barangay = visitor?.person?.addresses[0]?.barangay || '';
-            const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
-            const province = visitor?.person?.addresses[0]?.province || '';
-
-            const addressParts = [barangay, cityMunicipality, province].filter(part => part);
-            const address = addressParts.join(', ');
+            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
             return {
                 "Registration No.": visitor?.visitor_reg_no,
                 "Name":name,
                 "Gender": visitor?.person?.gender?.gender_option, // Include constructed name
                 "Visitor Type": visitor?.visitor_type,
-                "Address": address,
+                "Address": visitor?.person?.addresses[0]?.full_address ?? '',
                 
             };
         }) || [];
@@ -665,20 +605,13 @@ const handleExportCSV = async () => {
     try {
         const fullDataSource = await fetchAllVisitors();
         const exportData = fullDataSource?.results.map(visitor => {
-            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
-
-             const barangay = visitor?.person?.addresses[0]?.barangay || '';
-            const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
-            const province = visitor?.person?.addresses[0]?.province || '';
-
-            const addressParts = [barangay, cityMunicipality, province].filter(part => part);
-            const address = addressParts.join(', ');
+            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
             return {
                 "Registration No.": visitor?.visitor_reg_no,
                 "Name": name,
                 "Gender": visitor?.person?.gender?.gender_option,
                 "Visitor Type": visitor?.visitor_type,
-                "Address": address,
+                "Address": visitor?.person?.addresses[0]?.full_address ?? '',
                 
             };
         }) || [];
@@ -747,20 +680,27 @@ const handleExportCSV = async () => {
         pdf.addImage(imgData, 'PNG', x, y, finalImgWidth, finalImgHeight);
         pdf.save('visitor-profile.pdf');
     };
+
+    const totalRecords = debouncedSearch 
+    ? data?.count || 0
+    : gender !== "all" 
+    ? visitorGenderData?.count || 0 
+    : data?.count || 0; 
+
     return (
         <div>
             <div className="h-[90vh] flex flex-col">
                 {contextHolder}
                 <h1 className="text-3xl font-bold text-[#1E365D]">Visitor</h1>
-                <div className="flex my-4 justify-between">
+                <div className="flex my-1 justify-between">
                     <div className="flex gap-2">
-                        <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
+                        <Dropdown className="bg-[#1E365D] py-1 px-5 rounded-md text-white" overlay={menu}>
                             <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
                                 <GoDownload /> Export
                             </a>
                         </Dropdown>
                        <button 
-                            className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                            className={`bg-[#1E365D] py-1 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
                             onClick={handleExportPDF} 
                             disabled={isLoading}
                         >
@@ -777,8 +717,7 @@ const handleExportCSV = async () => {
                         />
                     </div>
                 </div>
-
-                <div className="flex-grow overflow-y-auto overflow-x-auto">
+                <div className="overflow-x-auto">
                     <Table
                         loading={isFetching || searchLoading || visitorsByGenderLoading}
                         columns={columns}
@@ -813,21 +752,20 @@ const handleExportCSV = async () => {
                                 }))
                             : filteredData
                         }
-                        scroll={{ x: 800, y: 'calc(100vh - 200px)' }}
+                        scroll={{ x: 800 }}
                         pagination={
-                            debouncedSearch || gender !== "all"
-                            ? false // Disable pagination when searching or filtering by gender
+                            debouncedSearch
+                            ? false 
                             : {
                                 current: page,
                                 pageSize: limit,
-                                total: data?.count || 0,
+                                total: totalRecords,
                                 onChange: (newPage) => setPage(newPage),
                                 showSizeChanger: false,
                                 }
                         }
                         rowKey="id"
                     />
-
                 </div>
             </div>
             <Modal
@@ -893,64 +831,45 @@ const handleExportCSV = async () => {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {visitorVisits?.length > 0 ? (
-                                                                (showAllVisits
-                                                                    ? [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-                                                                    : [...visitorVisits].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).slice(0, 3)
-                                                                ).reduce((acc, visit, index, arr) => {
-                                                                    const login = new Date(visit.created_at);
-                                                                    let logout;
-
-                                                                    if (arr[index + 1]) {
-                                                                        const nextVisitDate = new Date(arr[index + 1].created_at);
-                                                                        // Check if the date matches
-                                                                        if (login.toDateString() === nextVisitDate.toDateString()) {
-                                                                            logout = nextVisitDate;
+                                                            {displayedVisitHistory && displayedVisitHistory.length > 0 ? (
+                                                                displayedVisitHistory.map((visit, index) => {
+                                                                    const login = new Date(visit.timestamp_in);
+                                                                    const logout = visit.timestamp_out ? new Date(visit.timestamp_out) : null;
+                                                                    const duration_in_sec = visit?.duration ? visit?.duration : 0;
+                                                                    let durationDisplay = "...";
+                                                                    if (visit.timestamp_out) {
+                                                                        const minutes = Math.floor(duration_in_sec / 60);
+                                                                        const hours = Math.floor(minutes / 60);
+                                                                        if (duration_in_sec < 60) {
+                                                                            durationDisplay = `${duration_in_sec?.toFixed(0)}s`;
+                                                                        } else if (minutes < 60) {
+                                                                            durationDisplay = `${minutes}m`;
                                                                         } else {
-                                                                            logout = new Date(visit.updated_at);
+                                                                            durationDisplay = `${hours}h ${minutes % 60}m`;
                                                                         }
-                                                                    } else {
-                                                                        logout = new Date(visit.updated_at); // Fallback for the last visit
                                                                     }
-
-                                                                    // Check if the login time is already a logout time in the accumulated logouts
-                                                                    const lastLogout = acc.length > 0 ? acc[acc.length - 1].logout : null;
-
-                                                                    if (lastLogout && login.getTime() <= lastLogout.getTime()) {
-                                                                        return acc; // Skip this visit as it's not a valid login
-                                                                    }
-
-                                                                    // If valid, push to the accumulator
-                                                                    acc.push({ login, logout });
-                                                                    return acc;
-                                                                }, []).map(({ login, logout }, index) => {
-                                                                    const durationMs = logout.getTime() - login.getTime();
-                                                                    const durationMins = Math.floor(durationMs / 60000);
-                                                                    const hours = Math.floor(durationMins / 60);
-                                                                    const minutes = durationMins % 60;
-
                                                                     return (
                                                                         <tr key={index}>
-                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                {login.toLocaleDateString()}
+                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                                {dayjs(login).format("YYYY-MM-DD")}
                                                                             </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                {`${hours}h ${minutes}m`}
+                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                                {!visit.timestamp_out ? "..." : durationDisplay}
                                                                             </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
+                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
                                                                                 {login.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                                                             </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-xs p-1 text-center">
-                                                                                {logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                                {visit.isCurrent ? <span className="text-green-600 font-semibold">...</span> : (logout
+                                                                                    ? logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                                                                                    : "-")}
                                                                             </td>
                                                                         </tr>
                                                                     );
                                                                 })
                                                             ) : (
                                                                 <tr>
-                                                                    <td colSpan={4} className="text-center text-[9px] text-gray-500 py-2">
-                                                                        No visitor history found
-                                                                    </td>
+                                                                    <td colSpan={4} className="text-center text-xs py-2">No visit history found.</td>
                                                                 </tr>
                                                             )}
                                                         </tbody>

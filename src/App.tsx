@@ -119,6 +119,11 @@ import SystemSettings from "./pages/Settings/system-settings/SystemSettings.tsx"
 import { useSystemSettingsStore } from "@/store/useSystemSettingStore.ts";
 import { useTokenStore } from "./store/useTokenStore.ts";
 import OasisAlertForm from "./pages/oasis/OasisAlertForm.tsx";
+import MainReport from "./pages/reports/MainReport.tsx";
+import DashboardSummary from "./pages/reports/modules/DashboardSummary.tsx";
+import SummaryCount from "./pages/reports/modules/SummaryCount.tsx";
+import SummaryCountofPDLs from "./pages/reports/modules/SummaryCountofPDLs.tsx";
+import SummaryCountofPersonnel from "./pages/reports/modules/SummaryCountofPersonnel.tsx";
 
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -349,7 +354,23 @@ function App() {
                 },
                 {
                     path: "reports",
-                    element: <Report />
+                    element: <MainReport />
+                },
+                {
+                    path: "reports/dashboard-summary",
+                    element: <DashboardSummary />
+                },
+                {
+                    path: "reports/summary-count-of-PDL-visitors",
+                    element: <SummaryCount />
+                },
+                {
+                    path: "reports/summary-count-of-PDLs",
+                    element: <SummaryCountofPDLs />
+                },
+                {
+                    path: "reports/summary-count-of-personnel",
+                    element: <SummaryCountofPersonnel />
                 },
                 {
                     path: "incidents",
