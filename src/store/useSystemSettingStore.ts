@@ -8,6 +8,7 @@ type SystemSettingsState = {
   irisScannerTimeout: string;
   logRefetchInterval: string;
   nfiqQuality: string;
+  allowForce: boolean;
   fetchSystemSettings: (token: string) => Promise<void>;
   updateSystemSettingsStore: (token: string) => Promise<void>;
 };
@@ -19,6 +20,7 @@ export const useSystemSettingsStore = create<SystemSettingsState>()(
       irisScannerTimeout: "",
       logRefetchInterval: "",
       nfiqQuality: "",
+      allowForce: false,
       fetchSystemSettings: async (token: string) => {
         try {
           const res = await fetch(`${BASE_URL}/api/codes/system-settings/`, {
@@ -44,6 +46,9 @@ export const useSystemSettingsStore = create<SystemSettingsState>()(
             nfiqQuality:
               data?.results?.find((s: any) => s.key === "nfiq_quality")
                 ?.value ?? "",
+            allowForce:
+              data?.results?.find((s: any) => s.key === "allow_force")?.value ??
+              "",
           });
         } catch {
           set({
@@ -51,6 +56,7 @@ export const useSystemSettingsStore = create<SystemSettingsState>()(
             irisScannerTimeout: "",
             logRefetchInterval: "",
             nfiqQuality: "",
+            allowForce: false,
           });
         }
       },
@@ -79,6 +85,9 @@ export const useSystemSettingsStore = create<SystemSettingsState>()(
             nfiqQuality:
               data?.results?.find((s: any) => s.key === "nfiq_quality")
                 ?.value ?? "",
+            allowForce:
+              data?.results?.find((s: any) => s.key === "allow_force")?.value ??
+              "",
           });
         } catch {
           set({
@@ -86,6 +95,7 @@ export const useSystemSettingsStore = create<SystemSettingsState>()(
             irisScannerTimeout: "",
             logRefetchInterval: "",
             nfiqQuality: "",
+            allowForce: false,
           });
         }
       },
@@ -97,6 +107,7 @@ export const useSystemSettingsStore = create<SystemSettingsState>()(
         irisScannerTimeout: state.irisScannerTimeout,
         logRefetchInterval: state.logRefetchInterval,
         nfiqQuality: state.nfiqQuality,
+        allowForce: state.allowForce,
       }),
     }
   )

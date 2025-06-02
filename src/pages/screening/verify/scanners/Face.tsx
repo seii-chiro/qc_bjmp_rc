@@ -11,6 +11,7 @@ import { Device } from '@/lib/definitions'
 import { verifyFaceInWatchlist } from '@/lib/threatQueries'
 import VisitorProfilePortrait from '../../VisitorProfilePortrait'
 import PdlProfilePortrait from '../../PdlProfilePortrait'
+import { useSystemSettingsStore } from '@/store/useSystemSettingStore'
 
 type Props = {
   devices: Device[];
@@ -32,6 +33,8 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
   const [error, setError] = useState<Error | null>(null);
 
   const [inWatchList, setInWatchlist] = useState<string | null>(null)
+
+  const allowForce = useSystemSettingsStore(state => state.allowForce)
 
   useEffect(() => {
     if (!deviceLoading && devices && devices.length > 0) {
@@ -62,7 +65,7 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
   });
 
   const handleCaptureFace = () => {
-    faceRegistrationMutation.mutate()
+    faceRegistrationMutation.mutate(allowForce)
   };
 
   // Function to process visitor log and make API calls
