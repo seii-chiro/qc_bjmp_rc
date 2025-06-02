@@ -18,8 +18,9 @@ pdfMake.vfs = pdfFonts.vfs;
 const ListPersonnel = () => {
     const token = useTokenStore().token; 
     const [personnel, setPersonnel] = useState([]);
-    // const [loadingMessage, setLoadingMessage] = useState('');
-    // const [personnelLoading, setPersonnelLoading] = useState(true);
+    const [loadingMessage, setLoadingMessage] = useState('');
+    const [personnelLoading, setPersonnelLoading] = useState(true);
+    
     // const [pdfDataUrl, setPdfDataUrl] = useState('');
     const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
     // const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
@@ -168,52 +169,53 @@ const ListPersonnel = () => {
         }
     ];
 
-const generatePDF = async () => {
-    const preparedByText = UserData ? `${UserData.first_name} ${UserData.last_name}` : '';
-    const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-    const reportReferenceNo = `TAL-${formattedDate}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+    const generatePDF = async () => {
+        const preparedByText = UserData ? `${UserData.first_name} ${UserData.last_name}` : '';
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+        // const reportReferenceNo = `TAL-${formattedDate}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
 
-    setIsLoading(true);
-    setLoadingMessage('Generating PDF... Please wait.');
+        setIsLoading(true);
+        setLoadingMessage('Generating PDF... Please wait.');
 
-    try {
-        // Define headers based on your table columns
-        let headers: string[] = [
-            'No.',
-            'Employee ID',
-            'Full Name',
-            'Position',
-            'Rank/Grade',
-            'Department/Unit',
-            'Status',
-            'Contact No.',
-            'Email'
-        ];
+        try {
+            let headers: string[] = [
+                'No.',
+                'Employee ID',
+                'Full Name',
+                'Position',
+                'Rank/Grade',
+                'Department/Unit',
+                'Status',
+                'Contact No.',
+                'Email'
+            ];
 
-        // Generate body data from personnel array
-        let body: any[][] = [];
-        
-        if (personnel && personnel.length > 0) {
-            body = personnel.map((person: any, index: number) => {
-                const phoneContact = person?.person?.contacts?.find((contact: any) => contact.type === 'Phone');
-                const emailContact = person?.person?.contacts?.find((contact: any) => contact.type === 'Email');
-                
-                return [
-                    (index + 1).toString(),
-                    person?.personnel_reg_no ?? '',
-                    `${person?.person?.first_name ?? ''} ${person?.person?.middle_name ?? ''} ${person?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
-                    person?.person?.position ?? '',
-                    person?.rank ?? '',
-                    person?.designations?.[0]?.name ?? '',
-                    person?.status ?? '',
-                    phoneContact ? phoneContact.value : '',
-                    emailContact ? emailContact.value : ''
-                ];
-            });
+            let body: any[][] = [];
+            
+            const dataToUse = await fetchAllPersonnel();
+const personnelResults = dataToUse?.results || [];
+
+if (personnelResults.length > 0) {
+    body = personnelResults.map((person: any, index: number) => {
+            const phoneContact = person?.person?.contacts?.find((contact: any) => contact.type === 'Phone');
+            const emailContact = person?.person?.contacts?.find((contact: any) => contact.type === 'Email');
+
+            return [
+            (index + 1).toString(),
+            person?.personnel_reg_no ?? '',
+            `${person?.person?.first_name ?? ''} ${person?.person?.middle_name ?? ''} ${person?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+            person?.person?.position ?? '',
+            person?.rank ?? '',
+            person?.designations?.[0]?.name ?? '',
+            person?.status ?? '',
+            phoneContact ? phoneContact.value : '',
+            emailContact ? emailContact.value : ''
+            ];
+        });
         } else {
-            // If no personnel data, show a message
-            body = [['No personnel data available', '', '', '', '', '', '', '', '']];
+        body = [['No personnel data available', '', '', '', '', '', '', '', '']];
         }
 
         const displayedHeaders = headers;
@@ -228,6 +230,12 @@ const generatePDF = async () => {
             pageOrientation,
             pageMargins: [40, 60, 40, 60],
             content: [
+                {
+                    text: 'Personnel Report',
+                    style: 'header',
+                    alignment: 'left',
+                    margin: [0, 0, 0, 0],
+                },
                 {
                     columns: [
                         {
@@ -265,12 +273,6 @@ const generatePDF = async () => {
                             width: '30%',
                         },
                     ],
-                    margin: [0, 0, 0, 20],
-                },
-                {
-                    text: 'Personnel Report',
-                    style: 'header',
-                    alignment: 'center',
                     margin: [0, 0, 0, 20],
                 },
                 {
@@ -344,69 +346,80 @@ const generatePDF = async () => {
         };
 
         const fileName = `Personnel_Report_${formattedDate}.pdf`;
-pdfMake.createPdf(docDefinition).download(fileName);
-setIsLoading(false);
+        pdfMake.createPdf(docDefinition).download(fileName);
+        setIsLoading(false);
     } catch (error) {
         console.error('Error generating PDF:', error);
         setIsLoading(false);
-        // You might want to show an error message to the user here
     }
 };
 
-
-
-// SOLUTION 4: Excel Download Function (bonus)
-const downloadExcel = () => {
+const downloadExcel = async () => {
     try {
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-        
-        // Prepare data for Excel
-        const excelData = personnel.map((person, index) => {
+        const response = await fetchAllPersonnel(); 
+        const personnelList = response?.results || [];
+
+        if (personnelList.length === 0) {
+            console.error('No personnel data available for export.');
+            return;
+        }
+
+        const excelData = personnelList.map((person, index) => {
             const phoneContact = person?.person?.contacts?.find(contact => contact.type === 'Phone');
             const emailContact = person?.person?.contacts?.find(contact => contact.type === 'Email');
-            
+
             return {
                 'No.': index + 1,
                 'Employee ID': person?.personnel_reg_no ?? '',
-                'Full Name': `${person?.person?.first_name ?? ''} ${person?.person?.middle_name ?? ''} ${person?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+                'Full Name': `${person?.person?.first_name ?? ''} ${person?.person?.middle_name ?? ''} ${person?.person?.last_name ?? ''}`.trim(),
                 'Position': person?.person?.position ?? '',
                 'Rank/Grade': person?.rank ?? '',
                 'Department/Unit': person?.designations?.[0]?.name ?? '',
                 'Status': person?.status ?? '',
-                'Contact No.': phoneContact ? phoneContact.value : '',
-                'Email': emailContact ? emailContact.value : ''
+                'Contact No.': phoneContact?.value ?? '',
+                'Email': emailContact?.value ?? ''
             };
         });
 
-        // Create workbook and worksheet
         const ws = XLSX.utils.json_to_sheet(excelData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Personnel");
 
-        // Download the file
-        const fileName = `Personnel_Report_${formattedDate}.xlsx`;
+        const fileName = `Personnel_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
         XLSX.writeFile(wb, fileName);
-        
     } catch (error) {
-        console.error('Error downloading Excel:', error);
+        console.error('Failed to fetch personnel data:', error);
     }
 };
 
-// SOLUTION 5: CSV Download Function (bonus)
-const downloadCSV = () => {
+const downloadCSV = async () => {
     try {
+        const response = await fetchAllPersonnel();
+        const personnelList = response?.results || [];
+
+        if (personnelList.length === 0) {
+            console.error('No personnel data available for export.');
+            return;
+        }
+
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
-        
-        // Prepare CSV headers
-        const headers = ['No.', 'Employee ID', 'Full Name', 'Position', 'Rank/Grade', 'Department/Unit', 'Status', 'Contact No.', 'Email'];
-        
-        // Prepare CSV data
-        const csvData = personnel.map((person, index) => {
+        const headers = [
+            'No.',
+            'Employee ID',
+            'Full Name',
+            'Position',
+            'Rank/Grade',
+            'Department/Unit',
+            'Status',
+            'Contact No.',
+            'Email'
+        ];
+
+        const csvData = personnelList.map((person, index) => {
             const phoneContact = person?.person?.contacts?.find(contact => contact.type === 'Phone');
             const emailContact = person?.person?.contacts?.find(contact => contact.type === 'Email');
-            
+
             return [
                 index + 1,
                 person?.personnel_reg_no ?? '',
@@ -415,27 +428,25 @@ const downloadCSV = () => {
                 person?.rank ?? '',
                 person?.designations?.[0]?.name ?? '',
                 person?.status ?? '',
-                phoneContact ? phoneContact.value : '',
-                emailContact ? emailContact.value : ''
+                phoneContact?.value ?? '',
+                emailContact?.value ?? ''
             ];
         });
 
-        // Convert to CSV string
         const csvContent = [headers, ...csvData]
             .map(row => row.map(field => `"${field}"`).join(','))
             .join('\n');
 
-        // Create and download file
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
+
+        const link = document.createElement('a');
+        link.href = url;
         link.setAttribute('download', `Personnel_Report_${formattedDate}.csv`);
-        link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
+        URL.revokeObjectURL(url);
     } catch (error) {
         console.error('Error downloading CSV:', error);
     }
@@ -444,25 +455,26 @@ const downloadCSV = () => {
 const menu = (
     <Menu>
         <Menu.Item key="pdf" onClick={generatePDF}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 font-semibold">
                 <GoDownload />
                 Download PDF
             </div>
         </Menu.Item>
         <Menu.Item key="excel" onClick={downloadExcel}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 font-semibold">
                 <GoDownload />
                 Download Excel
             </div>
         </Menu.Item>
         <Menu.Item key="csv" onClick={downloadCSV}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 font-semibold">
                 <GoDownload />
                 Download CSV
             </div>
         </Menu.Item>
     </Menu>
 );
+
 if (isFetching) return <Spinner />;
     if (error) return <p>Error: {error.message}</p>;
     return (
@@ -499,3 +511,7 @@ if (isFetching) return <Spinner />;
 }
 
 export default ListPersonnel;
+
+function setLoadingMessage(arg0: string) {
+    throw new Error("Function not implemented.");
+}

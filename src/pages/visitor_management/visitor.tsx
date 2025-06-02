@@ -46,7 +46,7 @@ const Visitor = ({ visitor_log, visitHistory }: { visitor_log: any, visitHistory
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const navigate = useNavigate();
     const [page, setPage] = useState(1);
-    const limit = 10;
+    const [limit, setLimit] = useState(10);
     const [allVisitor, setAllVisitor] = useState<VisitorRecord[]>([]);
 
     const fetchVisitors = async (search: string) => {
@@ -241,12 +241,6 @@ const genderFilteredVisitorIds = new Set(
             dataIndex: 'visitor_reg_no',
             key: 'visitor_reg_no',
             sorter: (a, b) => a.visitor_reg_no.localeCompare(b.visitor_reg_no),
-            filters: [
-                ...Array.from(new Set(allVisitor.map(item => item.visitor_reg_no)))
-                    .filter(Boolean)
-                    .map(val => ({ text: val, value: val }))
-            ],
-            onFilter: (value, record) => record.visitor_reg_no === value,
         },
         {
             title: 'Visitor Name',
@@ -259,15 +253,6 @@ const genderFilteredVisitorIds = new Set(
                 const nameB = `${b?.person?.first_name ?? ''} ${b?.person?.middle_name ?? ''} ${b?.person?.last_name ?? ''}`.trim();
                 return nameA.localeCompare(nameB);
             },
-            filters: [
-                ...Array.from(
-                    new Set(allVisitor.map(item => item.person?.last_name))
-                ).map(last_name => ({
-                    text: last_name,
-                    value: last_name,
-                }))
-            ],
-            onFilter: (value, record) => record.person?.last_name === value,
         },
         {
             title: 'Gender',
@@ -304,16 +289,6 @@ const genderFilteredVisitorIds = new Set(
             dataIndex: 'full_address',
             key: 'full_address',
             sorter: (a, b) => a.full_address.localeCompare(b.full_address),
-            filters: [
-                ...Array.from(
-                    new Set(allVisitor.map(item => item.full_address))
-                ).map(full_address => ({
-                    text: full_address,
-                    value: full_address,
-                }))
-            ],
-            onFilter: (value, record) => record.person?.addresses?.full_address === value,
-
         },
         // {
         //     title: 'Approved By',
@@ -753,17 +728,17 @@ const handleExportCSV = async () => {
                             : filteredData
                         }
                         scroll={{ x: 800 }}
-                        pagination={
-                            debouncedSearch
-                            ? false 
-                            : {
-                                current: page,
-                                pageSize: limit,
-                                total: totalRecords,
-                                onChange: (newPage) => setPage(newPage),
-                                showSizeChanger: false,
-                                }
-                        }
+                        pagination={{
+                            current: page,
+                            pageSize: limit,
+                            total: totalRecords,
+                            pageSizeOptions: ['10', '20', '50', '100'],
+                            showSizeChanger: true, 
+                            onChange: (newPage, newPageSize) => {
+                                setPage(newPage);
+                                setLimit(newPageSize); 
+                            },
+                            }}
                         rowKey="id"
                     />
                 </div>

@@ -1,13 +1,20 @@
-import { getSummary_Card } from "@/lib/queries";
+import { getSummary_Card, getUser } from "@/lib/queries";
 import { getMainGate } from "@/lib/query";
 // import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
 // import { useState } from "react";
 import * as XLSX from 'xlsx';
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+import logoBase64 from "../assets/logoBase64";
+import { useEffect, useState } from "react";
+import { BASE_URL } from "@/lib/urls";
+pdfMake.vfs = pdfFonts.vfs;
 
 const DashboardSummary = () => {
     const token = useTokenStore().token;
+    const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
     // const [isFormChanged, setIsFormChanged] = useState(false);
 
     const { data: summarydata } = useQuery({
@@ -20,6 +27,34 @@ const DashboardSummary = () => {
         queryFn: () => getMainGate(token ?? "")
     });
 
+    const { data: UserData } = useQuery({
+        queryKey: ['user'],
+        queryFn: () => getUser(token ?? "")
+    })
+
+    const fetchOrganization = async () => {
+        const res = await fetch(`${BASE_URL}/api/codes/organizations/`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    const { data: organizationData } = useQuery({
+        queryKey: ['org'],
+        queryFn: fetchOrganization,
+    });
+
+    useEffect(() => {
+      if (organizationData?.results?.length > 0) {
+        setOrganizationName(organizationData.results[0]?.org_name ?? '');
+      }
+    }, [organizationData]);
+
     const visitorOtherCount = Object.entries(summarydata?.success?.visitor_based_on_gender?.Active || {})
         .filter(([key]) => key !== "Male" && key !== "Female")
         .reduce((total, [, value]) => total + (value ?? 0), 0);
@@ -28,7 +63,7 @@ const DashboardSummary = () => {
     .filter(([key]) => key !== "Male" && key !== "Female")
     .reduce((total, [, value]) => total + (value ?? 0), 0);
 
-    const exportToExcel = (summarydata, visitorOtherCount, personnelOtherCount, InCount, OutCount) => {
+    const exportToExcel = (summarydata, visitorOtherCount, personnelOtherCount) => {
         const pdlData = [
             { "Summary of PDLs": "", "Total": "" },
             { "Summary of PDLs": "Released PDL", "Total": summarydata?.success?.total_pdl_by_status?.Released?.Active || 0 },
@@ -108,9 +143,9 @@ const DashboardSummary = () => {
         },
         {
             "Summary of Entry / Exit in Jail Premises": "Visitors",
-            Entry: InCount || 0,
-            Exit: OutCount || 0,
-            Balance: (InCount || 0) - (OutCount || 0),
+            Entry: maingatedata?.results?.filter(log => log.status === "In").length || 0,
+            Exit: maingatedata?.results?.filter(log => log.status === "Out").length || 0,
+            Balance: 0,
         },
         {
             "Summary of Entry / Exit in Jail Premises": "BJMP Personnel",
@@ -145,7 +180,7 @@ const DashboardSummary = () => {
         XLSX.utils.book_append_sheet(workbook, summaryVisitorWorksheet, 'Summary of Visitors');
         XLSX.utils.book_append_sheet(workbook, summaryPersonnelWorksheet, 'Summary of Personnels');
         XLSX.utils.book_append_sheet(workbook, summaryBJMPDutyWorksheet, 'BJMP Personnel On and Off-Duty');
-        XLSX.utils.book_append_sheet(workbook, summaryEntryExitWorksheet, 'Summary of Entry / Exit in Jail Premises');
+        XLSX.utils.book_append_sheet(workbook, summaryEntryExitWorksheet, 'Entry or Exit in Jail Premises');
 
         XLSX.writeFile(workbook, 'DashboardSummary.xlsx');
     };
@@ -153,10 +188,230 @@ const DashboardSummary = () => {
     const InCount = maingatedata?.results?.filter(log => log.status === "In").length || 0;
     const OutCount = maingatedata?.results?.filter(log => log.status === "Out").length || 0;
 
+    const generatePDF = async (summarydata, visitorOtherCount, personnelOtherCount, InCount, OutCount) => {
+        const preparedByText = UserData ? `${UserData.first_name} ${UserData.last_name}` : '';
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+
+        const pdlBody = [
+            ["No.", "PDL Type", "Total"],
+            ["1", "Released PDL", summarydata?.success?.total_pdl_by_status?.Released?.Active || 0],
+            ["2", "Hospitalized PDL", summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active || 0],
+            ["3", "Convicted PDL", summarydata?.success?.total_pdl_by_status?.Convicted?.Active || 0],
+            ["4", "Committed PDL", summarydata?.success?.total_pdl_by_status?.Committed?.Active || 0],
+            ["5", "Jail Population", (
+                (summarydata?.success?.total_pdl_by_status?.Released?.Active || 0) +
+                (summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active || 0) +
+                (summarydata?.success?.total_pdl_by_status?.Convicted?.Active || 0) +
+                (summarydata?.success?.total_pdl_by_status?.Committed?.Active || 0)
+            )]
+        ];
+
+        const genderBody = [
+            ["PDL Count Based on Gender", "Total"],
+            ["Male", summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0],
+            ["Gay", summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0],
+            ["Transgender", summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0],
+            ["Total", (
+                (summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0) +
+                (summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0) +
+                (summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0)
+            )]
+        ];
+
+        const visitorBody = [
+            ["Summary of Visitors", "Total"],
+            ["Male", summarydata?.success?.visitor_based_on_gender?.Active?.Male || 0],
+            ["Female", summarydata?.success?.visitor_based_on_gender?.Active?.Female || 0],
+            ["Others", visitorOtherCount || 0],
+            ["Total", (
+                (summarydata?.success?.visitor_based_on_gender?.Active?.Male || 0) +
+                (summarydata?.success?.visitor_based_on_gender?.Active?.Female || 0) +
+                (visitorOtherCount || 0)
+            )]
+        ];
+
+        const personnelBody = [
+            ["Summary of Personnels", "Total"],
+            ["Male", summarydata?.success?.personnel_based_on_gender?.Active?.Male || 0],
+            ["Female", summarydata?.success?.personnel_based_on_gender?.Active?.Female || 0],
+            ["Others", personnelOtherCount || 0],
+            ["Total", (
+                (summarydata?.success?.personnel_based_on_gender?.Active?.Male || 0) +
+                (summarydata?.success?.personnel_based_on_gender?.Active?.Female || 0) +
+                (personnelOtherCount || 0)
+            )]
+        ];
+
+        const dutyBody = [
+            ["BJMP Personnel On and Off-Duty", "Total"],
+            ["On-Duty", summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0],
+            ["Off-Duty", summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0],
+            ["On-Leave", (
+                summarydata?.success.personnel_count_by_status.Active["Sick Leave"] +
+                summarydata?.success.personnel_count_by_status.Active["Vacation Leave"] +
+                summarydata?.success.personnel_count_by_status.Active["Maternity Leave"] +
+                summarydata?.success.personnel_count_by_status.Active["Paternity Leave"] +
+                summarydata?.success.personnel_count_by_status.Active["Compensatory Leave"] || 0
+            )],
+            ["Total", (
+                (summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0) +
+                (summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0) +
+                (summarydata?.success.personnel_count_by_status.Active["Sick Leave"] || 0) +
+                (summarydata?.success.personnel_count_by_status.Active["Vacation Leave"] || 0) +
+                (summarydata?.success.personnel_count_by_status.Active["Maternity Leave"] || 0) +
+                (summarydata?.success.personnel_count_by_status.Active["Paternity Leave"] || 0) +
+                (summarydata?.success.personnel_count_by_status.Active["Compensatory Leave"] || 0)
+            )]
+        ];
+
+        const entryExitBody = [
+            ["Particulars", "Entry", "Exit", "Balance"],
+            ["PDLs", 0, 0, 0],
+            ["Visitors", InCount, OutCount, 0],
+            ["BJMP Personnel", 0, 0, 0],
+            ["Service Providers", 0, 0, 0],
+            ["Non-Registered Visitors", 0, 0, 0],
+        ];
+
+        const docDefinition = {
+            pageSize: 'A4',
+            pageMargins: [40, 60, 40, 60],
+            content: [
+                {
+                    text: 'Dashboard Summary Report',
+                    style: 'header',
+                    alignment: 'left',
+                    margin: [0, 0, 0, 10],
+                },
+                {
+                    columns: [
+                        {
+                            stack: [
+                                {
+                                    text: organizationName,
+                                    style: 'subheader',
+                                    margin: [0, 5, 0, 10],
+                                },
+                                {
+                                    text: [
+                                        { text: `Report Date: `, bold: true },
+                                        formattedDate + '\n',
+                                        { text: `Prepared By: `, bold: true },
+                                        preparedByText + '\n',
+                                        { text: `Department/Unit: `, bold: true },
+                                        'IT\n',
+                                        { text: `Report Reference No.: `, bold: true },
+                                        reportReferenceNo,
+                                    ],
+                                    fontSize: 10,
+                                },
+                            ],
+                            alignment: 'left',
+                            width: '70%',
+                        },
+                        {
+                            stack: [
+                                {
+                                    image: logoBase64,
+                                    width: 90,
+                                },
+                            ],
+                            alignment: 'right',
+                            width: '30%',
+                        },
+                    ],
+                    margin: [0, 0, 0, 10],
+                },
+                createStyledTable('PDL Summary', pdlBody),
+                createStyledTable('PDL Count Based on Gender', genderBody),
+                createStyledTable('Summary of Visitors', visitorBody),
+                createStyledTable('Summary of Personnels', personnelBody),
+                createStyledTable('BJMP Personnel On and Off-Duty', dutyBody),
+                createStyledTable('Summary of Entry / Exit in Jail Premises', entryExitBody),
+            ],
+            
+            footer: (currentPage: number, pageCount: number) => ({
+                    columns: [
+                        {
+                            text: `Document Version: 1.0\nConfidentiality Level: Internal use only\nContact Info: ${preparedByText}\nTimestamp of Last Update: ${formattedDate}`,
+                            fontSize: 8,
+                            alignment: 'left',
+                            margin: [40, 10],
+                        },
+                        {
+                            text: `${currentPage} / ${pageCount}`,
+                            fontSize: 8,
+                            alignment: 'right',
+                            margin: [0, 10, 40, 0],
+                        },
+                    ],
+                }),
+            styles: {
+                header: {
+                    fontSize: 16,
+                    bold: true,
+                    color: '#1E365D',
+                },
+                subheader: {
+                    fontSize: 12,
+                    bold: true,
+                    margin: [0, 10, 0, 5],
+                },
+                tableExample: {
+                    margin: [0, 5, 0, 15],
+                    fontSize: 8,
+                },
+            },
+        };
+
+        pdfMake.createPdf(docDefinition).download(`DashboardSummary_${formattedDate}.pdf`);
+    };
+
+const createStyledTable = (title, body) => {
+    if (!Array.isArray(body) || body.length === 0) {
+        return {
+            stack: [
+                { text: title, style: 'subheader', margin: [0, 20, 0, 5] },
+                { text: "No data available", fontSize: 9, italics: true }
+            ]
+        };
+    }
+
+    return {
+        stack: [
+            {
+                text: title,
+                style: 'subheader',
+                margin: [0, 20, 0, 5],
+            },
+            {
+                table: {
+                    headerRows: 1,
+                    widths: Array(body[0].length).fill('*'),
+                    body: body,
+                },
+                layout: {
+                    fillColor: (rowIndex) => (rowIndex === 0 ? '#DCE6F1' : null),
+                    hLineWidth: () => 0.5,
+                    vLineWidth: () => 0.5,
+                    hLineColor: () => '#aaa',
+                    vLineColor: () => '#aaa',
+                    paddingLeft: () => 4,
+                    paddingRight: () => 4,
+                },
+                fontSize: 9
+            }
+        ]
+    };
+};
+
+
     return (
-        <div className="rounded-md w-full p-5 md:px-10 md:py-5">
+        <div className="rounded-md w-full px-5 md:px-10 lg:px-32 md:py-5">
             <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold text-[#1E365D]">BJMP Quezon City Jail - Male Dormitory</h1>
+                <h1 className="text-2xl font-bold text-[#1E365D]">BJMP Quezon City Jail - Male Dormitory</h1>
             </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 mt-5 gap-10">
                     <div className="flex flex-col gap-5">
@@ -354,49 +609,49 @@ const DashboardSummary = () => {
                     </fieldset>
                 </div>
             </div>
-            <div className="mt-5 md:max-w-4xl">
+            <div className="mt-5 w-full mb-5">
                 <fieldset className="border border-gray-300 rounded-md p-4 mt-2 shadow-md">
                     <legend className='px-2 font-bold text-lg text-[#1E365D]'>Summary of Entry / Exit in Jail Premises</legend>
                     <div className="overflow-hidden rounded-lg border border-gray-200 mt-2">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-100">
                                 <tr>
-                                    <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Particulars</th>
-                                    <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entry</th>
-                                    <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exit</th>
-                                    <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
+                                    <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Particulars</th>
+                                    <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Entry</th>
+                                    <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Exit</th>
+                                    <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Balance</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 <tr>
-                                    <td className="px-6 py-2 whitespace-nowrap">PDLs</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">0</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">0</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">PDLs</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
                                 </tr>
                                 <tr>
-                                    <td className="px-6 py-2 whitespace-nowrap">Visitors</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">{InCount}</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">{OutCount}</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">Visitors</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">{InCount}</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">{OutCount}</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
                                 </tr>
                                 <tr>
-                                    <td className="px-6 py-2 whitespace-nowrap">BJMP Personnel</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">0</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">0</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">BJMP Personnel</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
                                 </tr>
                                 <tr>
-                                    <td className="px-6 py-2 whitespace-nowrap">Service Providers</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">0</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">0</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">Service Providers</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
                                 </tr>
                                 <tr>
-                                    <td className="px-6 py-2 whitespace-nowrap">Non-Registered Visitors</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">0</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">0</td>
-                                    <td className="px-6 py-2 whitespace-nowrap">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">Non-Registered Visitors</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -407,9 +662,9 @@ const DashboardSummary = () => {
                 <button className="bg-[#1E365D] p-2 rounded-md text-white" onClick={() => exportToExcel(summarydata, visitorOtherCount, personnelOtherCount, InCount, OutCount)}>
                     Download Excel
                 </button>
-                <button className="bg-[#1E365D] p-2 rounded-md text-white">
-                    Download PDF
-                </button>
+                <button className="bg-[#1E365D] p-2 rounded-md text-white" onClick={() => generatePDF(summarydata, visitorOtherCount, personnelOtherCount, InCount, OutCount)}>
+    Download PDF
+</button>
             </div>
         </div>
     )
