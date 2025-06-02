@@ -416,16 +416,16 @@ const VisitorProfile = ({
             }));
             if (data?.images?.icao) {
                 if (data?.gender !== inputGender) {
-                    message.warning("The provided gender does not match the gender identified through face recognition.")
+                    messageApi.warning("The provided gender does not match the gender identified through face recognition.")
                 }
                 verifyFaceMutation.mutate({ template: data?.images?.icao, type: "face" })
                 verifyFaceInWatchlistMutation.mutate({ template: data?.images?.icao, type: "face" })
             } else {
-                message.warning("No Face Captured. Please try again")
+                messageApi.warning("No Face Captured. Please try again")
             }
         },
         onError: (error) => {
-            console.error(error.message);
+            messageApi.error(error.message);
         }
     });
 
