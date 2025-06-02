@@ -2,8 +2,12 @@
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
-import { Input, Button, Table } from "antd";
+import { Input, Button, Table, Menu, Dropdown } from "antd";
 import { useEffect, useState } from "react";
+import { generateLogReport } from "../generateLogReport";
+import { CSVLink } from "react-csv";
+import { GoDownload } from "react-icons/go";
+import * as XLSX from "xlsx";
 
 const VisitLog = () => {
   const [searchText, setSearchText] = useState("");
@@ -267,7 +271,8 @@ const VisitLog = () => {
         status: any;
         person: any;
         visitor: { visitor_type: any; pdls: any[] };
-      }) => ({
+      }, index: number) => ({
+        no: index + 1,
         key: entry.id,
         id: entry?.id,
         timestampIn: entry?.timestamp_in ?? "",
@@ -299,21 +304,50 @@ const VisitLog = () => {
         pdl_type: view === "PDL"
           ? "N/A"
           : (Array.isArray(entry?.visitor?.pdls) && entry.visitor.pdls.length > 0
-            ? entry.visitor.pdls.map((pdl, i, arr) => (
-              <span key={i}>
-                {pdl?.pdl?.status || "Unknown"}
-                {i < arr.length - 1 ? ", " : ""}
-              </span>
-            ))
+            ? entry.visitor.pdls.map(pdl => pdl?.pdl?.status || "Unknown").join(", ")
             : "N/A"),
       })
     )
     .sort(
       (
-        a: { timestamp: string | number | Date },
-        b: { timestamp: string | number | Date }
-      ) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        a: { timestampIn: string | number | Date },
+        b: { timestampIn: string | number | Date }
+      ) => new Date(b.timestampIn).getTime() - new Date(a.timestampIn).getTime()
     );
+
+  const headers = columns?.filter(item => item?.title !== "")?.map(item => item?.title)
+  console.log(headers)
+
+  const handleGeneratePdfReport = () => {
+    const rows = dataSource.map(item =>
+      columns.map(column => {
+        const key = column.dataIndex || column.key;
+        return item[key] || '';
+      })
+    );
+
+    generateLogReport({ headers, rows });
+  };
+
+  const handleExportExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(dataSource);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `${view}LogReport`);
+    XLSX.writeFile(wb, `${view} Log Report.xlsx`);
+  };
+
+  const menu = (
+    <Menu>
+      <Menu.Item>
+        <a onClick={handleExportExcel}>Export Excel</a>
+      </Menu.Item>
+      <Menu.Item>
+        <CSVLink data={dataSource} filename={`${view} Log Report.csv`}>
+          Export CSV
+        </CSVLink>
+      </Menu.Item>
+    </Menu>
+  );
 
   return (
     <div className="p-4 h-full flex flex-col">
@@ -358,6 +392,19 @@ const VisitLog = () => {
           }}
           className="py-2 w-full md:w-64"
         />
+      </div>
+      <div className="flex gap-2">
+        <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
+          <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
+            <GoDownload /> Export
+          </a>
+        </Dropdown>
+        <button
+          className="bg-[#1E365D] py-2 px-5 rounded-md text-white"
+          onClick={handleGeneratePdfReport}
+        >
+          Print Report
+        </button>
       </div>
       <div className="overflow-y-auto" style={{ maxHeight: "90vh" }}>
         <Table
