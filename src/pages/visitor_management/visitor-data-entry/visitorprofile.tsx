@@ -415,7 +415,7 @@ const VisitorProfile = ({
                 upload_data: data?.images?.icao,
             }));
             if (data?.images?.icao) {
-                if (data?.gender !== inputGender) {
+                if (data?.images?.gender !== inputGender) {
                     messageApi.warning("The provided gender does not match the gender identified through face recognition.")
                 }
                 verifyFaceMutation.mutate({ template: data?.images?.icao, type: "face" })
