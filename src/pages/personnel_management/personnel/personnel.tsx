@@ -36,7 +36,7 @@ const Personnel = () => {
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [page, setPage] = useState(1);
-    const limit = 10;
+    const [limit, setLimit] = useState(10);
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [allPersonnel, setAllPersonnel] = useState<PersonnelType[]>([]);
 
@@ -202,40 +202,12 @@ const Personnel = () => {
             dataIndex: 'personnel_reg_no',
             key: 'personnel_reg_no',
             sorter: (a, b) => a.personnel_reg_no.localeCompare(b.personnel_reg_no),
-            filters: [
-                ...Array.from(
-                    new Set(
-                        allPersonnel.map(item => item.personnel_reg_no ?? '')
-                    )
-                )
-                    .filter(personnel_reg_no => personnel_reg_no)
-                    .map(personnel_reg_no => ({
-                        text: personnel_reg_no,
-                        value: personnel_reg_no,
-                    }))
-            ],
-            onFilter: (value, record) => record.personnel_reg_no === value,
         },
         {
             title: 'Personnel',
             dataIndex: 'person',
             key: 'person',
             sorter: (a, b) => a.person.localeCompare(b.person),
-            filters: [
-                ...Array.from(
-                    new Set(
-                        allPersonnel.map(
-                            item => `${item.person?.first_name ?? ''} ${item.person?.middle_name ?? ''} ${item.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim()
-                        )
-                    )
-                )
-                    .filter(person => person)
-                    .map(person => ({
-                        text: person,
-                        value: person,
-                    }))
-            ],
-            onFilter: (value, record) => record.person === value,
         },
         {
             title: 'Gender',
@@ -621,17 +593,17 @@ const handleExportCSV = async () => {
                             : filteredData
                 }
                 scroll={{ x: 800}}
-                pagination={
-                    debouncedSearch
-                        ? false 
-                        : {
-                            current: page,
-                            pageSize: limit,
-                            total: totalRecords,
-                            onChange: (newPage) => setPage(newPage),
-                            showSizeChanger: false,
-                        }
-                }
+                pagination={{
+                    current: page,
+                    pageSize: limit,
+                    total: totalRecords,
+                    pageSizeOptions: ['10', '20', '50', '100'],
+                    showSizeChanger: true, // Must be true to show page size dropdown
+                    onChange: (newPage, newPageSize) => {
+                        setPage(newPage);
+                        setLimit(newPageSize); // <-- add this if you want to update limit too
+                    },
+                    }}
                 rowKey="id"
             />
             <Modal

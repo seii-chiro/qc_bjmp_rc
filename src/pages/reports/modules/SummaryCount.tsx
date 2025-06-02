@@ -1,15 +1,22 @@
-import { getSummary_Card } from "@/lib/queries";
+import { getSummary_Card, getUser } from "@/lib/queries";
 import { getVisitor } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
-import { Select } from "antd";
-import { useState } from "react";
+// import { Select } from "antd";
+import * as XLSX from "xlsx";
+import { useEffect, useState } from "react";
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
+import { BASE_URL } from "@/lib/urls";
+import logoBase64 from "../assets/logoBase64";
+pdfMake.vfs = pdfFonts.vfs;
 
-const { Option } = Select;
+// const { Option } = Select;
 
 const SummaryCount = () => {
     const token = useTokenStore().token;
     const [selectedGroup, setSelectedGroup] = useState('All');
+    const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
 
     const handleSelectChange = (value) => {
         setSelectedGroup(value);
@@ -24,6 +31,36 @@ const SummaryCount = () => {
         queryKey: ['visitor'],
         queryFn: () => getVisitor(token ?? "")
     });
+
+
+    const { data: UserData } = useQuery({
+        queryKey: ['user'],
+        queryFn: () => getUser(token ?? "")
+    })
+
+    const fetchOrganization = async () => {
+        const res = await fetch(`${BASE_URL}/api/codes/organizations/`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    const { data: organizationData } = useQuery({
+        queryKey: ['org'],
+        queryFn: fetchOrganization,
+    });
+
+    useEffect(() => {
+        if (organizationData?.results?.length > 0) {
+            setOrganizationName(organizationData.results[0]?.org_name ?? '');
+        }
+    }, [organizationData]);
+
 
     //Visitor Type
     const seniorCitizenVisitorCount = visitorData?.results?.filter(visitor => visitor.visitor_type === "Senior Citizen").length || 0;
@@ -78,26 +115,854 @@ const SummaryCount = () => {
     const childCount = visitorData?.results?.filter(visitor => visitor.pdls?.[0]?.relationship_to_pdl === "Child").length || 0;
     const brotherCount = visitorData?.results?.filter(visitor => visitor.pdls?.[0]?.relationship_to_pdl === "Brother").length || 0;
     const liveInCount = visitorData?.results?.filter(visitor => visitor.pdls?.[0]?.relationship_to_pdl === "Live-in Partner").length || 0;
+    const brotherinLawCount = visitorData?.results?.filter(visitor => visitor.pdls?.[0]?.relationship_to_pdl === "Brother-in-law").length || 0;
+    const motherCount = visitorData?.results?.filter(visitor => visitor.pdls?.[0]?.relationship_to_pdl === "Mother").length || 0;
+    const motherinLawCount = visitorData?.results?.filter(visitor => visitor.pdls?.[0]?.relationship_to_pdl === "Mother-in-law").length || 0;
+    const daughterCount = visitorData?.results?.filter(visitor => visitor.pdls?.[0]?.relationship_to_pdl === "Daughter").length || 0;
+    const daughterinLawCount = visitorData?.results?.filter(visitor => visitor.pdls?.[0]?.relationship_to_pdl === "Daughter-in-law").length || 0;
+    const nieceinLaw = visitorData?.results?.filter(visitor => visitor.pdls?.[0]?.relationship_to_pdl === "Niece-in-law").length || 0;
+    const fatherCount = visitorData?.results?.filter(visitor => visitor.pdls?.[0]?.relationship_to_pdl === "Father").length || 0;
+    const sisterCount = visitorData?.results?.filter(visitor => visitor.pdls?.[0]?.relationship_to_pdl === "Sister").length || 0;
+    const sisterinLawCount = visitorData?.results?.filter(visitor => visitor.pdls?.[0]?.relationship_to_pdl === "Sister-in-law").length || 0;
+    const sonCount = visitorData?.results?.filter(visitor => visitor.pdls?.[0]?.relationship_to_pdl === "Son").length || 0;
+
+    const relationshipTotal =
+    (auntCount ?? 0) +
+    (lawEnforcementInvestigatorCount ?? 0) +
+    (authorizedPersonCount ?? 0) +
+    (lawyerCount ?? 0) +
+    (authorizedVisitorCount ?? 0) +
+    (legalGuardianCount ?? 0) +
+    (brotherCount ?? 0) +
+    (liveInCount ?? 0) +
+    (childCount ?? 0) +
+    (classmateCount ?? 0) +
+    (neighborCount ?? 0) +
+    (clergyCount ?? 0) +
+    (nephewCount ?? 0) +
+    (cousinCount ?? 0) +
+    (ngoCount ?? 0) +
+    (nieceCount ?? 0) +
+    (doctorCount ?? 0) +
+    (parentCount ?? 0) +
+    (domesticCount ?? 0) +
+    (psychologistCount ?? 0) +
+    (siblingCount ?? 0) +
+    (fianceCount ?? 0) +
+    (formerColleagueCount ?? 0) +
+    (formerEmployerCount ?? 0) +
+    (socialWorkerCount ?? 0) +
+    (friendCount ?? 0) +
+    (spouseCount ?? 0) +
+    (governmentCount ?? 0) +
+    (grandchildCount ?? 0) +
+    (grandparentCount ?? 0) +
+    (uncleCount ?? 0) +
+    (unknownCount ?? 0) +
+    (inLawCount ?? 0) +
+    (journalistCount ?? 0) +
+    (brotherinLawCount ?? 0) +
+    (motherCount ?? 0) +
+    (motherinLawCount ?? 0) +
+    (daughterCount ?? 0) +
+    (daughterinLawCount ?? 0) +
+    (nieceinLaw ?? 0) +
+    (fatherCount ?? 0) +
+    (sisterCount ?? 0) +
+    (sisterinLawCount ?? 0) +
+    (sonCount ?? 0);
+
+    const exportVisitorTypeToExcel = ({
+        seniorCitizenVisitorCount,
+        regularVisitorCount,
+        pwdVisitorCount,
+        pregnantWomanVisitorCount,
+        minorVisitorCount,
+        lbtqVisitorCount,
+        transgenderVisitorCount,
+        lesbianVisitorCount,
+        gayVisitorCount,
+        maleCount,
+        femaleCount,
+        transgenderCount,
+        lesbianCount,
+        gayCount,
+
+        auntCount,
+        authorizedPersonCount,
+        authorizedVisitorCount,
+        brotherCount,
+        brotherinLawCount,
+        childCount,
+        classmateCount,
+        clergyCount,
+        cousinCount,
+        daughterCount,
+        daughterinLawCount,
+        doctorCount,
+        domesticCount,
+        fatherCount,
+        fianceCount,
+        formerColleagueCount,
+        formerEmployerCount,
+        friendCount,
+        governmentCount,
+        grandchildCount,
+        grandparentCount,
+        nephewCount,
+        nieceCount,
+        lawyerCount,
+        legalGuardianCount,
+        lawEnforcementInvestigatorCount,
+        liveInCount,
+        motherCount,
+        motherinLawCount,
+        neighborCount,
+        ngoCount,
+        psychologistCount,
+        parentCount,
+        socialWorkerCount,
+        siblingCount,
+        sisterCount,
+        sisterinLawCount,
+        sonCount,
+        spouseCount,
+        inLawCount,
+        journalistCount,
+        unknownCount,
+        uncleCount,
+        }: {
+        seniorCitizenVisitorCount: number;
+        regularVisitorCount: number;
+        pwdVisitorCount: number;
+        pregnantWomanVisitorCount: number;
+        minorVisitorCount: number;
+        lbtqVisitorCount: number;
+        transgenderVisitorCount: number;
+        lesbianVisitorCount: number;
+        gayVisitorCount: number;
+        maleCount: number;
+        femaleCount: number;
+        transgenderCount: number;
+        lesbianCount: number;
+        gayCount: number;
+
+        auntCount: number;
+        authorizedPersonCount: number;
+        authorizedVisitorCount: number;
+        brotherCount: number;
+        brotherinLawCount: number;
+        childCount: number;
+        classmateCount: number;
+        clergyCount: number;
+        cousinCount: number;
+        daughterCount: number;
+        daughterinLawCount: number;
+        doctorCount: number;
+        domesticCount: number;
+        fatherCount: number;
+        fianceCount: number;
+        formerColleagueCount: number;
+        formerEmployerCount: number;
+        friendCount: number;
+        governmentCount: number;
+        grandchildCount: number;
+        grandparentCount: number;
+        nephewCount: number;
+        nieceCount: number;
+        lawyerCount: number;
+        legalGuardianCount: number;
+        lawEnforcementInvestigatorCount: number;
+        liveInCount: number;
+        motherCount: number;
+        motherinLawCount: number;
+        neighborCount: number;
+        ngoCount: number;
+        psychologistCount: number;
+        parentCount: number;
+        socialWorkerCount: number;
+        siblingCount: number;
+        sisterCount: number;
+        sisterinLawCount: number;
+        sonCount: number;
+        spouseCount: number;
+        inLawCount: number;
+        journalistCount: number;
+        unknownCount: number;
+        uncleCount: number;
+        }) => {
+        const visitorTypeData = [
+            { "Visitor Type": "Senior Citizen", Total: seniorCitizenVisitorCount },
+            { "Visitor Type": "Regular", Total: regularVisitorCount },
+            { "Visitor Type": "PWD", Total: pwdVisitorCount },
+            { "Visitor Type": "Pregnant Woman", Total: pregnantWomanVisitorCount },
+            { "Visitor Type": "Minor", Total: minorVisitorCount },
+            { "Visitor Type": "LGBTQ+", Total: lbtqVisitorCount },
+            { "Visitor Type": "LGBTQ + TRANSGENDER", Total: transgenderVisitorCount },
+            { "Visitor Type": "LGBTQ + LESBIAN / BISEXUAL", Total: lesbianVisitorCount },
+            { "Visitor Type": "LGBTQ + GAY / BISEXUAL", Total: gayVisitorCount },
+            {
+            "Visitor Type": "Total",
+            Total:
+                seniorCitizenVisitorCount +
+                regularVisitorCount +
+                pwdVisitorCount +
+                pregnantWomanVisitorCount +
+                minorVisitorCount +
+                lbtqVisitorCount +
+                transgenderVisitorCount +
+                lesbianVisitorCount +
+                gayVisitorCount,
+            },
+        ];
+
+        const genderData = [
+            { Gender: "Male", Total: maleCount },
+            { Gender: "Female", Total: femaleCount },
+            { Gender: "LGBTQ + TRANSGENDER", Total: transgenderCount },
+            { Gender: "LGBTQ + LESBIAN / BISEXUAL", Total: lesbianCount },
+            { Gender: "LGBTQ + GAY / BISEXUAL", Total: gayCount },
+            {
+            Gender: "Total",
+            Total: maleCount + femaleCount + transgenderCount + lesbianCount + gayCount,
+            },
+        ];
+
+        const relationshipData = [
+            { Relationship: "Auntie", Total: auntCount },
+            { Relationship: "Authorized Person", Total: authorizedPersonCount },
+            { Relationship: "Authorized Visitor", Total: authorizedVisitorCount },
+            { Relationship: "Brother", Total: brotherCount },
+            { Relationship: "Brother-in-law", Total: brotherinLawCount },
+            { Relationship: "Child", Total: childCount },
+            { Relationship: "Classmate / Schoolmate", Total: classmateCount },
+            { Relationship: "Clergy / Religious Leader", Total: clergyCount },
+            { Relationship: "Cousin", Total: cousinCount },
+            { Relationship: "Daughter", Total: daughterCount },
+            { Relationship: "Daughter-in-law", Total: daughterinLawCount },
+            { Relationship: "Doctor / Medical Visitor", Total: doctorCount },
+            { Relationship: "Domestic Partner", Total: domesticCount },
+            { Relationship: "Father", Total: fatherCount },
+            { Relationship: "Fiancé / Fiancée", Total: fianceCount },
+            { Relationship: "Former Colleague", Total: formerColleagueCount },
+            { Relationship: "Former Employer", Total: formerEmployerCount },
+            { Relationship: "Friend", Total: friendCount },
+            { Relationship: "Government Representative", Total: governmentCount },
+            { Relationship: "Grandchild", Total: grandchildCount },
+            { Relationship: "Grandparent", Total: grandparentCount },
+            { Relationship: "Nephew", Total: nephewCount },
+            { Relationship: "Niece", Total: nieceCount },
+            { Relationship: "Lawyer / Legal Counsel", Total: lawyerCount },
+            { Relationship: "Legal Guardian", Total: legalGuardianCount },
+            { Relationship: "Law Enforcement Investigator", Total: lawEnforcementInvestigatorCount },
+            { Relationship: "Live-in Partner", Total: liveInCount },
+            { Relationship: "Mother", Total: motherCount },
+            { Relationship: "Mother-in-law", Total: motherinLawCount },
+            { Relationship: "Neighbor", Total: neighborCount },
+            { Relationship: "NGO Representative", Total: ngoCount },
+            { Relationship: "Psychologist", Total: psychologistCount },
+            { Relationship: "Parent", Total: parentCount },
+            { Relationship: "Social Worker", Total: socialWorkerCount },
+            { Relationship: "Sibling", Total: siblingCount },
+            { Relationship: "Sister", Total: sisterCount },
+            { Relationship: "Sister-in-law", Total: sisterinLawCount },
+            { Relationship: "Son", Total: sonCount },
+            { Relationship: "Spouse", Total: spouseCount },
+            { Relationship: "In-Law", Total: inLawCount },
+            { Relationship: "Journalist / Media", Total: journalistCount },
+            { Relationship: "Unknown / To be Determined", Total: unknownCount },
+            { Relationship: "Uncle", Total: uncleCount },
+            {
+            Relationship: "Total",
+            Total:
+                auntCount +
+                authorizedPersonCount +
+                authorizedVisitorCount +
+                brotherCount +
+                brotherinLawCount +
+                childCount +
+                classmateCount +
+                clergyCount +
+                cousinCount +
+                daughterCount +
+                daughterinLawCount +
+                doctorCount +
+                domesticCount +
+                fatherCount +
+                fianceCount +
+                formerColleagueCount +
+                formerEmployerCount +
+                friendCount +
+                governmentCount +
+                grandchildCount +
+                grandparentCount +
+                nephewCount +
+                nieceCount +
+                lawyerCount +
+                legalGuardianCount +
+                lawEnforcementInvestigatorCount +
+                liveInCount +
+                motherCount +
+                motherinLawCount +
+                neighborCount +
+                ngoCount +
+                psychologistCount +
+                parentCount +
+                socialWorkerCount +
+                siblingCount +
+                sisterCount +
+                sisterinLawCount +
+                sonCount +
+                spouseCount +
+                inLawCount +
+                journalistCount +
+                unknownCount +
+                uncleCount,
+            },
+        ];
+
+        const workbook = XLSX.utils.book_new();
+
+        const visitorTypeSheet = XLSX.utils.json_to_sheet(visitorTypeData);
+        XLSX.utils.book_append_sheet(workbook, visitorTypeSheet, "Visitor Type Summary");
+
+        const genderSheet = XLSX.utils.json_to_sheet(genderData);
+        XLSX.utils.book_append_sheet(workbook, genderSheet, "Gender Summary");
+
+        const relationshipSheet = XLSX.utils.json_to_sheet(relationshipData);
+        XLSX.utils.book_append_sheet(workbook, relationshipSheet, "Relationship to PDL Summary");
+
+        XLSX.writeFile(workbook, "visitor_summary.xlsx");
+    };
+
+    const exportVisitorTypeToPDF = ({
+    seniorCitizenVisitorCount,
+    regularVisitorCount,
+    pwdVisitorCount,
+    pregnantWomanVisitorCount,
+    minorVisitorCount,
+    lbtqVisitorCount,
+    transgenderVisitorCount,
+    lesbianVisitorCount,
+    gayVisitorCount,
+    maleCount,
+    femaleCount,
+    transgenderCount,
+    lesbianCount,
+    gayCount,
+
+    auntCount,
+    authorizedPersonCount,
+    authorizedVisitorCount,
+    brotherCount,
+    brotherinLawCount,
+    childCount,
+    classmateCount,
+    clergyCount,
+    cousinCount,
+    daughterCount,
+    daughterinLawCount,
+    doctorCount,
+    domesticCount,
+    fatherCount,
+    fianceCount,
+    formerColleagueCount,
+    formerEmployerCount,
+    friendCount,
+    governmentCount,
+    grandchildCount,
+    grandparentCount,
+    nephewCount,
+    nieceCount,
+    lawyerCount,
+    legalGuardianCount,
+    lawEnforcementInvestigatorCount,
+    liveInCount,
+    motherCount,
+    motherinLawCount,
+    neighborCount,
+    ngoCount,
+    psychologistCount,
+    parentCount,
+    socialWorkerCount,
+    siblingCount,
+    sisterCount,
+    sisterinLawCount,
+    sonCount,
+    spouseCount,
+    inLawCount,
+    journalistCount,
+    unknownCount,
+    uncleCount,
+    }: {
+    seniorCitizenVisitorCount: number;
+    regularVisitorCount: number;
+    pwdVisitorCount: number;
+    pregnantWomanVisitorCount: number;
+    minorVisitorCount: number;
+    lbtqVisitorCount: number;
+    transgenderVisitorCount: number;
+    lesbianVisitorCount: number;
+    gayVisitorCount: number;
+    maleCount: number;
+    femaleCount: number;
+    transgenderCount: number;
+    lesbianCount: number;
+    gayCount: number;
+
+    auntCount: number;
+    authorizedPersonCount: number;
+    authorizedVisitorCount: number;
+    brotherCount: number;
+    brotherinLawCount: number;
+    childCount: number;
+    classmateCount: number;
+    clergyCount: number;
+    cousinCount: number;
+    daughterCount: number;
+    daughterinLawCount: number;
+    doctorCount: number;
+    domesticCount: number;
+    fatherCount: number;
+    fianceCount: number;
+    formerColleagueCount: number;
+    formerEmployerCount: number;
+    friendCount: number;
+    governmentCount: number;
+    grandchildCount: number;
+    grandparentCount: number;
+    nephewCount: number;
+    nieceCount: number;
+    lawyerCount: number;
+    legalGuardianCount: number;
+    lawEnforcementInvestigatorCount: number;
+    liveInCount: number;
+    motherCount: number;
+    motherinLawCount: number;
+    neighborCount: number;
+    ngoCount: number;
+    psychologistCount: number;
+    parentCount: number;
+    socialWorkerCount: number;
+    siblingCount: number;
+    sisterCount: number;
+    sisterinLawCount: number;
+    sonCount: number;
+    spouseCount: number;
+    inLawCount: number;
+    journalistCount: number;
+    unknownCount: number;
+    uncleCount: number;
+    }) => {
+    const visitorTypeData = [
+        { "Visitor Type": "Senior Citizen", Total: seniorCitizenVisitorCount },
+        { "Visitor Type": "Regular", Total: regularVisitorCount },
+        { "Visitor Type": "PWD", Total: pwdVisitorCount },
+        { "Visitor Type": "Pregnant Woman", Total: pregnantWomanVisitorCount },
+        { "Visitor Type": "Minor", Total: minorVisitorCount },
+        { "Visitor Type": "LGBTQ+", Total: lbtqVisitorCount },
+        { "Visitor Type": "LGBTQ + TRANSGENDER", Total: transgenderVisitorCount },
+        { "Visitor Type": "LGBTQ + LESBIAN / BISEXUAL", Total: lesbianVisitorCount },
+        { "Visitor Type": "LGBTQ + GAY / BISEXUAL", Total: gayVisitorCount },
+        {
+        "Visitor Type": "Total",
+        Total:
+            seniorCitizenVisitorCount +
+            regularVisitorCount +
+            pwdVisitorCount +
+            pregnantWomanVisitorCount +
+            minorVisitorCount +
+            lbtqVisitorCount +
+            transgenderVisitorCount +
+            lesbianVisitorCount +
+            gayVisitorCount,
+        },
+    ];
+
+    const genderData = [
+        { Gender: "Male", Total: maleCount },
+        { Gender: "Female", Total: femaleCount },
+        { Gender: "LGBTQ + TRANSGENDER", Total: transgenderCount },
+        { Gender: "LGBTQ + LESBIAN / BISEXUAL", Total: lesbianCount },
+        { Gender: "LGBTQ + GAY / BISEXUAL", Total: gayCount },
+        {
+        Gender: "Total",
+        Total: maleCount + femaleCount + transgenderCount + lesbianCount + gayCount,
+        },
+    ];
+
+    const relationshipData = [
+        { Relationship: "Auntie", Total: auntCount },
+        { Relationship: "Authorized Person", Total: authorizedPersonCount },
+        { Relationship: "Authorized Visitor", Total: authorizedVisitorCount },
+        { Relationship: "Brother", Total: brotherCount },
+        { Relationship: "Brother-in-law", Total: brotherinLawCount },
+        { Relationship: "Child", Total: childCount },
+        { Relationship: "Classmate / Schoolmate", Total: classmateCount },
+        { Relationship: "Clergy / Religious Leader", Total: clergyCount },
+        { Relationship: "Cousin", Total: cousinCount },
+        { Relationship: "Daughter", Total: daughterCount },
+        { Relationship: "Daughter-in-law", Total: daughterinLawCount },
+        { Relationship: "Doctor / Medical Visitor", Total: doctorCount },
+        { Relationship: "Domestic Partner", Total: domesticCount },
+        { Relationship: "Father", Total: fatherCount },
+        { Relationship: "Fiancé / Fiancée", Total: fianceCount },
+        { Relationship: "Former Colleague", Total: formerColleagueCount },
+        { Relationship: "Former Employer", Total: formerEmployerCount },
+        { Relationship: "Friend", Total: friendCount },
+        { Relationship: "Government Representative", Total: governmentCount },
+        { Relationship: "Grandchild", Total: grandchildCount },
+        { Relationship: "Grandparent", Total: grandparentCount },
+        { Relationship: "Nephew", Total: nephewCount },
+        { Relationship: "Niece", Total: nieceCount },
+        { Relationship: "Lawyer / Legal Counsel", Total: lawyerCount },
+        { Relationship: "Legal Guardian", Total: legalGuardianCount },
+        { Relationship: "Law Enforcement Investigator", Total: lawEnforcementInvestigatorCount },
+        { Relationship: "Live-in Partner", Total: liveInCount },
+        { Relationship: "Mother", Total: motherCount },
+        { Relationship: "Mother-in-law", Total: motherinLawCount },
+        { Relationship: "Neighbor", Total: neighborCount },
+        { Relationship: "NGO Representative", Total: ngoCount },
+        { Relationship: "Psychologist", Total: psychologistCount },
+        { Relationship: "Parent", Total: parentCount },
+        { Relationship: "Social Worker", Total: socialWorkerCount },
+        { Relationship: "Sibling", Total: siblingCount },
+        { Relationship: "Sister", Total: sisterCount },
+        { Relationship: "Sister-in-law", Total: sisterinLawCount },
+        { Relationship: "Son", Total: sonCount },
+        { Relationship: "Spouse", Total: spouseCount },
+        { Relationship: "In-Law", Total: inLawCount },
+        { Relationship: "Journalist / Media", Total: journalistCount },
+        { Relationship: "Unknown / To be Determined", Total: unknownCount },
+        { Relationship: "Uncle", Total: uncleCount },
+        {
+        Relationship: "Total",
+        Total:
+            auntCount +
+            authorizedPersonCount +
+            authorizedVisitorCount +
+            brotherCount +
+            brotherinLawCount +
+            childCount +
+            classmateCount +
+            clergyCount +
+            cousinCount +
+            daughterCount +
+            daughterinLawCount +
+            doctorCount +
+            domesticCount +
+            fatherCount +
+            fianceCount +
+            formerColleagueCount +
+            formerEmployerCount +
+            friendCount +
+            governmentCount +
+            grandchildCount +
+            grandparentCount +
+            nephewCount +
+            nieceCount +
+            lawyerCount +
+            legalGuardianCount +
+            lawEnforcementInvestigatorCount +
+            liveInCount +
+            motherCount +
+            motherinLawCount +
+            neighborCount +
+            ngoCount +
+            psychologistCount +
+            parentCount +
+            socialWorkerCount +
+            siblingCount +
+            sisterCount +
+            sisterinLawCount +
+            sonCount +
+            spouseCount +
+            inLawCount +
+            journalistCount +
+            unknownCount +
+            uncleCount,
+        },
+    ];
+    const preparedByText = UserData ? `${UserData.first_name} ${UserData.last_name}` : '';
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+        
+    const buildTable = (title: string, data: any[], columns: [string, string]) => {
+        
+        const [col1, col2] = columns;
+
+        return [
+        { text: title, style: "sectionHeader", margin: [0, 10, 0, 5] },
+        {
+            table: {
+            widths: ["*", "auto"],
+            headerRows: 1,
+            body: [
+                [
+                { text: col1, style: "tableHeader" },
+                { text: col2, style: "tableHeader" },
+                ],
+                ...data.map((item) => [item[col1], item[col2]]),
+            ],
+            },
+            layout: {
+                    fillColor: (rowIndex) => (rowIndex === 0 ? '#DCE6F1' : null),
+                    hLineWidth: () => 0.5,
+                    vLineWidth: () => 0.5,
+                    hLineColor: () => '#aaa',
+                    vLineColor: () => '#aaa',
+                    paddingLeft: () => 4,
+                    paddingRight: () => 4,
+                },
+                fontSize: 11,
+        },
+        ];
+    };
+
+    const docDefinition = {
+        pageSize: "A4",
+        pageOrientation: "portrait",
+        pageMargins: [40, 60, 40, 60],
+        content: [
+        {
+            text: 'Visitor Summary Report',
+            style: 'header',
+            alignment: 'left',
+            margin: [0, 0, 0, 10],
+        },
+        {
+                    columns: [
+                        {
+                            stack: [
+                                {
+                                    text: organizationName,
+                                    style: 'subheader',
+                                    margin: [0, 5, 0, 10],
+                                },
+                                {
+                                    text: [
+                                        { text: `Report Date: `, bold: true },
+                                        formattedDate + '\n',
+                                        { text: `Prepared By: `, bold: true },
+                                        preparedByText + '\n',
+                                        { text: `Department/Unit: `, bold: true },
+                                        'IT\n',
+                                        { text: `Report Reference No.: `, bold: true },
+                                        reportReferenceNo,
+                                    ],
+                                    fontSize: 10,
+                                },
+                            ],
+                            alignment: 'left',
+                            width: '70%',
+                        },
+                        {
+                            stack: [
+                                {
+                                    image: logoBase64,
+                                    width: 90,
+                                },
+                            ],
+                            alignment: 'right',
+                            width: '30%',
+                        },
+                    ],
+                    margin: [0, 0, 0, 10],
+                },
+        ...buildTable("Visitor Type Summary", visitorTypeData, ["Visitor Type", "Total"]),
+        ...buildTable("Gender Summary", genderData, ["Gender", "Total"]),
+        ...buildTable("Relationship to PDL Summary", relationshipData, ["Relationship", "Total"]),
+        ],
+        footer: (currentPage: number, pageCount: number) => ({
+                    columns: [
+                        {
+                            text: `Document Version: 1.0\nConfidentiality Level: Internal use only\nContact Info: ${preparedByText}\nTimestamp of Last Update: ${formattedDate}`,
+                            fontSize: 8,
+                            alignment: 'left',
+                            margin: [40, 10],
+                        },
+                        {
+                            text: `${currentPage} / ${pageCount}`,
+                            fontSize: 8,
+                            alignment: 'right',
+                            margin: [0, 10, 40, 0],
+                        },
+                    ],
+                }),
+        styles: {
+            title: {
+                fontSize: 16,
+                bold: true,
+                alignment: "center",
+                margin: [0, 0, 0, 10],
+            },
+            header: {
+                fontSize: 13,
+                bold: true,
+                margin: [0, 10, 0, 5],
+            },
+            subheader: {
+                fontSize: 12,
+                bold: true,
+                margin: [0, 10, 0, 5],
+                color: "#1E365D",
+            },
+        },
+    };
+
+    pdfMake.createPdf(docDefinition).download("visitor_summary.pdf");
+    };
 
     return (
         <div className="px-5 py-5 md:mx-auto">
             <h1 className="text-xl font-bold text-[#1E365D]">Summary Count of PDL Visitor</h1>
-            <div className="flex flex-coljustify-between mt-5">
-                <div>
-                    <Select className="w-80 h-10" onChange={handleSelectChange} value={selectedGroup}>
+            <div className="flex items-center justify-between mt-5">
+                <div className="border border-gray-100 rounded-md flex flex-col gap-2 p-5 w-80">
+                    <h1 className="font-semibold">Total Count of PDL Visitors</h1>
+                    <div className="font-extrabold text-2xl flex ml-auto text-[#1E365D]">
+                        {summarydata?.success?.person_count_by_status?.Visitor?.Active ?? 0}
+                    </div>
+                </div>{/* <Select className="w-80 h-10" onChange={handleSelectChange} value={selectedGroup}>
                         <Option value="All">All</Option>
                         <Option value="Visitor Type">Visitor Type</Option>
                         <Option value="Gender">Gender</Option>
                         <Option value="Relationship to PDL">Relationship to PDL</Option>
-                    </Select>
+                    </Select> */}
+                <div>
+                    <button
+                        onClick={() =>
+                        exportVisitorTypeToExcel({
+                            seniorCitizenVisitorCount,
+                            regularVisitorCount,
+                            pwdVisitorCount,
+                            pregnantWomanVisitorCount,
+                            minorVisitorCount,
+                            lbtqVisitorCount,
+                            transgenderVisitorCount,
+                            lesbianVisitorCount,
+                            gayVisitorCount,
+                            maleCount,
+                            femaleCount,
+                            transgenderCount,
+                            lesbianCount,
+                            gayCount,
+                            auntCount,
+                            authorizedPersonCount,
+                            authorizedVisitorCount,
+                            brotherCount,
+                            brotherinLawCount,
+                            childCount,
+                            classmateCount,
+                            clergyCount,
+                            cousinCount,
+                            daughterCount,
+                            daughterinLawCount,
+                            doctorCount,
+                            domesticCount,
+                            fatherCount,
+                            fianceCount,
+                            formerColleagueCount,
+                            formerEmployerCount,
+                            friendCount,
+                            governmentCount,
+                            grandchildCount,
+                            grandparentCount,
+                            nephewCount,
+                            nieceCount,
+                            lawyerCount,
+                            legalGuardianCount,
+                            lawEnforcementInvestigatorCount,
+                            liveInCount,
+                            motherCount,
+                            motherinLawCount,
+                            neighborCount,
+                            ngoCount,
+                            psychologistCount,
+                            parentCount,
+                            socialWorkerCount,
+                            siblingCount,
+                            sisterCount,
+                            sisterinLawCount,
+                            sonCount,
+                            spouseCount,
+                            inLawCount,
+                            journalistCount,
+                            unknownCount,
+                            uncleCount,
+                        })
+                        }
+                        className="bg-[#1E365D] text-white px-4 py-2 rounded mr-4"
+                    >
+                        Export to Excel
+                    </button>
+                    <button
+                        onClick={() =>
+                        exportVisitorTypeToPDF({
+                            seniorCitizenVisitorCount,
+                            regularVisitorCount,
+                            pwdVisitorCount,
+                            pregnantWomanVisitorCount,
+                            minorVisitorCount,
+                            lbtqVisitorCount,
+                            transgenderVisitorCount,
+                            lesbianVisitorCount,
+                            gayVisitorCount,
+                            maleCount,
+                            femaleCount,
+                            transgenderCount,
+                            lesbianCount,
+                            gayCount,
+                            auntCount,
+                            authorizedPersonCount,
+                            authorizedVisitorCount,
+                            brotherCount,
+                            brotherinLawCount,
+                            childCount,
+                            classmateCount,
+                            clergyCount,
+                            cousinCount,
+                            daughterCount,
+                            daughterinLawCount,
+                            doctorCount,
+                            domesticCount,
+                            fatherCount,
+                            fianceCount,
+                            formerColleagueCount,
+                            formerEmployerCount,
+                            friendCount,
+                            governmentCount,
+                            grandchildCount,
+                            grandparentCount,
+                            nephewCount,
+                            nieceCount,
+                            lawyerCount,
+                            legalGuardianCount,
+                            lawEnforcementInvestigatorCount,
+                            liveInCount,
+                            motherCount,
+                            motherinLawCount,
+                            neighborCount,
+                            ngoCount,
+                            psychologistCount,
+                            parentCount,
+                            socialWorkerCount,
+                            siblingCount,
+                            sisterCount,
+                            sisterinLawCount,
+                            sonCount,
+                            spouseCount,
+                            inLawCount,
+                            journalistCount,
+                            unknownCount,
+                            uncleCount,
+                        })
+                        }
+                        className="bg-[#1E365D] text-white px-4 py-2 rounded"
+                    >
+                        Export to PDF
+                    </button>
                 </div>
-                {/* <div>
-                    <h1>Total Count of PDL Visitors</h1>
-                    <div className="">
-                        {summarydata?.success?.person_count_by_status?.Visitor?.Active}
-                    </div>
-                    
-                </div> */}
             </div>
             <div className=" mt-5">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-20">
@@ -242,15 +1107,15 @@ const SummaryCount = () => {
                                         </tr>
                                         <tr>
                                             <td className="px-6 py-1 whitespace-nowrap">Brother-in-law</td>
-                                            <td className="px-6 py-1 whitespace-nowrap">0</td> {/* -------------------- */}
+                                            <td className="px-6 py-1 whitespace-nowrap">{brotherinLawCount}</td>
                                             <td className="px-6 py-1 whitespace-nowrap border-l">Mother</td>
-                                            <td className="px-6 py-1 whitespace-nowrap">{0}</td>{/* -------------------- */}
+                                            <td className="px-6 py-1 whitespace-nowrap">{motherCount}</td>
                                         </tr>
                                         <tr>
                                             <td className="px-6 py-1 whitespace-nowrap">Child</td>
                                             <td className="px-6 py-1 whitespace-nowrap">{childCount}</td>
                                             <td className="px-6 py-1 whitespace-nowrap border-l">Mother-in-law</td>
-                                            <td className="px-6 py-1 whitespace-nowrap">{0}</td>{/* -------------------- */}
+                                            <td className="px-6 py-1 whitespace-nowrap">{motherinLawCount}</td>
                                         </tr>
                                         <tr>
                                             <td className="px-6 py-1 whitespace-nowrap">Classmate / Schoolmate</td>
@@ -272,15 +1137,15 @@ const SummaryCount = () => {
                                         </tr>
                                         <tr>
                                             <td className="px-6 py-1 whitespace-nowrap">Daughter</td>
-                                            <td className="px-6 py-1 whitespace-nowrap">{0}</td>{/* -------------------- */}
+                                            <td className="px-6 py-1 whitespace-nowrap">{daughterCount}</td>
                                             <td className="px-6 py-1 whitespace-nowrap border-l">Niece</td>
                                             <td className="px-6 py-1 whitespace-nowrap">{nieceCount}</td>
                                         </tr>
                                         <tr>
                                             <td className="px-6 py-1 whitespace-nowrap">Daughter-in-law</td>
-                                            <td className="px-6 py-1 whitespace-nowrap">0</td>{/* -------------------- */}
+                                            <td className="px-6 py-1 whitespace-nowrap">{daughterinLawCount}</td>
                                             <td className="px-6 py-1 whitespace-nowrap border-l">Niece-in-law</td>
-                                            <td className="px-6 py-1 whitespace-nowrap">0</td>{/* -------------------- */}
+                                            <td className="px-6 py-1 whitespace-nowrap">{nieceinLaw}</td>
                                         </tr>
                                         <tr>
                                             <td className="px-6 py-1 whitespace-nowrap">Doctor / Medical Visitor</td>
@@ -296,7 +1161,7 @@ const SummaryCount = () => {
                                         </tr>
                                         <tr>
                                             <td className="px-6 py-1 whitespace-nowrap">Father</td>
-                                            <td className="px-6 py-1 whitespace-nowrap">{0}</td>{/* -------------------- */}
+                                            <td className="px-6 py-1 whitespace-nowrap">{fatherCount}</td>{/* -------------------- */}
                                             <td className="px-6 py-1 whitespace-nowrap border-l">Sibling</td>
                                             <td className="px-6 py-1 whitespace-nowrap">{siblingCount}</td>
                                         </tr>
@@ -304,13 +1169,13 @@ const SummaryCount = () => {
                                             <td className="px-6 py-1 whitespace-nowrap">Fiancé / Fiancée</td>
                                             <td className="px-6 py-1 whitespace-nowrap">{fianceCount}</td>
                                             <td className="px-6 py-1 whitespace-nowrap border-l">Sister</td>
-                                            <td className="px-6 py-1 whitespace-nowrap">0</td>{/* -------------------- */}
+                                            <td className="px-6 py-1 whitespace-nowrap">{sisterCount}</td>{/* -------------------- */}
                                         </tr>
                                         <tr>
                                             <td className="px-6 py-1 whitespace-nowrap">Former Colleague</td>
                                             <td className="px-6 py-1 whitespace-nowrap">{formerColleagueCount}</td>
                                             <td className="px-6 py-1 whitespace-nowrap border-l">Sister-in-law</td>
-                                            <td className="px-6 py-1 whitespace-nowrap">0</td>{/* -------------------- */}
+                                            <td className="px-6 py-1 whitespace-nowrap">{sisterinLawCount}</td>{/* -------------------- */}
                                         </tr>
                                         <tr>
                                             <td className="px-6 py-1 whitespace-nowrap">Former Employer</td>
@@ -322,7 +1187,7 @@ const SummaryCount = () => {
                                             <td className="px-6 py-1 whitespace-nowrap">Friend</td>
                                             <td className="px-6 py-1 whitespace-nowrap">{friendCount}</td>
                                             <td className="px-6 py-1 whitespace-nowrap border-l">Son</td>
-                                            <td className="px-6 py-1 whitespace-nowrap">0</td>{/* -------------------- */}
+                                            <td className="px-6 py-1 whitespace-nowrap">{sonCount}</td>{/* -------------------- */}
                                         </tr>
                                         <tr>
                                             <td className="px-6 py-1 whitespace-nowrap">Goddaughter</td>
@@ -400,7 +1265,7 @@ const SummaryCount = () => {
                                             <td className="px-6 py-1 whitespace-nowrap"></td>
                                             <td className="px-6 py-1 whitespace-nowrap"></td>
                                             <td className="px-6 py-1 whitespace-nowrap font-bold">Total</td>
-                                            <td className="px-6 py-1 whitespace-nowrap font-bold">{nephewCount + parentCount + siblingCount + spouseCount + uncleCount + auntCount + regularVisitorCount }</td>
+                                            <td className="px-6 py-1 whitespace-nowrap font-bold">{relationshipTotal}</td>
                                         </tr>
                                         {/*  +  + seniorCitizenVisitorCount +  +  +authorizedPersonCount  +pwdVisitorCount pregnantWomanVisitorCount + minorVisitorCount + lbtqVisitorCount + transgenderCount + lesbianCount + gayCount + maleCount + femaleCount + transgenderVisitorCount + lesbianVisitorCount + gayVisitorCount + uncleCount + lawEnforcementInvestigatorCount + legalGuardianCount + inLawCount + lawyerCount + clergyCount + socialWorkerCount + doctorCount + psychologistCount + friendCount + fianceCount + domesticCount + siblingCount + parentCount + spouseCount + grandchildCount + grandparentCount + nephewCount + nieceCount + cousinCount + neighborCount + classmateCount + formerColleagueCount +formerEmployerCount + ngoCount + governmentCount + journalistCount + unknownCount + childCount + brotherCount + liveInCount */}
                                     </tbody>

@@ -46,7 +46,7 @@ const Visitor = ({ visitor_log, visitHistory }: { visitor_log: any, visitHistory
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const navigate = useNavigate();
     const [page, setPage] = useState(1);
-    const limit = 10;
+    const [limit, setLimit] = useState(10);
     const [allVisitor, setAllVisitor] = useState<VisitorRecord[]>([]);
 
     const fetchVisitors = async (search: string) => {
@@ -195,6 +195,13 @@ const genderFilteredVisitorIds = new Set(
     (visitorGenderData?.results || []).map(visitor => visitor.id)
 );
 
+const visitorTypeFilters = Array.from(
+  new Set((data?.results || []).map(item => item.visitor_type).filter(Boolean))
+).map(type => ({
+  text: type,
+  value: type,
+}));
+
     const dataSource = (data?.results || []).filter(visitor =>
         gender === "all" ? true : genderFilteredVisitorIds.has(visitor.id)
     ).map((visitor, index) => {
@@ -221,13 +228,17 @@ const genderFilteredVisitorIds = new Set(
         };
     });
 
-    // Step 3: Apply search filter on this gender-filtered list
-    const filteredData = dataSource.filter(visitor => {
-    const matchesSearch = Object.values(visitor).some(value =>
-        String(value).toLowerCase().includes(searchText.toLowerCase())
-    );
-    return matchesSearch;
-    });
+
+const filteredData = dataSource.filter(visitor => {
+  const matchesSearch = Object.values(visitor).some(value =>
+    String(value).toLowerCase().includes(searchText.toLowerCase())
+  );
+  const matchesGender = gender === "all" || genderList.length === 0
+    ? true
+    : genderList.includes(visitor.gender);
+  return matchesSearch && matchesGender;
+});
+
 
 
     const columns: ColumnsType<VisitorResponse> = [
@@ -241,12 +252,6 @@ const genderFilteredVisitorIds = new Set(
             dataIndex: 'visitor_reg_no',
             key: 'visitor_reg_no',
             sorter: (a, b) => a.visitor_reg_no.localeCompare(b.visitor_reg_no),
-            filters: [
-                ...Array.from(new Set(allVisitor.map(item => item.visitor_reg_no)))
-                    .filter(Boolean)
-                    .map(val => ({ text: val, value: val }))
-            ],
-            onFilter: (value, record) => record.visitor_reg_no === value,
         },
         {
             title: 'Visitor Name',
@@ -259,29 +264,20 @@ const genderFilteredVisitorIds = new Set(
                 const nameB = `${b?.person?.first_name ?? ''} ${b?.person?.middle_name ?? ''} ${b?.person?.last_name ?? ''}`.trim();
                 return nameA.localeCompare(nameB);
             },
-            filters: [
-                ...Array.from(
-                    new Set(allVisitor.map(item => item.person?.last_name))
-                ).map(last_name => ({
-                    text: last_name,
-                    value: last_name,
-                }))
-            ],
-            onFilter: (value, record) => record.person?.last_name === value,
         },
         {
             title: 'Gender',
             dataIndex: 'gender',
             key: 'gender',
             sorter: (a, b) => a.gender.localeCompare(b.gender),
-            filters: [
-                ...Array.from(
-                    new Set(allVisitor.map(item => item.gender))
-                ).map(gender => ({
-                    text: gender,
-                    value: gender,
-                }))
-            ],
+            filters: Array.from(
+                new Set((visitorGenderData?.results || []).map(visitor => visitor?.person?.gender?.gender_option))
+            )
+            .filter(Boolean)
+            .map(gender => ({
+                text: gender,
+                value: gender,
+            })),
             onFilter: (value, record) => record.gender === value,
         },
         {
@@ -289,14 +285,7 @@ const genderFilteredVisitorIds = new Set(
             dataIndex: 'visitor_type',
             key: 'visitor_type',
             sorter: (a, b) => a.visitor_type.localeCompare(b.visitor_type),
-            filters: [
-                ...Array.from(
-                    new Set(allVisitor.map(item => item.visitor_type))
-                ).map(visitor_type => ({
-                    text: visitor_type,
-                    value: visitor_type,
-                }))
-            ],
+            filters: visitorTypeFilters,
             onFilter: (value, record) => record.visitor_type === value,
         },
         {
@@ -304,16 +293,6 @@ const genderFilteredVisitorIds = new Set(
             dataIndex: 'full_address',
             key: 'full_address',
             sorter: (a, b) => a.full_address.localeCompare(b.full_address),
-            filters: [
-                ...Array.from(
-                    new Set(allVisitor.map(item => item.full_address))
-                ).map(full_address => ({
-                    text: full_address,
-                    value: full_address,
-                }))
-            ],
-            onFilter: (value, record) => record.person?.addresses?.full_address === value,
-
         },
         // {
         //     title: 'Approved By',
@@ -412,85 +391,67 @@ const handleExportPDF = async () => {
     const doc = new jsPDF();
     const headerHeight = 48;
     const footerHeight = 32;
+    const maxRowsPerPage = 26;
 
-    const MAX_ROWS_PER_PRINT = 800;
-
-    let printSource;
-
-    // Decide if we are printing filtered data (all at once) or paginated chunks of full data
-    if (debouncedSearch && debouncedSearch.trim().length > 0) {
-    // Print all filtered data at once
-    printSource = (searchData?.results || []).map((visitor, index) => {
-        const barangay = visitor?.person?.addresses[0]?.barangay || '';
-        const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
-        const province = visitor?.person?.addresses[0]?.province || '';
-        const addressParts = [barangay, cityMunicipality, province].filter(part => part);
-        const address = addressParts.join(', ');
-
-        return {
-            key: index + 1,
-            id: visitor?.id,
-            visitor_reg_no: visitor?.visitor_reg_no,
-            name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
-            visitor_type: visitor?.visitor_type,
-            full_address: visitor?.person?.addresses[0]?.full_address ?? '',
-            address: address,
-            nationality: visitor?.person?.nationality,
-            gender: (visitor?.person?.gender?.gender_option === "Male" || visitor?.person?.gender?.gender_option === "Female")
-                ? visitor?.person?.gender?.gender_option
-                : "Others",
-            updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
-        };
-    });
-
-    // Reset lastPrintIndex because search print is a full print
-    lastPrintIndexRef.current = 0;
-} else {
-    // Print MAX_ROWS_PER_PRINT rows starting from lastPrintIndexRef.current from all visitors
-    const allData = await fetchAllVisitors();
-    const allResults = allData?.results || [];
-
-    printSource = allResults
-        .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + MAX_ROWS_PER_PRINT)
-        .map((visitor, index) => {
-            const barangay = visitor?.person?.addresses[0]?.barangay || '';
-            const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
-            const province = visitor?.person?.addresses[0]?.province || '';
-
-            const addressParts = [barangay, cityMunicipality, province].filter(part => part);
-            const address = addressParts.join(', ');
-
-            return {
-                key: lastPrintIndexRef.current + index + 1,
-                id: visitor?.id,
-                visitor_reg_no: visitor?.visitor_reg_no,
-                name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
-                visitor_type: visitor?.visitor_type,
-                full_address: visitor?.person?.addresses[0]?.full_address ?? '',
-                address: address,
-                nationality: visitor?.person?.nationality,
-                gender: visitor?.person?.gender?.gender_option,
-                updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
-            };
-        });
-
-        // Update lastPrintIndexRef for next chunk
-        lastPrintIndexRef.current += MAX_ROWS_PER_PRINT;
-
-        // Reset to 0 if we've reached or exceeded total length
-        if (lastPrintIndexRef.current >= allResults.length) {
-        lastPrintIndexRef.current = 0;
-        }
-    }
-
-    const organizationName = dataSource[0]?.organization || "Bureau of Jail Management and Penology";
-    const PreparedBy = dataSource[0]?.updated || "";
+    const organizationName = filteredData[0]?.organization || "Bureau of Jail Management and Penology";
+    const PreparedBy = filteredData[0]?.updated || "";
     const today = new Date();
     const formattedDate = today.toISOString().split("T")[0];
     const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
-    const maxRowsPerPage = 26;
     let startY = headerHeight;
+    let printSource;
+
+    const isFiltering = debouncedSearch.trim().length > 0 || gender !== "all";
+
+    if (isFiltering) {
+        printSource = filteredData.map((visitor, index) => ({
+            key: index + 1,
+            id: visitor?.id,
+            visitor_reg_no: visitor?.visitor_reg_no,
+            name: visitor?.name,
+            visitor_type: visitor?.visitor_type,
+            full_address: visitor?.full_address,
+            address: visitor?.address,
+            nationality: visitor?.nationality,
+            gender: visitor?.gender === "Male" || visitor?.gender === "Female" ? visitor?.gender : "Others",
+            updated: visitor?.updated,
+        }));
+
+        lastPrintIndexRef.current = 0; 
+    } else {
+        const allData = await fetchAllVisitors();
+        const allResults = allData?.results || [];
+
+        printSource = allResults
+            .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + 800)
+            .map((visitor, index) => {
+                const barangay = visitor?.person?.addresses[0]?.barangay || '';
+                const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
+                const province = visitor?.person?.addresses[0]?.province || '';
+                const addressParts = [barangay, cityMunicipality, province].filter(part => part);
+                const address = addressParts.join(', ');
+
+                return {
+                    key: lastPrintIndexRef.current + index + 1,
+                    id: visitor?.id,
+                    visitor_reg_no: visitor?.visitor_reg_no,
+                    name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+                    visitor_type: visitor?.visitor_type,
+                    full_address: visitor?.person?.addresses[0]?.full_address ?? '',
+                    address: address,
+                    nationality: visitor?.person?.nationality,
+                    gender: visitor?.person?.gender?.gender_option,
+                    updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
+                };
+            });
+
+        // Track printing offset
+        lastPrintIndexRef.current += 800;
+        if (lastPrintIndexRef.current >= allResults.length) {
+            lastPrintIndexRef.current = 0;
+        }
+    }
 
     const addHeader = () => {
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -516,37 +477,33 @@ const handleExportPDF = async () => {
 
     addHeader();
 
-    // Prepare tableData based on printSource
-    const tableData = printSource.map((item, index) => {
-        return [
+    const tableData = printSource.map((item, index) => [
         index + 1,
         item.visitor_reg_no,
         item.name,
         item.gender,
         item.visitor_type,
         item.address,
-        ];
-    });
+    ]);
 
-    // Draw table, paginate with maxRowsPerPage rows per page
     for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
         const pageData = tableData.slice(i, i + maxRowsPerPage);
 
         autoTable(doc, {
-        head: [["No.", "Visitor No.", "Name", "Gender", "Visitor Type", "Address"]],
-        body: pageData,
-        startY: startY,
-        margin: { top: 0, left: 10, right: 10 },
-        didDrawPage: function (data) {
-            if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-            addHeader();
-            }
-        },
+            head: [["No.", "Visitor No.", "Name", "Gender", "Visitor Type", "Address"]],
+            body: pageData,
+            startY: startY,
+            margin: { top: 0, left: 10, right: 10 },
+            didDrawPage: function (data) {
+                if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+                    addHeader();
+                }
+            },
         });
 
         if (i + maxRowsPerPage < tableData.length) {
-        doc.addPage();
-        startY = headerHeight;
+            doc.addPage();
+            startY = headerHeight;
         }
     }
 
@@ -554,14 +511,15 @@ const handleExportPDF = async () => {
     for (let page = 1; page <= pageCount; page++) {
         doc.setPage(page);
         const footerText = [
-        "Document Version: Version 1.0",
-        "Confidentiality Level: Internal use only",
-        "Contact Info: " + PreparedBy,
-        `Timestamp of Last Update: ${formattedDate}`,
+            "Document Version: Version 1.0",
+            "Confidentiality Level: Internal use only",
+            "Contact Info: " + PreparedBy,
+            `Timestamp of Last Update: ${formattedDate}`,
         ].join("\n");
         const footerX = 10;
         const footerY = doc.internal.pageSize.height - footerHeight + 15;
         const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+
         doc.setFontSize(8);
         doc.text(footerText, footerX, footerY);
         doc.text(`${page} / ${pageCount}`, pageX, footerY);
@@ -573,38 +531,105 @@ const handleExportPDF = async () => {
     setIsLoading(false);
 };
 
+
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
         setPdfDataUrl(null);
     };
 
-    const handleExportExcel = async () => {
-        // Fetch all visitors if necessary
-        const fullDataSource = await fetchAllVisitors(); // Ensure this fetches all data
+    // const handleExportExcel = async () => {
+    //     // Fetch all visitors if necessary
+    //     const fullDataSource = await fetchAllVisitors(); // Ensure this fetches all data
 
-        // Map to prepare export data, excluding unnecessary fields
-        const exportData = fullDataSource?.results.map(visitor => {
-            const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
-            return {
-                "Registration No.": visitor?.visitor_reg_no,
-                "Name":name,
-                "Gender": visitor?.person?.gender?.gender_option, // Include constructed name
-                "Visitor Type": visitor?.visitor_type,
-                "Address": visitor?.person?.addresses[0]?.full_address ?? '',
+    //     // Map to prepare export data, excluding unnecessary fields
+    //     const exportData = fullDataSource?.results.map(visitor => {
+    //         const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
+    //         return {
+    //             "Registration No.": visitor?.visitor_reg_no,
+    //             "Name":name,
+    //             "Gender": visitor?.person?.gender?.gender_option, // Include constructed name
+    //             "Visitor Type": visitor?.visitor_type,
+    //             "Address": visitor?.person?.addresses[0]?.full_address ?? '',
                 
-            };
-        }) || [];
+    //         };
+    //     }) || [];
 
-        const ws = XLSX.utils.json_to_sheet(exportData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Visitor");
-        XLSX.writeFile(wb, "Visitor.xlsx");
-    };
+    //     const ws = XLSX.utils.json_to_sheet(exportData);
+    //     const wb = XLSX.utils.book_new();
+    //     XLSX.utils.book_append_sheet(wb, ws, "Visitor");
+    //     XLSX.writeFile(wb, "Visitor.xlsx");
+    // };
 
+// const handleExportCSV = async () => {
+//     try {
+//         const fullDataSource = await fetchAllVisitors();
+//         const exportData = fullDataSource?.results.map(visitor => {
+//             const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
+//             return {
+//                 "Registration No.": visitor?.visitor_reg_no,
+//                 "Name": name,
+//                 "Gender": visitor?.person?.gender?.gender_option,
+//                 "Visitor Type": visitor?.visitor_type,
+//                 "Address": visitor?.person?.addresses[0]?.full_address ?? '',
+                
+//             };
+//         }) || [];
+
+//         const csvContent = [
+//             Object.keys(exportData[0]).join(","), // Header row
+//             ...exportData.map(item => Object.values(item).join(",")) // Data rows
+//         ].join("\n");
+
+//         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+//         const link = document.createElement("a");
+//         const url = URL.createObjectURL(blob);
+//         link.setAttribute("href", url);
+//         link.setAttribute("download", "Visitor.csv");
+//         document.body.appendChild(link);
+//         link.click();
+//         document.body.removeChild(link);
+//     } catch (error) {
+//         console.error("Error exporting CSV:", error);
+//     }
+// };
+const handleExportExcel = async () => {
+    let exportSource;
+
+    if (debouncedSearch && debouncedSearch.trim().length > 0 && searchData?.results?.length) {
+        exportSource = searchData.results;
+    } else {
+        const fullDataSource = await fetchAllVisitors();
+        exportSource = fullDataSource?.results || [];
+    }
+
+    const exportData = exportSource.map(visitor => {
+        const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
+        return {
+            "Registration No.": visitor?.visitor_reg_no,
+            "Name": name,
+            "Gender": visitor?.person?.gender?.gender_option,
+            "Visitor Type": visitor?.visitor_type,
+            "Address": visitor?.person?.addresses[0]?.full_address ?? '',
+        };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Visitor");
+    XLSX.writeFile(wb, "Visitor.xlsx");
+};
 const handleExportCSV = async () => {
     try {
-        const fullDataSource = await fetchAllVisitors();
-        const exportData = fullDataSource?.results.map(visitor => {
+        let exportSource;
+
+        if (debouncedSearch && debouncedSearch.trim().length > 0 && searchData?.results?.length) {
+            exportSource = searchData.results;
+        } else {
+            const fullDataSource = await fetchAllVisitors();
+            exportSource = fullDataSource?.results || [];
+        }
+
+        const exportData = exportSource.map(visitor => {
             const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
             return {
                 "Registration No.": visitor?.visitor_reg_no,
@@ -612,9 +637,8 @@ const handleExportCSV = async () => {
                 "Gender": visitor?.person?.gender?.gender_option,
                 "Visitor Type": visitor?.visitor_type,
                 "Address": visitor?.person?.addresses[0]?.full_address ?? '',
-                
             };
-        }) || [];
+        });
 
         const csvContent = [
             Object.keys(exportData[0]).join(","), // Header row
@@ -646,40 +670,49 @@ const handleExportCSV = async () => {
         </Menu>
     );
 
-    const handleDownloadPDF = async () => {
-        if (!modalContentRef.current) return;
+const handleDownloadPDF = async () => {
+  if (!modalContentRef.current) return;
 
-        const canvas = await html2canvas(modalContentRef.current, {
-            useCORS: true,
-            backgroundColor: "#ffffff",
-            scrollY: -window.scrollY,
-        });
+  const element = modalContentRef.current;
 
-        const imgData = canvas.toDataURL("image/png");
+  // Set scale to improve resolution (default is 1)
+  const scale = 2;
 
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
+  const canvas = await html2canvas(element, {
+    scale: scale,         // Higher scale = better quality
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    scrollY: -window.scrollY,
+  });
 
-        const imgProps = pdf.getImageProperties(imgData);
-        const imgWidth = pdfWidth;
-        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+  const imgData = canvas.toDataURL("image/png");
 
-        let finalImgHeight = imgHeight;
-        let finalImgWidth = imgWidth;
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = pdf.internal.pageSize.getHeight();
 
-        if (imgHeight > pdfHeight) {
-            const scaleRatio = pdfHeight / imgHeight;
-            finalImgHeight = pdfHeight;
-            finalImgWidth = imgWidth * scaleRatio;
-        }
+  const imgProps = pdf.getImageProperties(imgData);
 
-        const x = (pdfWidth - finalImgWidth) / 2;
-        const y = 0;
+  // Convert canvas dimensions from px to mm (1 px ≈ 0.264583 mm)
+  const imgWidth = canvas.width * 0.264583;
+  const imgHeight = canvas.height * 0.264583;
 
-        pdf.addImage(imgData, 'PNG', x, y, finalImgWidth, finalImgHeight);
-        pdf.save('visitor-profile.pdf');
-    };
+  let finalWidth = imgWidth;
+  let finalHeight = imgHeight;
+
+  // Scale down if image is taller than the page
+  if (imgHeight > pdfHeight) {
+    const ratio = pdfHeight / imgHeight;
+    finalHeight = pdfHeight;
+    finalWidth = imgWidth * ratio;
+  }
+
+  const x = (pdfWidth - finalWidth) / 2;
+  const y = 0;
+
+  pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
+  pdf.save('visitor-profile.pdf');
+};
 
     const totalRecords = debouncedSearch 
     ? data?.count || 0
@@ -753,17 +786,17 @@ const handleExportCSV = async () => {
                             : filteredData
                         }
                         scroll={{ x: 800 }}
-                        pagination={
-                            debouncedSearch
-                            ? false 
-                            : {
-                                current: page,
-                                pageSize: limit,
-                                total: totalRecords,
-                                onChange: (newPage) => setPage(newPage),
-                                showSizeChanger: false,
-                                }
-                        }
+                        pagination={{
+                            current: page,
+                            pageSize: limit,
+                            total: totalRecords,
+                            pageSizeOptions: ['10', '20', '50', '100'],
+                            showSizeChanger: true, 
+                            onChange: (newPage, newPageSize) => {
+                                setPage(newPage);
+                                setLimit(newPageSize); 
+                            },
+                            }}
                         rowKey="id"
                     />
                 </div>

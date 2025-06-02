@@ -40,7 +40,6 @@ import jsPDF from "jspdf";
 import { Title } from "./components/SummaryCards";
 import { BASE_URL } from "@/lib/urls";
 import { Input, Modal, Select, Skeleton } from "antd";
-import { getMainGate } from "@/lib/query";
 
 const { Option } = Select;
 
@@ -55,6 +54,21 @@ const Dashboard = () => {
     const currentDate = new Date().toLocaleDateString('en-us', { year: "numeric", month: "long", day: "numeric" });
     const [time, setTime] = useState(new Date().toLocaleTimeString());
     const isFullscreen = handle.active;
+    const [frequency, setFrequency] = useState('quarterly'); 
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [dateField, setDateField] = useState('date_convicted');
+    const [startYear, setStartYear] = useState(currentYear.toString());
+    const [endYear, setEndYear] = useState(currentYear.toString());
+    //     const [filters, setFilters] = useState({
+    // frequency: 'daily',
+    // dateField: 'date_of_admission',
+    // startDate: '',
+    // endDate: '',
+    // startYear: '',
+    // endYear: '',
+    // });
+    // const [appliedFilters, setAppliedFilters] = useState(filters);
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
@@ -90,23 +104,14 @@ const Dashboard = () => {
 
     const selectedJail = systemsettingdata?.results[0]?.jail_facility?.jail_name || 'BJMP Quezon City Jail - Male Dormitory';
 
-    // Function to determine the title based on selected jail
     const getJailTitle = (jail) => {
         return jail.includes('QUEZON CITY JAIL-FEMALE DORM') ? 
             'BJMP Quezon City Jail - Female Dormitory Dashboard' : 
             'BJMP Quezon City Jail - Male Dormitory Dashboard';
     };
 
-    const [frequency, setFrequency] = useState('quarterly'); 
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [dateField, setDateField] = useState('date_convicted');
-    const [startYear, setStartYear] = useState(currentYear.toString());
-    const [endYear, setEndYear] = useState(currentYear.toString());
-
     const fetchPDLSummary = async () => {
         let url = `${BASE_URL}/api/dashboard/summary-dashboard/`;
-
         const params = new URLSearchParams();
         params.append('date_field', dateField);
 
@@ -116,11 +121,15 @@ const Dashboard = () => {
             params.append('end_year', endYear);
         } else if (frequency === 'monthly') {
             url += 'get-monthly-pdl-summary';
-            params.append('start_date', startDate); 
+            params.append('start_date', startDate);
             params.append('end_date', endDate);
-        } else if (frequency === 'weekly' || frequency === 'daily') {
+        } else if (frequency === 'weekly') {
             url += 'get-weekly-pdl-summary';
-            params.append('start_date', startDate); 
+            params.append('start_date', startDate);
+            params.append('end_date', endDate);
+        } else if (frequency === 'daily') {
+            url += 'get-daily-pdl-summary';
+            params.append('start_date', startDate);
             params.append('end_date', endDate);
         }
 
@@ -135,50 +144,40 @@ const Dashboard = () => {
         return res.json();
     };
 
-    const { data: quarterlyData } = useQuery({
+    const { data: pdlData } = useQuery({
         queryKey: ['pdl-summary', frequency, dateField, startYear, endYear, startDate, endDate],
         queryFn: fetchPDLSummary,
         enabled: !!token,
     });
 
-    const fetchMainGate = async () => {
-        let url = `${BASE_URL}/api/visit-logs/main-gate-visits/`;
-        const res = await fetch(`${url}`, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
 
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-    };
+    let counts = {};
+    if (frequency === 'quarterly') {
+        counts = pdlData?.success?.quarterly_pdl_summary || {};
+    } else if (frequency === 'monthly') {
+        counts = pdlData?.success?.monthly_pdl_summary || {};
+    } else if (frequency === 'weekly') {
+        counts = pdlData?.success?.weekly_pdl_summary || {};
+    } else if (frequency === 'daily') {
+        counts = pdlData?.success?.daily_pdl_summary || {};
+    }
 
-     const { data: maingateLogsData } = useQuery({
-        queryKey: ['main-gate'],
-        queryFn: fetchMainGate,
-        enabled: !!token,
-    });
-
-
-
-    const quarterlyCounts = quarterlyData?.success?.quarterly_pdl_summary || {};
     const totalConvictedCount = isFormChanged && dateField === 'date_convicted'
-        ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
+        ? Object.values(counts).reduce((total, data) => total + (data.pdl_count || 0), 0)
         : summarydata?.success?.total_pdl_by_status?.Convicted?.Active ?? 0;
 
     const totalReleasedCount = isFormChanged && dateField === 'date_released'
-        ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
+        ? Object.values(counts).reduce((total, data) => total + (data.pdl_count || 0), 0)
         : summarydata?.success?.total_pdl_by_status?.Released?.Active ?? 0;
 
     const totalAdmissionCount = isFormChanged && dateField === 'date_of_admission'
-        ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
+        ? Object.values(counts).reduce((total, data) => total + (data.pdl_count || 0), 0)
         : summarydata?.success?.total_pdl_by_status?.Committed?.Active ?? 0;
 
     const totalHospitalizedCount = isFormChanged && dateField === 'date_hospitalized'
-        ? Object.values(quarterlyCounts).reduce((total, data) => total + (data.pdl_count || 0), 0)
-        : summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active ?? 0
-    
+        ? Object.values(counts).reduce((total, data) => total + (data.pdl_count || 0), 0)
+        : summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active ?? 0;
+
      const handleDateFieldChange = (value) => {
         setDateField(value);
         setIsFormChanged(true);
@@ -324,7 +323,6 @@ const Dashboard = () => {
                 navigate(linkto, { state });
             }
         };
-
         return (
             <div
                 className='rounded-lg flex flex-grow items-center gap-2 p-2 w-full bg-[#F6F7FB] hover:cursor-pointer'
@@ -513,9 +511,7 @@ const visitorHandleClick = (gender: string) => {
                                 <p className="text-sm">{currentDate} at {time}</p>
                             </div>
                         </div>
-                        {/* 1ST ROW */}
                         <div className="w-full flex flex-col lg:flex-row gap-2 mt-2">
-                            {/* Cards Column */}
                             <div className="bg-white border shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col gap-2
                                 max-w-full md:max-w-sm lg:max-w-[16rem] w-full
                                 flex-[1.2]">
@@ -1555,59 +1551,105 @@ const visitorHandleClick = (gender: string) => {
                     onCancel={handleCancel}
                     footer={null}
                     width="50%"
-                    >
-                    <label className="w-full text-[16px] font-semibold">
+                >
+                    <label className="block text-lg font-semibold mb-2">
                         Periodical:
-                        <Select value={frequency} onChange={value => { setFrequency(value); setIsFormChanged(true); }} className="w-full h-10">
-                        <Option value="daily">Daily</Option>
-                        <Option value="weekly">Weekly</Option>
-                        <Option value="monthly">Monthly</Option>
-                        <Option value="quarterly">Quarterly</Option>
+                        <Select 
+                            value={frequency} 
+                            onChange={value => {
+                                setFrequency(value);
+                                setIsFormChanged(true);
+                                fetchPDLSummary(); 
+                            }} 
+                            className="w-full h-10 mt-1"
+                        >
+                            <Option value="daily">Daily</Option>
+                            <Option value="weekly">Weekly</Option>
+                            <Option value="monthly">Monthly</Option>
+                            <Option value="quarterly">Quarterly</Option>
                         </Select>
                     </label>
 
-                    <label className="w-full text-[16px] font-semibold">
+                    <label className="block text-lg font-semibold mb-2">
                         Date Field:
-                        <Select value={dateField} onChange={handleDateFieldChange} className="w-full h-10">
-                        <Option value="date_convicted">Date Convicted</Option>
-                        <Option value="date_hospitalized">Date Hospitalized</Option>
-                        <Option value="date_of_admission">Date of Admission</Option>
-                        <Option value="date_released">Date Released</Option>
+                        <Select 
+                            value={dateField} 
+                            onChange={handleDateFieldChange} 
+                            className="w-full h-10 mt-1"
+                        >
+                            <Option value="date_convicted">Date Convicted</Option>
+                            <Option value="date_hospitalized">Date Hospitalized</Option>
+                            <Option value="date_of_admission">Date of Admission</Option>
+                            <Option value="date_released">Date Released</Option>
                         </Select>
                     </label>
 
                     {frequency === 'quarterly' ? (
                         <>
-                        <label>Start Year:
-                            <Input type="number" min="2000" max="2100" value={startYear} onChange={handleYearChange(setStartYear)} className="w-full h-10" />
-                        </label>
-                        <label>End Year:
-                            <Input type="number" min="2000" max="2100" value={endYear} onChange={handleYearChange(setEndYear)} className="w-full h-10" />
-                        </label>
+                            <label className="block mb-2">
+                                Start Year:
+                                <Input 
+                                    type="number" 
+                                    min="2000" 
+                                    max="2100" 
+                                    value={startYear} 
+                                    onChange={handleYearChange(setStartYear)} 
+                                    className="w-full h-10 mt-1 border border-gray-300 rounded"
+                                />
+                            </label>
+                            <label className="block mb-2">
+                                End Year:
+                                <Input 
+                                    type="number" 
+                                    min="2000" 
+                                    max="2100" 
+                                    value={endYear} 
+                                    onChange={handleYearChange(setEndYear)} 
+                                    className="w-full h-10 mt-1 border border-gray-300 rounded"
+                                />
+                            </label>
                         </>
                     ) : (
                         <>
-                        <label className="w-full text-[16px] font-semibold">Start Date:
-                            <Input
-                            type="text"
-                            placeholder={frequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
-                            value={startDate}
-                            onChange={(e) => { setStartDate(e.target.value); setIsFormChanged(true); }}
-                            className="w-full h-10"
-                            />
-                        </label>
-                        <label className="w-full text-[16px] font-semibold">End Date:
-                            <Input
-                            type="text"
-                            placeholder={frequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
-                            value={endDate}
-                            onChange={(e) => { setEndDate(e.target.value); setIsFormChanged(true); }}
-                            className="w-full h-10"
-                            />
-                        </label>
+                            <label className="block text-lg font-semibold mb-2">Start Date:
+                                <Input
+                                    type="text"
+                                    placeholder={frequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
+                                    value={startDate}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // Validate the date format
+                                        if (new Date(value) > new Date(endDate)) {
+                                            setStartDate(endDate); // Set to end date if exceeds
+                                        } else {
+                                            setStartDate(value);
+                                        }
+                                        setIsFormChanged(true);
+                                    }}
+                                    className="w-full h-10 mt-1 border border-gray-300 rounded"
+                                />
+                            </label>
+                            <label className="block text-lg font-semibold mb-2">End Date:
+                                <Input
+                                    type="text"
+                                    placeholder={frequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
+                                    value={endDate}
+                                    onChange={(e) => { 
+                                        const value = e.target.value;
+                                        // Validate the date format
+                                        if (new Date(value) < new Date(startDate)) {
+                                            setEndDate(startDate); // Set to start date if exceeds
+                                        } else {
+                                            setEndDate(value);
+                                        }
+                                        setIsFormChanged(true); 
+                                    }}
+                                    className="w-full h-10 mt-1 border border-gray-300 rounded"
+                                />
+                            </label>
                         </>
                     )}
-                    </Modal>
+                </Modal>
             </div>
             </div>
     )

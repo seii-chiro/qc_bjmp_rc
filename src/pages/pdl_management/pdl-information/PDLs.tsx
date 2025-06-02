@@ -29,10 +29,9 @@ const PDLtable = () => {
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [page, setPage] = useState(1);
-    const limit = 10;
+    const [limit, setLimit] = useState(10);
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [allPDLs, setAllPDLs] = useState<PDLs[]>([]);
-
     const fetchPDLs = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/pdls/pdl/?search=${search}`, {
             headers: {
@@ -225,14 +224,6 @@ const PDLtable = () => {
             dataIndex: 'name',
             key: 'name',
             sorter: (a, b) => a.name.localeCompare(b.name),
-            filters: [
-                ...Array.from(new Set(allPDLs.map(item =>
-                    `${item?.person?.first_name ?? ''} ${item?.person?.middle_name ?? ''} ${item?.person?.last_name ?? ''}`.trim()
-                )))
-                    .filter(name => name)
-                    .map(name => ({ text: name, value: name }))
-            ],
-            onFilter: (value, record) => record.name === value,
         },
         // {
         //     title: 'Dorm No.',
@@ -311,12 +302,6 @@ const PDLtable = () => {
             dataIndex: 'date_of_admission',
             key: 'date_of_admission',
             sorter: (a, b) => a.date_of_admission.localeCompare(b.date_of_admission),
-            filters: [
-                ...Array.from(new Set(allPDLs.map(item => item.date_of_admission)))
-                    .filter(date_of_admission => date_of_admission)
-                    .map(date_of_admission => ({ text: date_of_admission, value: date_of_admission }))
-            ],
-            onFilter: (value, record) => record.date_of_admission === value,
         },
         // {
         //     title: 'Look',
@@ -690,17 +675,17 @@ const handleExportPDF = async () => {
                                 }))
                         : filteredData
                 }
-                pagination={
-                    debouncedSearch
-                        ? false
-                        : {
-                            current: page,
-                            pageSize: limit,
-                            total: totalRecords,
-                            onChange: (newPage) => setPage(newPage),
-                            showSizeChanger: false,
-                        }
-                }
+                pagination={{
+                    current: page,
+                    pageSize: limit,
+                    total: totalRecords,
+                    pageSizeOptions: ['10', '20', '50', '100'],
+                    showSizeChanger: true, 
+                    onChange: (newPage, newPageSize) => {
+                        setPage(newPage);
+                        setLimit(newPageSize); 
+                    },
+                }}
                 rowKey="id"
             />
             <Modal open={isEditModalOpen} onCancel={() => setIsEditModalOpen(false)} onOk={() => form.submit()} width="40%" confirmLoading={isUpdating} style={{ overflowY: "auto" }} >
