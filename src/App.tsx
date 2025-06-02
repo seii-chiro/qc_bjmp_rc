@@ -645,7 +645,7 @@ function App() {
                     element: <ServiceProvider />
                 },
                 {
-                    path: "oasis",
+                    path: "incidents/oasis",
                     element: <OasisAlertForm />
                 },
                 {
