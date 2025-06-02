@@ -180,8 +180,10 @@ const SystemSettings = () => {
                                 onChange={(e) => setNfiqQuality(e.target.value)}
                                 className="flex-1"
                                 type="number"
+                                min={10}
+                                max={50}
                             />
-                            <span className="flex-1">range: 10-100</span>
+                            <span className="flex-1">range: 10-50</span>
                         </span>
                     </div>
 
