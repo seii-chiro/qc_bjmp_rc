@@ -245,10 +245,10 @@ const VisitLog = () => {
             borderRadius: 4,
             background:
               String(record.status).toLowerCase() === "out"
-                ? "#22c55e" // green-500
+                ? "#22c55e"
                 : String(record.status).toLowerCase() === "in"
-                  ? "#f59e42" // orange-400
-                  : "#d1d5db", // gray-300 for other statuses
+                  ? "#f59e42"
+                  : "#d1d5db",
             display: "inline-block",
           }}
           title={record.status}
@@ -283,26 +283,29 @@ const VisitLog = () => {
             return `${hr}h ${min % 60}m`;
           })() ?? "...",
         status: entry?.status ?? "",
-        visitor: entry?.person || "",
-        visitor_type: entry?.visitor?.visitor_type || "N/A",
-        pdl_name:
-          Array.isArray(entry?.visitor?.pdls) && entry.visitor.pdls.length > 0
+        // Switch the person data based on view
+        visitor: view === "PDL" ? "" : (entry?.person || ""),
+        visitor_type: view === "PDL" ? "N/A" : (entry?.visitor?.visitor_type || "N/A"),
+        pdl_name: view === "PDL"
+          ? (entry?.person || "N/A")
+          : (Array.isArray(entry?.visitor?.pdls) && entry.visitor.pdls.length > 0
             ? entry.visitor.pdls
               .map(
                 (pdl) =>
                   `${pdl?.pdl?.person?.first_name ?? ""} ${pdl?.pdl?.person?.last_name ?? ""}`.trim()
               )
               .join(", ")
-            : "N/A",
-        pdl_type:
-          Array.isArray(entry?.visitor?.pdls) && entry.visitor.pdls.length > 0
+            : "N/A"),
+        pdl_type: view === "PDL"
+          ? "N/A"
+          : (Array.isArray(entry?.visitor?.pdls) && entry.visitor.pdls.length > 0
             ? entry.visitor.pdls.map((pdl, i, arr) => (
               <span key={i}>
                 {pdl?.pdl?.status || "Unknown"}
                 {i < arr.length - 1 ? ", " : ""}
               </span>
             ))
-            : "N/A",
+            : "N/A"),
       })
     )
     .sort(
@@ -311,22 +314,6 @@ const VisitLog = () => {
         b: { timestamp: string | number | Date }
       ) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
-
-  // const filteredData = dataSource.filter(
-  //   (log: { [s: string]: unknown } | ArrayLike<unknown>) => {
-  //     const hasVisitor =
-  //       typeof log === "object" && log !== null && "visitor" in log;
-  //     const visitorMatch = hasVisitor
-  //       ? String((log as { [s: string]: unknown }).visitor || "")
-  //         .toLowerCase()
-  //         .includes(searchText.toLowerCase())
-  //       : false;
-  //     const otherMatch = Object.values(log).some((value) =>
-  //       String(value).toLowerCase().includes(searchText.toLowerCase())
-  //     );
-  //     return visitorMatch || otherMatch;
-  //   }
-  // );
 
   return (
     <div className="p-4 h-full flex flex-col">
