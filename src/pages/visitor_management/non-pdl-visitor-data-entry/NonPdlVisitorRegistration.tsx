@@ -23,6 +23,7 @@ import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
 import Identifiers from "../personnel-data-entry/Identifiers";
 import { getNonPdlVisitorReasons, getRelationships } from "@/lib/additionalQueries";
 import { downloadBase64Image } from "@/functions/dowloadBase64Image";
+import { sanitizeRFID } from "@/functions/sanitizeRFIDInput";
 
 const addPerson = async (payload: PersonForm, token: string) => {
 
@@ -770,6 +771,13 @@ const NonPdlVisitorRegistration = () => {
             },
         ];
 
+    const handleRFIDScan = (input: string) => {
+        const clean = sanitizeRFID(input);
+        setNonPdlVisitorForm(prev => ({
+            ...prev,
+            id_number: clean
+        }));
+    };
 
     useEffect(() => {
         setNonPdlVisitorForm(prev => ({
@@ -1326,9 +1334,10 @@ const NonPdlVisitorRegistration = () => {
                             <div className='flex flex-col mt-2 w-[18.5%]'>
                                 <div className='flex gap-1'>ID No.</div>
                                 <input
+                                    value={nonPdlVisitorForm?.id_number}
                                     type="text"
                                     className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
-                                    onChange={e => setNonPdlVisitorForm(prev => ({ ...prev, id_number: e.target.value }))}
+                                    onChange={e => handleRFIDScan(e.target.value)}
                                 />
                             </div>
 

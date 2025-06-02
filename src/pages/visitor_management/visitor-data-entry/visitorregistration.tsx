@@ -24,6 +24,7 @@ import Remarks from "./Remarks";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
 import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
 import { downloadBase64Image } from "@/functions/dowloadBase64Image";
+import { sanitizeRFID } from "@/functions/sanitizeRFIDInput";
 
 const addPerson = async (payload: PersonForm, token: string) => {
 
@@ -342,6 +343,14 @@ const VisitorRegistration = () => {
             remarks_data: prev?.remarks_data?.filter((_, i) => i !== index),
         }))
     }
+
+    const handleRFIDScan = (input: string) => {
+        const clean = sanitizeRFID(input);
+        setVisitorForm(prev => ({
+            ...prev,
+            id_number: Number(clean)
+        }));
+    };
 
     const [debouncedPersonSearch, setDebouncedPersonSearch] = useState(personSearch)
 
@@ -1229,9 +1238,10 @@ const VisitorRegistration = () => {
                             <div className='flex flex-col mt-2 w-[18.5%]'>
                                 <div className='flex gap-1'>ID No.</div>
                                 <input
+                                    value={visitorForm?.id_number ?? ""}
                                     type="text"
                                     className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
-                                    onChange={e => setVisitorForm(prev => ({ ...prev, id_number: Number(e.target.value) }))}
+                                    onChange={e => handleRFIDScan(e.target.value)}
                                 />
                             </div>
 
