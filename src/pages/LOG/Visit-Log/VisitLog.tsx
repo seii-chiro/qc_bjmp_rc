@@ -2,8 +2,12 @@
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
-import { Input, Button, Table } from "antd";
+import { Input, Button, Table, Menu, Dropdown } from "antd";
 import { useEffect, useState } from "react";
+import { generateLogReport } from "../generateLogReport";
+import { CSVLink } from "react-csv";
+import { GoDownload } from "react-icons/go";
+import * as XLSX from "xlsx";
 
 const VisitLog = () => {
   const [searchText, setSearchText] = useState("");
@@ -245,10 +249,10 @@ const VisitLog = () => {
             borderRadius: 4,
             background:
               String(record.status).toLowerCase() === "out"
-                ? "#22c55e" // green-500
+                ? "#22c55e"
                 : String(record.status).toLowerCase() === "in"
-                  ? "#f59e42" // orange-400
-                  : "#d1d5db", // gray-300 for other statuses
+                  ? "#f59e42"
+                  : "#d1d5db",
             display: "inline-block",
           }}
           title={record.status}
@@ -267,7 +271,8 @@ const VisitLog = () => {
         status: any;
         person: any;
         visitor: { visitor_type: any; pdls: any[] };
-      }) => ({
+      }, index: number) => ({
+        no: index + 1,
         key: entry.id,
         id: entry?.id,
         timestampIn: entry?.timestamp_in ?? "",
@@ -283,50 +288,66 @@ const VisitLog = () => {
             return `${hr}h ${min % 60}m`;
           })() ?? "...",
         status: entry?.status ?? "",
-        visitor: entry?.person || "",
-        visitor_type: entry?.visitor?.visitor_type || "N/A",
-        pdl_name:
-          Array.isArray(entry?.visitor?.pdls) && entry.visitor.pdls.length > 0
+        // Switch the person data based on view
+        visitor: view === "PDL" ? "" : (entry?.person || ""),
+        visitor_type: view === "PDL" ? "N/A" : (entry?.visitor?.visitor_type || "N/A"),
+        pdl_name: view === "PDL"
+          ? (entry?.person || "N/A")
+          : (Array.isArray(entry?.visitor?.pdls) && entry.visitor.pdls.length > 0
             ? entry.visitor.pdls
               .map(
                 (pdl) =>
                   `${pdl?.pdl?.person?.first_name ?? ""} ${pdl?.pdl?.person?.last_name ?? ""}`.trim()
               )
               .join(", ")
-            : "N/A",
-        pdl_type:
-          Array.isArray(entry?.visitor?.pdls) && entry.visitor.pdls.length > 0
-            ? entry.visitor.pdls.map((pdl, i, arr) => (
-              <span key={i}>
-                {pdl?.pdl?.status || "Unknown"}
-                {i < arr.length - 1 ? ", " : ""}
-              </span>
-            ))
-            : "N/A",
+            : "N/A"),
+        pdl_type: view === "PDL"
+          ? "N/A"
+          : (Array.isArray(entry?.visitor?.pdls) && entry.visitor.pdls.length > 0
+            ? entry.visitor.pdls.map(pdl => pdl?.pdl?.status || "Unknown").join(", ")
+            : "N/A"),
       })
     )
     .sort(
       (
-        a: { timestamp: string | number | Date },
-        b: { timestamp: string | number | Date }
-      ) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        a: { timestampIn: string | number | Date },
+        b: { timestampIn: string | number | Date }
+      ) => new Date(b.timestampIn).getTime() - new Date(a.timestampIn).getTime()
     );
 
-  // const filteredData = dataSource.filter(
-  //   (log: { [s: string]: unknown } | ArrayLike<unknown>) => {
-  //     const hasVisitor =
-  //       typeof log === "object" && log !== null && "visitor" in log;
-  //     const visitorMatch = hasVisitor
-  //       ? String((log as { [s: string]: unknown }).visitor || "")
-  //         .toLowerCase()
-  //         .includes(searchText.toLowerCase())
-  //       : false;
-  //     const otherMatch = Object.values(log).some((value) =>
-  //       String(value).toLowerCase().includes(searchText.toLowerCase())
-  //     );
-  //     return visitorMatch || otherMatch;
-  //   }
-  // );
+  const headers = columns?.filter(item => item?.title !== "")?.map(item => item?.title)
+  console.log(headers)
+
+  const handleGeneratePdfReport = () => {
+    const rows = dataSource.map(item =>
+      columns.map(column => {
+        const key = column.dataIndex || column.key;
+        return item[key] || '';
+      })
+    );
+
+    generateLogReport({ headers, rows });
+  };
+
+  const handleExportExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(dataSource);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `${view}LogReport`);
+    XLSX.writeFile(wb, `${view} Log Report.xlsx`);
+  };
+
+  const menu = (
+    <Menu>
+      <Menu.Item>
+        <a onClick={handleExportExcel}>Export Excel</a>
+      </Menu.Item>
+      <Menu.Item>
+        <CSVLink data={dataSource} filename={`${view} Log Report.csv`}>
+          Export CSV
+        </CSVLink>
+      </Menu.Item>
+    </Menu>
+  );
 
   return (
     <div className="p-4 h-full flex flex-col">
@@ -371,6 +392,19 @@ const VisitLog = () => {
           }}
           className="py-2 w-full md:w-64"
         />
+      </div>
+      <div className="flex gap-2">
+        <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
+          <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
+            <GoDownload /> Export
+          </a>
+        </Dropdown>
+        <button
+          className="bg-[#1E365D] py-2 px-5 rounded-md text-white"
+          onClick={handleGeneratePdfReport}
+        >
+          Print Report
+        </button>
       </div>
       <div className="overflow-y-auto" style={{ maxHeight: "90vh" }}>
         <Table

@@ -49,7 +49,7 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
     mutationFn: captureFace,
     onSuccess: (data) => {
       setIcao(data?.images?.icao);
-      const payload = { ...verificationPayload, template: data.images.icao };
+      const payload = { ...verificationPayload, template: data?.images?.icao };
       setVerificationPayload(payload);
 
       // Automatically run verification after capture
@@ -282,8 +282,8 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
   return (
     <div>
       <div className="flex">
-        <div className="flex-1 p-4">
-          <div className="flex-1 w-full flex items-center justify-center">
+        <div className="flex-1 flex flex-col items-center justify-center p-4">
+          <div className="w-full flex items-center justify-center">
             <img
               src={icao ? `data:image/bmp;base64,${icao}` :
                 "https://i2.wp.com/vdostavka.ru/wp-content/uploads/2019/05/no-avatar.png?fit=512%2C512&ssl=1"}
@@ -295,120 +295,58 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
               <button onClick={handleCaptureFace}>Capture Face</button>
             </div>
           </div>
+
+          <div className="w-full flex gap-3 items-center justify-center">
+            <span className="font-semibold">DEVICE ID:</span>
+            <Select
+              loading={deviceLoading}
+              showSearch
+              optionFilterProp="label"
+              className="h-10 w-72"
+              options={devices
+                ?.filter(device => device?.device_name?.toLowerCase().includes("webcam"))
+                .map(device => ({
+                  label: device?.device_name,
+                  value: device?.id
+                }))
+              }
+              value={selectedDeviceId || undefined}
+              onChange={value => {
+                setSelectedDeviceId(value)
+              }}
+              placeholder="Select a device"
+            />
+          </div>
         </div>
 
-        {
-          selectedArea?.toLowerCase() === "pdl station" ? (
-            // <div className='flex-1'>
-            //   <div className="flex flex-col items-center justify-center">
-            //     <div className="w-full flex items-center justify-center flex-col gap-10">
-            //       <div className="w-[60%] rounded-md overflow-hidden object-cover">
-            //         {
-            //           verificationResult ? (
-            //             <img
-            //               src={`data:image/jpeg;base64,${verificationResult?.data?.[0]?.additional_biometrics?.find((bio: { position: string }) => bio?.position === "face")?.data}`}
-            //               onError={(e) => {
-            //                 (e.currentTarget as HTMLImageElement).src = "https://i2.wp.com/vdostavka.ru/wp-content/uploads/2019/05/no-avatar.png?fit=512%2C512&ssl=1";
-            //               }}
-            //               alt="Image of a person"
-            //               className="w-full"
-            //             />
-            //           ) : (
-            //             <img src={noImg} alt="Image of a person" className="w-full" />
-            //           )
-            //         }
-            //       </div>
-            //       <h1 className="text-4xl">
-            //         {`
-            //       ${verificationResult?.data?.[0]?.biometric?.person_data?.first_name ?? ""} 
-            //       ${verificationResult?.data?.[0]?.biometric?.person_data?.middle_name ?? ""} 
-            //       ${verificationResult?.data?.[0]?.biometric?.person_data?.last_name ?? ""}
-            //       `}
-            //       </h1>
-            //       <span>
-            //         {
-            //           inWatchList && (
-            //             <span className='flex items-center gap-1'>
-            //               <IoIosWarning color='orange' size={25} />
-            //               <span className='text-red-600'>{inWatchList}</span>
-            //             </span>
-            //           )
-            //         }
-            //       </span>
-            //     </div>
-            //     {
-            //       lastScanned && (
-            //         <div className="w-full flex items-center justify-center">
-            //           <div className="w-[80%] text-4xl flex">
-            //             <div className="flex items-center justify-between w-full">
-            //               <div className="flex-[4] flex gap-8">
-
-            //                 <>
-            //                   <span>STATUS:</span>
-            //                   <span>ALLOWED VISIT</span>
-            //                 </>
-
-            //               </div>
-            //               <div className="flex justify-end flex-1 gap-4">
-            //                 <div className="w-16">
-            //                   <img src={check} alt="check icon" />
-            //                 </div>
-            //                 {/* <div className="w-16">
-            //                   <img src={ex} alt="close icon" />
-            //                 </div> */}
-            //               </div>
-            //             </div>
-            //           </div>
-            //         </div>
-            //       )
-            //     }
-            //   </div>
-            // </div>
-            <div className="flex-1">
-              <PdlProfilePortrait visitorData={lastScannedPdl} />
-            </div>
-          ) : (
-            <div className='flex-1'>
-              <div className='w-full flex items-center justify-center'>
-                {
-                  lastScanned?.visitor_app_status && (
-                    <div className="flex items-center justify-center gap-5">
-                      <h1 className="font-bold text-2xl text-green-700">{lastScanned?.visitor_app_status}</h1>
-                      {lastScanned?.visitor_app_status === "Verified" ? (
-                        <img src={check} className="w-10" alt="Check" />
-                      ) : (
-                        <img src={ex} className="w-10" alt="Close" />
-                      )}
-                    </div>
-                  )
-                }
+        <div className='flex-1'>
+          {
+            selectedArea?.toLowerCase() === "pdl station" ? (
+              <div className="flex-1">
+                <PdlProfilePortrait visitorData={lastScannedPdl} />
               </div>
-              <VisitorProfilePortrait visitorData={lastScanned} />
-            </div>
-          )
-        }
-
-      </div>
-      <div className="w-full flex gap-3 items-center">
-        <span className="font-semibold">DEVICE ID:</span>
-        <Select
-          loading={deviceLoading}
-          showSearch
-          optionFilterProp="label"
-          className="h-10 w-72"
-          options={devices
-            ?.filter(device => device?.device_name?.toLowerCase().includes("webcam"))
-            .map(device => ({
-              label: device?.device_name,
-              value: device?.id
-            }))
+            ) : (
+              <div className='flex-1'>
+                <div className='w-full flex items-center justify-center'>
+                  {
+                    lastScanned?.visitor_app_status && (
+                      <div className="flex items-center justify-center gap-5">
+                        <h1 className="font-bold text-2xl text-green-700">{lastScanned?.visitor_app_status}</h1>
+                        {lastScanned?.visitor_app_status === "Verified" ? (
+                          <img src={check} className="w-10" alt="Check" />
+                        ) : (
+                          <img src={ex} className="w-10" alt="Close" />
+                        )}
+                      </div>
+                    )
+                  }
+                </div>
+                <VisitorProfilePortrait visitorData={lastScanned} />
+              </div>
+            )
           }
-          value={selectedDeviceId || undefined}
-          onChange={value => {
-            setSelectedDeviceId(value)
-          }}
-          placeholder="Select a device"
-        />
+        </div>
+
       </div>
     </div>
   )

@@ -17,8 +17,10 @@ import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useSystemSettingsStore } from "@/store/useSystemSettingStore";
 
+
 type Props = {
     visitorToEdit?: any;
+    inputGender: string;
     setPersonForm: Dispatch<SetStateAction<PersonForm>>;
     icao: string;
     setIcao: Dispatch<SetStateAction<string>>;
@@ -61,6 +63,7 @@ const VisitorProfile = ({
     enrollFormRightIris,
     setEnrollFormFace,
     visitorToEdit,
+    inputGender
 }: Props) => {
     const token = useTokenStore()?.token;
     const faceHandle = useFullScreenHandle();
@@ -412,14 +415,17 @@ const VisitorProfile = ({
                 upload_data: data?.images?.icao,
             }));
             if (data?.images?.icao) {
+                if (data?.images?.gender !== inputGender) {
+                    messageApi.warning("The provided gender does not match the gender identified through face recognition.")
+                }
                 verifyFaceMutation.mutate({ template: data?.images?.icao, type: "face" })
                 verifyFaceInWatchlistMutation.mutate({ template: data?.images?.icao, type: "face" })
             } else {
-                message.warning("No Face Captured. Please try again")
+                messageApi.warning("No Face Captured. Please try again")
             }
         },
         onError: (error) => {
-            console.error(error.message);
+            messageApi.error(error.message);
         }
     });
 

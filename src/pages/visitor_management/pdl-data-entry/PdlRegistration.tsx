@@ -847,6 +847,7 @@ const PdlRegistration = () => {
         setPersonForm((prev) => ({ ...prev, shortname: short.toUpperCase() }));
     }, [personForm.first_name, personForm.last_name]);
 
+    const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
 
     // console.log("PDL Form: ", pdlForm)
     // console.log("Person Form: ", personForm)
@@ -1538,6 +1539,7 @@ const PdlRegistration = () => {
 
             {/**Biometrics */}
             <VisitorProfile
+                inputGender={chosenGender}
                 icao={icao}
                 setIcao={setIcao}
                 setPersonForm={setPersonForm}

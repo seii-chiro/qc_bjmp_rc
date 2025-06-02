@@ -89,6 +89,7 @@ export type CustomFingerResponse = {
 export type FaceResponse = {
   result: string;
   images: {
+    gender: string;
     icao: string;
     original: string;
   };

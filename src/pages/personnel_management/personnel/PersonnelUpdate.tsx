@@ -1024,6 +1024,8 @@ const PersonnelUpdate = () => {
         personnelStatus,
     ]);
 
+    const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
+
     useEffect(() => {
         setPersonnelForm(prev => ({
             ...prev,
@@ -1433,6 +1435,7 @@ const PersonnelUpdate = () => {
 
             {/**Biometrics */}
             <VisitorProfile
+                inputGender={chosenGender}
                 visitorToEdit={personnelData}
                 icao={icao}
                 setIcao={setIcao}
