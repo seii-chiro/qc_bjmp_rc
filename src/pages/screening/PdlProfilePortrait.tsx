@@ -39,7 +39,13 @@ const PdlProfilePortrait = ({ visitorData = {} }) => {
             ProfileImage = `data:image/jpeg;base64,${frontPicture}`;
         }
     }
-    const displayedVisitHistory = visitorData?.main_gate_visits || []
+
+    const sortedVisitHistory = visitorData?.pdl_station_visits
+        ?.slice()
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 3);
+
+    const displayedVisitHistory = sortedVisitHistory || []
     const waiverData = visitorData?.person?.media_requirements?.find(media => media?.name?.toLowerCase() === "waiver") || {};
     const CohabitationData = visitorData?.person?.media_requirements?.find(media => media?.name?.toLowerCase() === "cohabitation") || {};
     const RightThumb = visitorData?.person?.biometrics?.find(biometric => biometric?.position?.toLowerCase() === "finger_right_thumb") || {};
