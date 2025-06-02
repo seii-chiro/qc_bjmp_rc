@@ -124,6 +124,9 @@ import DashboardSummary from "./pages/reports/modules/DashboardSummary.tsx";
 import SummaryCount from "./pages/reports/modules/SummaryCount.tsx";
 import SummaryCountofPDLs from "./pages/reports/modules/SummaryCountofPDLs.tsx";
 import SummaryCountofPersonnel from "./pages/reports/modules/SummaryCountofPersonnel.tsx";
+import ListPDLVisitors from "./pages/reports/modules/lists/ListPDLVisitors.tsx";
+import ListPersonnel from "./pages/reports/modules/lists/ListPersonnel.tsx";
+import ListPDLs from "./pages/reports/modules/lists/ListPDLs.tsx";
 
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -373,6 +376,18 @@ function App() {
                     element: <SummaryCountofPersonnel />
                 },
                 {
+                    path: "reports/list-of-pdl-visitor",
+                    element: <ListPDLVisitors />
+                },
+                {
+                    path: "reports/list-of-personnel",
+                    element: <ListPersonnel />
+                },
+                {
+                    path: "reports/list-of-pdls",
+                    element: <ListPDLs />
+                },
+                {
                     path: "incidents",
                     element: <Incidents />
                 },
@@ -565,27 +580,27 @@ function App() {
                     element: <EmploymentType />
                 },
                 {
-                    path: "personnels/affiliation-type",
+                    path: "maintenance/affiliation-type",
                     element: <AffiliationType />
                 },
                 {
-                    path: "personnels/gender",
+                    path: "maintenance/gender",
                     element: <Gender />
                 },
                 {
-                    path: "personnels/civil-status",
+                    path: "maintenance/civil-status",
                     element: <CivilStatus />
                 },
                 {
-                    path: "personnels/id-types",
+                    path: "maintenance/id-types",
                     element: <ID_Types />
                 },
                 {
-                    path: "personnels/record-status",
+                    path: "maintenance/record-status",
                     element: <RecordStatus />
                 },
                 {
-                    path: "personnels/social-media-platforms",
+                    path: "maintenance/social-media-platforms",
                     element: <SocialMedia />
                 },
                 {

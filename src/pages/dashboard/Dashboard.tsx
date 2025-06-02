@@ -40,6 +40,7 @@ import jsPDF from "jspdf";
 import { Title } from "./components/SummaryCards";
 import { BASE_URL } from "@/lib/urls";
 import { Input, Modal, Select, Skeleton } from "antd";
+import { getMainGate } from "@/lib/query";
 
 const { Option } = Select;
 
@@ -139,6 +140,26 @@ const Dashboard = () => {
         queryFn: fetchPDLSummary,
         enabled: !!token,
     });
+
+    const fetchMainGate = async () => {
+        let url = `${BASE_URL}/api/visit-logs/main-gate-visits/`;
+        const res = await fetch(`${url}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+     const { data: maingateLogsData } = useQuery({
+        queryKey: ['main-gate'],
+        queryFn: fetchMainGate,
+        enabled: !!token,
+    });
+
 
 
     const quarterlyCounts = quarterlyData?.success?.quarterly_pdl_summary || {};
