@@ -57,8 +57,21 @@ const Ethnicity = () => {
       messageApi.success("Ethnicity deleted successfully");
     },
     onError: (error: any) => {
-      messageApi.error(error.message || "Failed to delete Ethnicity");
-    },
+    if (error?.response?.data) {
+        const errorData = error.response.data;
+        if (errorData.name) {
+            form.setFields([{ name: 'name', errors: errorData.name }]);
+        }
+        if (errorData.description) {
+            form.setFields([{ name: 'description', errors: errorData.description }]);
+        }
+        // Optional global message
+        messageApi.error("Please check the form fields.");
+    } else {
+        messageApi.error("Failed to update Ethnicity");
+    }
+},
+
   });
 
     const { mutate: editEthnicity, isLoading: isUpdating } = useMutation({
@@ -383,7 +396,7 @@ const handleClosePdfModal = () => {
           open={isModalOpen}
           onCancel={handleCancel}
           footer={null}
-          width="30%"
+          width="50%"
         >
           <AddEthnicity onClose={handleCancel} />
         </Modal>

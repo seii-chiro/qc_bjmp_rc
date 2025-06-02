@@ -60,6 +60,15 @@ const Dashboard = () => {
     const [dateField, setDateField] = useState('date_convicted');
     const [startYear, setStartYear] = useState(currentYear.toString());
     const [endYear, setEndYear] = useState(currentYear.toString());
+    //     const [filters, setFilters] = useState({
+    // frequency: 'daily',
+    // dateField: 'date_of_admission',
+    // startDate: '',
+    // endDate: '',
+    // startYear: '',
+    // endYear: '',
+    // });
+    // const [appliedFilters, setAppliedFilters] = useState(filters);
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
@@ -124,8 +133,6 @@ const Dashboard = () => {
             params.append('end_date', endDate);
         }
 
-        console.log('Fetching data from:', url, 'with params:', params.toString());
-
         const res = await fetch(`${url}?${params.toString()}`, {
             headers: {
                 Authorization: `Token ${token}`,
@@ -142,6 +149,7 @@ const Dashboard = () => {
         queryFn: fetchPDLSummary,
         enabled: !!token,
     });
+
 
     let counts = {};
     if (frequency === 'quarterly') {
@@ -169,25 +177,6 @@ const Dashboard = () => {
     const totalHospitalizedCount = isFormChanged && dateField === 'date_hospitalized'
         ? Object.values(counts).reduce((total, data) => total + (data.pdl_count || 0), 0)
         : summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active ?? 0;
-
-    // const fetchMainGate = async () => {
-    //     let url = `${BASE_URL}/api/visit-logs/main-gate-visits/`;
-    //     const res = await fetch(`${url}`, {
-    //         headers: {
-    //             Authorization: `Token ${token}`,
-    //             "Content-Type": "application/json",
-    //         },
-    //     });
-
-    //     if (!res.ok) throw new Error("Network error");
-    //     return res.json();
-    // };
-
-    //  const { data: maingateLogsData } = useQuery({
-    //     queryKey: ['main-gate'],
-    //     queryFn: fetchMainGate,
-    //     enabled: !!token,
-    // });
 
      const handleDateFieldChange = (value) => {
         setDateField(value);

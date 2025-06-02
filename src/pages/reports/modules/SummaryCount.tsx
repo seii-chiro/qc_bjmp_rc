@@ -1,13 +1,14 @@
-import { getSummary_Card } from "@/lib/queries";
+import { getSummary_Card, getUser } from "@/lib/queries";
 import { getVisitor } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
 // import { Select } from "antd";
 import * as XLSX from "xlsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
-// import logoBase64 from "../../assets/logoBase64";
+import { BASE_URL } from "@/lib/urls";
+import logoBase64 from "../assets/logoBase64";
 pdfMake.vfs = pdfFonts.vfs;
 
 // const { Option } = Select;
@@ -15,10 +16,11 @@ pdfMake.vfs = pdfFonts.vfs;
 const SummaryCount = () => {
     const token = useTokenStore().token;
     const [selectedGroup, setSelectedGroup] = useState('All');
+    const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
 
-    // const handleSelectChange = (value) => {
-    //     setSelectedGroup(value);
-    // };
+    const handleSelectChange = (value) => {
+        setSelectedGroup(value);
+    };
 
     const { data: summarydata } = useQuery({
         queryKey: ['summary-card'],
@@ -29,6 +31,36 @@ const SummaryCount = () => {
         queryKey: ['visitor'],
         queryFn: () => getVisitor(token ?? "")
     });
+
+
+    const { data: UserData } = useQuery({
+        queryKey: ['user'],
+        queryFn: () => getUser(token ?? "")
+    })
+
+    const fetchOrganization = async () => {
+        const res = await fetch(`${BASE_URL}/api/codes/organizations/`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    const { data: organizationData } = useQuery({
+        queryKey: ['org'],
+        queryFn: fetchOrganization,
+    });
+
+    useEffect(() => {
+        if (organizationData?.results?.length > 0) {
+            setOrganizationName(organizationData.results[0]?.org_name ?? '');
+        }
+    }, [organizationData]);
+
 
     //Visitor Type
     const seniorCitizenVisitorCount = visitorData?.results?.filter(visitor => visitor.visitor_type === "Senior Citizen").length || 0;
@@ -651,9 +683,15 @@ const SummaryCount = () => {
             uncleCount,
         },
     ];
-
+    const preparedByText = UserData ? `${UserData.first_name} ${UserData.last_name}` : '';
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+        
     const buildTable = (title: string, data: any[], columns: [string, string]) => {
+        
         const [col1, col2] = columns;
+
         return [
         { text: title, style: "sectionHeader", margin: [0, 10, 0, 5] },
         {
@@ -668,7 +706,16 @@ const SummaryCount = () => {
                 ...data.map((item) => [item[col1], item[col2]]),
             ],
             },
-            layout: "lightHorizontalLines",
+            layout: {
+                    fillColor: (rowIndex) => (rowIndex === 0 ? '#DCE6F1' : null),
+                    hLineWidth: () => 0.5,
+                    vLineWidth: () => 0.5,
+                    hLineColor: () => '#aaa',
+                    vLineColor: () => '#aaa',
+                    paddingLeft: () => 4,
+                    paddingRight: () => 4,
+                },
+                fontSize: 11,
         },
         ];
     };
@@ -676,12 +723,73 @@ const SummaryCount = () => {
     const docDefinition = {
         pageSize: "A4",
         pageOrientation: "portrait",
+        pageMargins: [40, 60, 40, 60],
         content: [
-        { text: "Visitor Summary Report", style: "title" },
+        {
+            text: 'Visitor Summary Report',
+            style: 'header',
+            alignment: 'left',
+            margin: [0, 0, 0, 10],
+        },
+        {
+                    columns: [
+                        {
+                            stack: [
+                                {
+                                    text: organizationName,
+                                    style: 'subheader',
+                                    margin: [0, 5, 0, 10],
+                                },
+                                {
+                                    text: [
+                                        { text: `Report Date: `, bold: true },
+                                        formattedDate + '\n',
+                                        { text: `Prepared By: `, bold: true },
+                                        preparedByText + '\n',
+                                        { text: `Department/Unit: `, bold: true },
+                                        'IT\n',
+                                        { text: `Report Reference No.: `, bold: true },
+                                        reportReferenceNo,
+                                    ],
+                                    fontSize: 10,
+                                },
+                            ],
+                            alignment: 'left',
+                            width: '70%',
+                        },
+                        {
+                            stack: [
+                                {
+                                    image: logoBase64,
+                                    width: 90,
+                                },
+                            ],
+                            alignment: 'right',
+                            width: '30%',
+                        },
+                    ],
+                    margin: [0, 0, 0, 10],
+                },
         ...buildTable("Visitor Type Summary", visitorTypeData, ["Visitor Type", "Total"]),
         ...buildTable("Gender Summary", genderData, ["Gender", "Total"]),
         ...buildTable("Relationship to PDL Summary", relationshipData, ["Relationship", "Total"]),
         ],
+        footer: (currentPage: number, pageCount: number) => ({
+                    columns: [
+                        {
+                            text: `Document Version: 1.0\nConfidentiality Level: Internal use only\nContact Info: ${preparedByText}\nTimestamp of Last Update: ${formattedDate}`,
+                            fontSize: 8,
+                            alignment: 'left',
+                            margin: [40, 10],
+                        },
+                        {
+                            text: `${currentPage} / ${pageCount}`,
+                            fontSize: 8,
+                            alignment: 'right',
+                            margin: [0, 10, 40, 0],
+                        },
+                    ],
+                }),
         styles: {
             title: {
                 fontSize: 16,
@@ -694,21 +802,18 @@ const SummaryCount = () => {
                 bold: true,
                 margin: [0, 10, 0, 5],
             },
-            tableHeader: {
+            subheader: {
+                fontSize: 12,
                 bold: true,
-                fillColor: "#f0f0f0",
-                fontSize: 11,
-                color: "#000",
-            },
-            tableCell: {
-                fontSize: 10,
-                margin: [0, 5, 0, 5],
+                margin: [0, 10, 0, 5],
+                color: "#1E365D",
             },
         },
     };
 
     pdfMake.createPdf(docDefinition).download("visitor_summary.pdf");
     };
+
     return (
         <div className="px-5 py-5 md:mx-auto">
             <h1 className="text-xl font-bold text-[#1E365D]">Summary Count of PDL Visitor</h1>

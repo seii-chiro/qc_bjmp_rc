@@ -1,19 +1,51 @@
-import { getSummary_Card } from '@/lib/queries';
+import { getSummary_Card, getUser } from '@/lib/queries';
+import { BASE_URL } from '@/lib/urls';
 import { useTokenStore } from '@/store/useTokenStore';
 import { useQuery } from '@tanstack/react-query';
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
+import { useEffect, useState } from 'react';
 import * as XLSX from "xlsx";
+import logoBase64 from '../assets/logoBase64';
 // import logoBase64 from "../../assets/logoBase64";
 pdfMake.vfs = pdfFonts.vfs;
 
 const SummaryCountofPersonnel = () => {
   const token = useTokenStore().token;
+  const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
 
   const { data: summarydata } = useQuery({
         queryKey: ['summary-card'],
         queryFn: () => getSummary_Card(token ?? "")
     });
+
+      const { data: UserData } = useQuery({
+          queryKey: ['user'],
+          queryFn: () => getUser(token ?? "")
+      })
+  
+      const fetchOrganization = async () => {
+          const res = await fetch(`${BASE_URL}/api/codes/organizations/`, {
+              headers: {
+                  Authorization: `Token ${token}`,
+                  "Content-Type": "application/json",
+              },
+          });
+  
+          if (!res.ok) throw new Error("Network error");
+          return res.json();
+      };
+  
+      const { data: organizationData } = useQuery({
+          queryKey: ['org'],
+          queryFn: fetchOrganization,
+      });
+  
+      useEffect(() => {
+        if (organizationData?.results?.length > 0) {
+          setOrganizationName(organizationData.results[0]?.org_name ?? '');
+        }
+      }, [organizationData]);
 
   const personnelOtherCount = Object.entries(summarydata?.success?.personnel_based_on_gender?.Active || {})
     .filter(([key]) => key !== "Male" && key !== "Female")
@@ -48,56 +80,156 @@ const SummaryCountofPersonnel = () => {
     (personnelStatus["Paternity Leave"] || 0) +
     (personnelStatus["Compensatory Leave"] || 0);
 
-  const docDefinition = {
-    content: [
-      { text: "Personnel Summary Report", style: "header" },
+  const preparedByText = UserData ? `${UserData.first_name} ${UserData.last_name}` : '';
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+        
 
-      { text: "\nSummary Count of Personnel (by Gender)", style: "subheader" },
+  const docDefinition = {
+    pageSize: "A4",
+        pageOrientation: "portrait",
+        pageMargins: [40, 60, 40, 60],
+    content: [
+      {
+            text: 'Personnel Summary Report',
+            style: 'header',
+            alignment: 'left',
+            margin: [0, 0, 0, 10],
+        },
+      {
+                    columns: [
+                        {
+                            stack: [
+                                {
+                                    text: organizationName,
+                                    style: 'subheader',
+                                    margin: [0, 5, 0, 10],
+                                },
+                                {
+                                    text: [
+                                        { text: `Report Date: `, bold: true },
+                                        formattedDate + '\n',
+                                        { text: `Prepared By: `, bold: true },
+                                        preparedByText + '\n',
+                                        { text: `Department/Unit: `, bold: true },
+                                        'IT\n',
+                                        { text: `Report Reference No.: `, bold: true },
+                                        reportReferenceNo,
+                                    ],
+                                    fontSize: 10,
+                                },
+                            ],
+                            alignment: 'left',
+                            width: '70%',
+                        },
+                        {
+                            stack: [
+                                {
+                                    image: logoBase64,
+                                    width: 90,
+                                },
+                            ],
+                            alignment: 'right',
+                            width: '30%',
+                        },
+                    ],
+                    margin: [0, 0, 0, 10],
+                },
+      { text: "\nSummary Count of Personnel (by Gender)" },
       {
         table: {
           widths: ["*", "auto"],
           body: [
-            ["Gender", "Total"],
+            [
+              {text:"Gender", bold: true},
+              {text:"Total", bold: true}],
             ["Male", male],
             ["Female", female],
             ["Others", otherCount],
-            ["Total", totalGender],
+            [
+              {text:"Total", bold: true}, 
+              {text: totalGender, bold: true}
+            ],
           ],
         },
+        layout: {
+                    fillColor: (rowIndex) => (rowIndex === 0 ? '#DCE6F1' : null),
+                    hLineWidth: () => 0.5,
+                    vLineWidth: () => 0.5,
+                    hLineColor: () => '#aaa',
+                    vLineColor: () => '#aaa',
+                    paddingLeft: () => 4,
+                    paddingRight: () => 4,
+                },
+                fontSize: 11,
       },
 
-      { text: "\nBJMP Personnel On and Off-Duty", style: "subheader" },
+      { text: "\nBJMP Personnel On and Off-Duty" },
       {
         table: {
           widths: ["*", "auto"],
           body: [
-            ["Status", "Total"],
+            [
+              {text:"Status", bold: true},
+              {text:"Total", bold: true}
+            ],
             ["On-Duty", onDuty],
             ["Off-Duty", offDuty],
             ["On-Leave", onLeave],
-            ["Total", totalDuty],
+            [ 
+              {text:"Total", bold: true}, 
+              {text:totalDuty, bold: true}
+            ],
           ],
         },
+        layout: {
+                    fillColor: (rowIndex) => (rowIndex === 0 ? '#DCE6F1' : null),
+                    hLineWidth: () => 0.5,
+                    vLineWidth: () => 0.5,
+                    hLineColor: () => '#aaa',
+                    vLineColor: () => '#aaa',
+                    paddingLeft: () => 4,
+                    paddingRight: () => 4,
+                },
+                fontSize: 11,
       },
     ],
+    footer: (currentPage: number, pageCount: number) => ({
+                    columns: [
+                        {
+                            text: `Document Version: 1.0\nConfidentiality Level: Internal use only\nContact Info: ${preparedByText}\nTimestamp of Last Update: ${formattedDate}`,
+                            fontSize: 8,
+                            alignment: 'left',
+                            margin: [40, 10],
+                        },
+                        {
+                            text: `${currentPage} / ${pageCount}`,
+                            fontSize: 8,
+                            alignment: 'right',
+                            margin: [0, 10, 40, 0],
+                        },
+                    ],
+                }),
     styles: {
-      header: {
-        fontSize: 18,
-        bold: true,
-        alignment: "center",
-        margin: [0, 0, 0, 20],
-      },
-      subheader: {
-        fontSize: 14,
-        bold: true,
-        margin: [0, 10, 0, 5],
-        color: "#1E365D",
-      },
-    },
-    defaultStyle: {
-      fontSize: 11,
-    },
-    pageMargins: [40, 60, 40, 60],
+            title: {
+                fontSize: 16,
+                bold: true,
+                alignment: "center",
+                margin: [0, 0, 0, 10],
+            },
+            header: {
+                fontSize: 13,
+                bold: true,
+                margin: [0, 10, 0, 5],
+            },
+            subheader: {
+                fontSize: 12,
+                bold: true,
+                margin: [0, 10, 0, 5],
+                color: "#1E365D",
+            },
+        },
   };
 
   pdfMake.createPdf(docDefinition).download("Personnel_Summary_Report.pdf");

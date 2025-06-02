@@ -1,7 +1,7 @@
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { DatePicker } from "antd";
+import { Alert, DatePicker, Skeleton } from "antd";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { patchSettings } from "@/lib/query";
@@ -34,7 +34,7 @@ const GeneralSettings = () => {
             }).then(res => res.json()),
     });
 
-    const { data: settingsData, isLoading, error } = useQuery({
+    const { data: settingsData, isLoading, isError } = useQuery({
         queryKey: ['global-settings'],
         queryFn: fetchSettings,
     });
@@ -85,73 +85,84 @@ const GeneralSettings = () => {
         }
     };
 
-    if (isLoading) return <div>Loading...</div>;
-    if (error) return <div>Error loading settings.</div>;
-
     return (
         <div>
             <h1 className="text-xl font-bold text-[#1E365D]">General Settings</h1>
+
             <form onSubmit={handleSubmit} className="border border-gray-200 w-full md:w-96 mt-5 rounded-sm p-5 shadow-sm">
-                <div className="mb-4">
-                    <label className="block mb-1">Timestamp:</label>
-                    <DatePicker
-                        showTime
-                        value={formData.datestamp_format ? dayjs(formData.datestamp_format) : null}
-                        onChange={(date, dateString) => handleDateChange(date, dateString, 'datestamp_format')}
-                        className="w-full"
-                        format="YYYY-MM-DD HH:mm:ss"
-                    />
-                </div>
-                <div className="mb-4">
-                    <label className="block mb-1">Date:</label>
-                    <DatePicker
-                        value={formData.date_format ? dayjs(formData.date_format) : null}
-                        onChange={(date, dateString) => handleDateChange(date, dateString, 'date_format')}
-                        className="w-full"
-                        format="YYYY-MM-DD"
-                    />
-                </div>
-                <div className="mb-4">
-                    <label className="block mb-1">Jail Facility:</label>
-                    <select
-                        name="jail_facility_id"
-                        value={formData.jail_facility_id}
-                        onChange={handleChange}
-                        className="border border-gray-300 rounded px-2 py-1 w-full"
-                    >
-                        <option value="">Select Jail Facility</option>
-                        {jailData?.results?.map(jail => (
-                            <option key={jail.id} value={jail.id}>
-                                {jail.jail_name}
-                            </option>
-                        ))}
-                    </select>
-                    {currentJail && (
-                        <div className="text-sm text-gray-500 mt-1">
-                            Current: <span className="font-semibold">{currentJail.jail_name}</span>
+                <Skeleton loading={isLoading || jailLoading} active paragraph={{ rows: 8 }}>
+                    {isError && (
+                        <div className="mb-4">
+                            <Alert
+                                message="Failed to Load Settings"
+                                description="There was a problem retrieving system settings. Please try again later or contact the administrator."
+                                type="error"
+                                showIcon
+                            />
                         </div>
                     )}
-                </div>
-                <div className="mb-4">
-                    <label className="block mb-1">Dashboard Period:</label>
-                    <select
-                        name="dashboard_period"
-                        value={formData.dashboard_period}
-                        onChange={handleChange}
-                        className="border border-gray-300 rounded px-2 py-1 w-full"
+
+                    <div className="mb-4">
+                        <label className="block mb-1">Timestamp:</label>
+                        <DatePicker
+                            showTime
+                            value={formData.datestamp_format ? dayjs(formData.datestamp_format) : null}
+                            onChange={(date, dateString) => handleDateChange(date, dateString, 'datestamp_format')}
+                            className="w-full"
+                            format="YYYY-MM-DD HH:mm:ss"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block mb-1">Date:</label>
+                        <DatePicker
+                            value={formData.date_format ? dayjs(formData.date_format) : null}
+                            onChange={(date, dateString) => handleDateChange(date, dateString, 'date_format')}
+                            className="w-full"
+                            format="YYYY-MM-DD"
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block mb-1">Jail Facility:</label>
+                        <select
+                            name="jail_facility_id"
+                            value={formData.jail_facility_id}
+                            onChange={handleChange}
+                            className="border border-gray-300 rounded px-2 py-1 w-full"
+                        >
+                            <option value="">Select Jail Facility</option>
+                            {jailData?.results?.map(jail => (
+                                <option key={jail.id} value={jail.id}>
+                                    {jail.jail_name}
+                                </option>
+                            ))}
+                        </select>
+                        {currentJail && (
+                            <div className="text-sm text-gray-500 mt-1">
+                                Current: <span className="font-semibold">{currentJail.jail_name}</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="mb-4">
+                        <label className="block mb-1">Dashboard Period:</label>
+                        <select
+                            name="dashboard_period"
+                            value={formData.dashboard_period}
+                            onChange={handleChange}
+                            className="border border-gray-300 rounded px-2 py-1 w-full"
+                        >
+                            <option value="Daily">Daily</option>
+                            <option value="Weekly">Weekly</option>
+                            <option value="Monthly">Monthly</option>
+                            <option value="Quarterly">Quarterly</option>
+                        </select>
+                    </div>
+                    <button
+                        type="submit"
+                        className="bg-[#1E365D] flex ml-auto text-white py-2 px-4 rounded hover:bg-[#1A2A4D]"
                     >
-                        <option value="Daily">Daily</option>
-                        <option value="Weekly">Weekly</option>
-                        <option value="Monthly">Monthly</option>
-                        <option value="Quarterly">Quarterly</option>
-                    </select>
-                </div>
-                <button
-                    type="submit"
-                    className="bg-[#1E365D] text-white py-2 px-4 rounded hover:bg-[#1A2A4D]"
-                >
-                    Save Changes
-                </button>
+                        Save Changes
+                    </button>
+                </Skeleton>
             </form>
         </div>
     );

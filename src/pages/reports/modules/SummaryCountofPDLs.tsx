@@ -107,10 +107,10 @@ const SummaryCountofPDLs = () => {
             pageMargins: [40, 60, 40, 60],
             content: [
             {
-                text: 'Summary Count of PDLs Report',
+                text: 'PDL Summary Report',
                 style: 'header',
                 alignment: 'left',
-                margin: [0, 0, 0, 0],
+                margin: [0, 0, 0, 10],
             },
             {
                 columns: [
@@ -151,7 +151,7 @@ const SummaryCountofPDLs = () => {
                         ],
                         margin: [0, 0, 0, 10],
                     },
-            { text: "\nSummary Count of PDLs", style: "subheader" },
+            { text: "\nSummary Count of PDLs" },
             {
                 table: {
                     widths: ["*", "auto"],
@@ -169,9 +169,19 @@ const SummaryCountofPDLs = () => {
                         { text: totalPDL, bold: true }
                     ]
                     ]
-                }
+                },
+                layout: {
+                    fillColor: (rowIndex) => (rowIndex === 0 ? '#DCE6F1' : null),
+                    hLineWidth: () => 0.5,
+                    vLineWidth: () => 0.5,
+                    hLineColor: () => '#aaa',
+                    vLineColor: () => '#aaa',
+                    paddingLeft: () => 4,
+                    paddingRight: () => 4,
+                },
+                fontSize: 11,
             },
-            { text: "\nPDL Count Based on Gender", style: "subheader" },
+            { text: "\nPDL Count Based on Gender"},
             {
                 table: {
                 widths: ["*", "auto"],
@@ -188,6 +198,16 @@ const SummaryCountofPDLs = () => {
                     ],
                 ],
                 },
+                layout: {
+                    fillColor: (rowIndex) => (rowIndex === 0 ? '#DCE6F1' : null),
+                    hLineWidth: () => 0.5,
+                    vLineWidth: () => 0.5,
+                    hLineColor: () => '#aaa',
+                    vLineColor: () => '#aaa',
+                    paddingLeft: () => 4,
+                    paddingRight: () => 4,
+                },
+                fontSize: 11,
             },
             ],
             footer: (currentPage: number, pageCount: number) => ({
@@ -206,24 +226,25 @@ const SummaryCountofPDLs = () => {
                             },
                         ],
                     }),
-            styles: {
-            header: {
-                fontSize: 18,
+           styles: {
+            title: {
+                fontSize: 16,
                 bold: true,
                 alignment: "center",
-                margin: [0, 0, 0, 20],
+                margin: [0, 0, 0, 10],
+            },
+            header: {
+                fontSize: 13,
+                bold: true,
+                margin: [0, 10, 0, 5],
             },
             subheader: {
-                fontSize: 14,
+                fontSize: 12,
                 bold: true,
                 margin: [0, 10, 0, 5],
                 color: "#1E365D",
             },
-            },
-            defaultStyle: {
-            fontSize: 11,
-            },
-            pageMargins: [40, 60, 40, 60],
+        },
         };
 
         pdfMake.createPdf(docDefinition).download("PDL_Summary_Report.pdf");
