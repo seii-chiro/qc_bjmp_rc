@@ -755,6 +755,7 @@ const VisitorRegistration = () => {
             },
         ];
 
+    const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
 
     useEffect(() => {
         setVisitorForm(prev => ({
@@ -767,7 +768,6 @@ const VisitorRegistration = () => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""}`;
         setPersonForm((prev) => ({ ...prev, shortname: short.toUpperCase() }));
     }, [personForm.first_name, personForm.last_name]);
-
 
     // console.log(visitorForm)
     // console.log("Person Form: ", personForm)
@@ -1121,6 +1121,7 @@ const VisitorRegistration = () => {
             </Modal>
 
             <VisitorProfile
+                inputGender={chosenGender}
                 icao={icao}
                 setIcao={setIcao}
                 setPersonForm={setPersonForm}

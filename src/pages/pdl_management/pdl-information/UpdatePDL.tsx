@@ -1156,6 +1156,8 @@ const UpdatePDL = () => {
         birthClassTypes
     ]);
 
+    const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
+
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""
             }`;
@@ -1893,6 +1895,7 @@ const UpdatePDL = () => {
 
             {/**Biometrics */}
             <VisitorProfile
+                inputGender={chosenGender}
                 visitorToEdit={pdlData}
                 icao={icao}
                 setIcao={setIcao}

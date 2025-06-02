@@ -106,7 +106,7 @@ const PersonnelRegistration = () => {
     } = useQuery({
         queryKey: ['paginated-person', debouncedPersonSearch, personPage],
         queryFn: () => getPersonSearch(token ?? "", 10, debouncedPersonSearch, personPage),
-        keepPreviousData: true,
+        placeholderData: (previousData) => previousData,
         staleTime: 10 * 60 * 1000,
     });
 
@@ -808,6 +808,7 @@ const PersonnelRegistration = () => {
             },
         ];
 
+    const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
 
     useEffect(() => {
         setPersonnelForm(prev => ({
@@ -1201,6 +1202,7 @@ const PersonnelRegistration = () => {
 
             {/**Biometrics */}
             <VisitorProfile
+                inputGender={chosenGender}
                 icao={icao}
                 setIcao={setIcao}
                 setPersonForm={setPersonForm}

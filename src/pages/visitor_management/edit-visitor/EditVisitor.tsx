@@ -899,6 +899,8 @@ const VisitorRegistration = () => {
 
     // console.log("Person Form", personForm)
 
+    const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
+
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""}`;
         setPersonForm((prev) => ({ ...prev, shortname: short.toUpperCase() }));
@@ -1265,6 +1267,7 @@ const VisitorRegistration = () => {
             </Modal>
 
             <VisitorProfile
+                inputGender={chosenGender}
                 visitorToEdit={visitorData}
                 icao={icao}
                 setIcao={setIcao}
