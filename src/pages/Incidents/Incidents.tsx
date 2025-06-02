@@ -1,4 +1,5 @@
 import { GodotLink, Header } from "../assets/components/link"
+import { LuBellRing } from "react-icons/lu";
 
 const Incidents = () => {
     return (
@@ -17,7 +18,12 @@ const Incidents = () => {
                 </div>
             </div>
             <div className="border border-gray-200 py-5 px-10 w-full md:w-fit shadow-sm hover:shadow-md rounded-md text-gray-700">
-                <Header title="Alerts and Notifications" />
+                <div>
+                    <div className="flex items-center">
+                        <LuBellRing className="text-gray-600" />
+                        <h1 className="font-bold text-lg ml-4">ALERTS AND NOTIFICATION</h1>
+                    </div>
+                </div>
                 <div className="ml-8 mt-2">
                     <GodotLink link="oasis" title="Send an Alert" />
                 </div>
