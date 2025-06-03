@@ -13,8 +13,8 @@ export type StatusDataSourceRecord = {
   no: number;
   code: string;
   description: string;
-  createdBy: number | null;
-  updatedBy: number | null;
+  createdBy: string | null;
+  updatedBy: string | null;
 }
 
 const Statuses = () => {
@@ -22,6 +22,7 @@ const Statuses = () => {
   const queryClient = useQueryClient()
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [recordToEdit, setRecordToEdit] = useState<StatusDataSourceRecord | null>(null)
+  const [searchText, setSearchText] = useState("")
 
   const { data: statuses, isLoading: statusesLoading } = useQuery({
     queryKey: ['OASIS', 'status'],
@@ -50,6 +51,17 @@ const Statuses = () => {
     })
   })
 
+  // Filter data based on search text
+  const filteredDataSource = dataSource?.filter(item => {
+    const searchLower = searchText.toLowerCase()
+    return (
+      item?.code?.toLowerCase().includes(searchLower) ||
+      item?.description?.toLowerCase().includes(searchLower) ||
+      item?.createdBy?.toLowerCase().includes(searchLower) ||
+      item?.updatedBy?.toLowerCase().includes(searchLower)
+    )
+  })
+
   const handleOpenModal = () => {
     setIsFormModalOpen(true)
   }
@@ -75,6 +87,14 @@ const Statuses = () => {
         deleteStatusMutation.mutate(record?.id)
       }
     })
+  }
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchText(e.target.value)
+  }
+
+  const clearSearch = () => {
+    setSearchText("")
   }
 
   const columns: ColumnsType<StatusDataSourceRecord> = [
@@ -158,10 +178,16 @@ const Statuses = () => {
           </Button>
         </div>
         <div className="flex gap-2 items-center">
-          <Input
-            placeholder="🔍Search"
-            className="h-10 w-52"
-          />
+          <div className="relative">
+            <Input
+              placeholder="🔍Search"
+              className="h-10 w-52"
+              value={searchText}
+              onChange={handleSearchChange}
+              allowClear
+              onClear={clearSearch}
+            />
+          </div>
           <Button
             onClick={handleOpenModal}
             className="h-10 bg-[#1E365D] text-white"
@@ -170,9 +196,17 @@ const Statuses = () => {
           </Button>
         </div>
       </div>
+
+      {/* Search results info */}
+      {searchText && (
+        <div className="mt-2 text-sm text-gray-600">
+          {filteredDataSource?.length || 0} result(s) found for "{searchText}"
+        </div>
+      )}
+
       <Table
         className="mt-2"
-        dataSource={dataSource}
+        dataSource={filteredDataSource}
         columns={columns}
         loading={statusesLoading}
       />
