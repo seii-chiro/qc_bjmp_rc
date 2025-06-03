@@ -1,3 +1,4 @@
+import { StatusFormType } from "@/pages/oasis/maintenance/forms/StatusForm";
 import {
   OASISAlertFormType,
   OASISAudience,
@@ -59,6 +60,66 @@ export async function getOASISStatus(
   }
 
   return res.json();
+}
+
+export async function postOASISStatus(
+  token: string,
+  payload: StatusFormType
+): Promise<OASISStatus> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-status/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISStatus(
+  token: string,
+  id: number,
+  payload: Partial<StatusFormType>
+): Promise<OASISStatus> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-status/${id}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISStatus(token: string, id: number) {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-status/${id}/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete Status.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function getOASISMessageTypes(
