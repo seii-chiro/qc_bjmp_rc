@@ -88,7 +88,7 @@ const VisitorProfile = ({
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isInWatchlist, setIsInWatchlist] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { fingerScannerTimeout, irisScannerTimeout, nfiqQuality } = useSystemSettingsStore()
+    const { fingerScannerTimeout, irisScannerTimeout, nfiqQuality, allowForce } = useSystemSettingsStore()
 
     const handleOpenPad = () => setIsModalOpen(true);
     const handleClosePad = () => setIsModalOpen(false);
@@ -1195,7 +1195,7 @@ const VisitorProfile = ({
                                         </FullScreen>
                                     </div>
                                     <div className="flex w-full justify-center items-center gap-10 py-2 absolute bottom-0 bg-white">
-                                        <button onClick={() => faceRegistrationMutation.mutate()}>
+                                        <button onClick={() => faceRegistrationMutation.mutate(allowForce)}>
                                             <IoIosCamera className="text-2xl hover:scale-125 transition-all ease-in-out hover:text-blue-500" />
                                         </button>
                                         <h1>Facial Recognition</h1>

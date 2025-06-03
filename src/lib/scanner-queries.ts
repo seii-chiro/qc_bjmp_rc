@@ -190,18 +190,24 @@ export const verifyIris = async (verificationPayload: {
 
 //For Face
 
-export const captureFace = async (): Promise<FaceResponse> => {
+export const captureFace = async (
+  allowForce: boolean = false
+): Promise<FaceResponse> => {
   const response = await fetch(FACE.CAPTURE_FACE, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ command: "start" }),
+    body: JSON.stringify({
+      command: "start",
+      allow_force: allowForce,
+    }),
   });
 
   if (!response.ok) {
     throw new Error("Network response was not ok");
   }
+
   return response.json();
 };
 

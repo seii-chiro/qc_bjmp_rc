@@ -24,6 +24,7 @@ import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { useLocation } from "react-router-dom";
 import { useMemo } from "react";
 import { Person } from "@/lib/pdl-definitions";
+import { sanitizeRFID } from "@/functions/sanitizeRFIDInput";
 
 const patchPerson = async (payload: Partial<PersonForm>, token: string, id: string) => {
     const res = await fetch(`${PERSON.postPERSON}${id}/`, {
@@ -355,6 +356,14 @@ const PersonnelUpdate = () => {
             remarks_data: prev?.remarks_data?.filter((_, i) => i !== index),
         }))
     }
+
+    const handleRFIDScan = (input: string) => {
+        const clean = sanitizeRFID(input);
+        setPersonnelForm(prev => ({
+            ...prev,
+            id_number: clean
+        }));
+    };
 
     const dropdownOptions = useQueries({
         queries: [
@@ -841,8 +850,6 @@ const PersonnelUpdate = () => {
                 align: 'center',
             },
         ];
-
-    console.log(personnelForm)
 
     useEffect(() => {
         setPersonForm({
@@ -1593,7 +1600,7 @@ const PersonnelUpdate = () => {
                                     value={personnelForm?.id_number ?? ""}
                                     type="text"
                                     className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
-                                    onChange={e => setPersonnelForm(prev => ({ ...prev, id_number: e.target.value }))}
+                                    onChange={e => handleRFIDScan(e.target.value)}
                                 />
                             </div>
 

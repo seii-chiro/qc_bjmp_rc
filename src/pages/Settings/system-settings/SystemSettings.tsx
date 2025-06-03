@@ -2,7 +2,7 @@ import { getSystemSettings, patchSystemSettings } from "@/lib/system-settings-qu
 import { useSystemSettingsStore } from "@/store/useSystemSettingStore";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Input, Skeleton, message } from "antd";
+import { Button, Input, Skeleton, Switch, message } from "antd";
 import { useEffect, useState } from "react";
 
 const SystemSettings = () => {
@@ -19,11 +19,13 @@ const SystemSettings = () => {
     const [irisTimeout, setIrisTimeout] = useState("");
     const [logInterval, setLogInterval] = useState("");
     const [nfiqQuality, setNfiqQuality] = useState("");
+    const [allowForce, setAllowForce] = useState(false);
 
     const [fingerprintId, setFingerprintId] = useState<number | null>(null);
     const [irisId, setIrisId] = useState<number | null>(null);
     const [logId, setLogId] = useState<number | null>(null);
     const [nfiqQualityId, setNfiqQualityId] = useState<number | null>(null);
+    const [allowForceId, setAllowForceId] = useState<number | null>(null);
 
     // Update local state when data is loaded
     useEffect(() => {
@@ -40,17 +42,22 @@ const SystemSettings = () => {
             const nfiqQuality = systemSettings.results.find(
                 (setting) => setting.key === "nfiq_quality"
             );
+            const allowForce = systemSettings.results.find(
+                (setting) => setting.key === "allow_force"
+            );
 
             setFingerprintTimeout(fingerprintSetting?.value ?? "");
             setIrisTimeout(irisSetting?.value ?? "");
             setLogInterval(logSetting?.value ?? "");
             setNfiqQuality(nfiqQuality?.value ?? "");
+            setAllowForce(allowForce?.value === "true" ? true : false);
 
             // Store IDs for patching
             setFingerprintId(fingerprintSetting?.id ?? null);
             setIrisId(irisSetting?.id ?? null);
             setLogId(logSetting?.id ?? null);
             setNfiqQualityId(nfiqQuality?.id ?? null);
+            setAllowForceId(allowForce?.id ?? null);
         }
     }, [systemSettings]);
 
@@ -70,6 +77,11 @@ const SystemSettings = () => {
             if (nfiqQualityId !== null) {
                 await patchSystemSettings(token ?? "", nfiqQualityId,
                     { key: "nfiq_quality", value: nfiqQuality }
+                );
+            }
+            if (allowForceId !== null) {
+                await patchSystemSettings(token ?? "", allowForceId,
+                    { key: "allow_force", value: String(allowForce) }
                 );
             }
             // Update global store after patch
@@ -100,6 +112,10 @@ const SystemSettings = () => {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const onChange = () => {
+        setAllowForce(prev => !prev)
     };
 
     if (loadingSettings) {
@@ -198,6 +214,13 @@ const SystemSettings = () => {
                             />
                             <span className="flex-1">in seconds</span>
                         </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-2">
+                        <span className="flex items-center gap-2">
+                            <Switch checked={allowForce} onChange={onChange} />
+                        </span>
+                        <span>Allow Force in Facial Recognition</span>
                     </div>
 
                     <div className="w-full flex justify-end absolute bottom-4 right-4">

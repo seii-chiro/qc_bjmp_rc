@@ -8,13 +8,14 @@ import { Input, InputRef, message, Select } from 'antd';
 import { useTokenStore } from '@/store/useTokenStore';
 import { Device } from '@/lib/definitions';
 import { BASE_URL } from '@/lib/urls';
-import { useVisitorLogStore } from '@/store/useVisitorLogStore';
 import Clock from '../../Clock';
 import VisitorProfilePortrait from '../../VisitorProfilePortrait';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
+import { PaginatedResponse } from '@/lib/queries';
+import { sanitizeRFID } from '@/functions/sanitizeRFIDInput';
 
 type Props = {
-    devices: Device[];
+    devices: PaginatedResponse<Device>;
     deviceLoading: boolean;
     selectedArea: string;
 }
@@ -28,10 +29,14 @@ const Rfid = ({
     const token = useTokenStore()?.token
     const [scannedIdNumber, setScannedIdNumber] = useState("")
     const [scannedVisitor, setScannedVisitor] = useState({ visitor_app_status: "" })
-    const addOrRemoveVisitorLog = useVisitorLogStore((state) => state.addOrRemoveVisitorLog);
     const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null)
     const prevIdRef = useRef<string | null>(null);
     const fullScreenHandle = useFullScreenHandle();
+
+    const handleRFIDScan = (input: string) => {
+        const clean = sanitizeRFID(input);
+        setScannedIdNumber(clean);
+    };
 
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -73,6 +78,13 @@ const Rfid = ({
     const fetchVisitorLog = async () => {
         if (!scannedIdNumber) return;
 
+        message.open({
+            key: "processing",
+            type: 'loading',
+            content: 'Loading...',
+            duration: 0,
+        });
+
         try {
             const res = await fetch(`${BASE_URL}/api/visit-logs/visitor-specific/?id_number=${scannedIdNumber}`, {
                 method: 'get',
@@ -89,17 +101,6 @@ const Rfid = ({
             const data = await res.json();
             setScannedVisitor(data);
 
-            if (selectedArea?.toLowerCase() === "main gate") {
-                try {
-                    const storeSuccess = addOrRemoveVisitorLog(data);
-                    if (!storeSuccess) {
-                        console.warn("Could not persist to local storage");
-                    }
-                } catch (storeErr) {
-                    console.error("Error updating visitor log store:", storeErr);
-                }
-            }
-
             let visitsUrl = "";
             let trackingUrl = "";
 
@@ -113,58 +114,75 @@ const Rfid = ({
                     trackingUrl = `${BASE_URL}/api/visit-logs/visitor-station-tracking/`;
                     break;
                 default:
-                    message.error("Unknown area. Cannot post visit.");
+                    message.error({
+                        key: "processing",
+                        content: "Unknown area. Cannot post visit.",
+                    });
                     return;
             }
 
-            if (data && selectedDeviceId) {
-                const postRes = await fetch(visitsUrl, {
-                    method: 'post',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${token}`
-                    },
-                    body: JSON.stringify({
-                        device_id: selectedDeviceId,
-                        id_number: data.id_number,
-                        binary_data: data.encrypted_id_number_qr,
-                        person_id: data?.person?.id
-                    })
+            if (!data || !selectedDeviceId) {
+                message.warning({
+                    key: "processing",
+                    content: "Missing visitor data or device selection.",
                 });
-
-                if (!postRes.ok) {
-                    throw new Error(`Failed to log visit. Status: ${postRes.status}`);
-                }
-
-                const visitLogResponse = await postRes.json();
-                message.success("Visit logged successfully!");
-
-                if (visitLogResponse?.id) {
-                    const trackingRes = await fetch(trackingUrl, {
-                        method: 'post',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Token ${token}`
-                        },
-                        body: JSON.stringify({
-                            visit_id: visitLogResponse.id
-                        })
-                    });
-
-                    if (!trackingRes.ok) {
-                        throw new Error(`Failed to log visit tracking. Status: ${trackingRes.status}`);
-                    }
-
-                    message.success("Visit tracking created successfully!");
-                    message.success("Process Complete!");
-                } else {
-                    message.warning("Missing visit ID for tracking");
-                }
-            } else {
-                message.warning("Please select a device.");
+                return;
             }
+
+            const postRes = await fetch(visitsUrl, {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`
+                },
+                body: JSON.stringify({
+                    device_id: selectedDeviceId,
+                    id_number: data.id_number,
+                    binary_data: data.encrypted_id_number_qr,
+                    person_id: data?.person?.id
+                })
+            });
+
+            if (!postRes.ok) {
+                throw new Error(`Failed to log visit. Status: ${postRes.status}`);
+            }
+
+            const visitLogResponse = await postRes.json();
+
+            if (!visitLogResponse?.id) {
+                message.warning({
+                    key: "processing",
+                    content: "Visit logged but missing visit ID for tracking.",
+                });
+                return;
+            }
+
+            const trackingRes = await fetch(trackingUrl, {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`
+                },
+                body: JSON.stringify({
+                    visit_id: visitLogResponse.id
+                })
+            });
+
+            if (!trackingRes.ok) {
+                throw new Error(`Failed to log visit tracking. Status: ${trackingRes.status}`);
+            }
+
+            // Final success message (closes loading)
+            message.success({
+                key: "processing",
+                content: "Process Complete! Visit and tracking logged.",
+            });
+
         } catch (err: any) {
-            message.error(`Error: ${err.message}`);
+            message.error({
+                key: "processing",
+                content: `Error: ${err.message}`,
+            });
         }
     };
 
@@ -222,7 +240,7 @@ const Rfid = ({
                             ref={inputRef}
                             autoFocus
                             value={scannedIdNumber}
-                            onChange={e => setScannedIdNumber(e.target.value)}
+                            onChange={e => handleRFIDScan(e.target.value)}
                         />
                     </div>
                 </div>

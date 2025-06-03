@@ -25,6 +25,7 @@ import { getPersonnelTypes } from "@/lib/additionalQueries";
 import { downloadBase64Image } from "@/functions/dowloadBase64Image";
 import { getPersonnelStatus } from "@/lib/personnelQueries";
 import dayjs from "dayjs";
+import { sanitizeRFID } from "@/functions/sanitizeRFIDInput";
 
 const addPerson = async (payload: PersonForm, token: string) => {
 
@@ -823,6 +824,14 @@ const PersonnelRegistration = () => {
     }, [personForm.first_name, personForm.last_name]);
 
 
+    const handleRFIDScan = (input: string) => {
+        const clean = sanitizeRFID(input);
+        setPersonnelForm(prev => ({
+            ...prev,
+            id_number: clean
+        }));
+    };
+
     // console.log(visitorForm)
     // console.log("Personnel Form: ", personnelForm)
 
@@ -1355,9 +1364,10 @@ const PersonnelRegistration = () => {
                             <div className='flex flex-col mt-2 w-[18.5%]'>
                                 <div className='flex gap-1'>ID No.</div>
                                 <input
+                                    value={personnelForm?.id_number ?? ""}
                                     type="text"
                                     className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
-                                    onChange={e => setPersonnelForm(prev => ({ ...prev, id_number: e.target.value }))}
+                                    onChange={e => handleRFIDScan(e.target.value)}
                                 />
                             </div>
 

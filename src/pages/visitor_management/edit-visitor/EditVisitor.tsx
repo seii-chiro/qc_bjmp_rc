@@ -27,6 +27,7 @@ import UpdateRequirements from "./UpdateRequirements";
 import UpdatePDLtoVisit from "./UpdatePDLtoVisit";
 import UpdateMultipleBirthSiblings from "@/pages/pdl_management/pdl-information/UpdateMultiBirthSibling";
 import Remarks from "../visitor-data-entry/Remarks";
+import { sanitizeRFID } from "@/functions/sanitizeRFIDInput";
 
 const patchPerson = async (payload: PersonForm, token: string, id: string) => {
     const res = await fetch(`${PERSON.postPERSON}${id}/`, {
@@ -348,6 +349,14 @@ const VisitorRegistration = () => {
             remarks_data: prev?.remarks_data?.filter((_, i) => i !== index),
         }))
     }
+
+    const handleRFIDScan = (input: string) => {
+        const clean = sanitizeRFID(input);
+        setVisitorForm(prev => ({
+            ...prev,
+            id_number: Number(clean)
+        }));
+    };
 
     const {
         data: personsPaginated,
@@ -1401,10 +1410,10 @@ const VisitorRegistration = () => {
                             <div className='flex flex-col mt-2 w-[18.5%]'>
                                 <div className='flex gap-1'>ID No.</div>
                                 <input
-                                    value={visitorForm?.id_number}
+                                    value={visitorForm?.id_number ?? ""}
                                     type="text"
                                     className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
-                                    onChange={e => setVisitorForm(prev => ({ ...prev, id_number: Number(e.target.value) }))}
+                                    onChange={e => handleRFIDScan(e.target.value)}
                                 />
                             </div>
 

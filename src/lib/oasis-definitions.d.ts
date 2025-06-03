@@ -56,8 +56,8 @@ export type Area = {
 
 export type OASISRestrictions = {
   id: number;
-  created_by: number | null;
-  updated_by: number | null;
+  created_by: string | null;
+  updated_by: string | null;
   created_at: string | null;
   updated_at: string | null;
   restriction_text: string;
@@ -67,8 +67,8 @@ export type OASISRestrictions = {
 
 export type OASISStatus = {
   id: number;
-  created_by: number | null;
-  updated_by: number | null;
+  created_by: string | null;
+  updated_by: string | null;
   created_at: string | null;
   updated_at: string | null;
   code: string;
@@ -78,8 +78,8 @@ export type OASISStatus = {
 
 export type OASISStatus = {
   id: number;
-  created_by: number | null;
-  updated_by: number | null;
+  created_by: string | null;
+  updated_by: string | null;
   created_at: string | null;
   updated_at: string | null;
   code: string;
@@ -89,8 +89,8 @@ export type OASISStatus = {
 
 export type OASISNote = {
   id: number;
-  created_by: number | null;
-  updated_by: number | null;
+  created_by: string | null;
+  updated_by: string | null;
   created_at: string | null;
   updated_at: string | null;
   note_text: string;
@@ -100,8 +100,8 @@ export type OASISNote = {
 
 export type OASISEventCode = {
   id: number;
-  created_by: number | null;
-  updated_by: number | null;
+  created_by: string | null;
+  updated_by: string | null;
   created_at: string | null;
   updated_at: string | null;
   value_name: string;
@@ -112,8 +112,8 @@ export type OASISEventCode = {
 
 export type OASISAudience = {
   id: number;
-  created_by: number | null;
-  updated_by: number | null;
+  created_by: string | null;
+  updated_by: string | null;
   created_at: string | null;
   updated_at: string | null;
   audience_text: string;

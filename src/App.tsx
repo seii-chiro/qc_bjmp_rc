@@ -127,6 +127,24 @@ import SummaryCountofPersonnel from "./pages/reports/modules/SummaryCountofPerso
 import ListPDLVisitors from "./pages/reports/modules/lists/ListPDLVisitors.tsx";
 import ListPersonnel from "./pages/reports/modules/lists/ListPersonnel.tsx";
 import ListPDLs from "./pages/reports/modules/lists/ListPDLs.tsx";
+import Statuses from "./pages/oasis/maintenance/Statuses.tsx";
+import MessageTypes from "./pages/oasis/maintenance/MessageTypes.tsx";
+import Scopes from "./pages/oasis/maintenance/Scopes.tsx";
+import Restrictions from "./pages/oasis/maintenance/Restrictions.tsx";
+import Codes from "./pages/oasis/maintenance/Codes.tsx";
+import Notes from "./pages/oasis/maintenance/Notes.tsx";
+import Language from "./pages/oasis/maintenance/Language.tsx";
+import Categories from "./pages/oasis/maintenance/Categories.tsx";
+import Events from "./pages/oasis/maintenance/Events.tsx";
+import ResponseTypes from "./pages/oasis/maintenance/ResponseTypes.tsx";
+import Urgency from "./pages/oasis/maintenance/Urgency.tsx";
+import Severity from "./pages/oasis/maintenance/Severity.tsx";
+import Certainty from "./pages/oasis/maintenance/Certainty.tsx";
+import Audience from "./pages/oasis/maintenance/Audience.tsx";
+import EventCodes from "./pages/oasis/maintenance/EventCodes.tsx";
+import Instructions from "./pages/oasis/maintenance/Instructions.tsx";
+import Parameter from "./pages/oasis/maintenance/Parameter.tsx";
+import Geocode from "./pages/oasis/maintenance/Geocode.tsx";
 
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -662,6 +680,78 @@ function App() {
                 {
                     path: "incidents/oasis",
                     element: <OasisAlertForm />
+                },
+                {
+                    path: "incidents/oasis/status",
+                    element: <Statuses />
+                },
+                {
+                    path: "incidents/oasis/message_type",
+                    element: <MessageTypes />
+                },
+                {
+                    path: "incidents/oasis/scope",
+                    element: <Scopes />
+                },
+                {
+                    path: "incidents/oasis/restriction",
+                    element: <Restrictions />
+                },
+                {
+                    path: "incidents/oasis/code",
+                    element: <Codes />
+                },
+                {
+                    path: "incidents/oasis/note",
+                    element: <Notes />
+                },
+                {
+                    path: "incidents/oasis/language",
+                    element: <Language />
+                },
+                {
+                    path: "incidents/oasis/category",
+                    element: <Categories />
+                },
+                {
+                    path: "incidents/oasis/event",
+                    element: <Events />
+                },
+                {
+                    path: "incidents/oasis/response_type",
+                    element: <ResponseTypes />
+                },
+                {
+                    path: "incidents/oasis/urgency",
+                    element: <Urgency />
+                },
+                {
+                    path: "incidents/oasis/severity",
+                    element: <Severity />
+                },
+                {
+                    path: "incidents/oasis/certainty",
+                    element: <Certainty />
+                },
+                {
+                    path: "incidents/oasis/audience",
+                    element: <Audience />
+                },
+                {
+                    path: "incidents/oasis/event_code",
+                    element: <EventCodes />
+                },
+                {
+                    path: "incidents/oasis/instructions",
+                    element: <Instructions />
+                },
+                {
+                    path: "incidents/oasis/parameter",
+                    element: <Parameter />
+                },
+                {
+                    path: "incidents/oasis/geocode",
+                    element: <Geocode />
                 },
                 {
                     path: "person",
