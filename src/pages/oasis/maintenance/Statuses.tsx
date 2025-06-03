@@ -8,6 +8,7 @@ import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai"
 import { FaPlus } from "react-icons/fa"
 import StatusForm from "./forms/StatusForm"
 import { generatePDFReport, PDFColumn } from "../generatePDF"
+import { useUserStore } from "@/store/useUserStore"
 
 export type StatusDataSourceRecord = {
   id: number;
@@ -21,6 +22,7 @@ export type StatusDataSourceRecord = {
 const Statuses = () => {
   const token = useTokenStore(state => state.token)
   const queryClient = useQueryClient()
+  const user = useUserStore(state => state.user)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [isPDFModalOpen, setIsPDFModalOpen] = useState(false)
   const [recordToEdit, setRecordToEdit] = useState<StatusDataSourceRecord | null>(null)
@@ -160,6 +162,8 @@ const Statuses = () => {
     const title = "OASIS Status";
     const filename = title;
 
+    const preparedBy = user?.first_name && user?.last_name ? `${user?.first_name} ${user?.last_name}` : user?.email
+
     const result = generatePDFReport({
       title,
       headers,
@@ -168,8 +172,9 @@ const Statuses = () => {
       orientation: "portrait",
       showDate: true,
       showPageNumbers: true,
-      modalPreview: true, 
-      preview: true
+      modalPreview: true,
+      preview: true,
+      preparedBy
     });
 
     if (result.success && result.pdfDataUrl) {
