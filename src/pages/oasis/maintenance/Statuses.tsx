@@ -7,6 +7,7 @@ import { useState } from "react"
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai"
 import { FaPlus } from "react-icons/fa"
 import StatusForm from "./forms/StatusForm"
+import { generatePDFReport, PDFColumn } from "../generatePDF"
 
 export type StatusDataSourceRecord = {
   id: number;
@@ -21,8 +22,10 @@ const Statuses = () => {
   const token = useTokenStore(state => state.token)
   const queryClient = useQueryClient()
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false)
   const [recordToEdit, setRecordToEdit] = useState<StatusDataSourceRecord | null>(null)
   const [searchText, setSearchText] = useState("")
+  const [pdfDataUrl, setPdfDataUrl] = useState<string>('');
 
   const { data: statuses, isLoading: statusesLoading } = useQuery({
     queryKey: ['OASIS', 'status'],
@@ -51,7 +54,6 @@ const Statuses = () => {
     })
   })
 
-  // Filter data based on search text
   const filteredDataSource = dataSource?.filter(item => {
     const searchLower = searchText.toLowerCase()
     return (
@@ -147,8 +149,72 @@ const Statuses = () => {
     },
   ]
 
+  const handleGeneratePDF = () => {
+    const headers: PDFColumn[] = columns
+      ?.filter(col => col.title !== "Actions")
+      .map(col => ({
+        header: typeof col.title === "string" ? col.title : "",
+        dataKey: typeof col.key === "string" ? col.key : ""
+      }));
+
+    const title = "OASIS Status";
+    const filename = title;
+
+    const result = generatePDFReport({
+      title,
+      headers,
+      data: dataSource || [],
+      filename,
+      orientation: "portrait",
+      showDate: true,
+      showPageNumbers: true,
+      modalPreview: true, 
+      preview: true
+    });
+
+    if (result.success && result.pdfDataUrl) {
+      setPdfDataUrl(result.pdfDataUrl);
+    }
+
+    return result;
+  };
+
+  const handleOpenPDFModal = () => {
+    handleGeneratePDF();
+    setIsPDFModalOpen(true);
+  };
+
+  const handleClosePDFModal = () => {
+    setIsPDFModalOpen(false);
+    setPdfDataUrl('');
+  };
+
   return (
     <>
+      <Modal
+        title="PDF Preview"
+        width="90%"
+        style={{ top: 20 }}
+        footer={null}
+        open={isPDFModalOpen}
+        onClose={handleClosePDFModal}
+        onCancel={handleClosePDFModal}
+      >
+        {pdfDataUrl ? (
+          <iframe
+            src={pdfDataUrl}
+            width="100%"
+            height="800px"
+            style={{ border: 'none' }}
+            title="PDF Preview"
+          />
+        ) : (
+          <div style={{ textAlign: 'center', padding: '50px' }}>
+            Loading PDF preview...
+          </div>
+        )}
+      </Modal>
+
       <Modal
         footer={null}
         width={"40%"}
@@ -172,6 +238,7 @@ const Statuses = () => {
             Export
           </Button>
           <Button
+            onClick={handleOpenPDFModal}
             className="h-10 w-32 bg-[#1E365D] text-white font"
           >
             Print Report
@@ -197,10 +264,9 @@ const Statuses = () => {
         </div>
       </div>
 
-      {/* Search results info */}
       {searchText && (
-        <div className="mt-2 text-sm text-gray-600">
-          {filteredDataSource?.length || 0} result(s) found for "{searchText}"
+        <div className="w-full mt-2 text-sm text-gray-600 flex justify-end">
+          <span>{filteredDataSource?.length || 0} result(s) found for "{searchText}"</span>
         </div>
       )}
 
