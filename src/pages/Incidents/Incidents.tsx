@@ -24,7 +24,7 @@ const Incidents = () => {
                         <h1 className="font-bold text-lg ml-4">ALERTS AND NOTIFICATION</h1>
                     </div>
                 </div>
-                <div className="ml-8 mt-2 flex gap-10">
+                <div className="ml-8 mt-2 flex gap-32">
                     <div>
                         <GodotLink link="oasis" title="Send an Alert" />
                         <GodotLink link="oasis/status" title="Status" />
