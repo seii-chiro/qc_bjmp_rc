@@ -65,7 +65,7 @@ const Personnel = () => {
     });
 
     const { data, isFetching } = useQuery({
-        queryKey: ['personnel', 'personnel-table', page],
+        queryKey: ['personnel', 'personnel-table', page, limit],
         queryFn: async (): Promise<PaginatedResponse<PersonnelType>> => {
             // Add offset parameter for Django REST Framework's pagination
             const offset = (page - 1) * limit;
