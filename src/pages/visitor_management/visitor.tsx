@@ -40,6 +40,8 @@ const Visitor = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [selectEditVisitor, setEditSelectedVisitor] = useState<VisitorResponse | null>(null);
+    const [genderColumnFilter, setGenderColumnFilter] = useState<string[]>([]);
+    const [visitorTypeColumnFilter, setVisitorTypeColumnFilter] = useState<string[]>([]);
     const [visitorVisits, setVisitorVisits] = useState(selectedVisitor?.main_gate_visits || []);
     // const [showAllVisits, setShowAllVisits] = useState(false);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
@@ -253,18 +255,16 @@ const Visitor = () => {
         };
     });
 
-
     const filteredData = dataSource.filter(visitor => {
     const matchesSearch = Object.values(visitor).some(value =>
         String(value).toLowerCase().includes(searchText.toLowerCase())
     );
-    const matchesGender = gender === "all" || genderList.length === 0
-        ? true
-        : genderList.includes(visitor.gender);
-    return matchesSearch && matchesGender;
+
+    const matchesGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(visitor.gender);
+    const matchesVisitorType = visitorTypeColumnFilter.length === 0 || visitorTypeColumnFilter.includes(visitor.visitor_type);
+
+    return matchesSearch && matchesGender && matchesVisitorType;
     });
-
-
 
     const columns: ColumnsType<VisitorResponse> = [
         {
@@ -291,19 +291,17 @@ const Visitor = () => {
             },
         },
         {
-            title: 'Gender',
-            dataIndex: 'gender',
-            key: 'gender',
-            sorter: (a, b) => a.gender.localeCompare(b.gender),
-            filters: Array.from(
-                new Set((visitorGenderData?.results || []).map(visitor => visitor?.person?.gender?.gender_option))
-            )
+        title: 'Gender',
+        dataIndex: 'gender',
+        key: 'gender',
+        sorter: (a, b) => a.gender.localeCompare(b.gender),
+        filters: Array.from(
+            new Set((visitorGenderData?.results || []).map(visitor => visitor?.person?.gender?.gender_option))
+        )
             .filter(Boolean)
-            .map(gender => ({
-                text: gender,
-                value: gender,
-            })),
-            onFilter: (value, record) => record.gender === value,
+            .map(gender => ({ text: gender, value: gender })),
+        onFilter: (value, record) => record.gender === value,
+        filteredValue: genderColumnFilter,
         },
         {
             title: 'Visitor Type',
@@ -311,6 +309,7 @@ const Visitor = () => {
             key: 'visitor_type',
             sorter: (a, b) => a.visitor_type.localeCompare(b.visitor_type),
             filters: visitorTypeFilters,
+            filteredValue: visitorTypeColumnFilter, 
             onFilter: (value, record) => record.visitor_type === value,
         },
         {
@@ -408,153 +407,153 @@ const Visitor = () => {
         return data;
     };
 
-const lastPrintIndexRef = useRef(0);
-const handleExportPDF = async () => {
-    setIsLoading(true);
-    setLoadingMessage("Generating PDF... Please wait.");
+    const lastPrintIndexRef = useRef(0);
+    const handleExportPDF = async () => {
+        setIsLoading(true);
+        setLoadingMessage("Generating PDF... Please wait.");
 
-    const doc = new jsPDF();
-    const headerHeight = 48;
-    const footerHeight = 32;
-    const maxRowsPerPage = 26;
+        const doc = new jsPDF();
+        const headerHeight = 48;
+        const footerHeight = 32;
+        const maxRowsPerPage = 26;
 
-    const organizationName = filteredData[0]?.organization || "Bureau of Jail Management and Penology";
-    const PreparedBy = filteredData[0]?.updated || "";
-    const today = new Date();
-    const formattedDate = today.toISOString().split("T")[0];
-    const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+        const organizationName = filteredData[0]?.organization || "Bureau of Jail Management and Penology";
+        const PreparedBy = filteredData[0]?.updated || "";
+        const today = new Date();
+        const formattedDate = today.toISOString().split("T")[0];
+        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
-    let startY = headerHeight;
-    let printSource;
+        let startY = headerHeight;
+        let printSource;
 
-    const isFiltering = debouncedSearch.trim().length > 0 || gender !== "all";
+        const isFiltering = filteredData.length > 0;
 
-    if (isFiltering) {
-        printSource = filteredData.map((visitor, index) => ({
-            key: index + 1,
-            id: visitor?.id,
-            visitor_reg_no: visitor?.visitor_reg_no,
-            name: visitor?.name,
-            visitor_type: visitor?.visitor_type,
-            full_address: visitor?.full_address,
-            address: visitor?.address,
-            nationality: visitor?.nationality,
-            gender: visitor?.gender === "Male" || visitor?.gender === "Female" ? visitor?.gender : "Others",
-            updated: visitor?.updated,
-        }));
+        if (isFiltering) {
+            printSource = filteredData.map((visitor, index) => ({
+                key: index + 1,
+                id: visitor?.id,
+                visitor_reg_no: visitor?.visitor_reg_no,
+                name: visitor?.name,
+                visitor_type: visitor?.visitor_type,
+                full_address: visitor?.full_address,
+                address: visitor?.address,
+                nationality: visitor?.nationality,
+                gender: visitor?.gender,
+                updated: visitor?.updated,
+            }));
 
-        lastPrintIndexRef.current = 0; 
-    } else {
-        const allData = await fetchAllVisitors();
-        const allResults = allData?.results || [];
+            lastPrintIndexRef.current = 0;
+            }
+            else {
+            const allData = await fetchAllVisitors();
+            const allResults = allData?.results || [];
 
-        printSource = allResults
-            .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + 800)
-            .map((visitor, index) => {
-                const barangay = visitor?.person?.addresses[0]?.barangay || '';
-                const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
-                const province = visitor?.person?.addresses[0]?.province || '';
-                const addressParts = [barangay, cityMunicipality, province].filter(part => part);
-                const address = addressParts.join(', ');
+            printSource = allResults
+                .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + 800)
+                .map((visitor, index) => {
+                    const barangay = visitor?.person?.addresses[0]?.barangay || '';
+                    const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
+                    const province = visitor?.person?.addresses[0]?.province || '';
+                    const addressParts = [barangay, cityMunicipality, province].filter(part => part);
+                    const address = addressParts.join(', ');
 
-                return {
-                    key: lastPrintIndexRef.current + index + 1,
-                    id: visitor?.id,
-                    visitor_reg_no: visitor?.visitor_reg_no,
-                    name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
-                    visitor_type: visitor?.visitor_type,
-                    full_address: visitor?.person?.addresses[0]?.full_address ?? '',
-                    address: address,
-                    nationality: visitor?.person?.nationality,
-                    gender: visitor?.person?.gender?.gender_option,
-                    updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
-                };
+                    return {
+                        key: lastPrintIndexRef.current + index + 1,
+                        id: visitor?.id,
+                        visitor_reg_no: visitor?.visitor_reg_no,
+                        name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+                        visitor_type: visitor?.visitor_type,
+                        full_address: visitor?.person?.addresses[0]?.full_address ?? '',
+                        address: address,
+                        nationality: visitor?.person?.nationality,
+                        gender: visitor?.person?.gender?.gender_option,
+                        updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
+                    };
+                });
+
+            lastPrintIndexRef.current += 800;
+            if (lastPrintIndexRef.current >= allResults.length) {
+                lastPrintIndexRef.current = 0;
+            }
+        }
+
+        const addHeader = () => {
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const imageWidth = 30;
+            const imageHeight = 30;
+            const margin = 10;
+            const imageX = pageWidth - imageWidth - margin;
+            const imageY = 12;
+
+            doc.addImage(bjmp, "PNG", imageX, imageY, imageWidth, imageHeight);
+
+            doc.setTextColor(0, 102, 204);
+            doc.setFontSize(16);
+            doc.text("Visitor Report", 10, 15);
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.text(`Organization Name: ${organizationName}`, 10, 25);
+            doc.text("Report Date: " + formattedDate, 10, 30);
+            doc.text("Prepared By: " + PreparedBy, 10, 35);
+            doc.text("Department/ Unit: IT", 10, 40);
+            doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
+        };
+
+        addHeader();
+
+        const tableData = printSource.map((item, index) => [
+            index + 1,
+            item.visitor_reg_no,
+            item.name,
+            item.gender,
+            item.visitor_type,
+            item.address,
+        ]);
+
+        for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
+            const pageData = tableData.slice(i, i + maxRowsPerPage);
+
+            autoTable(doc, {
+                head: [["No.", "Visitor No.", "Name", "Gender", "Visitor Type", "Address"]],
+                body: pageData,
+                startY: startY,
+                margin: { top: 0, left: 10, right: 10 },
+                didDrawPage: function (data) {
+                    if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+                        addHeader();
+                    }
+                },
             });
 
-        // Track printing offset
-        lastPrintIndexRef.current += 800;
-        if (lastPrintIndexRef.current >= allResults.length) {
-            lastPrintIndexRef.current = 0;
+            if (i + maxRowsPerPage < tableData.length) {
+                doc.addPage();
+                startY = headerHeight;
+            }
         }
-    }
 
-    const addHeader = () => {
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const imageWidth = 30;
-        const imageHeight = 30;
-        const margin = 10;
-        const imageX = pageWidth - imageWidth - margin;
-        const imageY = 12;
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let page = 1; page <= pageCount; page++) {
+            doc.setPage(page);
+            const footerText = [
+                "Document Version: Version 1.0",
+                "Confidentiality Level: Internal use only",
+                "Contact Info: " + PreparedBy,
+                `Timestamp of Last Update: ${formattedDate}`,
+            ].join("\n");
+            const footerX = 10;
+            const footerY = doc.internal.pageSize.height - footerHeight + 15;
+            const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
 
-        doc.addImage(bjmp, "PNG", imageX, imageY, imageWidth, imageHeight);
+            doc.setFontSize(8);
+            doc.text(footerText, footerX, footerY);
+            doc.text(`${page} / ${pageCount}`, pageX, footerY);
+        }
 
-        doc.setTextColor(0, 102, 204);
-        doc.setFontSize(16);
-        doc.text("Visitor Report", 10, 15);
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(10);
-        doc.text(`Organization Name: ${organizationName}`, 10, 25);
-        doc.text("Report Date: " + formattedDate, 10, 30);
-        doc.text("Prepared By: " + PreparedBy, 10, 35);
-        doc.text("Department/ Unit: IT", 10, 40);
-        doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
+        const pdfOutput = doc.output("datauristring");
+        setPdfDataUrl(pdfOutput);
+        setIsPdfModalOpen(true);
+        setIsLoading(false);
     };
-
-    addHeader();
-
-    const tableData = printSource.map((item, index) => [
-        index + 1,
-        item.visitor_reg_no,
-        item.name,
-        item.gender,
-        item.visitor_type,
-        item.address,
-    ]);
-
-    for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
-        const pageData = tableData.slice(i, i + maxRowsPerPage);
-
-        autoTable(doc, {
-            head: [["No.", "Visitor No.", "Name", "Gender", "Visitor Type", "Address"]],
-            body: pageData,
-            startY: startY,
-            margin: { top: 0, left: 10, right: 10 },
-            didDrawPage: function (data) {
-                if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                    addHeader();
-                }
-            },
-        });
-
-        if (i + maxRowsPerPage < tableData.length) {
-            doc.addPage();
-            startY = headerHeight;
-        }
-    }
-
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let page = 1; page <= pageCount; page++) {
-        doc.setPage(page);
-        const footerText = [
-            "Document Version: Version 1.0",
-            "Confidentiality Level: Internal use only",
-            "Contact Info: " + PreparedBy,
-            `Timestamp of Last Update: ${formattedDate}`,
-        ].join("\n");
-        const footerX = 10;
-        const footerY = doc.internal.pageSize.height - footerHeight + 15;
-        const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
-
-        doc.setFontSize(8);
-        doc.text(footerText, footerX, footerY);
-        doc.text(`${page} / ${pageCount}`, pageX, footerY);
-    }
-
-    const pdfOutput = doc.output("datauristring");
-    setPdfDataUrl(pdfOutput);
-    setIsPdfModalOpen(true);
-    setIsLoading(false);
-};
 
 
     const handleClosePdfModal = () => {
@@ -666,8 +665,8 @@ const handleExportCSV = async () => {
         });
 
         const csvContent = [
-            Object.keys(exportData[0]).join(","), // Header row
-            ...exportData.map(item => Object.values(item).join(",")) // Data rows
+            Object.keys(exportData[0]).join(","), 
+            ...exportData.map(item => Object.values(item).join(",")) 
         ].join("\n");
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -695,49 +694,49 @@ const handleExportCSV = async () => {
         </Menu>
     );
 
-const handleDownloadPDF = async () => {
-  if (!modalContentRef.current) return;
+    const handleDownloadPDF = async () => {
+    if (!modalContentRef.current) return;
 
-  const element = modalContentRef.current;
+    const element = modalContentRef.current;
 
-  // Set scale to improve resolution (default is 1)
-  const scale = 2;
+    // Set scale to improve resolution (default is 1)
+    const scale = 2;
 
-  const canvas = await html2canvas(element, {
-    scale: scale,         // Higher scale = better quality
-    useCORS: true,
-    backgroundColor: "#ffffff",
-    scrollY: -window.scrollY,
-  });
+    const canvas = await html2canvas(element, {
+        scale: scale,         // Higher scale = better quality
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        scrollY: -window.scrollY,
+    });
 
-  const imgData = canvas.toDataURL("image/png");
+    const imgData = canvas.toDataURL("image/png");
 
-  const pdf = new jsPDF('p', 'mm', 'a4');
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pdfHeight = pdf.internal.pageSize.getHeight();
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
 
-  const imgProps = pdf.getImageProperties(imgData);
+    const imgProps = pdf.getImageProperties(imgData);
 
-  // Convert canvas dimensions from px to mm (1 px ≈ 0.264583 mm)
-  const imgWidth = canvas.width * 0.264583;
-  const imgHeight = canvas.height * 0.264583;
+    // Convert canvas dimensions from px to mm (1 px ≈ 0.264583 mm)
+    const imgWidth = canvas.width * 0.264583;
+    const imgHeight = canvas.height * 0.264583;
 
-  let finalWidth = imgWidth;
-  let finalHeight = imgHeight;
+    let finalWidth = imgWidth;
+    let finalHeight = imgHeight;
 
-  // Scale down if image is taller than the page
-  if (imgHeight > pdfHeight) {
-    const ratio = pdfHeight / imgHeight;
-    finalHeight = pdfHeight;
-    finalWidth = imgWidth * ratio;
-  }
+    // Scale down if image is taller than the page
+    if (imgHeight > pdfHeight) {
+        const ratio = pdfHeight / imgHeight;
+        finalHeight = pdfHeight;
+        finalWidth = imgWidth * ratio;
+    }
 
-  const x = (pdfWidth - finalWidth) / 2;
-  const y = 0;
+    const x = (pdfWidth - finalWidth) / 2;
+    const y = 0;
 
-  pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
-  pdf.save('visitor-profile.pdf');
-};
+    pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
+    pdf.save('visitor-profile.pdf');
+    };
 
     const totalRecords = debouncedSearch 
     ? data?.count || 0
@@ -777,52 +776,56 @@ const handleDownloadPDF = async () => {
                 </div>
                 <div className="overflow-x-auto">
                     <Table
-                        loading={isFetching || searchLoading || visitorsByGenderLoading}
-                        columns={columns}
-                        dataSource={
-                            debouncedSearch
-                            ? (searchData?.results || []).map((visitor, index) => ({
-                                ...visitor,
-                                key: index + 1,
-                                name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
-                                visitor_reg_no: visitor?.visitor_reg_no,
-                                visitor_type: visitor?.visitor_type,
-                                gender: visitor?.person?.gender?.gender_option,
-                                nationality: visitor?.person?.nationality,
-                                full_address: visitor?.person?.addresses[0]?.full_address ?? '',
-                                address: `${visitor?.person?.addresses[0]?.barangay ?? ''} ${visitor?.person?.addresses[0]?.city_municipality ?? ''} ${visitor?.person?.addresses[0]?.province ?? ''}`,
-                                organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
-                                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-                                }))
-                            : gender !== "all"
-                            ? (visitorGenderData?.results || []).map((visitor, index) => ({
-                                ...visitor,
-                                key: index + 1,
-                                name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
-                                visitor_reg_no: visitor?.visitor_reg_no,
-                                visitor_type: visitor?.visitor_type,
-                                gender: visitor?.person?.gender?.gender_option,
-                                nationality: visitor?.person?.nationality,
-                                full_address: visitor?.person?.addresses[0]?.full_address ?? '',
-                                address: `${visitor?.person?.addresses[0]?.barangay ?? ''} ${visitor?.person?.addresses[0]?.city_municipality ?? ''} ${visitor?.person?.addresses[0]?.province ?? ''}`,
-                                organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
-                                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-                                }))
-                            : filteredData
-                        }
-                        scroll={{ x: 800 }}
-                        pagination={{
-                            current: page,
-                            pageSize: limit,
-                            total: totalRecords,
-                            pageSizeOptions: ['10', '20', '50', '100'],
-                            showSizeChanger: true, 
-                            onChange: (newPage, newPageSize) => {
-                                setPage(newPage);
-                                setLimit(newPageSize); 
-                            },
-                            }}
-                        rowKey="id"
+                    loading={isFetching || searchLoading || visitorsByGenderLoading}
+                    columns={columns}
+                    dataSource={
+                        debouncedSearch
+                        ? (searchData?.results || []).map((visitor, index) => ({
+                            ...visitor,
+                            key: index + 1,
+                            name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
+                            visitor_reg_no: visitor?.visitor_reg_no,
+                            visitor_type: visitor?.visitor_type,
+                            gender: visitor?.person?.gender?.gender_option,
+                            nationality: visitor?.person?.nationality,
+                            full_address: visitor?.person?.addresses[0]?.full_address ?? '',
+                            address: `${visitor?.person?.addresses[0]?.barangay ?? ''} ${visitor?.person?.addresses[0]?.city_municipality ?? ''} ${visitor?.person?.addresses[0]?.province ?? ''}`,
+                            organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
+                            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+                            }))
+                        : gender !== "all"
+                        ? (visitorGenderData?.results || []).map((visitor, index) => ({
+                            ...visitor,
+                            key: index + 1,
+                            name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
+                            visitor_reg_no: visitor?.visitor_reg_no,
+                            visitor_type: visitor?.visitor_type,
+                            gender: visitor?.person?.gender?.gender_option,
+                            nationality: visitor?.person?.nationality,
+                            full_address: visitor?.person?.addresses[0]?.full_address ?? '',
+                            address: `${visitor?.person?.addresses[0]?.barangay ?? ''} ${visitor?.person?.addresses[0]?.city_municipality ?? ''} ${visitor?.person?.addresses[0]?.province ?? ''}`,
+                            organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
+                            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+                            }))
+                        : filteredData
+                    }
+                    scroll={{ x: 800 }}
+                    pagination={{
+                        current: page,
+                        pageSize: limit,
+                        total: totalRecords,
+                        pageSizeOptions: ['10', '20', '50', '100'],
+                        showSizeChanger: true, 
+                        onChange: (newPage, newPageSize) => {
+                        setPage(newPage);
+                        setLimit(newPageSize); 
+                        },
+                    }}
+                    onChange={(pagination, filters, sorter) => {
+                        setGenderColumnFilter(filters.gender as string[] ?? []);
+                        setVisitorTypeColumnFilter(filters.visitor_type as string[] ?? []);
+                        }}
+                    rowKey="id"
                     />
                 </div>
             </div>

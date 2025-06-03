@@ -26,6 +26,9 @@ const PDLtable = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectPDL, setSelectedPDL] = useState<PDLs | null>(null);
+    const [genderColumnFilter, setGenderColumnFilter] = useState<string[]>([]);
+    const [statusColumnFilter, setstatusColumnFilter] = useState<string[]>([]);
+    const [visitationColumnFilter, setvisitationColumnFilter] = useState<string[]>([]);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [page, setPage] = useState(1);
@@ -154,6 +157,18 @@ const PDLtable = () => {
     const status = searchParams.get("status") || "all";
     const statusList = status !== "all" ? status.split(",").map(decodeURIComponent) : [];
 
+    useEffect(() => {
+    if (genderList.length > 0 && JSON.stringify(genderColumnFilter) !== JSON.stringify(genderList)) {
+        setGenderColumnFilter(genderList);
+    }
+    }, [genderList, genderColumnFilter]);
+
+    useEffect(() => {
+    if (statusList.length > 0 && JSON.stringify(statusColumnFilter) !== JSON.stringify(statusList)) {
+        setstatusColumnFilter(statusList);
+    }
+    }, [statusList, statusColumnFilter]);
+
     const { data: pdlStatusData, isLoading: pdlByStatusLoading } = useQuery({
         queryKey: ['pdls', 'pdls-table', page, statusList],
             queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
@@ -205,13 +220,17 @@ const PDLtable = () => {
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
-    const filteredData = dataSource?.filter((pdl: any) => {
-    const matchesSearch = Object.values(pdl).some((value) =>
-        String(value).toLowerCase().includes(searchText.toLowerCase())
-    );
-    return matchesSearch;
-    });
+        const filteredData = dataSource.filter(pdl => {
+            const matchesSearch = Object.values(pdl).some(value =>
+                String(value).toLowerCase().includes(searchText.toLowerCase())
+            );
 
+            const matchesGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(pdl.gender);
+            const matchesStatus = statusColumnFilter.length === 0 || statusColumnFilter.includes(pdl.status);
+            const matchesVisitationStatus = visitationColumnFilter.length === 0 || visitationColumnFilter.includes(pdl.visitation_status);
+
+            return matchesSearch && matchesGender && matchesStatus && matchesVisitationStatus;
+            });
 
     const columns: ColumnsType<PDLs> = [
         {
@@ -224,6 +243,19 @@ const PDLtable = () => {
             dataIndex: 'name',
             key: 'name',
             sorter: (a, b) => a.name.localeCompare(b.name),
+        },
+         {
+        title: 'Gender',
+        dataIndex: 'gender',
+        key: 'gender',
+        sorter: (a, b) => a.gender.localeCompare(b.gender),
+        filters: Array.from(
+            new Set((pdlsGenderData?.results || []).map(pdl => pdl?.person?.gender?.gender_option))
+        )
+            .filter(Boolean)
+            .map(gender => ({ text: gender, value: gender })),
+        onFilter: (value, record) => record.gender === value,
+        filteredValue: genderColumnFilter,
         },
         // {
         //     title: 'Dorm No.',
@@ -242,24 +274,12 @@ const PDLtable = () => {
             dataIndex: 'cell_name',
             key: 'cell_name',
             sorter: (a, b) => a.cell_name.localeCompare(b.cell_name),
-            filters: [
-                ...Array.from(new Set(allPDLs.map(item => item.cell_name)))
-                    .filter(cell_name => cell_name)
-                    .map(cell_name => ({ text: cell_name, value: cell_name }))
-            ],
-            onFilter: (value, record) => record.cell_name === value,
         },
         {
-            title: 'Floor',
+            title: 'Annex',
             dataIndex: 'floor',
             key: 'floor',
             sorter: (a, b) => a.floor.localeCompare(b.floor),
-            filters: [
-                ...Array.from(new Set(allPDLs.map(item => item.floor)))
-                    .filter(floor => floor)
-                    .map(floor => ({ text: floor, value: floor }))
-            ],
-            onFilter: (value, record) => record.floor === value,
         },
         // {
         //     title: 'Gang Affiliation',
@@ -284,6 +304,7 @@ const PDLtable = () => {
                     .map(status => ({ text: status, value: status }))
             ],
             onFilter: (value, record) => record.status === value,
+            filteredValue: statusColumnFilter,
         },
         {
             title: 'Visitation Status',
@@ -296,13 +317,14 @@ const PDLtable = () => {
                     .map(visitation_status => ({ text: visitation_status, value: visitation_status }))
             ],
             onFilter: (value, record) => record.visitation_status === value,
+            filteredValue: visitationColumnFilter, 
         },
-        {
-            title: 'Date of Admission',
-            dataIndex: 'date_of_admission',
-            key: 'date_of_admission',
-            sorter: (a, b) => a.date_of_admission.localeCompare(b.date_of_admission),
-        },
+        // {
+        //     title: 'Date of Admission',
+        //     dataIndex: 'date_of_admission',
+        //     key: 'date_of_admission',
+        //     sorter: (a, b) => a.date_of_admission.localeCompare(b.date_of_admission),
+        // },
         // {
         //     title: 'Look',
         //     dataIndex: 'look',
@@ -369,19 +391,27 @@ const handleExportPDF = async () => {
 
     let printSource;
 
-    // Decide if we are printing filtered data (all at once) or paginated chunks of full data
-    if (debouncedSearch && debouncedSearch.trim().length > 0) {
-        // Print all filtered data at once
-        printSource = (searchData?.results || []).map((pdl, index) => ({
+        const isFiltering = (
+        filteredData.length > 0 ||
+        gender !== "all" ||
+        status !== "all" ||
+        genderColumnFilter.length > 0 ||
+        statusColumnFilter.length > 0 ||
+        visitationColumnFilter.length > 0
+        );
+
+    if (isFiltering) {
+        printSource = filteredData.map((pdl, index) => ({
             key: index + 1,
             id: pdl?.id,
-            pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
-            name: `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ? pdl?.person?.middle_name[0] + '.' : ''} ${pdl?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
-            cell_name: pdl?.cell?.cell_name ?? 'N/A',
-            floor: pdl?.cell?.floor ?? 'N/A',
-            visitation_status: pdl?.visitation_status ?? 'N/A',
-            status: pdl?.status ?? 'N/A',
-            date_of_admission: pdl?.date_of_admission ?? 'N/A',
+            pdl_reg_no: pdl?.pdl_reg_no ?? '',
+            name: pdl?.name,
+            gender: pdl?.gender ?? '',
+            cell_name: pdl?.cell_name ?? '',
+            floor: pdl?.floor ?? '',
+            visitation_status: pdl?.visitation_status ?? '',
+            status: pdl?.status ?? '',
+            date_of_admission: pdl?.date_of_admission ?? '',
             organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
             updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
         }));
@@ -398,6 +428,7 @@ const handleExportPDF = async () => {
                 id: pdl?.id,
                 pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
                 name: `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ? pdl?.person?.middle_name[0] + '.' : ''} ${pdl?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+                gender: pdl?.person?.gender?.gender_option ?? '',
                 cell_name: pdl?.cell?.cell_name ?? 'N/A',
                 floor: pdl?.cell?.floor ?? 'N/A',
                 visitation_status: pdl?.visitation_status ?? 'N/A',
@@ -450,11 +481,11 @@ const handleExportPDF = async () => {
     const tableData = printSource.map((item, index) => [
         index + 1,
         item.name,
+        item.gender,
         item.cell_name,
         item.floor,
         item.visitation_status,
         item.status,
-        item.date_of_admission,
     ]);
 
     // Draw table, paginate with maxRowsPerPage rows per page
@@ -462,7 +493,7 @@ const handleExportPDF = async () => {
         const pageData = tableData.slice(i, i + maxRowsPerPage);
 
         autoTable(doc, {
-            head: [["No.", "PDL", "Dorm", "Annex", "Visitation", "Status", "Date Admission"]],
+            head: [["No.", "PDL", "Gender", "Dorm", "Annex", "Visitation", "Status"]],
             body: pageData,
             startY: startY,
             margin: { top: 0, left: 10, right: 10 },
@@ -515,11 +546,12 @@ const handleExportPDF = async () => {
             const name = `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ? pdl?.person?.middle_name[0] + '.' : ''} ${pdl?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
             return {
                 "Name": name,
+                "Gender": pdl?.person?.gender?.gender_option,
                 "Dorm": pdl?.cell?.cell_name,
                 "Annex": pdl?.cell?.floor,
                 "Visitation Status": pdl?.visitation_status,
                 "Status": pdl?.status,
-                "Date of Admission": pdl?.date_of_admission
+
             };
         }) || [];
         
@@ -536,11 +568,11 @@ const handleExportPDF = async () => {
                 const name = `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ? pdl?.person?.middle_name[0] + '.' : ''} ${pdl?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
             return {
                 "Name": name,
+                "Gender": pdl?.person?.gender?.gender_option,
                 "Dorm": pdl?.cell?.cell_name,
                 "Annex": pdl?.cell?.floor,
                 "Visitation Status": pdl?.visitation_status,
                 "Status": pdl?.status,
-                "Date of Admission": pdl?.date_of_admission
             };
             }) || [];
 
@@ -686,6 +718,11 @@ const handleExportPDF = async () => {
                         setLimit(newPageSize); 
                     },
                 }}
+                onChange={(pagination, filters, sorter) => {
+                        setGenderColumnFilter(filters.gender as string[] || []);
+                        setstatusColumnFilter(filters.status as string[] || []);
+                        setvisitationColumnFilter(filters.status as string[] || []);
+                    }}
                 rowKey="id"
             />
             <Modal open={isEditModalOpen} onCancel={() => setIsEditModalOpen(false)} onOk={() => form.submit()} width="40%" confirmLoading={isUpdating} style={{ overflowY: "auto" }} >
