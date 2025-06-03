@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import bjmp from "@/assets/Logo/QCJMD.png";
 
 // Extend jsPDF type to include autoTable
 declare module "jspdf" {
@@ -27,8 +28,9 @@ interface PDFGeneratorOptions {
   showPageNumbers?: boolean;
   customHeaderColor?: string;
   customTextColor?: string;
-  preview?: boolean; // New option to control preview vs download
-  modalPreview?: boolean; // New option for modal preview
+  preview?: boolean;
+  modalPreview?: boolean;
+  preparedBy?: string;
 }
 
 interface PDFResult {
@@ -46,12 +48,12 @@ export function generatePDFReport({
   data,
   filename = "report.pdf",
   orientation = "portrait",
-  showDate = true,
   showPageNumbers = true,
   customHeaderColor = "#1E365D",
   customTextColor = "#000000",
-  preview = true, // Default to preview mode
-  modalPreview = false, // Default to new tab preview
+  preview = true,
+  modalPreview = false,
+  preparedBy = "",
 }: PDFGeneratorOptions): PDFResult {
   try {
     // Create new PDF document
@@ -64,33 +66,58 @@ export function generatePDFReport({
     // Get page dimensions
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 20;
+    const margin = 8;
+
+    const imageWidth = 30;
+    const imageHeight = 30;
+    const imageX = pageWidth - imageWidth - margin;
+    const imageY = 12;
 
     // Add title
-    doc.setFontSize(20);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(customTextColor);
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor("#0066cc");
 
     // Center the title
-    const titleWidth = doc.getTextWidth(title);
-    const titleX = (pageWidth - titleWidth) / 2;
-    doc.text(title, titleX, 30);
+    // const titleWidth = doc.getTextWidth(title);
+    // const titleX = (pageWidth - titleWidth) / 2;
+    doc.text(`${title} Report`, 8, 15);
+
+    // Static Header
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor("#000");
+    doc.text(
+      `Organization Name: Bureau of Jail Management and Penology`,
+      8,
+      25
+    );
+
+    const dateToday = new Date();
+    const formattedDate = dateToday.toISOString().split("T")[0];
+
+    doc.text(`Report Date: ${formattedDate}`, 8, 30);
+    doc.text(`Prepared By: ${preparedBy}`, 8, 35);
+    doc.text(`Department/ Unit: IT`, 8, 40);
+    doc.text(`Report Reference No.: TAL-${formattedDate}-XXX`, 8, 45);
+
+    doc.addImage(bjmp, "PNG", imageX, imageY, imageWidth, imageHeight);
 
     // Add date if enabled
-    let currentY = 45;
-    if (showDate) {
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      const currentDate = new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      doc.text(`Generated on: ${currentDate}`, margin, currentY);
-      currentY += 15;
-    }
+    const currentY = 45;
+    // if (showDate) {
+    //   doc.setFontSize(10);
+    //   doc.setFont("helvetica", "normal");
+    //   const currentDate = new Date().toLocaleDateString("en-US", {
+    //     year: "numeric",
+    //     month: "long",
+    //     day: "numeric",
+    //     hour: "2-digit",
+    //     minute: "2-digit",
+    //   });
+    //   doc.text(`Generated on: ${currentDate}`, margin, currentY);
+    //   currentY += 15;
+    // }
 
     // Prepare table columns
     const columns = headers.map((header) => ({
@@ -109,7 +136,7 @@ export function generatePDFReport({
 
     // Add table using autoTable plugin
     doc.autoTable({
-      startY: currentY,
+      startY: currentY + 10,
       head: [columns.map((col) => col.header)],
       body: tableData.map((row) =>
         columns.map((col) => String(row[col.dataKey] || ""))
@@ -156,19 +183,39 @@ export function generatePDFReport({
         }
 
         // Add footer line
-        doc.setDrawColor("#E0E0E0");
-        doc.setLineWidth(0.5);
-        doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
+        // doc.setDrawColor("#E0E0E0");
+        // doc.setLineWidth(0.5);
+        // doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
       },
     });
 
     // Add summary information
     const finalY = doc.lastAutoTable?.finalY || currentY + 50;
 
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
+    // Calculate footer height (adjust if you add/remove lines)
+    const footerHeight = 24; // 4 lines * 6mm spacing
+
+    // Calculate Y position for footer
+    let footerY = pageHeight - margin - footerHeight;
+
+    // If table ends too close to the footer, add a new page
+    if (finalY + 10 > footerY) {
+      doc.addPage();
+      footerY = pageHeight - margin - footerHeight;
+    }
+
+    //Footer
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
     doc.setTextColor(customTextColor);
-    doc.text(`Total Records: ${data.length}`, margin, finalY + 15);
+    doc.text(`Document Version 1.0`, margin, footerY + 10);
+    doc.text(`Confidentiality Level: Internal use only`, margin, footerY + 13);
+    doc.text(`Contact Info: `, margin, footerY + 16);
+    doc.text(
+      `Timestamp of Last Update: ${dateToday.toISOString()}`,
+      margin,
+      footerY + 19
+    );
 
     // Handle preview vs download
     if (preview) {
@@ -225,6 +272,7 @@ export function generatePDFReport({
   }
 }
 
+//OLD but...
 // Helper function to explicitly download the PDF (can be called separately)
 export function downloadPDF(pdfBlob: Blob, filename: string): void {
   const link = document.createElement("a");
