@@ -3,7 +3,7 @@ import { useTokenStore } from "@/store/useTokenStore"
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { message, Table, Modal, Button, Image, Menu, Dropdown } from "antd"
 import Fuse from "fuse.js";
-import { Key, useEffect, useState } from "react"
+import { Key, useEffect, useMemo, useState } from "react"
 import { ColumnsType } from "antd/es/table"
 import { VisitorRecord } from "@/lib/definitions"
 import { calculateAge } from "@/functions/calculateAge"
@@ -27,7 +27,7 @@ import dayjs from "dayjs";
 
 type VisitorResponse = VisitorRecord;
 
-const Visitor = ({ visitor_log, visitHistory }: { visitor_log: any, visitHistory: any[] }) => {
+const Visitor = () => {
     const [searchText, setSearchText] = useState("");
 
     const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -41,13 +41,12 @@ const Visitor = ({ visitor_log, visitHistory }: { visitor_log: any, visitHistory
     const [isLoading, setIsLoading] = useState(false);
     const [selectEditVisitor, setEditSelectedVisitor] = useState<VisitorResponse | null>(null);
     const [visitorVisits, setVisitorVisits] = useState(selectedVisitor?.main_gate_visits || []);
-    const [showAllVisits, setShowAllVisits] = useState(false);
+    // const [showAllVisits, setShowAllVisits] = useState(false);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const navigate = useNavigate();
     const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(10);
-    const [allVisitor, setAllVisitor] = useState<VisitorRecord[]>([]);
+    const [limit, setLimit] = useState(10);    
 
     const fetchVisitors = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/visitors/visitor/?search=${search}`, {
@@ -61,12 +60,51 @@ const Visitor = ({ visitor_log, visitHistory }: { visitor_log: any, visitHistory
         return res.json();
     };
 
+    const { data: visitHistoryData, isLoading: isLoadingVisitHistory, isError } = useQuery({
+    queryKey: ["visit-history", selectedVisitor?.id],
+    queryFn: async () => {
+        const res = await fetch(
+        `${BASE_URL}/api/visit-logs/main-gate-visits/`,
+        {
+            headers: {
+            Authorization: `Token ${token}`,
+            "Content-Type": "application/json",
+            },
+        }
+        );
+        if (!res.ok) throw new Error("Failed to fetch visit history");
+        return res.json();
+    },
+    enabled: !!selectedVisitor?.id,
+    });
+
+    const transformedVisitHistory = useMemo(() => {
+    if (!visitHistoryData?.results || !selectedVisitor) return [];
+
+    const fullName = `${selectedVisitor.person.first_name} ${selectedVisitor.person.last_name}`;
+
+    return visitHistoryData.results
+        .filter((visit) => visit.person === fullName)
+        .flatMap((visit) =>
+        (visit.tracking_logs || []).map((log) => ({
+            timestamp_in: log.timestamp_in,
+            timestamp_out: log.timestamp_out,
+            isCurrent: visit.status === "In" && !log.timestamp_out,
+            duration: visit.duration,
+        }))
+        );
+    }, [visitHistoryData, selectedVisitor]);
+
 
     useEffect(() => {
         if (selectedVisitor?.main_gate_visits) {
             setVisitorVisits(selectedVisitor.main_gate_visits);
         }
     }, [selectedVisitor]);
+
+    useEffect(() => {
+        setVisitorVisits([]);
+        }, [selectedVisitor?.id]);
 
     useEffect(() => {
         const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
@@ -81,7 +119,7 @@ const Visitor = ({ visitor_log, visitHistory }: { visitor_log: any, visitHistory
     });
 
     const { data, isFetching } = useQuery({
-        queryKey: ['visitors', 'visitor-table', page],
+        queryKey: ['visitors', 'visitor-table', page, limit],
         queryFn: async (): Promise<PaginatedResponse<NewVisitorType>> => {
             // Add offset parameter for Django REST Framework's pagination
             const offset = (page - 1) * limit;
@@ -121,19 +159,6 @@ const Visitor = ({ visitor_log, visitHistory }: { visitor_log: any, visitHistory
         },
     });
 
-    const visitor = visitor_log?.visitor;
-
-    const visitHistoryForVisitor = visitHistory?.filter(log => log?.person === visitor_log?.person)
-
-    const sortedVisitHistory = visitHistoryForVisitor
-        ?.slice() // create a shallow copy
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .slice(0, 3);
-
-
-    const displayedVisitHistory = sortedVisitHistory || [];
-
-
     const leftSideImage = selectedVisitor?.person?.media?.find(
         (m: any) => m.picture_view === "Left"
     );
@@ -164,43 +189,43 @@ const Visitor = ({ visitor_log, visitHistory }: { visitor_log: any, visitHistory
         (m: any) => m.name?.toLowerCase() === "cohabitation"
     );
 
-const [searchParams] = useSearchParams();
-const gender = searchParams.get("gender") || "all";
-const genderList = gender !== "all" ? gender.split(",").map(decodeURIComponent) : [];
+    const [searchParams] = useSearchParams();
+    const gender = searchParams.get("gender") || "all";
+    const genderList = gender !== "all" ? gender.split(",").map(decodeURIComponent) : [];
 
-const { data: visitorGenderData, isLoading: visitorsByGenderLoading } = useQuery({
-    queryKey: ["visitors", 'visitor-table', page, genderList],
-    queryFn: async (): Promise<PaginatedResponse<NewVisitorType>> => {
-        const offset = (page - 1) * limit;
-        const res = await fetch(
-            `${BASE_URL}/api/visitors/visitor/?gender=${encodeURIComponent(genderList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Token ${token}`,
-                },
+    const { data: visitorGenderData, isLoading: visitorsByGenderLoading } = useQuery({
+        queryKey: ["visitors", 'visitor-table', page, genderList],
+        queryFn: async (): Promise<PaginatedResponse<NewVisitorType>> => {
+            const offset = (page - 1) * limit;
+            const res = await fetch(
+                `${BASE_URL}/api/visitors/visitor/?gender=${encodeURIComponent(genderList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch Visitors data.');
             }
-        );
 
-        if (!res.ok) {
-            throw new Error('Failed to fetch Visitors data.');
-        }
+            return res.json();
+        },
+        enabled: !!token,
+    });
 
-        return res.json();
-    },
-    enabled: !!token,
-});
+    const genderFilteredVisitorIds = new Set(
+        (visitorGenderData?.results || []).map(visitor => visitor.id)
+    );
 
-const genderFilteredVisitorIds = new Set(
-    (visitorGenderData?.results || []).map(visitor => visitor.id)
-);
-
-const visitorTypeFilters = Array.from(
-  new Set((data?.results || []).map(item => item.visitor_type).filter(Boolean))
-).map(type => ({
-  text: type,
-  value: type,
-}));
+    const visitorTypeFilters = Array.from(
+    new Set((data?.results || []).map(item => item.visitor_type).filter(Boolean))
+    ).map(type => ({
+    text: type,
+    value: type,
+    }));
 
     const dataSource = (data?.results || []).filter(visitor =>
         gender === "all" ? true : genderFilteredVisitorIds.has(visitor.id)
@@ -229,15 +254,15 @@ const visitorTypeFilters = Array.from(
     });
 
 
-const filteredData = dataSource.filter(visitor => {
-  const matchesSearch = Object.values(visitor).some(value =>
-    String(value).toLowerCase().includes(searchText.toLowerCase())
-  );
-  const matchesGender = gender === "all" || genderList.length === 0
-    ? true
-    : genderList.includes(visitor.gender);
-  return matchesSearch && matchesGender;
-});
+    const filteredData = dataSource.filter(visitor => {
+    const matchesSearch = Object.values(visitor).some(value =>
+        String(value).toLowerCase().includes(searchText.toLowerCase())
+    );
+    const matchesGender = gender === "all" || genderList.length === 0
+        ? true
+        : genderList.includes(visitor.gender);
+    return matchesSearch && matchesGender;
+    });
 
 
 
@@ -732,7 +757,7 @@ const handleDownloadPDF = async () => {
                                 <GoDownload /> Export
                             </a>
                         </Dropdown>
-                       <button 
+                        <button 
                             className={`bg-[#1E365D] py-1 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
                             onClick={handleExportPDF} 
                             disabled={isLoading}
@@ -850,66 +875,73 @@ const handleDownloadPDF = async () => {
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="border h-fit border-[#EAEAEC] rounded-xl py-2 px-3 overflow-hidden">
+                                            <div className="border h-fit border-[#EAEAEC] rounded-xl py-2 px-3 overflow-hidden">
                                             <p className="text-[#404958] text-sm">Visitor History</p>
                                             <div className="overflow-y-auto h-full">
-                                                <div>
-                                                    <table className="w-full border-collapse overflow-x-auto">
-                                                        <thead>
-                                                            <tr>
-                                                                <th className="rounded-l-lg bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Date</th>
-                                                                <th className="bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Duration</th>
-                                                                <th className="bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Login</th>
-                                                                <th className="rounded-r-lg bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Logout</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {displayedVisitHistory && displayedVisitHistory.length > 0 ? (
-                                                                displayedVisitHistory.map((visit, index) => {
-                                                                    const login = new Date(visit.timestamp_in);
-                                                                    const logout = visit.timestamp_out ? new Date(visit.timestamp_out) : null;
-                                                                    const duration_in_sec = visit?.duration ? visit?.duration : 0;
-                                                                    let durationDisplay = "...";
-                                                                    if (visit.timestamp_out) {
-                                                                        const minutes = Math.floor(duration_in_sec / 60);
-                                                                        const hours = Math.floor(minutes / 60);
-                                                                        if (duration_in_sec < 60) {
-                                                                            durationDisplay = `${duration_in_sec?.toFixed(0)}s`;
-                                                                        } else if (minutes < 60) {
-                                                                            durationDisplay = `${minutes}m`;
-                                                                        } else {
-                                                                            durationDisplay = `${hours}h ${minutes % 60}m`;
-                                                                        }
-                                                                    }
-                                                                    return (
-                                                                        <tr key={index}>
-                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                                                {dayjs(login).format("YYYY-MM-DD")}
-                                                                            </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                                                {!visit.timestamp_out ? "..." : durationDisplay}
-                                                                            </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                                                {login.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                                                                            </td>
-                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                                                {visit.isCurrent ? <span className="text-green-600 font-semibold">...</span> : (logout
-                                                                                    ? logout.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                                                                                    : "-")}
-                                                                            </td>
-                                                                        </tr>
-                                                                    );
-                                                                })
+                                                <table className="w-full border-collapse overflow-x-auto">
+                                                <thead>
+                                                    <tr>
+                                                    <th className="rounded-l-lg bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Date</th>
+                                                    <th className="bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Duration</th>
+                                                    <th className="bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Login</th>
+                                                    <th className="rounded-r-lg bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Logout</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {isLoadingVisitHistory ? (
+                                                    <tr>
+                                                        <td colSpan={4} className="text-center text-xs py-2">Loading...</td>
+                                                    </tr>
+                                                    ) : isError || transformedVisitHistory.length === 0 ? (
+                                                    <tr>
+                                                        <td colSpan={4} className="text-center text-xs py-2">No visit history found.</td>
+                                                    </tr>
+                                                    ) : (
+                                                    transformedVisitHistory.map((visit, index) => {
+                                                        const login = new Date(visit.timestamp_in);
+                                                        const logout = visit.timestamp_out ? new Date(visit.timestamp_out) : null;
+                                                        const durationSec = visit?.duration || 0;
+
+                                                        let durationDisplay = "...";
+                                                        if (visit.timestamp_out) {
+                                                        const minutes = Math.floor(durationSec / 60);
+                                                        const hours = Math.floor(minutes / 60);
+                                                        durationDisplay =
+                                                            durationSec < 60
+                                                            ? `${durationSec.toFixed(0)}s`
+                                                            : minutes < 60
+                                                            ? `${minutes}m`
+                                                            : `${hours}h ${minutes % 60}m`;
+                                                        }
+
+                                                        return (
+                                                        <tr key={index}>
+                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                            {dayjs(login).format("YYYY-MM-DD")}
+                                                            </td>
+                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                            {!visit.timestamp_out ? "..." : durationDisplay}
+                                                            </td>
+                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                            {login.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                                                            </td>
+                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                            {visit.isCurrent ? (
+                                                                <span className="text-green-600 font-semibold">...</span>
+                                                            ) : logout ? (
+                                                                logout.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
                                                             ) : (
-                                                                <tr>
-                                                                    <td colSpan={4} className="text-center text-xs py-2">No visit history found.</td>
-                                                                </tr>
+                                                                "-"
                                                             )}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        );
+                                                    })
+                                                    )}
+                                                </tbody>
+                                                </table>
                                             </div>
-                                        </div>
+                                            </div>
                                     </div>
                                     <div className="space-y-3">
                                         <div className="border border-[#EAEAEC] rounded-xl p-2 pb-2 w-full">
