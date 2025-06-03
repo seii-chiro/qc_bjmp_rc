@@ -9,7 +9,6 @@ import { CSVLink } from "react-csv";
 import { GoDownload } from "react-icons/go";
 import * as XLSX from "xlsx";
 import { useUserStore } from "@/store/useUserStore";
-import { file } from "jszip";
 
 const VisitLog = () => {
   const user = useUserStore(state => state.user)
