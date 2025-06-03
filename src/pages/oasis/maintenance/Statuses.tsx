@@ -101,6 +101,21 @@ const Statuses = () => {
     setSearchText("")
   }
 
+  const generateFilters = <T, K extends keyof T>(data: T[], key: K): { text: string; value: string }[] => {
+    const uniqueValues = Array.from(
+      new Set(
+        data
+          .map(item => item[key])
+          .filter(v => typeof v === "string" && v.trim() !== "")
+      )
+    );
+
+    return uniqueValues.map(value => ({
+      text: value as string,
+      value: value as string,
+    }));
+  };
+
   const columns: ColumnsType<StatusDataSourceRecord> = [
     {
       title: 'No.',
@@ -111,21 +126,29 @@ const Statuses = () => {
       title: 'Code',
       dataIndex: 'code',
       key: 'code',
+      sorter: (a, b) => (a.code || '').toLowerCase().localeCompare((b.code || '').toLowerCase()),
     },
     {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
+      sorter: (a, b) => (a.description || '').toLowerCase().localeCompare((b.description || '').toLowerCase()),
     },
     {
       title: 'Created by',
       dataIndex: 'createdBy',
       key: 'createdBy',
+      sorter: (a, b) => (a.createdBy || '').toLowerCase().localeCompare((b.createdBy || '').toLowerCase()),
+      filters: generateFilters(dataSource || [], 'createdBy'),
+      onFilter: (value, record) => record.createdBy === value,
     },
     {
       title: 'Updated by',
       dataIndex: 'updatedBy',
       key: 'updatedBy',
+      sorter: (a, b) => (a.updatedBy || '').toLowerCase().localeCompare((b.updatedBy || '').toLowerCase()),
+      filters: generateFilters(dataSource || [], 'updatedBy'),
+      onFilter: (value, record) => record.updatedBy === value,
     },
     {
       align: 'center',

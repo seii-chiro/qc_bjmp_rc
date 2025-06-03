@@ -2,14 +2,16 @@
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
-import { Input, Button, Table, Menu, Dropdown } from "antd";
+import { Input, Button, Table, Menu, Dropdown, Modal } from "antd";
 import { useEffect, useState } from "react";
 import { generateLogReport } from "../generateLogReport";
 import { CSVLink } from "react-csv";
 import { GoDownload } from "react-icons/go";
 import * as XLSX from "xlsx";
+import { useUserStore } from "@/store/useUserStore";
 
 const VisitLog = () => {
+  const user = useUserStore(state => state.user)
   const [searchText, setSearchText] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [view, setView] = useState<"Main Gate" | "Visitor" | "PDL">(
@@ -20,6 +22,10 @@ const VisitLog = () => {
   const [mainGatePage, setMainGatePage] = useState(1);
   const [visitorPage, setVisitorPage] = useState(1);
   const [pdlPage, setPDLPage] = useState(1);
+
+  const [pdfPreview, setPdfPreview] = useState<string | null>(null)
+  const [isPdfPreviewModalOpen, setIsPdfPreviewModalOpen] = useState(false)
+
   const limit = 10;
 
   useEffect(() => {
@@ -316,7 +322,6 @@ const VisitLog = () => {
     );
 
   const headers = columns?.filter(item => item?.title !== "")?.map(item => item?.title)
-  console.log(headers)
 
   const handleGeneratePdfReport = () => {
     const rows = dataSource.map(item =>
@@ -326,7 +331,18 @@ const VisitLog = () => {
       })
     );
 
-    generateLogReport({ headers, rows });
+    const preparedBy = user?.first_name && user?.last_name ? `${user?.first_name} ${user?.last_name}` : user?.email
+    const fileName = `${view} Station Log Report`
+    const title = fileName
+
+    const blobURL = generateLogReport({
+      headers,
+      rows,
+      preparedBy,
+      fileName,
+      title
+    });
+    setPdfPreview(blobURL)
   };
 
   const handleExportExcel = () => {
@@ -335,6 +351,17 @@ const VisitLog = () => {
     XLSX.utils.book_append_sheet(wb, ws, `${view}LogReport`);
     XLSX.writeFile(wb, `${view} Log Report.xlsx`);
   };
+
+  const handleOpenPdfPreviewModal = () => {
+    handleGeneratePdfReport()
+    setIsPdfPreviewModalOpen(true)
+  }
+
+  const handleClosePdfPreviewModal = () => {
+    setPdfPreview(null)
+    setIsPdfPreviewModalOpen(false)
+  }
+
 
   const menu = (
     <Menu>
@@ -350,79 +377,101 @@ const VisitLog = () => {
   );
 
   return (
-    <div className="p-4 h-full flex flex-col">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
-        <div>
-          <h1 className="text-3xl font-bold text-[#1E365D]">
-            {view === "Main Gate"
-              ? "Main Gate Visitor Logs"
-              : view === "Visitor"
-                ? "Visitor Logs"
-                : "PDL Logs"}
-          </h1>
-          <div className="flex gap-2 mt-10">
-            <Button
-              type={view === "Main Gate" ? "primary" : "default"}
-              onClick={() => setView("Main Gate")}
-            >
-              Main Gate Logs
-            </Button>
-            <Button
-              type={view === "Visitor" ? "primary" : "default"}
-              onClick={() => setView("Visitor")}
-            >
-              Visitor Logs
-            </Button>
-            <Button
-              type={view === "PDL" ? "primary" : "default"}
-              onClick={() => setView("PDL")}
-            >
-              PDL Logs
-            </Button>
+    <>
+      <Modal
+        title={`${view} Station Logs`}
+        centered
+        width={"60%"}
+        open={isPdfPreviewModalOpen}
+        onCancel={handleClosePdfPreviewModal}
+        onClose={handleClosePdfPreviewModal}
+      >
+        {pdfPreview && (
+          <iframe
+            className="mt-5"
+            src={pdfPreview}
+            style={{ width: "100%", height: "80vh", border: "none" }}
+            title="PDF Preview"
+          />
+        )}
+      </Modal>
+      <div className="p-4 h-full flex flex-col">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-[#1E365D]">
+              {view === "Main Gate"
+                ? "Main Gate Visitor Logs"
+                : view === "Visitor"
+                  ? "Visitor Logs"
+                  : "PDL Logs"}
+            </h1>
+            <div className="flex gap-2 mt-4">
+              <Button
+                type={view === "Main Gate" ? "primary" : "default"}
+                onClick={() => setView("Main Gate")}
+              >
+                Main Gate Logs
+              </Button>
+              <Button
+                type={view === "Visitor" ? "primary" : "default"}
+                onClick={() => setView("Visitor")}
+              >
+                Visitor Logs
+              </Button>
+              <Button
+                type={view === "PDL" ? "primary" : "default"}
+                onClick={() => setView("PDL")}
+              >
+                PDL Logs
+              </Button>
+            </div>
           </div>
         </div>
-        <Input
-          placeholder="Search logs..."
-          value={searchText}
-          onChange={(e) => {
-            setSearchText(e.target.value);
-            if (view === "Main Gate") setMainGatePage(1);
-            if (view === "Visitor") setVisitorPage(1);
-            if (view === "PDL") setPDLPage(1);
-          }}
-          className="py-2 w-full md:w-64"
-        />
+        <div className="flex w-full justify-between">
+          <div className="flex gap-2">
+            <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
+              <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
+                <GoDownload /> Export
+              </a>
+            </Dropdown>
+            <button
+              className="bg-[#1E365D] py-2 px-5 rounded-md text-white"
+              onClick={handleOpenPdfPreviewModal}
+            >
+              Print Report
+            </button>
+          </div>
+
+          <Input
+            placeholder="Search logs..."
+            value={searchText}
+            onChange={(e) => {
+              setSearchText(e.target.value);
+              if (view === "Main Gate") setMainGatePage(1);
+              if (view === "Visitor") setVisitorPage(1);
+              if (view === "PDL") setPDLPage(1);
+            }}
+            className="py-2 w-full md:w-64"
+          />
+        </div>
+        <div className="overflow-y-auto mt-5" style={{ maxHeight: "90vh" }}>
+          <Table
+            loading={tableIsLoading}
+            columns={columns}
+            dataSource={dataSource}
+            scroll={{ x: 800, y: "calc(100vh - 200px)" }}
+            pagination={{
+              current: page,
+              pageSize: limit,
+              total: activeData?.count || 0,
+              onChange: (newPage) => setPage(newPage),
+              showSizeChanger: false,
+            }}
+            rowKey="key"
+          />
+        </div>
       </div>
-      <div className="flex gap-2">
-        <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-          <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
-            <GoDownload /> Export
-          </a>
-        </Dropdown>
-        <button
-          className="bg-[#1E365D] py-2 px-5 rounded-md text-white"
-          onClick={handleGeneratePdfReport}
-        >
-          Print Report
-        </button>
-      </div>
-      <div className="overflow-y-auto" style={{ maxHeight: "90vh" }}>
-        <Table
-          loading={tableIsLoading}
-          columns={columns}
-          dataSource={dataSource}
-          scroll={{ x: 800, y: "calc(100vh - 200px)" }}
-          pagination={{
-            current: page,
-            pageSize: limit,
-            total: activeData?.count || 0,
-            onChange: (newPage) => setPage(newPage),
-            showSizeChanger: false,
-          }}
-          rowKey="key"
-        />
-      </div>
-    </div>
+    </>
   );
 };
 

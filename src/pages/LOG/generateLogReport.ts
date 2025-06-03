@@ -1,28 +1,54 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import bjmp from "@/assets/Logo/QCJMD.png";
 
 interface PDFOptions {
   headers: string[];
   rows: (string | number)[][];
   title?: string;
   fileName?: string;
-  columnWidths?: number[]; // Optional custom column widths
+  columnWidths?: number[];
+  preparedBy?: string;
 }
 
 export const generateLogReport = ({
   headers,
   rows,
   title,
-  fileName = "report.pdf",
   columnWidths,
+  preparedBy,
 }: PDFOptions) => {
   // Use landscape orientation for better column spacing
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 8;
+
+  const imageWidth = 30;
+  const imageHeight = 30;
+  const imageX = pageWidth - imageWidth - margin;
+  const imageY = 12;
 
   if (title) {
     doc.setFontSize(16);
-    doc.text(title, 14, 15);
+    doc.text(title, 8, 15);
   }
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor("#000");
+  doc.text(`Organization Name: Bureau of Jail Management and Penology`, 8, 25);
+
+  const dateToday = new Date();
+  const formattedDate = dateToday.toISOString().split("T")[0];
+
+  doc.text(`Report Date: ${formattedDate}`, 8, 30);
+  doc.text(`Prepared By: ${preparedBy}`, 8, 35);
+  doc.text(`Department/ Unit: IT`, 8, 40);
+  doc.text(`Report Reference No.: TAL-${formattedDate}-XXX`, 8, 45);
+
+  doc.addImage(bjmp, "PNG", imageX, imageY, imageWidth, imageHeight);
 
   // Define column configurations
   const columnStyles: { [key: number]: any } = {};
@@ -74,7 +100,7 @@ export const generateLogReport = ({
   autoTable(doc, {
     head: [headers],
     body: rows,
-    startY: title ? 25 : 10,
+    startY: 50,
     styles: {
       fontSize: 7,
       cellPadding: 2,
@@ -89,7 +115,7 @@ export const generateLogReport = ({
       halign: "center",
     },
     columnStyles,
-    margin: { top: 10, right: 14, bottom: 10, left: 14 },
+    margin: { top: 10, right: 10, bottom: 10, left: 10 },
     tableWidth: "auto",
     // Add alternating row colors for better readability
     alternateRowStyles: {
@@ -107,7 +133,53 @@ export const generateLogReport = ({
     },
   });
 
-  doc.save(fileName);
+  const currentY = 45;
+
+  const finalY = doc.lastAutoTable?.finalY || currentY + 50;
+
+  // Calculate footer height (adjust if you add/remove lines)
+  const footerHeight = 24; // 4 lines * 6mm spacing
+
+  // Calculate Y position for footer
+  let footerY = pageHeight - margin - footerHeight;
+
+  // If table ends too close to the footer, add a new page
+  if (finalY + 10 > footerY) {
+    doc.addPage();
+    footerY = pageHeight - margin - footerHeight;
+  }
+
+  //Footer
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Document Version 1.0`, margin, footerY + 10);
+  doc.text(`Confidentiality Level: Internal use only`, margin, footerY + 13);
+  doc.text(`Contact Info: `, margin, footerY + 16);
+  doc.text(
+    `Timestamp of Last Update: ${dateToday.toISOString()}`,
+    margin,
+    footerY + 19
+  );
+
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    const pageStr = `Page ${i} of ${pageCount}`;
+    const textWidth = doc.getTextWidth(pageStr);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      pageStr,
+      pageWidth - margin - textWidth,
+      pageHeight - margin // bottom margin
+    );
+  }
+
+  // This part download the file automatically
+  // doc.save(fileName);
+
+  const pdfBlob = doc.output("blob");
+  return URL.createObjectURL(pdfBlob);
 };
 
 // Enhanced version with automatic column detection
