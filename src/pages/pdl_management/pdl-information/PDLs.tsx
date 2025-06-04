@@ -366,10 +366,8 @@ const handleExportPDF = async () => {
         }));
         lastPrintIndexRef.current = 0;
     } else {
-        // Print MAX_ROWS_PER_PRINT rows starting from lastPrintIndexRef.current from all PDLs
         const allData = await fetchAllPDLs();
         const allResults = allData?.results || [];
-
         printSource = allResults
             .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + MAX_ROWS_PER_PRINT)
             .map((pdl, index) => ({
@@ -423,10 +421,7 @@ const handleExportPDF = async () => {
         doc.text("Department/ Unit: IT", 10, 40);
         doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
     };
-
     addHeader();
-
-    // Prepare tableData based on printSource
     const tableData = printSource.map((item, index) => [
         index + 1,
         item.name,
@@ -436,8 +431,6 @@ const handleExportPDF = async () => {
         item.visitation_status,
         item.status,
     ]);
-
-    // Draw table, paginate with maxRowsPerPage rows per page
     for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
         const pageData = tableData.slice(i, i + maxRowsPerPage);
 
@@ -546,10 +539,14 @@ const handleExportPDF = async () => {
     const menu = (
         <Menu>
             <Menu.Item>
-                <a onClick={handleExportExcel}>Export Excel</a>
+                <a onClick={handleExportExcel} disabled={isLoading}> {/* Disable if loading */}
+                    {isLoading ? <span className="loader"></span> : 'Export Excel'}
+                </a>
             </Menu.Item>
             <Menu.Item>
-                <a onClick={handleExportCSV}>Export CSV</a>
+                <a onClick={handleExportCSV} disabled={isLoading}>
+                    {isLoading ? <span className="loader"></span> : 'Export CSV'}
+                </a>
             </Menu.Item>
         </Menu>
     );
@@ -568,17 +565,18 @@ const handleExportPDF = async () => {
             <div className="flex items-center justify-between my-4">
                 <div className="flex gap-2">
                     <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-                        <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
-                            <GoDownload /> Export
+                        <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
+                            {isLoading ? <span className="loader"></span> : <GoDownload />} {/* Adding loader */}
+                            {isLoading ? ' Loading...' : ' Export'}
                         </a>
                     </Dropdown>
-<button 
-                className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
-                onClick={handleExportPDF} 
-                disabled={isLoading}
-            >
-                {isLoading ? loadingMessage : 'PDF Report'}
-            </button>
+                    <button 
+                        className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                        onClick={handleExportPDF} 
+                        disabled={isLoading}
+                    >
+                        {isLoading ? loadingMessage : 'PDF Report'}
+                    </button>
                 </div>
                 <div className="flex gap-2 items-center">
                     <Input placeholder="Search PDL..." value={searchText} className="py-2 md:w-64 w-full" onChange={(e) => setSearchText(e.target.value)} />
