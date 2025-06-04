@@ -1,7 +1,6 @@
 import Spinner from "@/components/loaders/Spinner";
 import { Visitor as NewVisitorType } from "@/lib/pdl-definitions";
 import { getUser, PaginatedResponse } from "@/lib/queries";
-import { getMainGate } from "@/lib/query";
 import { BASE_URL } from "@/lib/urls";
 import { PersonnelForm } from "@/lib/visitorFormDefinition";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -61,10 +60,22 @@ const ListPersonnel = () => {
         return res.json();
     };
 
-    const { data: mainGateLogs } = useQuery({
-        queryKey: ['main-gate'],
-        queryFn: () => getMainGate(token ?? "")
+const fetchMainGateVisits = async () => {
+    const res = await fetch(`${BASE_URL}/api/visit-logs/main-gate-visits/`, {
+        headers: {
+        Authorization: `Token ${token}`,
+        "Content-Type": "application/json",
+        },
     });
+    if (!res.ok) throw new Error("Failed to fetch main gate visits.");
+    return res.json();
+    };
+
+    const { data: mainGateVisitData } = useQuery({
+    queryKey: ['main-gate-visits'],
+    queryFn: fetchMainGateVisits,
+});
+
 
     const { data: UserData } = useQuery({
         queryKey: ['user'],
@@ -107,28 +118,36 @@ const ListPersonnel = () => {
     };
 
     const dataSource = (data?.results || []).map((visitor, index) => {
-    const inmate_visited = visitor?.pdls?.map(pdl => {
-        const person = pdl?.pdl?.person;
-        return person
+        const fullName = `${visitor?.person?.first_name} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name}`.trim();
+
+        const inmate_visited = visitor?.pdls?.map(pdl => {
+            const person = pdl?.pdl?.person;
+            return person
             ? `${person.first_name} ${person.middle_name ?? ''} ${person.last_name}`.trim()
             : null;
-    }).filter(Boolean).join(', ') || 'No Inmates Available';
+        }).filter(Boolean).join(', ') || '';
 
-    const trackingLog = mainGateLogs?.tracking_logs?.find(log => log.person === visitor.name); 
-    const timestampIn = trackingLog ? new Date(trackingLog.timestamp_in).toLocaleString() : 'No Timestamp Available';
+        // Match using visitor id
+        const matchingVisit = mainGateVisitData?.results?.find(
+            (visit: any) => visit.visitor === visitor.id
+        );
 
-    return {
-        key: index + 1 + (page - 1) * limit,
-        id: visitor?.id,
-        visitor_reg_no: visitor?.visitor_reg_no,
-        name: `${visitor?.person?.first_name} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name}`.trim(),
-        visitor_type: visitor?.visitor_type,
-        gender: visitor?.person?.gender?.gender_option,
-        id_number: visitor?.id_number,
-        inmate_visited,
-        last_visit: timestampIn,
-    };
-}) || [];
+        const timestampIn = matchingVisit?.timestamp_in
+            ? new Date(matchingVisit.timestamp_in).toLocaleString()
+            : 'No Timestamp Available';
+
+        return {
+            key: index + 1 + (page - 1) * limit,
+            id: visitor?.id,
+            visitor_reg_no: visitor?.visitor_reg_no,
+            name: fullName,
+            visitor_type: visitor?.visitor_type,
+            gender: visitor?.person?.gender?.gender_option,
+            id_number: visitor?.id_number,
+            inmate_visited,
+            last_visit: timestampIn,
+        };
+    });
     const columns: ColumnType<PersonnelForm>[] = [
         {
             title: 'No.',
@@ -167,9 +186,9 @@ const ListPersonnel = () => {
         },
         {
             title: 'Last Visit Date & Time',
-            dataIndex: '',
-            key: '',
-        },
+            dataIndex: 'last_visit',
+            key: 'last_visit',
+        }
     ];
 
     const generatePDF = async () => {

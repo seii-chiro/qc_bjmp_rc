@@ -13,6 +13,7 @@ import { LuSearch } from "react-icons/lu";
 import AddJailFacility from "./AddJailFacility";
 import EditJail from "./EditJail";
 import bjmp from '../../../assets/Logo/QCJMD.png'
+import { useLocation } from "react-router-dom";
 
 type Jail = {
     key: number;
@@ -44,6 +45,9 @@ const jailfacility = () => {
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const jailNameParam = searchParams.get("jail_name");
 
     const { data } = useQuery({
         queryKey: ["jail"],
@@ -101,11 +105,18 @@ const jailfacility = () => {
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
-    const filteredData = dataSource?.filter((jail:any) =>
-        Object.values(jail).some((value) =>
-            String(value).toLowerCase().includes(searchText.toLowerCase())
-        )
+const filteredData = dataSource?.filter((jail: any) => {
+    const matchesSearch = Object.values(jail).some((value) =>
+        String(value).toLowerCase().includes(searchText.toLowerCase())
     );
+
+    const matchesJailNameParam = jailNameParam
+        ? jail.jail_name.toLowerCase() === jailNameParam.toLowerCase()
+        : true;
+
+    return matchesSearch && matchesJailNameParam;
+});
+
 
     const columns = [
         {
@@ -119,15 +130,15 @@ const jailfacility = () => {
             dataIndex: "jail_name",
             key: "jail_name",
             sorter: (a, b) => a.jail_name.localeCompare(b.jail_name),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.jail_name))
-                ).map(jail_name => ({
-                    text: jail_name,
-                    value: jail_name,
-                }))
-            ],
-            onFilter: (value, record) => record.jail_name === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.jail_name))
+            //     ).map(jail_name => ({
+            //         text: jail_name,
+            //         value: jail_name,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.jail_name === value,
         },
         {
             title: "Jail Type",
@@ -164,165 +175,165 @@ const jailfacility = () => {
             dataIndex: "email_address",
             key: "email_address",
             sorter: (a, b) => a.email_address.localeCompare(b.email_address),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.email_address))
-                ).map(email_address => ({
-                    text: email_address,
-                    value: email_address,
-                }))
-            ],
-            onFilter: (value, record) => record.email_address === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.email_address))
+            //     ).map(email_address => ({
+            //         text: email_address,
+            //         value: email_address,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.email_address === value,
         },
         {
             title: "Contact Number",
             dataIndex: "contact_number",
             key: "contact_number",
             sorter: (a, b) => a.contact_number.localeCompare(b.contact_number),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.contact_number))
-                ).map(contact_number => ({
-                    text: contact_number,
-                    value: contact_number,
-                }))
-            ],
-            onFilter: (value, record) => record.contact_number === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.contact_number))
+            //     ).map(contact_number => ({
+            //         text: contact_number,
+            //         value: contact_number,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.contact_number === value,
         },
         {
             title: "Province",
             dataIndex: "jail_province",
             key: "jail_province",
             sorter: (a, b) => a.jail_province.localeCompare(b.jail_province),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.jail_province))
-                ).map(jail_province => ({
-                    text: jail_province,
-                    value: jail_province,
-                }))
-            ],
-            onFilter: (value, record) => record.jail_province === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.jail_province))
+            //     ).map(jail_province => ({
+            //         text: jail_province,
+            //         value: jail_province,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.jail_province === value,
         },
         {
             title: "City/Municipality",
             dataIndex: "jail_city_municipality",
             key: "jail_city_municipality",
             sorter: (a, b) => a.jail_city_municipality.localeCompare(b.jail_city_municipality),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.jail_city_municipality))
-                ).map(jail_city_municipality => ({
-                    text: jail_city_municipality,
-                    value: jail_city_municipality,
-                }))
-            ],
-            onFilter: (value, record) => record.jail_city_municipality === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.jail_city_municipality))
+            //     ).map(jail_city_municipality => ({
+            //         text: jail_city_municipality,
+            //         value: jail_city_municipality,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.jail_city_municipality === value,
         },
         {
             title: "Barangay",
             dataIndex: "jail_barangay",
             key: "jail_barangay",
             sorter: (a, b) => a.jail_barangay.localeCompare(b.jail_barangay),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.jail_barangay))
-                ).map(jail_barangay => ({
-                    text: jail_barangay,
-                    value: jail_barangay,
-                }))
-            ],
-            onFilter: (value, record) => record.jail_barangay === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.jail_barangay))
+            //     ).map(jail_barangay => ({
+            //         text: jail_barangay,
+            //         value: jail_barangay,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.jail_barangay === value,
         },
         {
             title: "Region",
             dataIndex: "jail_region",
             key: "jail_region",
             sorter: (a, b) => a.jail_region.localeCompare(b.jail_region),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.jail_region))
-                ).map(jail_region => ({
-                    text: jail_region,
-                    value: jail_region,
-                }))
-            ],
-            onFilter: (value, record) => record.jail_region === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.jail_region))
+            //     ).map(jail_region => ({
+            //         text: jail_region,
+            //         value: jail_region,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.jail_region === value,
         },
         {
             title: "Postal Code",
             dataIndex: "jail_postal_code",
             key: "jail_postal_code",
             sorter: (a, b) => a.jail_postal_code.localeCompare(b.jail_postal_code),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.jail_postal_code))
-                ).map(jail_postal_code => ({
-                    text: jail_postal_code,
-                    value: jail_postal_code,
-                }))
-            ],
-            onFilter: (value, record) => record.jail_postal_code === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.jail_postal_code))
+            //     ).map(jail_postal_code => ({
+            //         text: jail_postal_code,
+            //         value: jail_postal_code,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.jail_postal_code === value,
         },
         {
             title: "Street",
             dataIndex: "jail_street",
             key: "jail_street",
             sorter: (a, b) => a.jail_street.localeCompare(b.jail_street),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.jail_street))
-                ).map(jail_street => ({
-                    text: jail_street,
-                    value: jail_street,
-                }))
-            ],
-            onFilter: (value, record) => record.jail_street === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.jail_street))
+            //     ).map(jail_street => ({
+            //         text: jail_street,
+            //         value: jail_street,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.jail_street === value,
         },
         {
             title: "Security Level",
             dataIndex: "security_level",
             key: "security_level",
             sorter: (a, b) => a.security_level.localeCompare(b.security_level),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.security_level))
-                ).map(security_level => ({
-                    text: security_level,
-                    value: security_level,
-                }))
-            ],
-            onFilter: (value, record) => record.security_level === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.security_level))
+            //     ).map(security_level => ({
+            //         text: security_level,
+            //         value: security_level,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.security_level === value,
         },
         {
             title: "Jail Capacity",
             dataIndex: "jail_capacity",
             key: "jail_capacity",
             sorter: (a, b) => a.jail_capacity.localeCompare(b.jail_capacity),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.jail_capacity))
-                ).map(jail_capacity => ({
-                    text: jail_capacity,
-                    value: jail_capacity,
-                }))
-            ],
-            onFilter: (value, record) => record.jail_capacity === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.jail_capacity))
+            //     ).map(jail_capacity => ({
+            //         text: jail_capacity,
+            //         value: jail_capacity,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.jail_capacity === value,
         },
         {
             title: "Description",
             dataIndex: "jail_description",
             key: "jail_description",
             sorter: (a, b) => a.jail_description.localeCompare(b.jail_description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.jail_description))
-                ).map(jail_description => ({
-                    text: jail_description,
-                    value: jail_description,
-                }))
-            ],
-            onFilter: (value, record) => record.jail_description === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.jail_description))
+            //     ).map(jail_description => ({
+            //         text: jail_description,
+            //         value: jail_description,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.jail_description === value,
         },
         {
             title: "Actions",

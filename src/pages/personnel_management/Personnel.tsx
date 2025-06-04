@@ -17,6 +17,12 @@ const Personnels = () => {
                         <GodotLink link="" title="In / Out" />
                     </div>
                     <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
+                        <Header title="Maintenance" />
+                        <GodotLink link="personnel-designation" title="Personnel Designation" />
+                        <GodotLink link="personnel-application-status" title="Personnel App Status" />
+                        {/* <GodotLink link="" title="Personnel Person Relationship" /> */}
+                        <GodotLink link="personnel-status" title="Personnel Status" />
+                        <GodotLink link="personnel-type" title="Personnel Type" />
                         <GodotLink link="ranks" title="Ranks" />
                         <GodotLink link="positions" title="Positions" />
                         <GodotLink link="employment-type" title="Employment Type" />

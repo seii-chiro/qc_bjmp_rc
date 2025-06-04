@@ -93,30 +93,30 @@ const Nationality = () => {
       dataIndex: "code",
       key: "code",
       sorter: (a, b) => a.code.localeCompare(b.code),
-      filters: [
-        ...Array.from(
-            new Set(filteredData.map(item => item.code))
-        ).map(code => ({
-            text: code,
-            value: code,
-        }))
-    ],
-    onFilter: (value, record) => record.code === value,
+    //   filters: [
+    //     ...Array.from(
+    //         new Set(filteredData.map(item => item.code))
+    //     ).map(code => ({
+    //         text: code,
+    //         value: code,
+    //     }))
+    // ],
+    // onFilter: (value, record) => record.code === value,
     },
     {
       title: "Nationality",
       dataIndex: "nationality",
       key: "nationality",
       sorter: (a, b) => a.nationality.localeCompare(b.nationality),
-      filters: [
-        ...Array.from(
-            new Set(filteredData.map(item => item.nationality))
-        ).map(nationality => ({
-            text: nationality,
-            value: nationality,
-        }))
-    ],
-    onFilter: (value, record) => record.nationality === value,
+    //   filters: [
+    //     ...Array.from(
+    //         new Set(filteredData.map(item => item.nationality))
+    //     ).map(nationality => ({
+    //         text: nationality,
+    //         value: nationality,
+    //     }))
+    // ],
+    // onFilter: (value, record) => record.nationality === value,
     },
     {
       title: "Actions",

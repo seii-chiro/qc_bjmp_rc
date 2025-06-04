@@ -188,6 +188,7 @@ const GangAffiliation = () => {
                 ),
             },
         ];
+        
         const handleExportExcel = () => {
             const ws = XLSX.utils.json_to_sheet(dataSource);
             const wb = XLSX.utils.book_new();

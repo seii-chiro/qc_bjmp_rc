@@ -251,15 +251,6 @@ const Issues = () => {
             key: 'created_at',
             sorter: (a, b) => a.created_at.localeCompare(b.created_at),
             render: (value) => value ? moment(value).format("YYYY-MM-DD hh:mm:ss A") : "",
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.created_at))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.created_at === value,
         },
         {
             title: 'Issue Type',
@@ -296,15 +287,6 @@ const Issues = () => {
             dataIndex: 'categorization_rule',
             key: 'categorization_rule',
             sorter: (a, b) => a.categorization_rule.localeCompare(b.categorization_rule),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.categorization_rule))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.categorization_rule === value,
         },
         {
             title: 'Status',
@@ -326,15 +308,6 @@ const Issues = () => {
             dataIndex: 'description',
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.description))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",

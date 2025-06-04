@@ -92,60 +92,60 @@ const Organization = () => {
             dataIndex: 'org_code',
             key: 'org_code',
             sorter: (a, b) => a.org_code.localeCompare(b.org_code),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.org_code))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.org_code === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.org_code))
+            //     ).map(name => ({
+            //         text: name,
+            //         value: name,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.org_code === value,
         },
         {
             title: 'Organization Name',
             dataIndex: 'org_name',
             key: 'org_name',
             sorter: (a, b) => a.org_name.localeCompare(b.org_name),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.org_name))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.org_name === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.org_name))
+            //     ).map(name => ({
+            //         text: name,
+            //         value: name,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.org_name === value,
         },
         {
             title: 'Organization Type',
             dataIndex: 'org_type',
             key: 'org_type',
             sorter: (a, b) => a.org_type.localeCompare(b.org_type),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.org_type))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.org_type === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.org_type))
+            //     ).map(name => ({
+            //         text: name,
+            //         value: name,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.org_type === value,
         },
         {
             title: 'Organization Level',
             dataIndex: 'org_level',
             key: 'org_level',
             sorter: (a, b) => a.org_level.localeCompare(b.org_level),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.org_level))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.org_level === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.org_level))
+            //     ).map(name => ({
+            //         text: name,
+            //         value: name,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.org_level === value,
         },
         {
             title: "Actions",

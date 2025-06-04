@@ -36,10 +36,9 @@ import { RiShareBoxLine } from "react-icons/ri";
 import { IoMdRefresh } from "react-icons/io";
 import { RxEnterFullScreen } from "react-icons/rx";
 import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 import { Title } from "./components/SummaryCards";
 import { BASE_URL } from "@/lib/urls";
-import { Input, Modal, Select, Skeleton } from "antd";
+import { Button, Input, Modal, Select, Skeleton } from "antd";
 
 const { Option } = Select;
 
@@ -60,15 +59,13 @@ const Dashboard = () => {
     const [dateField, setDateField] = useState('date_convicted');
     const [startYear, setStartYear] = useState(currentYear.toString());
     const [endYear, setEndYear] = useState(currentYear.toString());
-    //     const [filters, setFilters] = useState({
-    // frequency: 'daily',
-    // dateField: 'date_of_admission',
-    // startDate: '',
-    // endDate: '',
-    // startYear: '',
-    // endYear: '',
-    // });
-    // const [appliedFilters, setAppliedFilters] = useState(filters);
+    const [formFrequency, setFormFrequency] = useState(frequency);
+    const [formDateField, setFormDateField] = useState(dateField);
+    const [formStartDate, setFormStartDate] = useState(startDate);
+    const [formEndDate, setFormEndDate] = useState(endDate);
+    const [formStartYear, setFormStartYear] = useState(startYear);
+    const [formEndYear, setFormEndYear] = useState(endYear);
+
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
@@ -178,15 +175,15 @@ const Dashboard = () => {
         ? Object.values(counts).reduce((total, data) => total + (data.pdl_count || 0), 0)
         : summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active ?? 0;
 
-     const handleDateFieldChange = (value) => {
-        setDateField(value);
-        setIsFormChanged(true);
-    };
+    //  const handleDateFieldChange = (value) => {
+    //     setDateField(value);
+    //     setIsFormChanged(true);
+    // };
 
-    const handleYearChange = (setter) => (e) => {
-        setter(e.target.value);
-        setIsFormChanged(true);
-    };
+    // const handleYearChange = (setter) => (e) => {
+    //     setter(e.target.value);
+    //     setIsFormChanged(true);
+    // };
 
     const latestDate = Object.keys(dailysummarydata?.success.daily_visit_summary || {})[0];
     const summary = dailysummarydata?.success.daily_visit_summary[latestDate];
@@ -412,10 +409,10 @@ const Dashboard = () => {
     await new Promise(r => setTimeout(r, 200));
 
     const canvas = await html2canvas(element, {
-      scale: window.devicePixelRatio || 2,
-      useCORS: true,
-      scrollX: -window.scrollX,
-      scrollY: -window.scrollY,
+        scale: window.devicePixelRatio || 2,
+        useCORS: true,
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
     });
 
     // Restore original styles
@@ -458,6 +455,7 @@ const Dashboard = () => {
             </ul>
         );
     };
+    
     const handleReset = () => {
         setTime(new Date().toLocaleTimeString());
         queryClient.clear();
@@ -468,7 +466,7 @@ const Dashboard = () => {
     };
 
     const showModal = () => setVisible(true);
-    const handleOk = () => setVisible(false);
+    // const handleOk = () => setVisible(false);
     const handleCancel = () => setVisible(false);
 
     const isLoading = !summarydata;
@@ -488,16 +486,26 @@ const Dashboard = () => {
         navigate(`/jvms/pdls/pdl?gender=${encodeURIComponent(gender)}`);
     };
 
-const visitorHandleClick = (gender: string) => {
-    if (gender === "Other") {
-        const allGenders = Object.keys(summarydata?.success?.visitor_based_on_gender?.Active || {});
-        const otherGenders = allGenders.filter(g => g !== "Male" && g !== "Female");
-        const encodedGenders = otherGenders.map(g => encodeURIComponent(g)).join(",");
-        navigate(`/jvms/visitors/visitor?gender=${encodedGenders}`);
-    } else {
-        navigate(`/jvms/visitors/visitor?gender=${encodeURIComponent(gender)}`);
-    }
-};
+    const visitorHandleClick = (gender: string) => {
+        const jailName = systemsettingdata?.results?.[0]?.jail_facility?.jail_name || '';
+
+        if (!jailName) {
+            console.warn("No jail name found in system settings.");
+            return;
+        }
+
+        const encodedJail = encodeURIComponent(jailName);
+
+        if (gender === "Other") {
+            const allGenders = Object.keys(summarydata?.success?.visitor_based_on_gender?.Active || {});
+            const otherGenders = allGenders.filter(g => g !== "Male" && g !== "Female");
+            const encodedGenders = otherGenders.map(g => encodeURIComponent(g)).join(",");
+            navigate(`/jvms/visitors/visitor?gender=${encodedGenders}&jail=${encodedJail}`);
+        } else {
+            navigate(`/jvms/visitors/visitor?gender=${encodeURIComponent(gender)}&jail=${encodedJail}`);
+        }
+    };
+
     const personnelHandleClick = (gender: string) => {
         if (gender === "Other") {
         const allGenders = Object.keys(summarydata?.success?.personnel_based_on_gender?.Active || {});
@@ -561,12 +569,18 @@ const visitorHandleClick = (gender: string) => {
                                             count={summarydata?.success?.current_pdl_population?.Active ?? 0}
                                             linkto='/jvms/pdls/pdl'
                                         />
-                                        <Card3
+                                        {/* <Card3
                                             image={rate}
                                             title='Jail Capacity'
                                             count={systemsettingdata?.results[0]?.jail_facility?.jail_capacity ?? 0}
                                             linkto="/jvms/assets/jail-facility"
-                                        />
+                                        /> */}
+                                        <Card3
+                                            image={rate}
+                                            title="Jail Capacity"
+                                            count={systemsettingdata?.results[0]?.jail_facility?.jail_capacity ?? 0}
+                                            linkto={`/jvms/assets/jail-facility?jail_name=${encodeURIComponent(systemsettingdata?.results[0]?.jail_facility?.jail_name)}`}
+                                            />
                                         <Card3
                                             image={release}
                                             title='Congestion Rate'
@@ -1575,114 +1589,161 @@ const visitorHandleClick = (gender: string) => {
                 <RxEnterFullScreen className="text-xl" />
             </button>
             </div>
-            <div>
+                <div>
                 <Modal
-                    title="Filter Options"
+                    title={<h2 className="text-xl font-bold text-gray-800">Filter Summary Data</h2>}
                     visible={visible}
-                    onOk={handleOk}
                     onCancel={handleCancel}
                     footer={null}
-                    width="50%"
+                    width={480}
+                    bodyStyle={{ padding: '24px' }}
                 >
-                    <label className="block text-lg font-semibold mb-2">
-                        Periodical:
-                        <Select 
-                            value={frequency} 
-                            onChange={value => {
-                                setFrequency(value);
-                                setIsFormChanged(true);
-                                fetchPDLSummary(); 
-                            }} 
-                            className="w-full h-10 mt-1"
-                        >
-                            <Option value="daily">Daily</Option>
-                            <Option value="weekly">Weekly</Option>
-                            <Option value="monthly">Monthly</Option>
-                            <Option value="quarterly">Quarterly</Option>
-                        </Select>
-                    </label>
+                    <p className="mb-6 text-gray-600">
+                    Use the filters below to customize the summary data display. 
+                    Click <strong>Apply Filters</strong> when you’re ready.
+                    </p>
 
-                    <label className="block text-lg font-semibold mb-2">
-                        Date Field:
-                        <Select 
-                            value={dateField} 
-                            onChange={handleDateFieldChange} 
-                            className="w-full h-10 mt-1"
-                        >
-                            <Option value="date_convicted">Date Convicted</Option>
-                            <Option value="date_hospitalized">Date Hospitalized</Option>
-                            <Option value="date_of_admission">Date of Admission</Option>
-                            <Option value="date_released">Date Released</Option>
-                        </Select>
+                    {/* Frequency */}
+                    <div className="mb-6">
+                    <label className="block mb-2 font-semibold text-gray-700">
+                        Periodical
                     </label>
+                    <Select
+                        value={formFrequency}
+                        onChange={value => setFormFrequency(value)}
+                        className="w-full"
+                        size="large"
+                        bordered
+                    >
+                        <Option value="daily">Daily</Option>
+                        <Option value="weekly">Weekly</Option>
+                        <Option value="monthly">Monthly</Option>
+                        <Option value="quarterly">Quarterly</Option>
+                    </Select>
+                    </div>
 
-                    {frequency === 'quarterly' ? (
-                        <>
-                            <label className="block mb-2">
-                                Start Year:
-                                <Input 
-                                    type="number" 
-                                    min="2000" 
-                                    max="2100" 
-                                    value={startYear} 
-                                    onChange={handleYearChange(setStartYear)} 
-                                    className="w-full h-10 mt-1 border border-gray-300 rounded"
-                                />
-                            </label>
-                            <label className="block mb-2">
-                                End Year:
-                                <Input 
-                                    type="number" 
-                                    min="2000" 
-                                    max="2100" 
-                                    value={endYear} 
-                                    onChange={handleYearChange(setEndYear)} 
-                                    className="w-full h-10 mt-1 border border-gray-300 rounded"
-                                />
-                            </label>
-                        </>
+                    {/* Date Field */}
+                    <div className="mb-6">
+                    <label className="block mb-2 font-semibold text-gray-700">
+                        Date Field
+                    </label>
+                    <Select
+                        value={formDateField}
+                        onChange={value => setFormDateField(value)}
+                        className="w-full"
+                        size="large"
+                        bordered
+                    >
+                        <Option value="date_convicted">Date Convicted</Option>
+                        <Option value="date_hospitalized">Date Hospitalized</Option>
+                        <Option value="date_of_admission">Date of Admission</Option>
+                        <Option value="date_released">Date Released</Option>
+                    </Select>
+                    </div>
+
+                    {/* Date Inputs */}
+                    {formFrequency === 'quarterly' ? (
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                        <label className="block mb-2 font-semibold text-gray-700">
+                            Start Year
+                        </label>
+                        <Input
+                            type="number"
+                            min={2000}
+                            max={2100}
+                            value={formStartYear}
+                            onChange={e => setFormStartYear(e.target.value)}
+                            size="large"
+                            placeholder="e.g. 2023"
+                            bordered
+                        />
+                        </div>
+
+                        <div>
+                        <label className="block mb-2 font-semibold text-gray-700">
+                            End Year
+                        </label>
+                        <Input
+                            type="number"
+                            min={2000}
+                            max={2100}
+                            value={formEndYear}
+                            onChange={e => setFormEndYear(e.target.value)}
+                            size="large"
+                            placeholder="e.g. 2024"
+                            bordered
+                        />
+                        </div>
+                    </div>
                     ) : (
-                        <>
-                            <label className="block text-lg font-semibold mb-2">Start Date:
-                                <Input
-                                    type="text"
-                                    placeholder={frequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
-                                    value={startDate}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        // Validate the date format
-                                        if (new Date(value) > new Date(endDate)) {
-                                            setStartDate(endDate); // Set to end date if exceeds
-                                        } else {
-                                            setStartDate(value);
-                                        }
-                                        setIsFormChanged(true);
-                                    }}
-                                    className="w-full h-10 mt-1 border border-gray-300 rounded"
-                                />
-                            </label>
-                            <label className="block text-lg font-semibold mb-2">End Date:
-                                <Input
-                                    type="text"
-                                    placeholder={frequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
-                                    value={endDate}
-                                    onChange={(e) => { 
-                                        const value = e.target.value;
-                                        // Validate the date format
-                                        if (new Date(value) < new Date(startDate)) {
-                                            setEndDate(startDate); // Set to start date if exceeds
-                                        } else {
-                                            setEndDate(value);
-                                        }
-                                        setIsFormChanged(true); 
-                                    }}
-                                    className="w-full h-10 mt-1 border border-gray-300 rounded"
-                                />
-                            </label>
-                        </>
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                        <label className="block mb-2 font-semibold text-gray-700">
+                            Start Date
+                        </label>
+                        <Input
+                            type="text"
+                            placeholder={formFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
+                            value={formStartDate}
+                            onChange={e => setFormStartDate(e.target.value)}
+                            size="large"
+                            bordered
+                        />
+                        </div>
+
+                        <div>
+                        <label className="block mb-2 font-semibold text-gray-700">
+                            End Date
+                        </label>
+                        <Input
+                            type="text"
+                            placeholder={formFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
+                            value={formEndDate}
+                            onChange={e => setFormEndDate(e.target.value)}
+                            size="large"
+                            bordered
+                        />
+                        </div>
+                    </div>
                     )}
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-end gap-4">
+                    <Button
+                        size="large"
+                        onClick={() => {
+                        // Reset the form inputs to current filter values
+                        setFormFrequency(frequency);
+                        setFormDateField(dateField);
+                        setFormStartDate(startDate);
+                        setFormEndDate(endDate);
+                        setFormStartYear(startYear);
+                        setFormEndYear(endYear);
+                        setVisible(false);
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="primary"
+                        size="large"
+                        onClick={() => {
+                        setFrequency(formFrequency);
+                        setDateField(formDateField);
+                        setStartDate(formStartDate);
+                        setEndDate(formEndDate);
+                        setStartYear(formStartYear);
+                        setEndYear(formEndYear);
+                        setIsFormChanged(true);
+                        setVisible(false);
+                        }}
+                    >
+                        Apply Filters
+                    </Button>
+                    </div>
                 </Modal>
-            </div>
+                </div>
             </div>
     )
 }

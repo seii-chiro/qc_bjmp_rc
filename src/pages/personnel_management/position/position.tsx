@@ -76,7 +76,7 @@ const Position = () => {
             position_title: position?.position_title ?? 'N/A',
             position_level: position?.position_level ?? 'N/A',
             position_type: position?.position_type ?? 'N/A',
-            rank_required: position?.rank_required ?? 'N/A',
+            // rank_required: position?.rank_required ?? 'N/A',
             organization: position?.organization ?? 'N/A',
             updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
             is_active: position?.is_active ?? 'N/A',
@@ -101,30 +101,30 @@ const Position = () => {
             dataIndex: 'position_code',
             key: 'position_code',
             sorter: (a, b) => a.position_code.localeCompare(b.position_code),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.position_code))
-                ).map(position_code => ({
-                    text: position_code,
-                    value: position_code,
-                }))
-            ],
-            onFilter: (value, record) => record.position_code === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.position_code))
+            //     ).map(position_code => ({
+            //         text: position_code,
+            //         value: position_code,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.position_code === value,
         },
         {
             title: 'Position Title',
             dataIndex: 'position_title',
             key: 'position_title',
             sorter: (a, b) => a.position_title.localeCompare(b.position_title),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.position_title))
-                ).map(position_title => ({
-                    text: position_title,
-                    value: position_title,
-                }))
-            ],
-            onFilter: (value, record) => record.position_title === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.position_title))
+            //     ).map(position_title => ({
+            //         text: position_title,
+            //         value: position_title,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.position_title === value,
         },
         {
             title: 'Position Level',
@@ -156,21 +156,21 @@ const Position = () => {
             ],
             onFilter: (value, record) => record.position_type === value,
         },
-        {
-            title: 'Rank Required',
-            dataIndex: 'rank_required',
-            key: 'rank_required',
-            sorter: (a, b) => a.rank_required - b.rank_required,
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.rank_required))
-                ).map(rank_required => ({
-                    text: rank_required,
-                    value: rank_required,
-                }))
-            ],
-            onFilter: (value, record) => record.rank_required === value,
-        },
+        // {
+        //     title: 'Rank Required',
+        //     dataIndex: 'rank_required',
+        //     key: 'rank_required',
+        //     sorter: (a, b) => a.rank_required - b.rank_required,
+        //     filters: [
+        //         ...Array.from(
+        //             new Set(filteredData.map(item => item.rank_required))
+        //         ).map(rank_required => ({
+        //             text: rank_required,
+        //             value: rank_required,
+        //         }))
+        //     ],
+        //     onFilter: (value, record) => record.rank_required === value,
+        // },
         {
             title: "Actions",
             key: "actions",
@@ -215,7 +215,7 @@ const Position = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 26; 
     
         let startY = headerHeight;
     
@@ -245,10 +245,11 @@ const Position = () => {
         addHeader(); 
     
     const isSearching = searchText.trim().length > 0;
-    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, index) => [
             index + 1,
             item.position_code,
             item.position_title,
+            item.position_level,
             item.position_type,
         ]);
     
@@ -256,7 +257,7 @@ const Position = () => {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
     
             autoTable(doc, { 
-                head: [['No.', 'Position Code', 'Position', 'Position Type']],
+                head: [['No.', 'Code', 'Position', 'Level', 'Position Type']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },

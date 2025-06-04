@@ -290,90 +290,58 @@ const Personnel = () => {
         },
     ];
 
-const lastPrintIndexRef = useRef(0);
 
-const fetchAllPersonnels = async () => {
-    const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
-        headers: {
-            Authorization: `Token ${token}`,
-            "Content-Type": "application/json",
-        },
-    });
-    if (!res.ok) throw new Error("Network error");
-    return await res.json();
-};
+    const fetchAllPersonnels = async () => {
+        const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+        if (!res.ok) throw new Error("Network error");
+        return await res.json();
+    };
 
 const handleExportPDF = async () => {
     setIsLoading(true);
-    setLoadingMessage("Generating PDF... Please wait...");
+    setLoadingMessage("Generating PDF... Please wait.");
 
-    const doc = new jsPDF();
+    const doc = new jsPDF('landscape');
     const headerHeight = 48;
     const footerHeight = 32;
-    const maxRowsPerPage = 25;
-    const maxBatchSize = 800;
+    const maxRowsPerPage = 26;
 
-    let printSource = [];
+    // Fetch all personnel data
+    const allData = await fetchAllPersonnels();
+    const allResults = allData?.results || [];
 
-    const isFiltering = (
-        filteredData.length > 0 ||
-        gender !== "all" ||
-        status !== "all" ||
-        genderFilter.length > 0 ||
-        statusFilter.length > 0 ||
-        rankFilter.length > 0
-        );
+    // Filter data based on the selected gender and status
+    const filteredResults = allResults.filter(personnel => {
+        const matchesGender = gender === "all" || personnel?.person?.gender?.gender_option === gender;
+        const matchesStatus = status === "all" || personnel?.status === status;
+        return matchesGender && matchesStatus;
+    });
 
-    if (isFiltering) {
-        printSource = filteredData.map((personnel, index) => ({
-            key: index + 1,
-            id: personnel?.id,
-            organization: personnel?.organization ?? '',
-            personnel_reg_no: personnel?.personnel_reg_no ?? '',
-            person: personnel?.person,
-            shortname: personnel?.shortname ?? '',
-            rank: personnel?.rank ?? '',
-            status: personnel?.status ?? '',
-            gender: personnel?.gender,
-            date_joined: personnel?.date_joined ?? '',
-            record_status: personnel?.record_status ?? '',
-            updated_by: personnel?.updated_by ?? '',
-        }));
-        lastPrintIndexRef.current = 0;
-    } else {
-        const allData = await fetchAllPersonnels();
-        const allResults = allData?.results || [];
-
-        printSource = allResults
-            .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + maxBatchSize)
-            .map((personnel, index) => ({
-                key: lastPrintIndexRef.current + index + 1,
-                id: personnel?.id,
-                organization: personnel?.organization ?? '',
-                personnel_reg_no: personnel?.personnel_reg_no ?? '',
-                person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
-                shortname: personnel?.shortname ?? '',
-                rank: personnel?.rank ?? '',
-                status: personnel?.status ?? '',
-                gender: personnel?.person?.gender?.gender_option ?? '',
-                date_joined: personnel?.date_joined ?? '',
-                record_status: personnel?.record_status ?? '',
-                updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-            }));
-
-        lastPrintIndexRef.current += maxBatchSize;
-        if (lastPrintIndexRef.current >= allResults.length) {
-            lastPrintIndexRef.current = 0;
-        }
-    }
+    const printSource = filteredResults.map((personnel, index) => ({
+        key: index + 1,
+        id: personnel?.id,
+        organization: personnel?.organization ?? '',
+        personnel_reg_no: personnel?.personnel_reg_no ?? '',
+        person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+        shortname: personnel?.shortname ?? '',
+        rank: personnel?.rank ?? '',
+        status: personnel?.status ?? '',
+        gender: personnel?.person?.gender?.gender_option ?? '',
+        date_joined: personnel?.date_joined ?? '',
+        record_status: personnel?.record_status ?? '',
+        updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+    }));
 
     const organizationName = printSource[0]?.organization || "Bureau of Jail Management and Penology";
-    const PreparedBy = printSource[0]?.updated_by || '';
+    const PreparedBy = printSource[0]?.updated_by || "";
     const today = new Date();
     const formattedDate = today.toISOString().split("T")[0];
     const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-
-    let startY = headerHeight;
 
     const addHeader = () => {
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -383,7 +351,7 @@ const handleExportPDF = async () => {
         const imageX = pageWidth - imageWidth - margin;
         const imageY = 12;
 
-        doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
+        doc.addImage(bjmp, "PNG", imageX, imageY, imageWidth, imageHeight);
         doc.setTextColor(0, 102, 204);
         doc.setFontSize(16);
         doc.text("Personnel Report", 10, 15);
@@ -413,9 +381,9 @@ const handleExportPDF = async () => {
         autoTable(doc, {
             head: [['No.', 'Personnel No.', 'Name', 'Gender', 'Rank', 'Status']],
             body: pageData,
-            startY: startY,
+            startY: headerHeight,
             margin: { top: 0, left: 10, right: 10 },
-            didDrawPage: function () {
+            didDrawPage: function (data) {
                 if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
                     addHeader();
                 }
@@ -424,7 +392,6 @@ const handleExportPDF = async () => {
 
         if (i + maxRowsPerPage < tableData.length) {
             doc.addPage();
-            startY = headerHeight;
         }
     }
 
@@ -435,11 +402,12 @@ const handleExportPDF = async () => {
             "Document Version: Version 1.0",
             "Confidentiality Level: Internal use only",
             "Contact Info: " + PreparedBy,
-            `Timestamp of Last Update: ${formattedDate}`
-        ].join('\n');
+            `Timestamp of Last Update: ${formattedDate}`,
+        ].join("\n");
         const footerX = 10;
         const footerY = doc.internal.pageSize.height - footerHeight + 15;
         const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+
         doc.setFontSize(8);
         doc.text(footerText, footerX, footerY);
         doc.text(`${page} / ${pageCount}`, pageX, footerY);
@@ -459,16 +427,24 @@ const handleExportPDF = async () => {
     const handleExportExcel = async () => {
         const fullDataSource = await fetchAllPersonnels(); 
 
-        const exportData = fullDataSource?.results.map(personnel => {
-            const name = `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim()
+        // Filter data based on gender and status
+        const filteredData = fullDataSource?.results.filter(personnel => {
+            const matchesGender = gender === "all" || personnel?.person?.gender?.gender_option === gender;
+            const matchesStatus = status === "all" || personnel?.status === status;
+            return matchesGender && matchesStatus;
+        }) || [];
+
+        const exportData = filteredData.map((personnel, index) => {
+            const name = `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
             return {
+                "No.": index + 1,
                 "Registration No.": personnel?.personnel_reg_no,
                 "Name": name,
                 "Gender": personnel?.person?.gender?.gender_option,
                 "Rank": personnel?.rank,
                 "Status": personnel?.status,
             };
-        }) || [];
+        });
 
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
@@ -476,37 +452,46 @@ const handleExportPDF = async () => {
         XLSX.writeFile(wb, "Personnel.xlsx");
     };
 
-const handleExportCSV = async () => {
-    try {
-        const fullDataSource = await fetchAllPersonnels();
-        const exportData = fullDataSource?.results.map(personnel => {
-            const name = `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
-            return {
-                "Registration No.": personnel?.personnel_reg_no,
-                "Name": name,
-                "Gender": personnel?.person?.gender?.gender_option,
-                "Rank": personnel?.rank,
-                "Status": personnel?.status,
-            };
-        }) || [];
+    const handleExportCSV = async () => {
+        try {
+            const fullDataSource = await fetchAllPersonnels();
 
-        const csvContent = [
-            Object.keys(exportData[0]).join(","),
-            ...exportData.map(item => Object.values(item).join(",")) 
-        ].join("\n");
+            // Filter data based on gender and status
+            const filteredData = fullDataSource?.results.filter(personnel => {
+                const matchesGender = gender === "all" || personnel?.person?.gender?.gender_option === gender;
+                const matchesStatus = status === "all" || personnel?.status === status;
+                return matchesGender && matchesStatus;
+            }) || [];
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "Personnel.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    } catch (error) {
-        console.error("Error exporting CSV:", error);
-    }
-};
+            const exportData = filteredData.map((personnel, index) => {
+                const name = `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
+                return {
+                    "No.": index + 1,
+                    "Registration No.": personnel?.personnel_reg_no,
+                    "Name": name,
+                    "Gender": personnel?.person?.gender?.gender_option,
+                    "Rank": personnel?.rank,
+                    "Status": personnel?.status,
+                };
+            });
+
+            const csvContent = [
+                Object.keys(exportData[0]).join(","),
+                ...exportData.map(item => Object.values(item).join(",")) 
+            ].join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Personnel.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Error exporting CSV:", error);
+        }
+    };
 
     const menu = (
         <Menu>
@@ -561,7 +546,6 @@ const handleExportCSV = async () => {
                 </div>
             </div>
             <Table
-                className='overflow-x-auto'
                 loading={isFetching || searchLoading || personnelByGenderLoading || personnelByStatusLoading}
                 columns={columns}
                 dataSource={
@@ -630,13 +614,12 @@ const handleExportCSV = async () => {
                         setGenderFilter(filters.gender as string[] || []);
                         setRankFilter(filters.rank as string[] || []);
                         setStatusFilter(filters.status as string[] || []);
-                        // handle pagination, sorting if needed
                     }}
                 rowKey="id"
                 
             />
             <Modal
-                title="Position Report"
+                title="Personnel Report"
                 open={isPdfModalOpen}
                 onCancel={handleClosePdfModal}
                 footer={null}

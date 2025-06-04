@@ -25,6 +25,7 @@ const PDL = () => {
             <div className="border text-gray-700 border-gray-200 p-5 w-96 shadow-sm hover:shadow-md rounded-md">
                 <Header title="Maintenance"/>
                 <div className="mt-2 ml-8">
+                    <GodotLink link="pdl-visitation-status" title="PDL Visitation Status" />
                     <GodotLink link="/jvms/maintenance/ethnicities" title="Ethnicities" />
                     <GodotLink link="skills" title="Skills" />
                     <GodotLink link="talents" title="Talents" />

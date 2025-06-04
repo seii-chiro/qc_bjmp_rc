@@ -7,7 +7,6 @@ import { Key, useEffect, useMemo, useState } from "react"
 import { ColumnsType } from "antd/es/table"
 import { VisitorRecord } from "@/lib/definitions"
 import { calculateAge } from "@/functions/calculateAge"
-import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -412,7 +411,7 @@ const Visitor = () => {
         setIsLoading(true);
         setLoadingMessage("Generating PDF... Please wait.");
 
-        const doc = new jsPDF();
+        const doc = new jsPDF('landscape');
         const headerHeight = 48;
         const footerHeight = 32;
         const maxRowsPerPage = 26;
@@ -507,7 +506,7 @@ const Visitor = () => {
             item.name,
             item.gender,
             item.visitor_type,
-            item.address,
+            item.full_address,
         ]);
 
         for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
@@ -561,61 +560,6 @@ const Visitor = () => {
         setPdfDataUrl(null);
     };
 
-    // const handleExportExcel = async () => {
-    //     // Fetch all visitors if necessary
-    //     const fullDataSource = await fetchAllVisitors(); // Ensure this fetches all data
-
-    //     // Map to prepare export data, excluding unnecessary fields
-    //     const exportData = fullDataSource?.results.map(visitor => {
-    //         const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
-    //         return {
-    //             "Registration No.": visitor?.visitor_reg_no,
-    //             "Name":name,
-    //             "Gender": visitor?.person?.gender?.gender_option, // Include constructed name
-    //             "Visitor Type": visitor?.visitor_type,
-    //             "Address": visitor?.person?.addresses[0]?.full_address ?? '',
-                
-    //         };
-    //     }) || [];
-
-    //     const ws = XLSX.utils.json_to_sheet(exportData);
-    //     const wb = XLSX.utils.book_new();
-    //     XLSX.utils.book_append_sheet(wb, ws, "Visitor");
-    //     XLSX.writeFile(wb, "Visitor.xlsx");
-    // };
-
-// const handleExportCSV = async () => {
-//     try {
-//         const fullDataSource = await fetchAllVisitors();
-//         const exportData = fullDataSource?.results.map(visitor => {
-//             const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
-//             return {
-//                 "Registration No.": visitor?.visitor_reg_no,
-//                 "Name": name,
-//                 "Gender": visitor?.person?.gender?.gender_option,
-//                 "Visitor Type": visitor?.visitor_type,
-//                 "Address": visitor?.person?.addresses[0]?.full_address ?? '',
-                
-//             };
-//         }) || [];
-
-//         const csvContent = [
-//             Object.keys(exportData[0]).join(","), // Header row
-//             ...exportData.map(item => Object.values(item).join(",")) // Data rows
-//         ].join("\n");
-
-//         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-//         const link = document.createElement("a");
-//         const url = URL.createObjectURL(blob);
-//         link.setAttribute("href", url);
-//         link.setAttribute("download", "Visitor.csv");
-//         document.body.appendChild(link);
-//         link.click();
-//         document.body.removeChild(link);
-//     } catch (error) {
-//         console.error("Error exporting CSV:", error);
-//     }
-// };
 const handleExportExcel = async () => {
     let exportSource;
 

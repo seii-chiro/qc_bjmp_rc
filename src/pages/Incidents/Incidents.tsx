@@ -4,7 +4,7 @@ import { GodotLink, Header } from "../assets/components/link"
 const Incidents = () => {
     return (
         <div className="flex gap-4">
-            <div className="border border-gray-200 py-5 px-10 w-full md:w-fit shadow-sm hover:shadow-md rounded-md text-gray-700">
+            <div className="border border-gray-200 py-5 px-10 w-full md:w-96 md:h-fit shadow-sm hover:shadow-md rounded-md text-gray-700">
                 <Header title="INCIDENTS" />
                 <div className="ml-8 mt-2">
                     <GodotLink link="report" title="Report" />
@@ -17,15 +17,15 @@ const Incidents = () => {
                     <GodotLink link="" title="Responders" /> */}
                 </div>
             </div>
-            <div className="border border-gray-200 py-5 px-10 w-full md:w-fit shadow-sm hover:shadow-md rounded-md text-gray-700">
+            <div className="border border-gray-200 py-5 px-10 w-full md:w-1/2 md:h-fit shadow-sm hover:shadow-md rounded-md text-gray-700">
                 <div>
                     <div className="flex items-center">
                         <LuBellRing className="text-gray-600" />
                         <h1 className="font-bold text-lg ml-4">ALERTS AND NOTIFICATION</h1>
                     </div>
                 </div>
-                <div className="ml-8 mt-2 flex gap-32">
-                    <div>
+                <div className="ml-8 mt-2 flex justify-between">
+                    <div className="md:w-1/2">
                         <GodotLink link="oasis" title="Send an Alert" />
                         <GodotLink link="oasis/status" title="Status" />
                         <GodotLink link="oasis/message_type" title="Message Type" />
@@ -37,7 +37,7 @@ const Incidents = () => {
                         <GodotLink link="oasis/category" title="Category" />
                         <GodotLink link="oasis/event" title="Event" />
                     </div>
-                    <div>
+                    <div className="md:w-1/2">
                         <GodotLink link="oasis/response_type" title="Response Type" />
                         <GodotLink link="oasis/urgency" title="Urgency" />
                         <GodotLink link="oasis/severity" title="Severity" />

@@ -329,151 +329,130 @@ const PDLtable = () => {
 
     const lastPrintIndexRef = useRef(0);
 
-const handleExportPDF = async () => {
-    setIsLoading(true);
-    setLoadingMessage("Generating PDF... Please wait.");
+    const handleExportPDF = async () => {
+        setIsLoading(true);
+        setLoadingMessage("Generating PDF... Please wait.");
 
-    const doc = new jsPDF();
-    const headerHeight = 48;
-    const footerHeight = 32;
-    const MAX_ROWS_PER_PRINT = 800;
+        const doc = new jsPDF();
+        const headerHeight = 48;
+        const footerHeight = 32;
+        const MAX_ROWS_PER_PRINT = 800;
 
-    let printSource;
+        const allData = await fetchAllPDLs();
+        const allResults = allData?.results || [];
 
-        const isFiltering = (
-        filteredData.length > 0 ||
-        gender !== "all" ||
-        status !== "all" ||
-        genderColumnFilter.length > 0 ||
-        statusColumnFilter.length > 0 ||
-        visitationColumnFilter.length > 0
-        );
+        // Filter data based on gender and status
+        const filteredResults = allResults.filter(pdl => {
+            const matchesGender = gender === "all" || pdl?.person?.gender?.gender_option === gender;
+            const matchesStatus = status === "all" || pdl?.status === status;
+            return matchesGender && matchesStatus;
+        });
 
-    if (isFiltering) {
-        printSource = filteredData.map((pdl, index) => ({
-            key: index + 1,
+        const printSource = filteredResults.map((pdl, index) => ({
+            key: lastPrintIndexRef.current + index + 1,
             id: pdl?.id,
-            pdl_reg_no: pdl?.pdl_reg_no ?? '',
-            name: pdl?.name,
-            gender: pdl?.gender ?? '',
-            cell_name: pdl?.cell_name ?? '',
-            floor: pdl?.floor ?? '',
-            visitation_status: pdl?.visitation_status ?? '',
-            status: pdl?.status ?? '',
-            date_of_admission: pdl?.date_of_admission ?? '',
+            pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
+            name: `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ? pdl?.person?.middle_name[0] + '.' : ''} ${pdl?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+            gender: pdl?.person?.gender?.gender_option ?? '',
+            cell_name: pdl?.cell?.cell_name ?? 'N/A',
+            floor: pdl?.cell?.floor ?? 'N/A',
+            visitation_status: pdl?.visitation_status ?? 'N/A',
+            status: pdl?.status ?? 'N/A',
+            date_of_admission: pdl?.date_of_admission ?? 'N/A',
             organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
             updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
         }));
-        lastPrintIndexRef.current = 0;
-    } else {
-        const allData = await fetchAllPDLs();
-        const allResults = allData?.results || [];
-        printSource = allResults
-            .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + MAX_ROWS_PER_PRINT)
-            .map((pdl, index) => ({
-                key: lastPrintIndexRef.current + index + 1,
-                id: pdl?.id,
-                pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
-                name: `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ? pdl?.person?.middle_name[0] + '.' : ''} ${pdl?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
-                gender: pdl?.person?.gender?.gender_option ?? '',
-                cell_name: pdl?.cell?.cell_name ?? 'N/A',
-                floor: pdl?.cell?.floor ?? 'N/A',
-                visitation_status: pdl?.visitation_status ?? 'N/A',
-                status: pdl?.status ?? 'N/A',
-                date_of_admission: pdl?.date_of_admission ?? 'N/A',
-                organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
-                updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
-            }));
 
         lastPrintIndexRef.current += MAX_ROWS_PER_PRINT;
         if (lastPrintIndexRef.current >= allResults.length) {
             lastPrintIndexRef.current = 0;
         }
-    }
 
-    const organizationName = printSource[0]?.organization || "Bureau of Jail Management and Penology";
-    const PreparedBy = printSource[0]?.updated || "";
-    const today = new Date();
-    const formattedDate = today.toISOString().split("T")[0];
-    const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+        const organizationName = printSource[0]?.organization || "Bureau of Jail Management and Penology";
+        const PreparedBy = printSource[0]?.updated || "";
+        const today = new Date();
+        const formattedDate = today.toISOString().split("T")[0];
+        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
-    const maxRowsPerPage = 26;
-    let startY = headerHeight;
+        const maxRowsPerPage = 26;
+        let startY = headerHeight;
 
-    const addHeader = () => {
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const imageWidth = 30;
-        const imageHeight = 30;
-        const margin = 10;
-        const imageX = pageWidth - imageWidth - margin;
-        const imageY = 12;
+        const addHeader = () => {
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const imageWidth = 30;
+            const imageHeight = 30;
+            const margin = 10;
+            const imageX = pageWidth - imageWidth - margin;
+            const imageY = 12;
 
-        doc.addImage(bjmp, "PNG", imageX, imageY, imageWidth, imageHeight);
+            doc.addImage(bjmp, "PNG", imageX, imageY, imageWidth, imageHeight);
+            doc.setTextColor(0, 102, 204);
+            doc.setFontSize(16);
+            doc.text("PDL Report", 10, 15);
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.text(`Organization Name: ${organizationName}`, 10, 25);
+            doc.text("Report Date: " + formattedDate, 10, 30);
+            doc.text("Prepared By: " + PreparedBy, 10, 35);
+            doc.text("Department/ Unit: IT", 10, 40);
+            doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
+        };
 
-        doc.setTextColor(0, 102, 204);
-        doc.setFontSize(16);
-        doc.text("PDL Report", 10, 15);
-        doc.setTextColor(0, 0, 0);
-        doc.setFontSize(10);
-        doc.text(`Organization Name: ${organizationName}`, 10, 25);
-        doc.text("Report Date: " + formattedDate, 10, 30);
-        doc.text("Prepared By: " + PreparedBy, 10, 35);
-        doc.text("Department/ Unit: IT", 10, 40);
-        doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
-    };
-    addHeader();
-    const tableData = printSource.map((item, index) => [
-        index + 1,
-        item.name,
-        item.gender,
-        item.cell_name,
-        item.floor,
-        item.visitation_status,
-        item.status,
-    ]);
-    for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
-        const pageData = tableData.slice(i, i + maxRowsPerPage);
+        addHeader();
 
-        autoTable(doc, {
-            head: [["No.", "PDL", "Gender", "Dorm", "Annex", "Visitation", "Status"]],
-            body: pageData,
-            startY: startY,
-            margin: { top: 0, left: 10, right: 10 },
-            didDrawPage: function () {
-                if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                    addHeader();
-                }
-            },
-        });
+        const tableData = printSource.map((item, index) => [
+            index + 1,
+            item.name,
+            item.gender,
+            item.cell_name,
+            item.floor,
+            item.visitation_status,
+            item.status,
+        ]);
 
-        if (i + maxRowsPerPage < tableData.length) {
-            doc.addPage();
-            startY = headerHeight;
+        for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
+            const pageData = tableData.slice(i, i + maxRowsPerPage);
+
+            autoTable(doc, {
+                head: [["No.", "PDL", "Gender", "Dorm", "Annex", "Visitation", "Status"]],
+                body: pageData,
+                startY: startY,
+                margin: { top: 0, left: 10, right: 10 },
+                didDrawPage: function () {
+                    if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+                        addHeader();
+                    }
+                },
+            });
+
+            if (i + maxRowsPerPage < tableData.length) {
+                doc.addPage();
+                startY = headerHeight;
+            }
         }
-    }
 
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let page = 1; page <= pageCount; page++) {
-        doc.setPage(page);
-        const footerText = [
-            "Document Version: Version 1.0",
-            "Confidentiality Level: Internal use only",
-            "Contact Info: " + PreparedBy,
-            `Timestamp of Last Update: ${formattedDate}`,
-        ].join("\n");
-        const footerX = 10;
-        const footerY = doc.internal.pageSize.height - footerHeight + 15;
-        const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
-        doc.setFontSize(8);
-        doc.text(footerText, footerX, footerY);
-        doc.text(`${page} / ${pageCount}`, pageX, footerY);
-    }
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let page = 1; page <= pageCount; page++) {
+            doc.setPage(page);
+            const footerText = [
+                "Document Version: Version 1.0",
+                "Confidentiality Level: Internal use only",
+                "Contact Info: " + PreparedBy,
+                `Timestamp of Last Update: ${formattedDate}`,
+            ].join("\n");
+            const footerX = 10;
+            const footerY = doc.internal.pageSize.height - footerHeight + 15;
+            const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+            doc.setFontSize(8);
+            doc.text(footerText, footerX, footerY);
+            doc.text(`${page} / ${pageCount}`, pageX, footerY);
+        }
 
-    const pdfOutput = doc.output("datauristring");
-    setPdfDataUrl(pdfOutput);
-    setIsPdfModalOpen(true);
-    setIsLoading(false);
-};
+        const pdfOutput = doc.output("datauristring");
+        setPdfDataUrl(pdfOutput);
+        setIsPdfModalOpen(true);
+        setIsLoading(false);
+    };
 
 
     const handleClosePdfModal = () => {
@@ -482,60 +461,84 @@ const handleExportPDF = async () => {
     };
 
     const handleExportExcel = async () => {
+        setIsLoading(true);
+        try {
+            const fullDataSource = await fetchAllPDLs(); 
 
-        const fullDataSource = await fetchAllPDLs(); 
-        const exportData = fullDataSource?.results.map(pdl => {
-            const name = `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ? pdl?.person?.middle_name[0] + '.' : ''} ${pdl?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
-            return {
-                "Name": name,
-                "Gender": pdl?.person?.gender?.gender_option,
-                "Dorm": pdl?.cell?.cell_name,
-                "Annex": pdl?.cell?.floor,
-                "Visitation Status": pdl?.visitation_status,
-                "Status": pdl?.status,
+            // Filter data based on gender and status
+            const filteredData = fullDataSource?.results.filter(pdl => {
+                const matchesGender = gender === "all" || pdl?.person?.gender?.gender_option === gender;
+                const matchesStatus = status === "all" || pdl?.status === status;
+                return matchesGender && matchesStatus;
+            }) || [];
 
-            };
-        }) || [];
-        
-        const ws = XLSX.utils.json_to_sheet(exportData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "PDL");
-        XLSX.writeFile(wb, "PDL.xlsx");
+            const exportData = filteredData.map(pdl => {
+                const name = `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ? pdl?.person?.middle_name[0] + '.' : ''} ${pdl?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
+                return {
+                    "Name": name,
+                    "Gender": pdl?.person?.gender?.gender_option,
+                    "Dorm": pdl?.cell?.cell_name,
+                    "Annex": pdl?.cell?.floor,
+                    "Visitation Status": pdl?.visitation_status,
+                    "Status": pdl?.status,
+                };
+            }) || [];
+
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "PDL");
+            XLSX.writeFile(wb, "PDL.xlsx");
+        } catch (error) {
+            console.error("Error exporting Excel:", error);
+            messageApi.error("Failed to export Excel."); 
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleExportCSV = async () => {
+        setIsLoading(true);
         try {
             const fullDataSource = await fetchAllPDLs();
-            const exportData = fullDataSource?.results.map(pdl => {
+
+            // Filter data based on gender and status
+            const filteredData = fullDataSource?.results.filter(pdl => {
+                const matchesGender = gender === "all" || pdl?.person?.gender?.gender_option === gender;
+                const matchesStatus = status === "all" || pdl?.status === status;
+                return matchesGender && matchesStatus;
+            }) || [];
+
+            const exportData = filteredData.map(pdl => {
                 const name = `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ? pdl?.person?.middle_name[0] + '.' : ''} ${pdl?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
-            return {
-                "Name": name,
-                "Gender": pdl?.person?.gender?.gender_option,
-                "Dorm": pdl?.cell?.cell_name,
-                "Annex": pdl?.cell?.floor,
-                "Visitation Status": pdl?.visitation_status,
-                "Status": pdl?.status,
-            };
+                return {
+                    "Name": name,
+                    "Gender": pdl?.person?.gender?.gender_option,
+                    "Dorm": pdl?.cell?.cell_name,
+                    "Annex": pdl?.cell?.floor,
+                    "Visitation Status": pdl?.visitation_status,
+                    "Status": pdl?.status,
+                };
             }) || [];
 
             const csvContent = [
-            Object.keys(exportData[0]).join(","), // Header row
-            ...exportData.map(item => Object.values(item).join(",")) // Data rows
-        ].join("\n");
+                Object.keys(exportData[0]).join(","), // Header row
+                ...exportData.map(item => Object.values(item).join(",")) // Data rows
+            ].join("\n");
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "PDL.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    } catch (error) {
-        console.error("Error exporting CSV:", error);
-    }
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "PDL.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Error exporting CSV:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
-
     const menu = (
         <Menu>
             <Menu.Item>
