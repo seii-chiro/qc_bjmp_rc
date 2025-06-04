@@ -28,6 +28,7 @@ import {
 import { PaginatedResponse } from "./queries";
 import { BASE_URL } from "./urls";
 import { AudienceFormType } from "@/pages/oasis/maintenance/forms/AudienceForm";
+import { CategoryFormType } from "@/pages/oasis/maintenance/forms/CategoriesForm";
 
 export async function getOASISRestrictions(
   token: string
@@ -257,6 +258,72 @@ export async function getOASISCategories(
   }
 
   return res.json();
+}
+
+export async function postOASISCategories(
+  token: string,
+  payload: CategoryFormType
+): Promise<OASISAudience> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-category/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISCategories(
+  token: string,
+  id: number,
+  payload: Partial<CategoryFormType>
+): Promise<OASISAudience> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-category/${id}/`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISCategories(token: string, id: number) {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-category/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to delete Category.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function getOASISLanguages(
