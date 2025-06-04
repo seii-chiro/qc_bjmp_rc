@@ -29,6 +29,7 @@ import { PaginatedResponse } from "./queries";
 import { BASE_URL } from "./urls";
 import { AudienceFormType } from "@/pages/oasis/maintenance/forms/AudienceForm";
 import { CategoryFormType } from "@/pages/oasis/maintenance/forms/CategoriesForm";
+import { CertaintyFormType } from "@/pages/oasis/maintenance/forms/CertaintyForm";
 
 export async function getOASISRestrictions(
   token: string
@@ -207,6 +208,72 @@ export async function getOASISCertainty(
   }
 
   return res.json();
+}
+
+export async function postOASISCertainty(
+  token: string,
+  payload: CertaintyFormType
+): Promise<OASISAudience> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-certainty/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISCertainty(
+  token: string,
+  id: number,
+  payload: Partial<CertaintyFormType>
+): Promise<OASISAudience> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-certainty/${id}/`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISCertainty(token: string, id: number) {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-certainty/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to delete certainty.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function getOASISUrgency(
