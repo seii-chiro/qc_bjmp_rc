@@ -1,7 +1,7 @@
 import { deleteOASISStatus, getOASISStatus } from "@/lib/oasis-query"
 import { useTokenStore } from "@/store/useTokenStore"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Button, Input, message, Modal, Table } from "antd"
+import { Button, Dropdown, Input, MenuProps, message, Modal, Table } from "antd"
 import { ColumnsType } from "antd/es/table"
 import { useState } from "react"
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai"
@@ -9,6 +9,9 @@ import { FaPlus } from "react-icons/fa"
 import StatusForm from "./forms/StatusForm"
 import { generatePDFReport, PDFColumn } from "../generatePDF"
 import { useUserStore } from "@/store/useUserStore"
+import { GoDownload } from "react-icons/go"
+import { CSVLink } from "react-csv"
+import * as XLSX from "xlsx";
 
 export type StatusDataSourceRecord = {
   id: number;
@@ -217,6 +220,30 @@ const Statuses = () => {
     setPdfDataUrl('');
   };
 
+  const handleExportExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(dataSource || []);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "OASIS_Status");
+    XLSX.writeFile(wb, "OASIS_Status.xlsx");
+  };
+
+  const items: MenuProps['items'] = [
+    {
+      key: '1',
+      label: (
+        <a onClick={handleExportExcel}>Export Excel</a>
+      ),
+    },
+    {
+      key: '2',
+      label: (
+        <CSVLink data={dataSource || []} filename="OASIS_Status.csv">
+          Export CSV
+        </CSVLink>
+      ),
+    },
+  ];
+
   return (
     <>
       <Modal
@@ -260,11 +287,13 @@ const Statuses = () => {
       <div className="text-3xl font-bold mb-6 text-[#1E365D]">Status</div>
       <div className="w-full flex justify-between">
         <div className="flex items-center gap-2">
-          <Button
-            className="h-10 w-32 bg-[#1E365D] text-white font"
-          >
-            Export
-          </Button>
+          <div className="flex gap-2">
+            <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" menu={{ items }}>
+              <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
+                <GoDownload /> Export
+              </a>
+            </Dropdown>
+          </div>
           <Button
             onClick={handleOpenPDFModal}
             className="h-10 w-32 bg-[#1E365D] text-white font"
