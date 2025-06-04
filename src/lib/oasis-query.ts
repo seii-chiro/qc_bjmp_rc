@@ -27,6 +27,7 @@ import {
 } from "./oasis-response-definition";
 import { PaginatedResponse } from "./queries";
 import { BASE_URL } from "./urls";
+import { AudienceFormType } from "@/pages/oasis/maintenance/forms/AudienceForm";
 
 export async function getOASISRestrictions(
   token: string
@@ -328,7 +329,7 @@ export async function getOASISAudience(
 
 export async function postOASISAudience(
   token: string,
-  payload: StatusFormType
+  payload: AudienceFormType
 ): Promise<OASISAudience> {
   const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-audience/`, {
     method: "POST",
@@ -350,7 +351,7 @@ export async function postOASISAudience(
 export async function patchOASISAudience(
   token: string,
   id: number,
-  payload: Partial<StatusFormType>
+  payload: Partial<AudienceFormType>
 ): Promise<OASISAudience> {
   const res = await fetch(
     `${BASE_URL}/api/oasis_app_v1_2/cap-audience/${id}/`,
