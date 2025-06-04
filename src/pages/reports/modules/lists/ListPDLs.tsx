@@ -5,7 +5,7 @@ import { BASE_URL } from "@/lib/urls";
 import { PersonnelForm } from "@/lib/visitorFormDefinition";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
-import { Dropdown, Menu, Table } from "antd";
+import { Dropdown, Menu, Spin, Table } from "antd";
 import { ColumnType } from "antd/es/table";
 import { useEffect, useState } from "react";
 import { GoDownload } from "react-icons/go";
@@ -19,6 +19,7 @@ const ListPDLs = () => {
     const token = useTokenStore().token; 
     const [pdl, setpdl] = useState([]);
     const [loadingMessage, setLoadingMessage] = useState('');
+    const [downloadLoading, setDownloadLoading] = useState<'pdf' | 'excel' | 'csv' | null>(null);
     const [pdlLoading, setPDLLoading] = useState(true);
     const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
     const [isLoading, setIsLoading] = useState(false);
@@ -365,7 +366,7 @@ const downloadExcel = async () => {
                 'PDL No.': pdl?.id ?? '',
                 'Full Name': `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? ''}`.trim(),
                 'Date of Birth': pdl?.person?.date_of_birth ?? '',
-                'Case Type': pdl?.cases?.[0]?.offense ?? '',
+                'Case Type': pdl?.cases?.[0]?.crime_category ?? '',
                 'Status': pdl?.status ?? '',
                 'Date of Commitment': pdl?.date_of_admission ?? '',
                 'Visiting Eligibility': pdl?.visitation_status ?? '',
@@ -414,7 +415,7 @@ const downloadCSV = async () => {
             pdls?.id ?? '',
             `${pdls?.person?.first_name ?? ''} ${pdls?.person?.middle_name ?? ''} ${pdls?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
             pdls?.person?.date_of_birth,
-            pdls?.cases?.[0]?.offense,
+            pdls?.cases?.[0]?.crime_category,
             pdls?.status ?? '',
             pdls?.date_of_admission,
             pdls?.visitation_status,
@@ -440,36 +441,53 @@ const downloadCSV = async () => {
         console.error('Error downloading CSV:', error);
     }
 };
+    const handleDownloadWrapper = async (type: 'pdf' | 'excel' | 'csv') => {
+        setDownloadLoading(type);
+        try {
+            if (type === 'pdf') {
+                await generatePDF();
+            } else if (type === 'excel') {
+                await downloadExcel();
+            } else if (type === 'csv') {
+                await downloadCSV();
+            }
+        } catch (error) {
+            console.error(`Error generating ${type.toUpperCase()}:`, error);
+        } finally {
+            setDownloadLoading(null);
+        }
+    };
 
-    const menu = (
-        <Menu>
-            <Menu.Item key="pdf" onClick={generatePDF}>
-                <div className="flex items-center gap-2 font-semibold">
-                    <GoDownload />
-                    Download PDF
-                </div>
-            </Menu.Item>
-            <Menu.Item key="excel" onClick={downloadExcel}>
-                <div className="flex items-center gap-2 font-semibold">
-                    <GoDownload />
-                    Download Excel
-                </div>
-            </Menu.Item>
-            <Menu.Item key="csv" onClick={downloadCSV}>
-                <div className="flex items-center gap-2 font-semibold">
-                    <GoDownload />
-                    Download CSV
-                </div>
-            </Menu.Item>
-        </Menu>
-    );
+const menu = (
+    <Menu>
+        <Menu.Item key="pdf" disabled={downloadLoading !== null} onClick={() => handleDownloadWrapper('pdf')}>
+            <div className="flex items-center gap-2 font-semibold">
+                {downloadLoading === 'pdf' ? <Spin size="small" /> : <GoDownload />}
+                {downloadLoading === 'pdf' ? 'Generating PDF...' : 'Download PDF'}
+            </div>
+        </Menu.Item>
+        <Menu.Item key="excel" disabled={downloadLoading !== null} onClick={() => handleDownloadWrapper('excel')}>
+            <div className="flex items-center gap-2 font-semibold">
+                {downloadLoading === 'excel' ? <Spin size="small" /> : <GoDownload />}
+                {downloadLoading === 'excel' ? 'Generating Excel...' : 'Download Excel'}
+            </div>
+        </Menu.Item>
+        <Menu.Item key="csv" disabled={downloadLoading !== null} onClick={() => handleDownloadWrapper('csv')}>
+            <div className="flex items-center gap-2 font-semibold">
+                {downloadLoading === 'csv' ? <Spin size="small" /> : <GoDownload />}
+                {downloadLoading === 'csv' ? 'Generating CSV...' : 'Download CSV'}
+            </div>
+        </Menu.Item>
+    </Menu>
+);
+
     return (
         <div className="md:px-10">
                 <div className="my-5 flex justify-between">
                     <h1 className="text-2xl font-bold text-[#1E365D]">List of PDL</h1>
                     <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-                        <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
-                            <GoDownload /> Download
+                        <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
+                            <GoDownload /> {downloadLoading ? 'Processing...' : 'Download'}
                         </a>
                     </Dropdown>
                 </div>            

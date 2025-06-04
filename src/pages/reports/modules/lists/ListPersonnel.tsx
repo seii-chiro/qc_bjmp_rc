@@ -5,7 +5,7 @@ import { BASE_URL } from "@/lib/urls";
 import { PersonnelForm } from "@/lib/visitorFormDefinition";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
-import { Dropdown, Menu, Table } from "antd";
+import { Dropdown, Menu, Spin, Table } from "antd";
 import { ColumnType } from "antd/es/table";
 import { useEffect, useState } from "react";
 import { GoDownload } from "react-icons/go";
@@ -20,6 +20,7 @@ const ListPersonnel = () => {
     const [personnel, setPersonnel] = useState([]);
     const [loadingMessage, setLoadingMessage] = useState('');
     const [personnelLoading, setPersonnelLoading] = useState(true);
+    const [downloadLoading, setDownloadLoading] = useState<'pdf' | 'excel' | 'csv' | null>(null);
     
     // const [pdfDataUrl, setPdfDataUrl] = useState('');
     const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
@@ -452,28 +453,46 @@ const downloadCSV = async () => {
     }
 };
 
+const handleDownloadWrapper = async (type: 'pdf' | 'excel' | 'csv') => {
+    setDownloadLoading(type);
+    try {
+        if (type === 'pdf') {
+            await generatePDF();
+        } else if (type === 'excel') {
+            await downloadExcel();
+        } else if (type === 'csv') {
+            await downloadCSV();
+        }
+    } catch (error) {
+        console.error(`Error generating ${type.toUpperCase()}:`, error);
+    } finally {
+        setDownloadLoading(null);
+    }
+};
+
 const menu = (
     <Menu>
-        <Menu.Item key="pdf" onClick={generatePDF}>
+        <Menu.Item key="pdf" disabled={downloadLoading !== null} onClick={() => handleDownloadWrapper('pdf')}>
             <div className="flex items-center gap-2 font-semibold">
-                <GoDownload />
-                Download PDF
+                {downloadLoading === 'pdf' ? <Spin size="small" /> : <GoDownload />}
+                {downloadLoading === 'pdf' ? 'Generating PDF...' : 'Download PDF'}
             </div>
         </Menu.Item>
-        <Menu.Item key="excel" onClick={downloadExcel}>
+        <Menu.Item key="excel" disabled={downloadLoading !== null} onClick={() => handleDownloadWrapper('excel')}>
             <div className="flex items-center gap-2 font-semibold">
-                <GoDownload />
-                Download Excel
+                {downloadLoading === 'excel' ? <Spin size="small" /> : <GoDownload />}
+                {downloadLoading === 'excel' ? 'Generating Excel...' : 'Download Excel'}
             </div>
         </Menu.Item>
-        <Menu.Item key="csv" onClick={downloadCSV}>
+        <Menu.Item key="csv" disabled={downloadLoading !== null} onClick={() => handleDownloadWrapper('csv')}>
             <div className="flex items-center gap-2 font-semibold">
-                <GoDownload />
-                Download CSV
+                {downloadLoading === 'csv' ? <Spin size="small" /> : <GoDownload />}
+                {downloadLoading === 'csv' ? 'Generating CSV...' : 'Download CSV'}
             </div>
         </Menu.Item>
     </Menu>
 );
+
 
 if (isFetching) return <Spinner />;
     if (error) return <p>Error: {error.message}</p>;
@@ -482,10 +501,10 @@ if (isFetching) return <Spinner />;
             <div className="my-5 flex justify-between">
                 <h1 className="text-2xl font-bold text-[#1E365D]">List of Personnel</h1>
                 <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-                    <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
-                        <GoDownload /> Download
-                    </a>
-                </Dropdown>
+    <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
+        <GoDownload /> {downloadLoading ? 'Processing...' : 'Download'}
+    </a>
+</Dropdown>
             </div>
             <div>
                 <div className="overflow-x-auto rounded-lg border border-gray-200 mt-2 shadow-sm">

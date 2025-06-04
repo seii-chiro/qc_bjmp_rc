@@ -316,11 +316,34 @@ const handleExportPDF = async () => {
     const allResults = allData?.results || [];
 
     // Filter data based on the selected gender and status
+    // const filteredResults = allResults.filter(personnel => {
+    //     const matchesGender = gender === "all" || personnel?.person?.gender?.gender_option === gender;
+    //     const matchesStatus = status === "all" || personnel?.status === status;
+    //     return matchesGender && matchesStatus;
+    // });
+
     const filteredResults = allResults.filter(personnel => {
-        const matchesGender = gender === "all" || personnel?.person?.gender?.gender_option === gender;
-        const matchesStatus = status === "all" || personnel?.status === status;
-        return matchesGender && matchesStatus;
-    });
+        const genderValue = personnel?.person?.gender?.gender_option ?? '';
+        const statusValue = personnel?.status ?? '';
+        const rankValue = personnel?.rank ?? '';
+
+        // Your global filters for personnel
+        const matchesGlobalGender = gender === "all" || genderValue === gender;
+        const matchesGlobalStatus = status === "all" || statusValue === status;
+
+        // Your column filters for personnel (make sure these are arrays of selected filters)
+        const matchesColumnGender = genderFilter.length === 0 || genderFilter.includes(genderValue);
+        const matchesColumnStatus = statusFilter.length === 0 || statusFilter.includes(statusValue);
+        const matchesColumnRank = rankFilter.length === 0 || rankFilter.includes(rankValue);
+
+        return (
+            matchesGlobalGender &&
+            matchesGlobalStatus &&
+            matchesColumnGender &&
+            matchesColumnStatus &&
+            matchesColumnRank
+        );
+        });
 
     const printSource = filteredResults.map((personnel, index) => ({
         key: index + 1,

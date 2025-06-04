@@ -5,7 +5,7 @@ import { BASE_URL } from "@/lib/urls";
 import { PersonnelForm } from "@/lib/visitorFormDefinition";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
-import { Dropdown, Menu, Table } from "antd";
+import { Dropdown, Menu, Spin, Table } from "antd";
 import { ColumnType } from "antd/es/table";
 import { useEffect, useState } from "react";
 import { GoDownload } from "react-icons/go";
@@ -20,6 +20,7 @@ const ListPersonnel = () => {
     const [pdlVisitor, setPDLVisitor] = useState([]);
     const [page, setPage] = useState(1);
     const [limit, setlimit] = useState(10);
+    const [downloadLoading, setDownloadLoading] = useState<'pdf' | 'excel' | 'csv' | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
     const [loadingMessage, setLoadingMessage] = useState('');
@@ -118,23 +119,31 @@ const fetchMainGateVisits = async () => {
     };
 
     const dataSource = (data?.results || []).map((visitor, index) => {
-        const fullName = `${visitor?.person?.first_name} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name}`.trim();
+        const fullName = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
 
-        const inmate_visited = visitor?.pdls?.map(pdl => {
-            const person = pdl?.pdl?.person;
-            return person
-            ? `${person.first_name} ${person.middle_name ?? ''} ${person.last_name}`.trim()
-            : null;
-        }).filter(Boolean).join(', ') || '';
-
-        // Match using visitor id
+        // Match using visitor id from the nested visitor object
         const matchingVisit = mainGateVisitData?.results?.find(
-            (visit: any) => visit.visitor === visitor.id
+            (visit: any) => visit.visitor?.id === visitor.id
         );
 
-        const timestampIn = matchingVisit?.timestamp_in
-            ? new Date(matchingVisit.timestamp_in).toLocaleString()
+        // Get the timestamp in if available
+        const timestampIn = matchingVisit?.tracking_logs?.[0]?.timestamp_in
+            ? new Date(matchingVisit.tracking_logs[0].timestamp_in).toLocaleString()
             : 'No Timestamp Available';
+
+        // Extract inmate visited from the matched visit
+        let inmate_visited = '';
+        if (matchingVisit?.visitor?.pdls?.length > 0) {
+            inmate_visited = matchingVisit.visitor.pdls
+                .map((pdlObj: any) => {
+                    const person = pdlObj?.pdl?.person;
+                    return person
+                        ? `${person.first_name ?? ''} ${person.middle_name ?? ''} ${person.last_name ?? ''}`.trim()
+                        : null;
+                })
+                .filter(Boolean)
+                .join(', ');
+        }
 
         return {
             key: index + 1 + (page - 1) * limit,
@@ -148,6 +157,8 @@ const fetchMainGateVisits = async () => {
             last_visit: timestampIn,
         };
     });
+
+
     const columns: ColumnType<PersonnelForm>[] = [
         {
             title: 'No.',
@@ -190,7 +201,22 @@ const fetchMainGateVisits = async () => {
             key: 'last_visit',
         }
     ];
-
+const handleDownloadWrapper = async (type: 'pdf' | 'excel' | 'csv') => {
+    setDownloadLoading(type);
+    try {
+        if (type === 'pdf') {
+            await generatePDF();
+        } else if (type === 'excel') {
+            await downloadExcel();
+        } else if (type === 'csv') {
+            await downloadCSV();
+        }
+    } catch (error) {
+        console.error(`Error generating ${type.toUpperCase()}:`, error);
+    } finally {
+        setDownloadLoading(null);
+    }
+};
     const generatePDF = async () => {
         const preparedByText = UserData ? `${UserData.first_name} ${UserData.last_name}` : '';
         const today = new Date();
@@ -226,8 +252,14 @@ if (pdlVisitorResults.length > 0) {
             ? `${person.first_name} ${person.middle_name ?? ''} ${person.last_name}`.trim()
             : null;
     }).filter(Boolean).join(', ') || 'No Inmates Available';
-    const trackingLog = mainGateLogs?.tracking_logs?.find(log => log.person === visitor.name); 
-    const timestampIn = trackingLog ? new Date(trackingLog.timestamp_in).toLocaleString() : 'No Timestamp Available';
+     const matchingVisit = mainGateVisitData?.results?.find(
+            (visit: any) => visit.visitor === visitor.id
+        );
+
+        const timestampIn = matchingVisit?.timestamp_in
+            ? new Date(matchingVisit.timestamp_in).toLocaleString()
+            : 'No Timestamp Available';
+
             return [
             (index + 1).toString(),
             visitor?.visitor_reg_no ?? '',
@@ -396,8 +428,13 @@ const downloadExcel = async () => {
             ? `${person.first_name} ${person.middle_name ?? ''} ${person.last_name}`.trim()
             : null;
         }).filter(Boolean).join(', ') || 'No Inmates Available';
-        const trackingLog = mainGateLogs?.tracking_logs?.find(log => log.person === visitor.name); 
-        const timestampIn = trackingLog ? new Date(trackingLog.timestamp_in).toLocaleString() : 'No Timestamp Available';
+         const matchingVisit = mainGateVisitData?.results?.find(
+            (visit: any) => visit.visitor === visitor.id
+        );
+
+        const timestampIn = matchingVisit?.timestamp_in
+            ? new Date(matchingVisit.timestamp_in).toLocaleString()
+            : 'No Timestamp Available';
             return {
                 'No.': index + 1,
                 'Visitor Number': visitor?.visitor_reg_no ?? '',
@@ -451,8 +488,13 @@ const downloadCSV = async () => {
             ? `${person.first_name} ${person.middle_name ?? ''} ${person.last_name}`.trim()
             : null;
     }).filter(Boolean).join(', ') || 'No Inmates Available';
-    const trackingLog = mainGateLogs?.tracking_logs?.find(log => log.person === visitor.name); 
-    const timestampIn = trackingLog ? new Date(trackingLog.timestamp_in).toLocaleString() : 'No Timestamp Available';
+     const matchingVisit = mainGateVisitData?.results?.find(
+            (visit: any) => visit.visitor === visitor.id
+        );
+
+        const timestampIn = matchingVisit?.timestamp_in
+            ? new Date(matchingVisit.timestamp_in).toLocaleString()
+            : 'No Timestamp Available';
             return [
                 (index + 1).toString(),
             visitor?.visitor_reg_no ?? '',
@@ -489,33 +531,34 @@ const downloadCSV = async () => {
     if (error) return <p>Error: {error.message}</p>;
 const menu = (
     <Menu>
-        <Menu.Item key="pdf" onClick={generatePDF}>
+        <Menu.Item key="pdf" disabled={downloadLoading !== null} onClick={() => handleDownloadWrapper('pdf')}>
             <div className="flex items-center gap-2 font-semibold">
-                <GoDownload />
-                Download PDF
+                {downloadLoading === 'pdf' ? <Spin size="small" /> : <GoDownload />}
+                {downloadLoading === 'pdf' ? 'Generating PDF...' : 'Download PDF'}
             </div>
         </Menu.Item>
-        <Menu.Item key="excel" onClick={downloadExcel}>
+        <Menu.Item key="excel" disabled={downloadLoading !== null} onClick={() => handleDownloadWrapper('excel')}>
             <div className="flex items-center gap-2 font-semibold">
-                <GoDownload />
-                Download Excel
+                {downloadLoading === 'excel' ? <Spin size="small" /> : <GoDownload />}
+                {downloadLoading === 'excel' ? 'Generating Excel...' : 'Download Excel'}
             </div>
         </Menu.Item>
-        <Menu.Item key="csv" onClick={downloadCSV}>
+        <Menu.Item key="csv" disabled={downloadLoading !== null} onClick={() => handleDownloadWrapper('csv')}>
             <div className="flex items-center gap-2 font-semibold">
-                <GoDownload />
-                Download CSV
+                {downloadLoading === 'csv' ? <Spin size="small" /> : <GoDownload />}
+                {downloadLoading === 'csv' ? 'Generating CSV...' : 'Download CSV'}
             </div>
         </Menu.Item>
     </Menu>
 );
+
     return (
         <div className="md:px-10">
             <div className="my-5 flex justify-between">
                 <h1 className="text-2xl font-bold text-[#1E365D]">List of PDL Visitors</h1>
                 <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-                    <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
-                        <GoDownload /> Download
+                    <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
+                        <GoDownload /> {downloadLoading ? 'Processing...' : 'Download'}
                     </a>
                 </Dropdown>
             </div>

@@ -274,11 +274,11 @@ const PDLtable = () => {
                     dataIndex: 'status',
                     key: 'status',
                     sorter: (a, b) => a.status.localeCompare(b.status),
-                    filters: [
-                        ...Array.from(new Set(allPDLs.map(item => item.status)))
-                            .filter(status => status)
-                            .map(status => ({ text: status, value: status }))
-                    ],
+                    filters: Array.from(
+                        new Set((pdlStatusData?.results || []).map(pdl => pdl?.status))
+                    )
+                        .filter(Boolean)
+                        .map(status => ({ text: status, value: status })),
                     onFilter: (value, record) => record.status === value,
                     filteredValue: statusColumnFilter,
                 },
@@ -287,13 +287,13 @@ const PDLtable = () => {
                     dataIndex: 'visitation_status',
                     key: 'visitation_status',
                     sorter: (a, b) => a.visitation_status.localeCompare(b.visitation_status),
-                    filters: [
-                        ...Array.from(new Set(allPDLs.map(item => item.visitation_status)))
-                            .filter(visitation_status => visitation_status)
-                            .map(visitation_status => ({ text: visitation_status, value: visitation_status }))
-                    ],
-                    onFilter: (value, record) => record.visitation_status === value,
-                    filteredValue: visitationColumnFilter,
+                    // filters: [
+                    //     ...Array.from(new Set(allPDLs.map(item => item.visitation_status)))
+                    //         .filter(visitation_status => visitation_status)
+                    //         .map(visitation_status => ({ text: visitation_status, value: visitation_status }))
+                    // ],
+                    // onFilter: (value, record) => record.visitation_status === value,
+                    // filteredValue: visitationColumnFilter,
                 },
                 {
                     title: "Action",
@@ -342,11 +342,35 @@ const PDLtable = () => {
         const allResults = allData?.results || [];
 
         // Filter data based on gender and status
+        // const filteredResults = allResults.filter(pdl => {
+        //     const matchesGender = gender === "all" || pdl?.person?.gender?.gender_option === gender;
+        //     const matchesStatus = status === "all" || pdl?.status === status;
+        //     return matchesGender && matchesStatus;
+        // });
+
         const filteredResults = allResults.filter(pdl => {
-            const matchesGender = gender === "all" || pdl?.person?.gender?.gender_option === gender;
-            const matchesStatus = status === "all" || pdl?.status === status;
-            return matchesGender && matchesStatus;
-        });
+            const genderValue = pdl?.person?.gender?.gender_option ?? '';
+            const statusValue = pdl?.status ?? '';
+            const visitationStatusValue = pdl?.visitation_status ?? '';
+
+            // Global filter logic: "all" means no filter, else match exact
+            const matchesGlobalGender = gender === "all" || genderValue === gender;
+            const matchesGlobalStatus = status === "all" || statusValue === status;
+
+            // Column filter logic: empty array means no filter, else match any in array
+            const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
+            const matchesColumnStatus = statusColumnFilter.length === 0 || statusColumnFilter.includes(statusValue);
+            const matchesColumnVisitation = visitationColumnFilter.length === 0 || visitationColumnFilter.includes(visitationStatusValue);
+
+            // Combine both: must pass both global AND column filters
+            return (
+                matchesGlobalGender &&
+                matchesGlobalStatus &&
+                matchesColumnGender &&
+                matchesColumnStatus &&
+                matchesColumnVisitation
+            );
+            });
 
         const printSource = filteredResults.map((pdl, index) => ({
             key: lastPrintIndexRef.current + index + 1,
