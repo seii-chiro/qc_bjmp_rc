@@ -203,7 +203,7 @@ const PDLVisitors = () => {
             key: "dorm",
         },
         {
-            title: "Timestamp In",
+            title: "Login",
             dataIndex: "timestampIn",
             key: "timestampIn",
             render: (text) => text ? new Date(text).toLocaleString() : "...",
@@ -211,7 +211,7 @@ const PDLVisitors = () => {
             defaultSortOrder: 'descend',
         },
         {
-            title: "Timestamp Out",
+            title: "Logout",
             dataIndex: "timestampOut",
             key: "timestampOut",
             render: (text) => text ? new Date(text).toLocaleString() : "...",
