@@ -118,13 +118,13 @@ const DashboardSummary = () => {
             { "BJMP Personnel On and Off-Duty": "", "Total": "" },
             { "BJMP Personnel On and Off-Duty": "On-Duty", "Total": summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0 },
             { "BJMP Personnel On and Off-Duty": "Off-Duty", "Total": summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0 },
-            { "BJMP Personnel On and Off-Duty": "On-Leave", "Total": summarydata?.success.personnel_count_by_status.Active["Sick Leave"] + summarydata?.success.personnel_count_by_status.Active["Vacation Leave"] + summarydata?.success.personnel_count_by_status.Active["Maternity Leave"] + summarydata?.success.personnel_count_by_status.Active["Paternity Leave"] + summarydata?.success.personnel_count_by_status.Active["Compensatory Leave"] || 0 },
+            { "BJMP Personnel On and Off-Duty": "On-Leave", "Total": summarydata?.success.personnel_count_by_status.Active["Sick Leave"] + summarydata?.success.personnel_count_by_status.Active["Vacation Leave"] + summarydata?.success.personnel_count_by_status.Active["Maternity Leave"] + summarydata?.success.personnel_count_by_status.Active["Paternity Leave"] + summarydata?.success.personnel_count_by_status.Active["Compensatory Leave"] + summarydata?.success.personnel_count_by_status.Active["Absent Without Leave"] || 0 },
             { "BJMP Personnel On and Off-Duty": "Total", "Total": (
                 (summarydata?.success.personnel_count_by_status.Active["Sick Leave"] || 0) +
                 (summarydata?.success.personnel_count_by_status.Active["Vacation Leave"]  || 0) +
                 (summarydata?.success.personnel_count_by_status.Active["Maternity Leave"] || 0) +
                 (summarydata?.success.personnel_count_by_status.Active["Paternity Leave"] || 0) +
-                (summarydata?.success.personnel_count_by_status.Active["Compensatory Leave"] || 0)
+                (summarydata?.success.personnel_count_by_status.Active["Compensatory Leave"] || 0) + (summarydata?.success.personnel_count_by_status.Active["Absent Without Leave"] || 0)
             ) }
         ];
 
@@ -588,7 +588,7 @@ const createStyledTable = (title, body) => {
                                 </tr>
                                 <tr>
                                     <td className="px-6 py-2 text-lg whitespace-nowrap border-r">On-Leave</td>
-                                    <td className="px-6 py-2 text-lg whitespace-nowrap">{summarydata?.success.personnel_count_by_status.Active["Sick Leave"] + summarydata?.success.personnel_count_by_status.Active["Vacation Leave"] + summarydata?.success.personnel_count_by_status.Active["Maternity Leave"] + summarydata?.success.personnel_count_by_status.Active["Paternity Leave"] + summarydata?.success.personnel_count_by_status.Active["Compensatory Leave"] || 0}</td>
+                                    <td className="px-6 py-2 text-lg whitespace-nowrap">{summarydata?.success.personnel_count_by_status.Active["Sick Leave"] + summarydata?.success.personnel_count_by_status.Active["Vacation Leave"] + summarydata?.success.personnel_count_by_status.Active["Maternity Leave"] + summarydata?.success.personnel_count_by_status.Active["Paternity Leave"] + summarydata?.success.personnel_count_by_status.Active["Compensatory Leave"] + summarydata?.success.personnel_count_by_status.Active["Absent Without Leave"] || 0}</td>
                                 </tr>
                                 <tr>
                                     <td className="px-6 py-2 text-lg whitespace-nowrap border-r bg-gray-100 font-semibold">Total</td>
@@ -599,7 +599,7 @@ const createStyledTable = (title, body) => {
                                         (summarydata?.success.personnel_count_by_status.Active["Vacation Leave"] || 0) +
                                         (summarydata?.success.personnel_count_by_status.Active["Maternity Leave"] || 0) +
                                         (summarydata?.success.personnel_count_by_status.Active["Paternity Leave"] || 0) +
-                                        (summarydata?.success.personnel_count_by_status.Active["Compensatory Leave"] || 0)
+                                        (summarydata?.success.personnel_count_by_status.Active["Compensatory Leave"] || 0) + (summarydata?.success.personnel_count_by_status.Active["Absent Without Leave"] || 0)
                                     )}</td>
                                 </tr>
                             </tbody>

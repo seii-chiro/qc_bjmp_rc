@@ -91,30 +91,30 @@ const SocialMedia = () => {
             dataIndex: 'platform_name',
             key: 'platform_name',
             sorter: (a, b) => a.platform_name.localeCompare(b.platform_name),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.platform_name))
-                ).map(platform_name => ({
-                    text: platform_name,
-                    value: platform_name,
-                }))
-            ],
-            onFilter: (value, record) => record.platform_name === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.platform_name))
+            //     ).map(platform_name => ({
+            //         text: platform_name,
+            //         value: platform_name,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.platform_name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.description))
-                ).map(description => ({
-                    text: description,
-                    value: description,
-                }))
-            ],
-            onFilter: (value, record) => record.description === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.description))
+            //     ).map(description => ({
+            //         text: description,
+            //         value: description,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",

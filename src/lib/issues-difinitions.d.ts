@@ -966,3 +966,26 @@ export interface GroupRole {
   id: number;
   name: string;
 }
+
+export interface PersonnelDesignationPayload {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  created_at: string; // or Date if you're parsing it
+  updated_at: string; // or Date if you're parsing it
+  name: string;
+  description: string;
+}
+
+export interface PersonnelApplicationStatusPayload {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  created_at: string;  // ISO date string
+  updated_at: string;  // ISO date string
+  status: string;
+  description: string;
+  remarks: string;
+}

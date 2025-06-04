@@ -261,7 +261,8 @@ const SummaryCountofPersonnel = () => {
     (statusCounts["Vacation Leave"] || 0) +
     (statusCounts["Maternity Leave"] || 0) +
     (statusCounts["Paternity Leave"] || 0) +
-    (statusCounts["Compensatory Leave"] || 0)
+    (statusCounts["Compensatory Leave"] || 0) +
+    (statusCounts["Absent Without Leave"] || 0)
   );
 
   const totalStatusCount = onDutyCount + offDutyCount + onLeaveCount;

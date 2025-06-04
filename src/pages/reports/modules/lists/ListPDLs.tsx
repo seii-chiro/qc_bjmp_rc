@@ -107,11 +107,11 @@ const ListPDLs = () => {
             id: pdl?.id,
             name: `${pdl?.person?.first_name} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name}`.trim(),
             date_of_birth: pdl?.person?.date_of_birth,
-            offense: pdl?.cases?.[0]?.offense,
+            crime_category: pdl?.cases?.[0]?.crime_category,
             status: pdl?.status,
             date_of_admission: pdl?.date_of_admission,
             visitation_status: pdl?.visitation_status,
-            notes: pdl?.notes,
+            remarks: pdl?.remarks,
         };
     }) || [];
 
@@ -138,8 +138,8 @@ const ListPDLs = () => {
         },
         {
             title: 'Case Type',
-            dataIndex: 'offense',
-            key: 'offense',
+            dataIndex: 'crime_category',
+            key: 'crime_category',
         },
         {
             title: 'Status',
@@ -158,8 +158,8 @@ const ListPDLs = () => {
         },
         {
             title: 'Notes',
-            dataIndex: 'notes',
-            key: 'notes',
+            dataIndex: 'remarks',
+            key: 'remarks',
         }
     ];
 

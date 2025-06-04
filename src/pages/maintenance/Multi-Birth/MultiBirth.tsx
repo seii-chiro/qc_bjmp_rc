@@ -97,60 +97,60 @@ const MultiBirth = () => {
                 dataIndex: "classification",
                 key: "classification",
                 sorter: (a, b) => a.classification.localeCompare(b.classification),
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.classification))
-                    ).map(name => ({
-                        text: name,
-                        value: name,
-                    }))
-                ],
-                onFilter: (value, record) => record.classification === value,
+                // filters: [
+                //     ...Array.from(
+                //         new Set(filteredData.map(item => item.classification))
+                //     ).map(name => ({
+                //         text: name,
+                //         value: name,
+                //     }))
+                // ],
+                // onFilter: (value, record) => record.classification === value,
                 },
                 {
                 title: "Group Size",
                 dataIndex: "group_size",
                 key: "group_size",
                 sorter: (a, b) => a.group_size - b.group_size,
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.group_size))
-                    ).map(name => ({
-                        text: name,
-                        value: name,
-                    }))
-                ],
-                onFilter: (value, record) => record.group_size === value,
+                // filters: [
+                //     ...Array.from(
+                //         new Set(filteredData.map(item => item.group_size))
+                //     ).map(name => ({
+                //         text: name,
+                //         value: name,
+                //     }))
+                // ],
+                // onFilter: (value, record) => record.group_size === value,
                 },
                 {
                     title: "Term for Sibling Group",
                     dataIndex: "term_for_sibling_group",
                     key: "term_for_sibling_group",
                     sorter: (a, b) => a.term_for_sibling_group.localeCompare(b.term_for_sibling_group),
-                    filters: [
-                        ...Array.from(
-                            new Set(filteredData.map(item => item.term_for_sibling_group))
-                        ).map(name => ({
-                            text: name,
-                            value: name,
-                        }))
-                    ],
-                    onFilter: (value, record) => record.term_for_sibling_group === value,
+                    // filters: [
+                    //     ...Array.from(
+                    //         new Set(filteredData.map(item => item.term_for_sibling_group))
+                    //     ).map(name => ({
+                    //         text: name,
+                    //         value: name,
+                    //     }))
+                    // ],
+                    // onFilter: (value, record) => record.term_for_sibling_group === value,
                 },
                 {
                     title: "Description",
                     dataIndex: "description",
                     key: "description",
                     sorter: (a, b) => a.description.localeCompare(b.description),
-                    filters: [
-                        ...Array.from(
-                            new Set(filteredData.map(item => item.description))
-                        ).map(name => ({
-                            text: name,
-                            value: name,
-                        }))
-                    ],
-                    onFilter: (value, record) => record.description === value,
+                    // filters: [
+                    //     ...Array.from(
+                    //         new Set(filteredData.map(item => item.description))
+                    //     ).map(name => ({
+                    //         text: name,
+                    //         value: name,
+                    //     }))
+                    // ],
+                    // onFilter: (value, record) => record.description === value,
                 },
                 {
                 title: "Actions",
