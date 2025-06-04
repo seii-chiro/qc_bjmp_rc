@@ -4,7 +4,7 @@ import { PersonnelForm } from "@/lib/issues-difinitions";
 import { getUser } from "@/lib/queries";
 import { deletePersonnel } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
-import { CSVLink } from "react-csv";
+// import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -37,8 +37,10 @@ const Personnel = () => {
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
+    const [genderFilter, setGenderFilter] = useState<string[]>([]);
+    const [rankFilter, setRankFilter] = useState<string[]>([]);
+    const [statusFilter, setStatusFilter] = useState<string[]>([]);
     const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [allPersonnel, setAllPersonnel] = useState<PersonnelType[]>([]);
 
     const fetchPersonnels = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/codes/personnel/?search=${search}`, {
@@ -138,6 +140,18 @@ const Personnel = () => {
 
     const status = searchParams.get("status") || "all";
     const statusList = status !== "all" ? status.split(",").map(decodeURIComponent) : [];
+    
+    useEffect(() => {
+    if (genderList.length > 0 && JSON.stringify(genderFilter) !== JSON.stringify(genderList)) {
+        setGenderFilter(genderList);
+    }
+    }, [genderList, genderFilter]);
+
+    useEffect(() => {
+    if (statusList.length > 0 && JSON.stringify(statusFilter) !== JSON.stringify(statusList)) {
+        setStatusFilter(statusList);
+    }
+    }, [statusList, statusFilter]);
 
     const { data: personnelStatusData, isLoading: personnelByStatusLoading } = useQuery({
         queryKey: ['personnel', 'personnel-table', page, statusList],
@@ -166,6 +180,13 @@ const Personnel = () => {
         (personnelStatusData?.results || []).map(personnel => personnel.id)
     );
 
+    const rankFilters = Array.from(
+    new Set((data?.results || []).map(item => item.rank).filter(Boolean))
+    ).map(rank => ({
+    text: rank,
+    value: rank,
+    }));
+
     const dataSource = (data?.results || []).filter(personnel =>
     gender === "all" ? true : genderFilteredPersonnelIds.has(personnel.id) 
     && 
@@ -184,12 +205,17 @@ const Personnel = () => {
                 updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
-    const filteredData = dataSource?.filter(personnel => {
-        const matchesSearch = Object.values(personnel).some(value =>
-            String(value).toLowerCase().includes(searchText.toLowerCase())
-        );
-        return matchesSearch;
-    });
+        const filteredData = dataSource.filter(personnel => {
+            const matchesSearch = Object.values(personnel).some(value =>
+                String(value).toLowerCase().includes(searchText.toLowerCase())
+            );
+
+            const matchesGender = genderFilter.length === 0 || genderFilter.includes(personnel.gender);
+            const matchesRank = rankFilter.length === 0 || rankFilter.includes(personnel.rank);
+            const matchesStatus = statusFilter.length === 0 || statusFilter.includes(personnel.status);
+
+            return matchesSearch && matchesGender && matchesRank && matchesStatus;
+            });
 
     const columns: ColumnType<PersonnelForm> = [
         {
@@ -210,49 +236,39 @@ const Personnel = () => {
             sorter: (a, b) => a.person.localeCompare(b.person),
         },
         {
-            title: 'Gender',
-            dataIndex: 'gender',
-            key: 'gender',
-            sorter: (a, b) => a.gender.localeCompare(b.gender),
-            filters: [
-                ...Array.from(
-                    new Set(allPersonnel.map(item => item.gender))
-                ).map(gender => ({
-                    text: gender,
-                    value: gender,
-                }))
-            ],
-            onFilter: (value, record) => record.gender === value,
+        title: 'Gender',
+        dataIndex: 'gender',
+        key: 'gender',
+        sorter: (a, b) => a.gender.localeCompare(b.gender),
+        filters: Array.from(
+            new Set((personnelGenderData?.results || []).map(personnel => personnel?.person?.gender?.gender_option))
+        )
+            .filter(Boolean)
+            .map(gender => ({ text: gender, value: gender })),
+        onFilter: (value, record) => record.gender === value,
+        filteredValue: genderFilter,
         },
         {
             title: 'Rank',
             dataIndex: 'rank',
             key: 'rank',
             sorter: (a, b) => a.rank.localeCompare(b.rank),
-            filters: [
-                ...Array.from(
-                    new Set(allPersonnel.map(item => item.rank))
-                ).map(rank => ({
-                    text: rank,
-                    value: rank,
-                }))
-            ],
+            filters: rankFilters,
+            filteredValue: rankFilter, 
             onFilter: (value, record) => record.rank === value,
         },
         {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
-            sorter: (a, b) => a.status.localeCompare(b.status),
-            filters: [
-                ...Array.from(
-                    new Set(allPersonnel.map(item => item.status))
-                ).map(status => ({
-                    text: status,
-                    value: status,
-                }))
-            ],
-            onFilter: (value, record) => record.status === value,
+        title: 'Status',
+        dataIndex: 'status',
+        key: 'status',
+        sorter: (a, b) => a.status.localeCompare(b.status),
+        filters: Array.from(
+            new Set((personnelStatusData?.results || []).map(personnel => personnel?.status))
+        )
+            .filter(Boolean)
+            .map(status => ({ text: status, value: status })),
+        onFilter: (value, record) => record.status === value,
+        filteredValue: statusFilter,
         },
         {
             title: "Action",
@@ -274,164 +290,166 @@ const Personnel = () => {
         },
     ];
 
-    const fetchAllPersonnels = async () => {
-        const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
-        if (!res.ok) throw new Error("Network error");
-        const data = await res.json();
-        return data;
-    };
+const lastPrintIndexRef = useRef(0);
 
-    const lastPrintIndexRef = useRef(0); 
+const fetchAllPersonnels = async () => {
+    const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
+        headers: {
+            Authorization: `Token ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+    if (!res.ok) throw new Error("Network error");
+    return await res.json();
+};
 
-    const handleExportPDF = async () => {
-        setIsLoading(true);
-        setLoadingMessage("Generating PDF... Please wait.");
-        const doc = new jsPDF();
-        const headerHeight = 48;
-        const footerHeight = 32;
-        const MAX_ROWS_PER_PRINT = 800;
+const handleExportPDF = async () => {
+    setIsLoading(true);
+    setLoadingMessage("Generating PDF... Please wait...");
 
-        let printSource;
+    const doc = new jsPDF();
+    const headerHeight = 48;
+    const footerHeight = 32;
+    const maxRowsPerPage = 25;
+    const maxBatchSize = 800;
 
-        if (debouncedSearch && debouncedSearch.trim().length > 0) {
-        printSource = (searchData?.results || []).map((personnel, index) => {
-            return {
-                id: personnel?.id,
-                    key: index + 1,
-                    organization: personnel?.organization ?? '',
-                    personnel_reg_no: personnel?.personnel_reg_no ?? '',
-                    person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
-                    shortname: personnel?.person?.shortname ?? '',
-                    rank: personnel?.rank ?? '',
-                    status: personnel?.status ?? '',
-                    gender:
-                    (personnel?.person?.gender?.gender_option === "Male" || personnel?.person?.gender?.gender_option === "Female")
-                        ? personnel?.person?.gender?.gender_option
-                        : "Others",
-                    date_joined: personnel?.date_joined ?? '',
-                    record_status: personnel?.record_status ?? '',
-                    updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-            };
-        });
-        
-        lastPrintIndexRef.current = 0; 
+    let printSource = [];
+
+    const isFiltering = (
+        filteredData.length > 0 ||
+        gender !== "all" ||
+        status !== "all" ||
+        genderFilter.length > 0 ||
+        statusFilter.length > 0 ||
+        rankFilter.length > 0
+        );
+
+    if (isFiltering) {
+        printSource = filteredData.map((personnel, index) => ({
+            key: index + 1,
+            id: personnel?.id,
+            organization: personnel?.organization ?? '',
+            personnel_reg_no: personnel?.personnel_reg_no ?? '',
+            person: personnel?.person,
+            shortname: personnel?.shortname ?? '',
+            rank: personnel?.rank ?? '',
+            status: personnel?.status ?? '',
+            gender: personnel?.gender,
+            date_joined: personnel?.date_joined ?? '',
+            record_status: personnel?.record_status ?? '',
+            updated_by: personnel?.updated_by ?? '',
+        }));
+        lastPrintIndexRef.current = 0;
     } else {
         const allData = await fetchAllPersonnels();
         const allResults = allData?.results || [];
+
         printSource = allResults
-            .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + MAX_ROWS_PER_PRINT)
-            .map((personnel, index) => {
-                return {
-                    id: personnel?.id,
-                    key: index + 1,
-                    organization: personnel?.organization ?? '',
-                    personnel_reg_no: personnel?.personnel_reg_no ?? '',
-                    person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
-                    shortname: personnel?.person?.shortname ?? '',
-                    rank: personnel?.rank ?? '',
-                    status: personnel?.status ?? '',
-                    gender:
-                    (personnel?.person?.gender?.gender_option === "Male" || personnel?.person?.gender?.gender_option === "Female")
-                        ? personnel?.person?.gender?.gender_option
-                        : "Others",
-                    date_joined: personnel?.date_joined ?? '',
-                    record_status: personnel?.record_status ?? '',
-                    updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-                };
-            });
-        lastPrintIndexRef.current += MAX_ROWS_PER_PRINT;
+            .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + maxBatchSize)
+            .map((personnel, index) => ({
+                key: lastPrintIndexRef.current + index + 1,
+                id: personnel?.id,
+                organization: personnel?.organization ?? '',
+                personnel_reg_no: personnel?.personnel_reg_no ?? '',
+                person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+                shortname: personnel?.shortname ?? '',
+                rank: personnel?.rank ?? '',
+                status: personnel?.status ?? '',
+                gender: personnel?.person?.gender?.gender_option ?? '',
+                date_joined: personnel?.date_joined ?? '',
+                record_status: personnel?.record_status ?? '',
+                updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+            }));
+
+        lastPrintIndexRef.current += maxBatchSize;
         if (lastPrintIndexRef.current >= allResults.length) {
             lastPrintIndexRef.current = 0;
         }
     }
-            const organizationName = printSource[0]?.organization || "";
-            const PreparedBy = printSource[0]?.updated_by || '';
-            const today = new Date();
-            const formattedDate = today.toISOString().split('T')[0];
-            const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-            const MAX_ROWS_PER_PAGE = 26;
-            let startY = headerHeight;
 
-            const addHeader = () => {
-                const pageWidth = doc.internal.pageSize.getWidth();
-                const imageWidth = 30;
-                const imageHeight = 30;
-                const margin = 10;
-                const imageX = pageWidth - imageWidth - margin;
-                const imageY = 12;
+    const organizationName = printSource[0]?.organization || "Bureau of Jail Management and Penology";
+    const PreparedBy = printSource[0]?.updated_by || '';
+    const today = new Date();
+    const formattedDate = today.toISOString().split("T")[0];
+    const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
-                doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-                doc.setTextColor(0, 102, 204);
-                doc.setFontSize(16);
-                doc.text("Personnel Report", 10, 15);
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(10);
-                doc.text(`Organization Name: ${organizationName}`, 10, 25);
-                doc.text("Report Date: " + formattedDate, 10, 30);
-                doc.text("Prepared By: " + PreparedBy, 10, 35);
-                doc.text("Department/ Unit: IT", 10, 40);
-                doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
-            };
+    let startY = headerHeight;
 
-            addHeader();
+    const addHeader = () => {
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const imageWidth = 30;
+        const imageHeight = 30;
+        const margin = 10;
+        const imageX = pageWidth - imageWidth - margin;
+        const imageY = 12;
 
-            const tableData = printSource.map((item) => [
-                item.key,
-                item.personnel_reg_no,
-                item.person,
-                item.gender,
-                item.rank,
-                item.status,
-            ]);
+        doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
+        doc.setTextColor(0, 102, 204);
+        doc.setFontSize(16);
+        doc.text("Personnel Report", 10, 15);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(`Organization Name: ${organizationName}`, 10, 25);
+        doc.text("Report Date: " + formattedDate, 10, 30);
+        doc.text("Prepared By: " + PreparedBy, 10, 35);
+        doc.text("Department/ Unit: IT", 10, 40);
+        doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
+    };
 
-            for (let i = 0; i < tableData.length; i += MAX_ROWS_PER_PAGE) {
-                const pageData = tableData.slice(i, i + MAX_ROWS_PER_PAGE);
+    addHeader();
 
-                autoTable(doc, {
-                    head: [['No.', 'Personnel No.', 'Name', 'Gender', 'Rank', 'Status']],
-                    body: pageData,
-                    startY: startY,
-                    margin: { top: 0, left: 10, right: 10 },
-                    didDrawPage: function () {
-                        if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                            addHeader();
-                        }
-                    },
-                });
+    const tableData = printSource.map((item, index) => [
+        index + 1,
+        item.personnel_reg_no,
+        item.person,
+        item.gender,
+        item.rank,
+        item.status,
+    ]);
 
-                if (i + MAX_ROWS_PER_PAGE < tableData.length) {
-                    doc.addPage();
-                    startY = headerHeight;
+    for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
+        const pageData = tableData.slice(i, i + maxRowsPerPage);
+
+        autoTable(doc, {
+            head: [['No.', 'Personnel No.', 'Name', 'Gender', 'Rank', 'Status']],
+            body: pageData,
+            startY: startY,
+            margin: { top: 0, left: 10, right: 10 },
+            didDrawPage: function () {
+                if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+                    addHeader();
                 }
-            }
+            },
+        });
 
-            const pageCount = doc.internal.getNumberOfPages();
-            for (let page = 1; page <= pageCount; page++) {
-                doc.setPage(page);
-                const footerText = [
-                    "Document Version: Version 1.0",
-                    "Confidentiality Level: Internal use only",
-                    "Contact Info: " + PreparedBy,
-                    `Timestamp of Last Update: ${formattedDate}`
-                ].join('\n');
-                const footerX = 10;
-                const footerY = doc.internal.pageSize.height - footerHeight + 15;
-                const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
-                doc.setFontSize(8);
-                doc.text(footerText, footerX, footerY);
-                doc.text(`${page} / ${pageCount}`, pageX, footerY);
-            }
-
-            const pdfOutput = doc.output('datauristring');
-            setPdfDataUrl(pdfOutput);
-            setIsPdfModalOpen(true);
-            setIsLoading(false);
+        if (i + maxRowsPerPage < tableData.length) {
+            doc.addPage();
+            startY = headerHeight;
         }
+    }
+
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let page = 1; page <= pageCount; page++) {
+        doc.setPage(page);
+        const footerText = [
+            "Document Version: Version 1.0",
+            "Confidentiality Level: Internal use only",
+            "Contact Info: " + PreparedBy,
+            `Timestamp of Last Update: ${formattedDate}`
+        ].join('\n');
+        const footerX = 10;
+        const footerY = doc.internal.pageSize.height - footerHeight + 15;
+        const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+        doc.setFontSize(8);
+        doc.text(footerText, footerX, footerY);
+        doc.text(`${page} / ${pageCount}`, pageX, footerY);
+    }
+
+    const pdfOutput = doc.output("datauristring");
+    setPdfDataUrl(pdfOutput);
+    setIsPdfModalOpen(true);
+    setIsLoading(false);
+};
 
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
@@ -475,8 +493,8 @@ const handleExportCSV = async () => {
         }) || [];
 
         const csvContent = [
-            Object.keys(exportData[0]).join(","), // Header row
-            ...exportData.map(item => Object.values(item).join(",")) // Data rows
+            Object.keys(exportData[0]).join(","),
+            ...exportData.map(item => Object.values(item).join(",")) 
         ].join("\n");
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -510,11 +528,12 @@ const handleExportCSV = async () => {
     : status !== "all"
     ? personnelStatusData?.count || 0
     : data?.count || 0; 
+    
     return (
         <div>
             {contextHolder}
             <h1 className="text-2xl font-bold text-[#1E365D]">Personnel</h1>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between my-2">
                 <div className="flex gap-2">
                     <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
                         <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
@@ -522,12 +541,12 @@ const handleExportCSV = async () => {
                         </a>
                     </Dropdown>
                     <button 
-                className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
-                onClick={handleExportPDF} 
-                disabled={isLoading}
-            >
-                {isLoading ? loadingMessage : 'PDF Report'}
-            </button>
+                        className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                        onClick={handleExportPDF} 
+                        disabled={isLoading}
+                    >
+                        {isLoading ? loadingMessage : 'PDF Report'}
+                    </button>
                 </div>
                 <div className="flex gap-2 items-center">
                     <Input
@@ -598,13 +617,20 @@ const handleExportCSV = async () => {
                     pageSize: limit,
                     total: totalRecords,
                     pageSizeOptions: ['10', '20', '50', '100'],
-                    showSizeChanger: true, // Must be true to show page size dropdown
+                    showSizeChanger: true, 
                     onChange: (newPage, newPageSize) => {
                         setPage(newPage);
-                        setLimit(newPageSize); // <-- add this if you want to update limit too
+                        setLimit(newPageSize); 
                     },
+                    }} 
+                    onChange={(pagination, filters, sorter) => {
+                        setGenderFilter(filters.gender as string[] || []);
+                        setRankFilter(filters.rank as string[] || []);
+                        setStatusFilter(filters.status as string[] || []);
+                        // handle pagination, sorting if needed
                     }}
                 rowKey="id"
+                
             />
             <Modal
                 title="Position Report"
