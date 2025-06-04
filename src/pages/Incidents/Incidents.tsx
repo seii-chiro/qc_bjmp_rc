@@ -27,7 +27,7 @@ const Incidents = () => {
                 <div className="ml-8 mt-2 flex gap-32">
                     <div>
                         <GodotLink link="oasis" title="Send an Alert" />
-                        {/* <GodotLink link="oasis/status" title="Status" />
+                        <GodotLink link="oasis/status" title="Status" />
                         <GodotLink link="oasis/message_type" title="Message Type" />
                         <GodotLink link="oasis/scope" title="Scope" />
                         <GodotLink link="oasis/restriction" title="Restriction" />
@@ -35,9 +35,9 @@ const Incidents = () => {
                         <GodotLink link="oasis/note" title="Note" />
                         <GodotLink link="oasis/language" title="Language" />
                         <GodotLink link="oasis/category" title="Category" />
-                        <GodotLink link="oasis/event" title="Event" /> */}
+                        <GodotLink link="oasis/event" title="Event" />
                     </div>
-                    {/* <div>
+                    <div>
                         <GodotLink link="oasis/response_type" title="Response Type" />
                         <GodotLink link="oasis/urgency" title="Urgency" />
                         <GodotLink link="oasis/severity" title="Severity" />
@@ -47,7 +47,7 @@ const Incidents = () => {
                         <GodotLink link="oasis/instructions" title="Instructions" />
                         <GodotLink link="oasis/parameter" title="Parameter" />
                         <GodotLink link="oasis/geocode" title="Geocode" />
-                    </div> */}
+                    </div>
                 </div>
             </div>
         </div>
