@@ -375,35 +375,67 @@ const Dashboard = () => {
         );
     };
 
-    const exportDashboard = async () => {
-        const input = document.getElementById("dashboard");
-        if (!input) return;
+ const exportDashboardAsImage = async () => {
+    if (!handle.active) {
+      await handle.enter();
+      await new Promise(r => setTimeout(r, 500));
+    }
 
-        const canvas = await html2canvas(input, {
-            scale: 2, 
-            useCORS: true,
-        });
+    const element = document.getElementById("dashboard");
+    if (!element) return;
 
-        const imgData = canvas.toDataURL("image/png");
-
-        const pdf = new jsPDF({
-            orientation: "landscape",
-            unit: "px",
-            format: [canvas.width, canvas.height],
-        });
-
-        pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-        pdf.save("dashboard.pdf");
-        };
-
-        const exportInFullscreen = async () => {
-        if (!handle.active) {
-            await handle.enter(); 
-            setTimeout(() => exportDashboard(), 500);
-        } else {
-            exportDashboard();
-        }
+    // Save current styles including shadow/border
+    const oldStyle = {
+      width: element.style.width,
+      height: element.style.height,
+      overflow: element.style.overflow,
+      position: element.style.position,
+      top: element.style.top,
+      left: element.style.left,
+      boxShadow: element.style.boxShadow,
+      border: element.style.border,
+      outline: element.style.outline,
     };
+
+    // Apply full screen size and remove shadows/borders
+    element.style.width = "100vw";
+    element.style.height = "100vh";
+    element.style.overflow = "visible";
+    element.style.position = "fixed";
+    element.style.top = "0";
+    element.style.left = "0";
+    element.style.boxShadow = "none";
+    element.style.border = "none";
+    element.style.outline = "none";
+
+    // Wait for style changes to apply
+    await new Promise(r => setTimeout(r, 200));
+
+    const canvas = await html2canvas(element, {
+      scale: window.devicePixelRatio || 2,
+      useCORS: true,
+      scrollX: -window.scrollX,
+      scrollY: -window.scrollY,
+    });
+
+    // Restore original styles
+    element.style.width = oldStyle.width;
+    element.style.height = oldStyle.height;
+    element.style.overflow = oldStyle.overflow;
+    element.style.position = oldStyle.position;
+    element.style.top = oldStyle.top;
+    element.style.left = oldStyle.left;
+    element.style.boxShadow = oldStyle.boxShadow;
+    element.style.border = oldStyle.border;
+    element.style.outline = oldStyle.outline;
+
+    const image = canvas.toDataURL("image/png");
+
+    const link = document.createElement("a");
+    link.href = image;
+    link.download = "dashboard-fullscreen.png";
+    link.click();
+  };
 
     const renderLegendCircle = (props: any) => {
         const { payload } = props;
@@ -1526,7 +1558,7 @@ const visitorHandleClick = (gender: string) => {
             </button>
             <button
                 className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full hover:bg-[#163050] transition"
-                onClick={exportInFullscreen}
+                onClick={exportDashboardAsImage}
             >
                 <RiShareBoxLine /> Export
             </button>

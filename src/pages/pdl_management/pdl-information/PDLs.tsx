@@ -232,139 +232,88 @@ const PDLtable = () => {
             return matchesSearch && matchesGender && matchesStatus && matchesVisitationStatus;
             });
 
-    const columns: ColumnsType<PDLs> = [
-        {
-            title: 'No.',
-            key: 'no',
-            render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
-        },
-        {
-            title: 'PDL Name',
-            dataIndex: 'name',
-            key: 'name',
-            sorter: (a, b) => a.name.localeCompare(b.name),
-        },
-         {
-        title: 'Gender',
-        dataIndex: 'gender',
-        key: 'gender',
-        sorter: (a, b) => a.gender.localeCompare(b.gender),
-        filters: Array.from(
-            new Set((pdlsGenderData?.results || []).map(pdl => pdl?.person?.gender?.gender_option))
-        )
-            .filter(Boolean)
-            .map(gender => ({ text: gender, value: gender })),
-        onFilter: (value, record) => record.gender === value,
-        filteredValue: genderColumnFilter,
-        },
-        // {
-        //     title: 'Dorm No.',
-        //     dataIndex: 'cell_no',
-        //     key: 'cell_no',
-        //     sorter: (a, b) => a.cell_no.localeCompare(b.cell_no),
-        //     filters: [
-        //         ...Array.from(new Set(allPDLs.map(item => item.cell_no)))
-        //             .filter(cell_no => cell_no)
-        //             .map(cell_no => ({ text: cell_no, value: cell_no }))
-        //     ],
-        //     onFilter: (value, record) => record.cell_no === value,
-        // },
-        {
-            title: 'Dorm Name',
-            dataIndex: 'cell_name',
-            key: 'cell_name',
-            sorter: (a, b) => a.cell_name.localeCompare(b.cell_name),
-        },
-        {
-            title: 'Annex',
-            dataIndex: 'floor',
-            key: 'floor',
-            sorter: (a, b) => a.floor.localeCompare(b.floor),
-        },
-        // {
-        //     title: 'Gang Affiliation',
-        //     dataIndex: 'gang_affiliation',
-        //     key: 'gang_affiliation',
-        //     sorter: (a, b) => a.gang_affiliation.localeCompare(b.gang_affiliation),
-        //     filters: [
-        //         ...Array.from(new Set(allPDLs.map(item => item.gang_affiliation)))
-        //             .filter(gang => gang)
-        //             .map(gang => ({ text: gang, value: gang }))
-        //     ],
-        //     onFilter: (value, record) => record.gang_affiliation === value,
-        // },
-        {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
-            sorter: (a, b) => a.status.localeCompare(b.status),
-            filters: [
-                ...Array.from(new Set(allPDLs.map(item => item.status)))
-                    .filter(status => status)
-                    .map(status => ({ text: status, value: status }))
-            ],
-            onFilter: (value, record) => record.status === value,
-            filteredValue: statusColumnFilter,
-        },
-        {
-            title: 'Visitation Status',
-            dataIndex: 'visitation_status',
-            key: 'visitation_status',
-            sorter: (a, b) => a.visitation_status.localeCompare(b.visitation_status),
-            filters: [
-                ...Array.from(new Set(allPDLs.map(item => item.visitation_status)))
-                    .filter(visitation_status => visitation_status)
-                    .map(visitation_status => ({ text: visitation_status, value: visitation_status }))
-            ],
-            onFilter: (value, record) => record.visitation_status === value,
-            filteredValue: visitationColumnFilter, 
-        },
-        // {
-        //     title: 'Date of Admission',
-        //     dataIndex: 'date_of_admission',
-        //     key: 'date_of_admission',
-        //     sorter: (a, b) => a.date_of_admission.localeCompare(b.date_of_admission),
-        // },
-        // {
-        //     title: 'Look',
-        //     dataIndex: 'look',
-        //     key: 'look',
-        //     sorter: (a, b) => a.look.localeCompare(b.look),
-        //     filters: [
-        //         ...Array.from(new Set(allPDLs.map(item => item.look)))
-        //             .filter(look => look)
-        //             .map(look => ({ text: look, value: look }))
-        //     ],
-        //     onFilter: (value, record) => record.look === value,
-        // },
-        {
-            title: "Action",
-            key: "action",
-            render: (_: any, record: any,) => (
-                <div className="flex gap-2">
-                    {/* <Button
-                            type="link"
-                            onClick={() => {
-                                const original = data?.[index];
-                                if (original) handleEdit(record, original);
-                            }}
-                        >
-                            <AiOutlineEdit />
-                        </Button> */}
-                    <NavLink to="update" state={{ pdl: record }} className={"flex items-center justify-center"}>
-                        <AiOutlineEdit />
-                    </NavLink>
-                    <Button
-                        type="link"
-                        danger
-                        onClick={() => deleteMutation.mutate(record.id)}
-                    >
-                        <AiOutlineDelete />
-                    </Button>
-                </div>
-            ),
-        },
-    ]
+            const columns: ColumnsType<PDLs> = [
+                {
+                    title: 'No.',
+                    key: 'no',
+                    render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
+                },
+                {
+                    title: 'PDL Name',
+                    dataIndex: 'name',
+                    key: 'name',
+                    sorter: (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(), 
+                },
+                {
+                    title: 'Gender',
+                    dataIndex: 'gender',
+                    key: 'gender',
+                    sorter: (a, b) => a.gender.localeCompare(b.gender),
+                    filters: Array.from(
+                        new Set((pdlsGenderData?.results || []).map(pdl => pdl?.person?.gender?.gender_option))
+                    )
+                        .filter(Boolean)
+                        .map(gender => ({ text: gender, value: gender })),
+                    onFilter: (value, record) => record.gender === value,
+                    filteredValue: genderColumnFilter,
+                },
+                {
+                    title: 'Dorm Name',
+                    dataIndex: 'cell_name',
+                    key: 'cell_name',
+                    sorter: (a, b) => a.cell_name.localeCompare(b.cell_name),
+                },
+                {
+                    title: 'Annex',
+                    dataIndex: 'floor',
+                    key: 'floor',
+                    sorter: (a, b) => a.floor.localeCompare(b.floor),
+                },
+                {
+                    title: 'Status',
+                    dataIndex: 'status',
+                    key: 'status',
+                    sorter: (a, b) => a.status.localeCompare(b.status),
+                    filters: [
+                        ...Array.from(new Set(allPDLs.map(item => item.status)))
+                            .filter(status => status)
+                            .map(status => ({ text: status, value: status }))
+                    ],
+                    onFilter: (value, record) => record.status === value,
+                    filteredValue: statusColumnFilter,
+                },
+                {
+                    title: 'Visitation Status',
+                    dataIndex: 'visitation_status',
+                    key: 'visitation_status',
+                    sorter: (a, b) => a.visitation_status.localeCompare(b.visitation_status),
+                    filters: [
+                        ...Array.from(new Set(allPDLs.map(item => item.visitation_status)))
+                            .filter(visitation_status => visitation_status)
+                            .map(visitation_status => ({ text: visitation_status, value: visitation_status }))
+                    ],
+                    onFilter: (value, record) => record.visitation_status === value,
+                    filteredValue: visitationColumnFilter,
+                },
+                {
+                    title: "Action",
+                    key: "action",
+                    render: (_: any, record: any) => (
+                        <div className="flex gap-2">
+                            <NavLink to="update" state={{ pdl: record }} className={"flex items-center justify-center"}>
+                                <AiOutlineEdit />
+                            </NavLink>
+                            <Button
+                                type="link"
+                                danger
+                                onClick={() => deleteMutation.mutate(record.id)}
+                            >
+                                <AiOutlineDelete />
+                            </Button>
+                        </div>
+                    ),
+                },
+            ];
 
     const fetchAllPDLs = async () => {
         const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
