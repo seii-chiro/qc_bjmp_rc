@@ -30,6 +30,7 @@ import { BASE_URL } from "./urls";
 import { AudienceFormType } from "@/pages/oasis/maintenance/forms/AudienceForm";
 import { CategoryFormType } from "@/pages/oasis/maintenance/forms/CategoriesForm";
 import { CertaintyFormType } from "@/pages/oasis/maintenance/forms/CertaintyForm";
+import { CodeFormType } from "@/pages/oasis/maintenance/forms/CodeForm";
 
 export async function getOASISRestrictions(
   token: string
@@ -157,6 +158,66 @@ export async function getOASISCodes(
   }
 
   return res.json();
+}
+
+export async function postOASISCode(
+  token: string,
+  payload: CodeFormType
+): Promise<OASISAudience> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-code/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISCode(
+  token: string,
+  id: number,
+  payload: Partial<CodeFormType>
+): Promise<OASISAudience> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-code/${id}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISCode(token: string, id: number) {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-code/${id}/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete code.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function getOASISNotes(
