@@ -457,10 +457,8 @@ const handleExportPDF = async () => {
     };
 
     const handleExportExcel = async () => {
-        // Fetch all visitors if necessary
-        const fullDataSource = await fetchAllPersonnels(); // Ensure this fetches all data
+        const fullDataSource = await fetchAllPersonnels(); 
 
-        // Map to prepare export data, excluding unnecessary fields
         const exportData = fullDataSource?.results.map(personnel => {
             const name = `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ? personnel?.person?.middle_name[0] + '.' : ''} ${personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim()
             return {
@@ -513,14 +511,18 @@ const handleExportCSV = async () => {
     const menu = (
         <Menu>
             <Menu.Item>
-                <a onClick={handleExportExcel}>Export Excel</a>
+                <a onClick={handleExportExcel} disabled={isLoading}> {/* Disable if loading */}
+                    {isLoading ? <span className="loader"></span> : 'Export Excel'}
+                </a>
             </Menu.Item>
             <Menu.Item>
-                <a onClick={handleExportCSV}>Export CSV</a>
-                    
+                <a onClick={handleExportCSV} disabled={isLoading}> {/* Disable if loading */}
+                    {isLoading ? <span className="loader"></span> : 'Export CSV'}
+                </a>
             </Menu.Item>
         </Menu>
     );
+
     const totalRecords = debouncedSearch 
     ? data?.count || 0
     : gender !== "all" 
@@ -537,7 +539,8 @@ const handleExportCSV = async () => {
                 <div className="flex gap-2">
                     <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
                         <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
-                            <GoDownload /> Export
+                            {isLoading ? <span className="loader"></span> : <GoDownload />}
+                            {isLoading ? ' Loading...' : ' Export'}
                         </a>
                     </Dropdown>
                     <button 

@@ -1,7 +1,7 @@
 import { deleteVisitors, getUser, getVisitorSpecificById } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore"
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { message, Table, Modal, Button, Image, Menu, Dropdown } from "antd"
+import { message, Table, Modal, Button, Image, Menu, Dropdown, Input } from "antd"
 import Fuse from "fuse.js";
 import { Key, useEffect, useMemo, useState } from "react"
 import { ColumnsType } from "antd/es/table"
@@ -682,17 +682,20 @@ const handleExportCSV = async () => {
     }
 };
 
-    const menu = (
-        <Menu>
-            <Menu.Item>
-                <a onClick={handleExportExcel}>Export Excel</a>
-            </Menu.Item>
-            <Menu.Item>
-                <a onClick={handleExportCSV}>Export CSV</a>
-                    
-            </Menu.Item>
-        </Menu>
-    );
+const menu = (
+    <Menu>
+        <Menu.Item>
+            <a onClick={handleExportExcel} disabled={isLoading}> {/* Disable if loading */}
+                {isLoading ? <span className="loader"></span> : 'Export Excel'}
+            </a>
+        </Menu.Item>
+        <Menu.Item>
+            <a onClick={handleExportCSV} disabled={isLoading}> {/* Disable if loading */}
+                {isLoading ? <span className="loader"></span> : 'Export CSV'}
+            </a>
+        </Menu.Item>
+    </Menu>
+);
 
     const handleDownloadPDF = async () => {
     if (!modalContentRef.current) return;
@@ -749,28 +752,28 @@ const handleExportCSV = async () => {
             <div className="h-[90vh] flex flex-col">
                 {contextHolder}
                 <h1 className="text-3xl font-bold text-[#1E365D]">Visitor</h1>
-                <div className="flex my-1 justify-between">
+                <div className="flex items-center justify-between my-2">
                     <div className="flex gap-2">
-                        <Dropdown className="bg-[#1E365D] py-1 px-5 rounded-md text-white" overlay={menu}>
-                            <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
-                                <GoDownload /> Export
+                        <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
+                            <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
+                                {isLoading ? <span className="loader"></span> : <GoDownload />}
+                                {isLoading ? ' Loading...' : ' Export'}
                             </a>
                         </Dropdown>
                         <button 
-                            className={`bg-[#1E365D] py-1 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                            className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
                             onClick={handleExportPDF} 
                             disabled={isLoading}
                         >
                             {isLoading ? loadingMessage : 'PDF Report'}
                         </button>
                     </div>
-                    <div className="md:max-w-64 w-full bg-white pb-2">
-                        <input
-                            type="text"
-                            placeholder="Search visitors..."
+                    <div className="flex gap-2 items-center">
+                        <Input
+                            placeholder="Search..."
                             value={searchText}
+                            className="py-2 md:w-64 w-full"
                             onChange={(e) => setSearchText(e.target.value)}
-                            className="w-full p-2 outline-none border bg-gray-100 rounded-md"
                         />
                     </div>
                 </div>
