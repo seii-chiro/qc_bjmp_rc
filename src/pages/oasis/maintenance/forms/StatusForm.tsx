@@ -46,6 +46,7 @@ const StatusForm = ({ recordToEdit, handleClose }: Props) => {
             queryClient.invalidateQueries({ queryKey: ['OASIS', 'status'] });
             handleClose();
         },
+        onError: (err) => message.error(err.message.replace(/[{}[\]]/g, ''))
     });
 
     return (
