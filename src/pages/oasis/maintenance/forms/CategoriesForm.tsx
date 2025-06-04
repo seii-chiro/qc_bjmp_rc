@@ -1,24 +1,24 @@
-import { postOASISStatus, patchOASISStatus } from "@/lib/oasis-query";
+import { patchOASISCategories, postOASISCategories } from "@/lib/oasis-query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Input, message } from "antd";
 import { useEffect, useState } from "react";
-import { StatusDataSourceRecord } from "../Statuses";
+import { CategoryDataSourceRecord } from "../Categories";
 
-export type StatusFormType = {
+export type CategoryFormType = {
     code: string;
     description: string;
 };
 
 type Props = {
-    recordToEdit: StatusDataSourceRecord | null;
+    recordToEdit: CategoryDataSourceRecord | null;
     handleClose: () => void;
 };
 
-const StatusForm = ({ recordToEdit, handleClose }: Props) => {
+const CategoriesForm = ({ recordToEdit, handleClose }: Props) => {
     const token = useTokenStore(state => state.token);
     const queryClient = useQueryClient();
-    const [form, setForm] = useState<StatusFormType>({
+    const [form, setForm] = useState<CategoryFormType>({
         code: "",
         description: "",
     });
@@ -33,17 +33,17 @@ const StatusForm = ({ recordToEdit, handleClose }: Props) => {
     }, [recordToEdit]);
 
     const mutation = useMutation({
-        mutationKey: [recordToEdit ? 'edit' : 'add', 'status'],
+        mutationKey: [recordToEdit ? 'edit' : 'add', 'category'],
         mutationFn: () => {
             if (recordToEdit) {
-                return patchOASISStatus(token ?? "", recordToEdit.id, form);
+                return patchOASISCategories(token ?? "", recordToEdit.id, form);
             } else {
-                return postOASISStatus(token ?? "", form);
+                return postOASISCategories(token ?? "", form);
             }
         },
         onSuccess: () => {
-            message.success(`Successfully ${recordToEdit ? "updated" : "added"} status`);
-            queryClient.invalidateQueries({ queryKey: ['OASIS', 'status'] });
+            message.success(`Successfully ${recordToEdit ? "updated" : "added"} category`);
+            queryClient.invalidateQueries({ queryKey: ['OASIS', 'categories'] });
             handleClose();
         },
         onError: (err) => message.error(err.message.replace(/[{}[\]]/g, ''))
@@ -51,7 +51,7 @@ const StatusForm = ({ recordToEdit, handleClose }: Props) => {
 
     return (
         <div className="w-full flex flex-col gap-4">
-            <h1 className="text-xl font-semibold">{recordToEdit ? "Edit" : "Add"} Status</h1>
+            <h1 className="text-xl font-semibold">{recordToEdit ? "Edit" : "Add"} Category</h1>
 
             <form className="w-full flex flex-col gap-4" onSubmit={e => e.preventDefault()}>
                 <div>
@@ -84,4 +84,4 @@ const StatusForm = ({ recordToEdit, handleClose }: Props) => {
     );
 };
 
-export default StatusForm;
+export default CategoriesForm;

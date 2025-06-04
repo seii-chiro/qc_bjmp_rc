@@ -1,24 +1,24 @@
-import { postOASISStatus, patchOASISStatus } from "@/lib/oasis-query";
+import { patchOASISCode, postOASISCode } from "@/lib/oasis-query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Input, message } from "antd";
 import { useEffect, useState } from "react";
-import { StatusDataSourceRecord } from "../Statuses";
+import { CodeDataSourceRecord } from "../Codes";
 
-export type StatusFormType = {
+export type CodeFormType = {
     code: string;
     description: string;
 };
 
 type Props = {
-    recordToEdit: StatusDataSourceRecord | null;
+    recordToEdit: CodeDataSourceRecord | null;
     handleClose: () => void;
 };
 
-const StatusForm = ({ recordToEdit, handleClose }: Props) => {
+const CodeForm = ({ recordToEdit, handleClose }: Props) => {
     const token = useTokenStore(state => state.token);
     const queryClient = useQueryClient();
-    const [form, setForm] = useState<StatusFormType>({
+    const [form, setForm] = useState<CodeFormType>({
         code: "",
         description: "",
     });
@@ -33,17 +33,17 @@ const StatusForm = ({ recordToEdit, handleClose }: Props) => {
     }, [recordToEdit]);
 
     const mutation = useMutation({
-        mutationKey: [recordToEdit ? 'edit' : 'add', 'status'],
+        mutationKey: [recordToEdit ? 'edit' : 'add', 'codes'],
         mutationFn: () => {
             if (recordToEdit) {
-                return patchOASISStatus(token ?? "", recordToEdit.id, form);
+                return patchOASISCode(token ?? "", recordToEdit.id, form);
             } else {
-                return postOASISStatus(token ?? "", form);
+                return postOASISCode(token ?? "", form);
             }
         },
         onSuccess: () => {
-            message.success(`Successfully ${recordToEdit ? "updated" : "added"} status`);
-            queryClient.invalidateQueries({ queryKey: ['OASIS', 'status'] });
+            message.success(`Successfully ${recordToEdit ? "updated" : "added"} code`);
+            queryClient.invalidateQueries({ queryKey: ['OASIS', 'codes'] });
             handleClose();
         },
         onError: (err) => message.error(err.message.replace(/[{}[\]]/g, ''))
@@ -51,7 +51,7 @@ const StatusForm = ({ recordToEdit, handleClose }: Props) => {
 
     return (
         <div className="w-full flex flex-col gap-4">
-            <h1 className="text-xl font-semibold">{recordToEdit ? "Edit" : "Add"} Status</h1>
+            <h1 className="text-xl font-semibold">{recordToEdit ? "Edit" : "Add"} Code</h1>
 
             <form className="w-full flex flex-col gap-4" onSubmit={e => e.preventDefault()}>
                 <div>
@@ -84,4 +84,4 @@ const StatusForm = ({ recordToEdit, handleClose }: Props) => {
     );
 };
 
-export default StatusForm;
+export default CodeForm;

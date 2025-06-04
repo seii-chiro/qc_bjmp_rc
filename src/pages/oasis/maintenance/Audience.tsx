@@ -33,14 +33,14 @@ const Audience = () => {
   const [pdfDataUrl, setPdfDataUrl] = useState<string>('');
 
   const { data: audience, isLoading: audienceLoading } = useQuery({
-    queryKey: ['OASIS', 'status'],
+    queryKey: ['OASIS', 'audience'],
     queryFn: () => getOASISAudience(token ?? "")
   })
 
-  const deleteStatusMutation = useMutation({
+  const deleteAudienceMutation = useMutation({
     mutationFn: (id: number) => deleteOASISAudience(token ?? "", id),
     onSuccess: () => {
-      message.success("Status deleted")
+      message.success("Audience deleted")
       queryClient.invalidateQueries({ queryKey: ['OASIS', 'audience'] })
     },
     onError: () => {
@@ -52,7 +52,7 @@ const Audience = () => {
     return ({
       id: item?.id,
       no: index + 1,
-      audienceText: item?.audience_text,
+      audience_text: item?.audience_text,
       description: item?.description,
       createdBy: item?.created_by,
       updatedBy: item?.updated_by
@@ -62,7 +62,7 @@ const Audience = () => {
   const filteredDataSource = dataSource?.filter(item => {
     const searchLower = searchText.toLowerCase()
     return (
-      item?.audienceText?.toLowerCase().includes(searchLower) ||
+      item?.audience_text?.toLowerCase().includes(searchLower) ||
       item?.description?.toLowerCase().includes(searchLower) ||
       item?.createdBy?.toLowerCase().includes(searchLower) ||
       item?.updatedBy?.toLowerCase().includes(searchLower)
@@ -91,7 +91,7 @@ const Audience = () => {
       okType: 'danger',
       cancelText: 'Cancel',
       onOk: async () => {
-        deleteStatusMutation.mutate(record?.id)
+        deleteAudienceMutation.mutate(record?.id)
       }
     })
   }
@@ -126,9 +126,9 @@ const Audience = () => {
       key: 'no',
     },
     {
-      title: 'Audience Text',
+      title: 'Audience',
       dataIndex: 'audience_text',
-      key: 'code',
+      key: 'audience_text',
       sorter: (a, b) => (a.audience_text || '').toLowerCase().localeCompare((b.audience_text || '').toLowerCase()),
     },
     {
@@ -284,7 +284,7 @@ const Audience = () => {
         />
       </Modal>
 
-      <div className="text-3xl font-bold mb-6 text-[#1E365D]">Status</div>
+      <div className="text-3xl font-bold mb-6 text-[#1E365D]">Audience</div>
       <div className="w-full flex justify-between">
         <div className="flex items-center gap-2">
           <div className="flex gap-2">
@@ -316,7 +316,7 @@ const Audience = () => {
             onClick={handleOpenModal}
             className="h-10 bg-[#1E365D] text-white"
           >
-            <FaPlus /> Add Status
+            <FaPlus /> Add Audience
           </Button>
         </div>
       </div>

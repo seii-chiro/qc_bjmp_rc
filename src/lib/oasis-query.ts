@@ -27,6 +27,10 @@ import {
 } from "./oasis-response-definition";
 import { PaginatedResponse } from "./queries";
 import { BASE_URL } from "./urls";
+import { AudienceFormType } from "@/pages/oasis/maintenance/forms/AudienceForm";
+import { CategoryFormType } from "@/pages/oasis/maintenance/forms/CategoriesForm";
+import { CertaintyFormType } from "@/pages/oasis/maintenance/forms/CertaintyForm";
+import { CodeFormType } from "@/pages/oasis/maintenance/forms/CodeForm";
 
 export async function getOASISRestrictions(
   token: string
@@ -156,6 +160,66 @@ export async function getOASISCodes(
   return res.json();
 }
 
+export async function postOASISCode(
+  token: string,
+  payload: CodeFormType
+): Promise<OASISAudience> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-code/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISCode(
+  token: string,
+  id: number,
+  payload: Partial<CodeFormType>
+): Promise<OASISAudience> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-code/${id}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISCode(token: string, id: number) {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-code/${id}/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete code.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
 export async function getOASISNotes(
   token: string
 ): Promise<PaginatedResponse<OASISNote>> {
@@ -207,6 +271,72 @@ export async function getOASISCertainty(
   return res.json();
 }
 
+export async function postOASISCertainty(
+  token: string,
+  payload: CertaintyFormType
+): Promise<OASISAudience> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-certainty/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISCertainty(
+  token: string,
+  id: number,
+  payload: Partial<CertaintyFormType>
+): Promise<OASISAudience> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-certainty/${id}/`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISCertainty(token: string, id: number) {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-certainty/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to delete certainty.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
 export async function getOASISUrgency(
   token: string
 ): Promise<PaginatedResponse<OASISUrgency>> {
@@ -256,6 +386,72 @@ export async function getOASISCategories(
   }
 
   return res.json();
+}
+
+export async function postOASISCategories(
+  token: string,
+  payload: CategoryFormType
+): Promise<OASISAudience> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-category/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISCategories(
+  token: string,
+  id: number,
+  payload: Partial<CategoryFormType>
+): Promise<OASISAudience> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-category/${id}/`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISCategories(token: string, id: number) {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-category/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to delete Category.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function getOASISLanguages(
@@ -328,7 +524,7 @@ export async function getOASISAudience(
 
 export async function postOASISAudience(
   token: string,
-  payload: StatusFormType
+  payload: AudienceFormType
 ): Promise<OASISAudience> {
   const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-audience/`, {
     method: "POST",
@@ -350,7 +546,7 @@ export async function postOASISAudience(
 export async function patchOASISAudience(
   token: string,
   id: number,
-  payload: Partial<StatusFormType>
+  payload: Partial<AudienceFormType>
 ): Promise<OASISAudience> {
   const res = await fetch(
     `${BASE_URL}/api/oasis_app_v1_2/cap-audience/${id}/`,
