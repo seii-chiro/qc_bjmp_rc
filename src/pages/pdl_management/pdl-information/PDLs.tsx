@@ -12,7 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
-import { NavLink, useSearchParams } from "react-router-dom";
+import { data, NavLink, useSearchParams } from "react-router-dom";
 import { BASE_URL } from "@/lib/urls";
 import { PaginatedResponse } from "@/pages/personnel_management/personnel/personnel-backup";
 
@@ -34,7 +34,7 @@ const PDLtable = () => {
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [allPDLs, setAllPDLs] = useState<PDLs[]>([]);
+    // const [allPDLs, setAllPDLs] = useState<PDLs[]>([]);
     const fetchPDLs = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/pdls/pdl/?search=${search}`, {
             headers: {
@@ -59,27 +59,36 @@ const PDLtable = () => {
         enabled: debouncedSearch.length > 0,
     });
 
-    const { data: pdlData, isFetching } = useQuery({
-        queryKey: ['pdls', 'pdls-table', page],
+    const { data, isFetching } = useQuery({
+        queryKey: ["pdls", "pdl-table", page, limit, genderColumnFilter, statusColumnFilter],
         queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
             const offset = (page - 1) * limit;
-            const res = await fetch(
-                `${BASE_URL}/api/pdls/pdl/?page=${page}&limit=${limit}&offset=${offset}`,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Token ${token}`,
-                    },
-                }
-            );
-
-            if (!res.ok) {
-                throw new Error('Failed to fetch PDLs data.');
+            const params = new URLSearchParams();
+            params.append("page", String(page));
+            params.append("limit", String(limit));
+            params.append("offset", String(offset));
+            if (genderColumnFilter.length > 0) {
+            params.append("gender", genderColumnFilter.map(encodeURIComponent).join(","));
+            }
+            if (statusColumnFilter.length > 0) {
+            params.append("status", statusColumnFilter.map(encodeURIComponent).join(","));
+            }
+            if (visitationColumnFilter.length > 0) {
+            params.append("visitation_status", visitationColumnFilter.map(encodeURIComponent).join(","));
             }
 
+            const res = await fetch(`${BASE_URL}/api/pdls/pdl/?${params.toString()}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Token ${token}`,
+            },
+            });
+
+            if (!res.ok) throw new Error("Failed to fetch PDLs.");
             return res.json();
         },
-        behavior: keepPreviousData(),
+        enabled: !!token,
+        keepPreviousData: true,
     });
 
     const { data: UserData } = useQuery({
@@ -150,9 +159,9 @@ const PDLtable = () => {
             enabled: !!token,
         });
 
-    const genderFilteredPDLIds = new Set(
-        (pdlsGenderData?.results || []).map(pdl => pdl.id)
-    );
+    // const genderFilteredPDLIds = new Set(
+    //     (pdlsGenderData?.results || []).map(pdl => pdl.id)
+    // );
 
     const status = searchParams.get("status") || "all";
     const statusList = status !== "all" ? status.split(",").map(decodeURIComponent) : [];
@@ -191,129 +200,133 @@ const PDLtable = () => {
             },
         enabled: !!token,
     });
+    // const statusFilteredPDLIds = new Set(
+    //     (pdlStatusData?.results || []).map(pdl => pdl.id)
+    // );
 
-    const statusFilteredPDLIds = new Set(
-        (pdlStatusData?.results || []).map(pdl => pdl.id)
-    );
+    // VISITATION STATUS
 
-    const dataSource = (pdlData?.results || []).filter(pdl =>
-    gender === "all" ? true : genderFilteredPDLIds.has(pdl.id) && 
-    status === "all" ? true : statusFilteredPDLIds.has(pdl.id) 
-    ).map((pdl, index) => ({
-        key: index + 1,
-        id: pdl?.id,
-        pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
-        visitation_status: pdl?.visitation_status ?? 'N/A',
-        first_name: pdl?.person?.first_name ?? 'N/A',
-        middle_name: pdl?.person?.middle_name ?? '',
-        last_name: pdl?.person?.last_name ?? '',
-        name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
-        cell_no: pdl?.cell?.cell_no ?? 'N/A',
-        floor: pdl?.cell?.floor ?? 'N/A',
-        cell_name: pdl?.cell?.cell_name ?? 'N/A',
-        gender: pdl?.person?.gender?.gender_option ?? '',
-        // gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
-        // look: pdl?.look ?? 'N/A',
-        status: pdl?.status ?? 'N/A',
-        date_of_admission: pdl?.date_of_admission ?? 'N/A',
-        organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-    })) || [];
+    const visitation_status = searchParams.get("visitation_status") || "all";
+    const visitationList = visitation_status !== "all" ? visitation_status.split(",").map(decodeURIComponent) : [];
 
-        const filteredData = dataSource.filter(pdl => {
-            const matchesSearch = Object.values(pdl).some(value =>
-                String(value).toLowerCase().includes(searchText.toLowerCase())
-            );
+    useEffect(() => {
+    if (visitationList.length > 0 && JSON.stringify(visitationColumnFilter) !== JSON.stringify(visitationList)) {
+        setvisitationColumnFilter(visitationList);
+    }
+    }, [visitationList, visitationColumnFilter]);
 
-            const matchesGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(pdl.gender);
-            const matchesStatus = statusColumnFilter.length === 0 || statusColumnFilter.includes(pdl.status);
-            const matchesVisitationStatus = visitationColumnFilter.length === 0 || visitationColumnFilter.includes(pdl.visitation_status);
+    const { data: pdlVisitationStatusData, isLoading: pdlByVisitationStatusLoading } = useQuery({
+            queryKey: ['pdls', 'pdls-table', page, visitationList],
+                queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
+                    const offset = (page - 1) * limit;
+                    const res = await fetch(
+                        `${BASE_URL}/api/pdls/pdl/?visitation_status=${encodeURIComponent(visitationList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                        {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Token ${token}`,
+                            },
+                        }
+                    );
+            
+                    if (!res.ok) {
+                        throw new Error('Failed to fetch PDL Visitation Status data.');
+                    }
+            
+                    return res.json();
+                },
+            enabled: !!token,
+        });
+    const dataSource = (data?.results || []).map((pdl, index) => {
+        const address = [
+            pdl?.person?.addresses?.[0]?.barangay,
+            pdl?.person?.addresses?.[0]?.city_municipality,
+            pdl?.person?.addresses?.[0]?.province,
+        ]
+            .filter(Boolean)
+            .join(", ");
 
-            return matchesSearch && matchesGender && matchesStatus && matchesVisitationStatus;
-            });
+        return {
+            ...pdl,
+            key: index + 1,
+            id: pdl?.id,
+            name: `${pdl?.person?.first_name ?? ""} ${pdl?.person?.middle_name ?? ""} ${pdl?.person?.last_name ?? ""}`.trim(),
+            gender: pdl?.person?.gender?.gender_option ?? "",
+            status: pdl?.status ?? "",
+            visitation_status: pdl?.visitation_status,
+            address,
+        };
+        });
 
-            const columns: ColumnsType<PDLs> = [
-                {
-                    title: 'No.',
-                    key: 'no',
-                    render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
-                },
-                {
-                    title: 'PDL Name',
-                    dataIndex: 'name',
-                    key: 'name',
-                    sorter: (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(), 
-                },
-                {
-                    title: 'Gender',
-                    dataIndex: 'gender',
-                    key: 'gender',
-                    sorter: (a, b) => a.gender.localeCompare(b.gender),
-                    filters: Array.from(
-                        new Set((pdlsGenderData?.results || []).map(pdl => pdl?.person?.gender?.gender_option))
-                    )
-                        .filter(Boolean)
-                        .map(gender => ({ text: gender, value: gender })),
-                    onFilter: (value, record) => record.gender === value,
-                    filteredValue: genderColumnFilter,
-                },
-                {
-                    title: 'Dorm Name',
-                    dataIndex: 'cell_name',
-                    key: 'cell_name',
-                    sorter: (a, b) => a.cell_name.localeCompare(b.cell_name),
-                },
-                {
-                    title: 'Annex',
-                    dataIndex: 'floor',
-                    key: 'floor',
-                    sorter: (a, b) => a.floor.localeCompare(b.floor),
-                },
-                {
-                    title: 'Status',
-                    dataIndex: 'status',
-                    key: 'status',
-                    sorter: (a, b) => a.status.localeCompare(b.status),
-                    filters: Array.from(
-                        new Set((pdlStatusData?.results || []).map(pdl => pdl?.status))
-                    )
-                        .filter(Boolean)
-                        .map(status => ({ text: status, value: status })),
-                    onFilter: (value, record) => record.status === value,
-                    filteredValue: statusColumnFilter,
-                },
-                {
-                    title: 'Visitation Status',
-                    dataIndex: 'visitation_status',
-                    key: 'visitation_status',
-                    sorter: (a, b) => a.visitation_status.localeCompare(b.visitation_status),
-                    // filters: [
-                    //     ...Array.from(new Set(allPDLs.map(item => item.visitation_status)))
-                    //         .filter(visitation_status => visitation_status)
-                    //         .map(visitation_status => ({ text: visitation_status, value: visitation_status }))
-                    // ],
-                    // onFilter: (value, record) => record.visitation_status === value,
-                    // filteredValue: visitationColumnFilter,
-                },
-                {
-                    title: "Action",
-                    key: "action",
-                    render: (_: any, record: any) => (
-                        <div className="flex gap-2">
-                            <NavLink to="update" state={{ pdl: record }} className={"flex items-center justify-center"}>
-                                <AiOutlineEdit />
-                            </NavLink>
-                            <Button
-                                type="link"
-                                danger
-                                onClick={() => deleteMutation.mutate(record.id)}
-                            >
-                                <AiOutlineDelete />
-                            </Button>
-                        </div>
-                    ),
-                },
-            ];
+    const columns = [
+    {
+        title: "No.",
+        key: "no",
+        render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
+    },
+    {
+        title: "PDL Name",
+        key: "name",
+        render: (_, pdl) => pdl.name,
+        sorter: (a, b) => a.name.localeCompare(b.name),
+    },
+    {
+        title: "Gender",
+        dataIndex: "gender",
+        key: "gender",
+        sorter: (a, b) => a.gender.localeCompare(b.gender),
+        filters: Array.from(new Set(data?.results.map((p) => p.person?.gender?.gender_option))).filter(Boolean).map((gender) => ({ text: gender, value: gender })),
+        filteredValue: genderColumnFilter,
+    },
+    {
+        title: "Status",
+        dataIndex: "status",
+        key: "status",
+        filters: Array.from(new Set(data?.results.map((p) => p.status))).filter(Boolean).map((status) => ({ text: status, value: status })),
+        filteredValue: statusColumnFilter,
+        onFilter: (value, record) => record.status === value,
+    },
+    {
+        title: "Visitation Status",
+        dataIndex: "visitation_status",
+        key: "visitation_status",
+        filters: Array.from(
+            new Set(data?.results.map((p) => p.visitation_status))
+        )
+            .filter(Boolean)
+            .map((visitation_status) => ({
+                text: visitation_status,
+                value: visitation_status,
+            })),
+        filteredValue: visitationColumnFilter,
+        onFilter: (value, record) =>
+  (record.visitation_status || '').trim().toLowerCase() === (value as string).trim().toLowerCase(),
+    },
+    {
+        title: "Address",
+        dataIndex: "address",
+        key: "address",
+        sorter: (a, b) => a.address.localeCompare(b.address),
+    },
+    {
+        title: "Action",
+        key: "action",
+        render: (_, record) => (
+        <div className="flex gap-2">
+            <NavLink to="update" state={{ pdl: record }} className={"flex items-center justify-center"}>
+                <AiOutlineEdit />
+            </NavLink>
+            <Button
+                type="link"
+                danger
+                onClick={() => deleteMutation.mutate(record.id)}
+            >
+                <AiOutlineDelete />
+            </Button>
+           </div>
+        ),
+    },
+    ];
 
     const fetchAllPDLs = async () => {
         const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
@@ -338,15 +351,13 @@ const PDLtable = () => {
         const footerHeight = 32;
         const MAX_ROWS_PER_PRINT = 800;
 
-        const allData = await fetchAllPDLs();
+            let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllPDLs();
+            } else {
+                allData = await fetchPDLs(searchText.trim());
+            }
         const allResults = allData?.results || [];
-
-        // Filter data based on gender and status
-        // const filteredResults = allResults.filter(pdl => {
-        //     const matchesGender = gender === "all" || pdl?.person?.gender?.gender_option === gender;
-        //     const matchesStatus = status === "all" || pdl?.status === status;
-        //     return matchesGender && matchesStatus;
-        // });
 
         const filteredResults = allResults.filter(pdl => {
             const genderValue = pdl?.person?.gender?.gender_option ?? '';
@@ -356,6 +367,7 @@ const PDLtable = () => {
             // Global filter logic: "all" means no filter, else match exact
             const matchesGlobalGender = gender === "all" || genderValue === gender;
             const matchesGlobalStatus = status === "all" || statusValue === status;
+            const matchesGlobalVisitationStatus = visitation_status === "all" || visitationStatusValue === visitation_status;
 
             // Column filter logic: empty array means no filter, else match any in array
             const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
@@ -368,7 +380,8 @@ const PDLtable = () => {
                 matchesGlobalStatus &&
                 matchesColumnGender &&
                 matchesColumnStatus &&
-                matchesColumnVisitation
+                matchesColumnVisitation &&
+                matchesGlobalVisitationStatus
             );
             });
 
@@ -579,12 +592,36 @@ const PDLtable = () => {
     );
 
         const totalRecords = debouncedSearch 
-    ? pdlData?.count || 0
+    ? data?.count || 0
     : gender !== "all" 
     ? pdlsGenderData?.count || 0 
     : status !== "all"
     ? pdlStatusData?.count || 0
-    : pdlData?.count || 0; 
+    : visitation_status !== "all"
+    ? pdlVisitationStatusData?.count || 0
+    : data?.count || 0;
+    
+    const mapPDL = (pdl, index) => ({
+    key: index + 1,
+    id: pdl?.id ?? 'N/A',
+    pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
+    first_name: pdl?.person?.first_name ?? 'N/A',
+    middle_name: pdl?.person?.middle_name ?? '',
+    last_name: pdl?.person?.last_name ?? '',
+    name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
+    cell_no: pdl?.cell?.cell_no ?? 'N/A',
+    cell_name: pdl?.cell?.cell_name ?? 'N/A',
+    gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
+    look: pdl?.look ?? 'N/A',
+    status: pdl?.status ?? 'N/A',
+    gender: pdl?.person?.gender?.gender_option,
+    visitation_status: pdl?.visitation_status ?? 'N/A',
+    floor: pdl?.cell?.floor ?? 'N/A',
+    date_of_admission: pdl?.date_of_admission ?? 'N/A',
+    organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
+    updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+    });
+
     return (
         <div>
             {contextHolder}
@@ -611,76 +648,19 @@ const PDLtable = () => {
             </div>
             <Table
                 columns={columns}
-                loading={isFetching || searchLoading || pdlsByGenderLoading || pdlByStatusLoading}
+                loading={isFetching || searchLoading || pdlsByGenderLoading || pdlByStatusLoading || pdlByVisitationStatusLoading}
                 scroll={{ x: 800 }}
                 dataSource={
                     debouncedSearch
-                        ? (searchData?.results || []).map((pdl, index) => ({
-                            key: index + 1,
-                            id: pdl?.id ?? 'N/A',
-                            pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
-                            first_name: pdl?.person?.first_name ?? 'N/A',
-                            middle_name: pdl?.person?.middle_name ?? '',
-                            last_name: pdl?.person?.last_name ?? '',
-                            name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
-                            cell_no: pdl?.cell?.cell_no ?? 'N/A',
-                            cell_name: pdl?.cell?.cell_name ?? 'N/A',
-                            gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
-                            look: pdl?.look ?? 'N/A',
-                            status: pdl?.status ?? 'N/A',
-                            gender: pdl?.person?.gender?.gender_option,
-                            visitation_status: pdl?.visitation_status ?? 'N/A',
-                            floor: pdl?.cell?.floor ?? 'N/A',
-                            date_of_admission: pdl?.date_of_admission ?? 'N/A',
-                            organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
-                            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-                        }))
+                        ? (searchData?.results || []).map(mapPDL)
                         : gender !== "all"
-                            ? (pdlsGenderData?.results || []).map((pdl, index) => ({
-                                ...pdl,
-                                key: index + 1,
-                                id: pdl?.id ?? 'N/A',
-                                pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
-                                first_name: pdl?.person?.first_name ?? 'N/A',
-                                middle_name: pdl?.person?.middle_name ?? '',
-                                last_name: pdl?.person?.last_name ?? '',
-                                name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
-                                cell_no: pdl?.cell?.cell_no ?? 'N/A',
-                                cell_name: pdl?.cell?.cell_name ?? 'N/A',
-                                gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
-                                look: pdl?.look ?? 'N/A',
-                                status: pdl?.status ?? 'N/A',
-                                gender: pdl?.person?.gender?.gender_option,
-                                visitation_status: pdl?.visitation_status ?? 'N/A',
-                                floor: pdl?.cell?.floor ?? 'N/A',
-                                date_of_admission: pdl?.date_of_admission ?? 'N/A',
-                                organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
-                                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-                                }))
+                        ? (pdlsGenderData?.results || []).map(mapPDL)
                         : status !== "all"
-                            ? (pdlStatusData?.results || []).map((pdl, index) => ({
-                                ...pdl,
-                                key: index + 1,
-                                id: pdl?.id ?? 'N/A',
-                                pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
-                                first_name: pdl?.person?.first_name ?? 'N/A',
-                                middle_name: pdl?.person?.middle_name ?? '',
-                                last_name: pdl?.person?.last_name ?? '',
-                                name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
-                                cell_no: pdl?.cell?.cell_no ?? 'N/A',
-                                cell_name: pdl?.cell?.cell_name ?? 'N/A',
-                                gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
-                                look: pdl?.look ?? 'N/A',
-                                status: pdl?.status ?? 'N/A',
-                                gender: pdl?.person?.gender?.gender_option,
-                                visitation_status: pdl?.visitation_status ?? 'N/A',
-                                floor: pdl?.cell?.floor ?? 'N/A',
-                                date_of_admission: pdl?.date_of_admission ?? 'N/A',
-                                organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
-                                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-                                }))
-                        : filteredData
-                }
+                            ? (pdlStatusData?.results || []).map(mapPDL)
+                            : visitation_status !== "all"
+                            ? (pdlVisitationStatusData?.results || []).map(mapPDL)
+                            : dataSource
+                    }
                 pagination={{
                     current: page,
                     pageSize: limit,
@@ -693,9 +673,10 @@ const PDLtable = () => {
                     },
                 }}
                 onChange={(pagination, filters, sorter) => {
+                    setPage(pagination.current || 1);
                         setGenderColumnFilter(filters.gender as string[] || []);
                         setstatusColumnFilter(filters.status as string[] || []);
-                        setvisitationColumnFilter(filters.status as string[] || []);
+                        setvisitationColumnFilter(filters.visitation_status as string[] || []);
                     }}
                 rowKey="id"
             />

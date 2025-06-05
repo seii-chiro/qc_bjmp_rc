@@ -275,3 +275,56 @@ export const patchPDLVisitationStatus = async (
 
     return response.json();
 };
+
+export async function getPDLCategory(token: string): Promise<PersonnelApplicationStatusPayload> {
+    const res = await fetch(`${BASE_URL}/api/pdls/pdl-category/`, {
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+        },
+    });
+
+    if (!res.ok) {
+        throw new Error("Failed to fetch PDL Category data.");
+    }
+
+    return res.json();
+}
+
+export const deletePDLCategory = async (token: string, id: number) => {
+    const response = await fetch(`${BASE_URL}/api/pdls/pdl-category/${id}/`, {
+        method: "DELETE",
+        headers: {
+        Authorization: `Token ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to delete PDL Category");
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : {};
+};
+
+export const patchPDLCategory = async (
+    token: string,
+    id: number,
+    updatedData: any
+    ) => {
+    const url = `${BASE_URL}/api/pdls/pdl-category/${id}/`;
+    const response = await fetch(url, {
+        method: "PATCH",
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(updatedData),
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to update PDL Category");
+    }
+
+    return response.json();
+};
