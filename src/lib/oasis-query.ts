@@ -36,6 +36,7 @@ import { ScopeFormType } from "@/pages/oasis/maintenance/forms/ScopeForm";
 import { RestrictionFormType } from "@/pages/oasis/maintenance/forms/RestrictionForm";
 import { NoteFormType } from "@/pages/oasis/maintenance/forms/NoteForm";
 import { LanguageFormType } from "@/pages/oasis/maintenance/forms/LanguageForm";
+import { EventCodeFormType } from "@/pages/oasis/maintenance/forms/EventCodeForm";
 
 export async function getOASISRestrictions(
   token: string
@@ -449,6 +450,72 @@ export async function getOASISEventCodes(
   }
 
   return res.json();
+}
+
+export async function postOASISEventCode(
+  token: string,
+  payload: EventCodeFormType
+): Promise<OASISEventCode> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-event-code/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISEventCode(
+  token: string,
+  id: number,
+  payload: Partial<EventCodeFormType>
+): Promise<OASISEventCode> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-event-code/${id}/`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISEventCode(token: string, id: number) {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-event-code/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to delete event code.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function getOASISCertainty(
