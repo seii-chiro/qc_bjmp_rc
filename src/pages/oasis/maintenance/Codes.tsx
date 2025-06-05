@@ -48,16 +48,16 @@ const Codes = () => {
     }
   })
 
-  const dataSource = codes?.results.map((item, index) => {
-    return ({
+  const dataSource = [...(codes?.results || [])]
+    .reverse()
+    .map((item, index) => ({
       id: item?.id,
       no: index + 1,
       code: item?.code,
       description: item?.description,
       createdBy: item?.created_by,
       updatedBy: item?.updated_by
-    })
-  })
+    }));
 
   const filteredDataSource = dataSource?.filter(item => {
     const searchLower = searchText.toLowerCase()
@@ -75,6 +75,7 @@ const Codes = () => {
 
   const handleCloseModal = () => {
     setIsFormModalOpen(false)
+    setRecordToEdit(null)
   }
 
   const handleEditOpenModal = (record: CodeDataSourceRecord) => {

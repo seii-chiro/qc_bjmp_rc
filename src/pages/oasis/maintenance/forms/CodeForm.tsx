@@ -29,6 +29,11 @@ const CodeForm = ({ recordToEdit, handleClose }: Props) => {
                 code: recordToEdit.code,
                 description: recordToEdit.description,
             });
+        } else {
+            setForm({
+                code: "",
+                description: "",
+            });
         }
     }, [recordToEdit]);
 
@@ -45,6 +50,7 @@ const CodeForm = ({ recordToEdit, handleClose }: Props) => {
             message.success(`Successfully ${recordToEdit ? "updated" : "added"} code`);
             queryClient.invalidateQueries({ queryKey: ['OASIS', 'codes'] });
             handleClose();
+            setForm({ code: "", description: "" })
         },
         onError: (err) => message.error(err.message.replace(/[{}[\]]/g, ''))
     });

@@ -1,71 +1,71 @@
+import { patchOASISNote, postOASISNote } from "@/lib/oasis-query";
 import { useTokenStore } from "@/store/useTokenStore";
-import { AudienceDataSourceRecord } from "../Audience";
-import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Input, message } from "antd";
-import { patchOASISAudience, postOASISAudience } from "@/lib/oasis-query";
+import { useEffect, useState } from "react";
+import { NoteDataSourceRecord } from "../Notes";
 
-export type AudienceFormType = {
-    audience_text: string;
+export type NoteFormType = {
+    note_text: string;
     description: string;
 };
 
 type Props = {
-    recordToEdit: AudienceDataSourceRecord | null;
+    recordToEdit: NoteDataSourceRecord | null;
     handleClose: () => void;
 };
 
-const AudienceForm = ({ handleClose, recordToEdit }: Props) => {
+const NoteForm = ({ recordToEdit, handleClose }: Props) => {
     const token = useTokenStore(state => state.token);
     const queryClient = useQueryClient();
-    const [form, setForm] = useState<AudienceFormType>({
-        audience_text: "",
+    const [form, setForm] = useState<NoteFormType>({
+        note_text: "",
         description: "",
     });
 
     useEffect(() => {
         if (recordToEdit) {
             setForm({
-                audience_text: recordToEdit.audience_text,
+                note_text: recordToEdit.note_text,
                 description: recordToEdit.description,
             });
         } else {
             setForm({
-                audience_text: "",
+                note_text: "",
                 description: "",
             });
         }
     }, [recordToEdit]);
 
     const mutation = useMutation({
-        mutationKey: [recordToEdit ? 'edit' : 'add', 'audience'],
+        mutationKey: [recordToEdit ? 'edit' : 'add', 'notes'],
         mutationFn: () => {
             if (recordToEdit) {
-                return patchOASISAudience(token ?? "", recordToEdit.id, form);
+                return patchOASISNote(token ?? "", recordToEdit.id, form);
             } else {
-                return postOASISAudience(token ?? "", form);
+                return postOASISNote(token ?? "", form);
             }
         },
         onSuccess: () => {
-            message.success(`Successfully ${recordToEdit ? "updated" : "added"} audience`);
-            queryClient.invalidateQueries({ queryKey: ['OASIS', 'audience'] });
+            message.success(`Successfully ${recordToEdit ? "updated" : "added"} note`);
+            queryClient.invalidateQueries({ queryKey: ['OASIS', 'notes'] });
             handleClose();
-            setForm({ audience_text: "", description: "" })
+            setForm({ note_text: "", description: "" })
         },
         onError: (err) => message.error(err.message.replace(/[{}[\]]/g, ''))
     });
 
     return (
         <div className="w-full flex flex-col gap-4">
-            <h1 className="text-xl font-semibold">{recordToEdit ? "Edit" : "Add"} Audience</h1>
+            <h1 className="text-xl font-semibold">{recordToEdit ? "Edit" : "Add"} Note</h1>
 
             <form className="w-full flex flex-col gap-4" onSubmit={e => e.preventDefault()}>
                 <div>
-                    <span className="text-lg font-semibold">Audience</span>
+                    <span className="text-lg font-semibold">Note</span>
                     <Input
                         className="h-10"
-                        value={form.audience_text}
-                        onChange={e => setForm(prev => ({ ...prev, audience_text: e.target.value }))}
+                        value={form.note_text}
+                        onChange={e => setForm(prev => ({ ...prev, note_text: e.target.value }))}
                     />
                 </div>
                 <div>
@@ -88,6 +88,6 @@ const AudienceForm = ({ handleClose, recordToEdit }: Props) => {
             </form>
         </div>
     );
-}
+};
 
-export default AudienceForm
+export default NoteForm;

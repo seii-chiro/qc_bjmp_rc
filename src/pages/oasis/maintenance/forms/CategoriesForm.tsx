@@ -29,6 +29,11 @@ const CategoriesForm = ({ recordToEdit, handleClose }: Props) => {
                 code: recordToEdit.code,
                 description: recordToEdit.description,
             });
+        } else {
+            setForm({
+                code: "",
+                description: "",
+            });
         }
     }, [recordToEdit]);
 
@@ -45,6 +50,7 @@ const CategoriesForm = ({ recordToEdit, handleClose }: Props) => {
             message.success(`Successfully ${recordToEdit ? "updated" : "added"} category`);
             queryClient.invalidateQueries({ queryKey: ['OASIS', 'categories'] });
             handleClose();
+            setForm({ code: "", description: "" })
         },
         onError: (err) => message.error(err.message.replace(/[{}[\]]/g, ''))
     });

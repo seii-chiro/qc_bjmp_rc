@@ -1,4 +1,4 @@
-import { deleteOASISEventCode, getOASISEventCodes } from "@/lib/oasis-query"
+import { deleteOASISGeocodeRef, getOASISGeocodeRefs } from "@/lib/oasis-query"
 import { useTokenStore } from "@/store/useTokenStore"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button, Dropdown, Input, MenuProps, message, Modal, Table } from "antd"
@@ -11,51 +11,55 @@ import { useUserStore } from "@/store/useUserStore"
 import { GoDownload } from "react-icons/go"
 import { CSVLink } from "react-csv"
 import * as XLSX from "xlsx";
-import EventCodeForm from "./forms/EventCodeForm"
+import GeocodeForm from "./forms/GeocodeForm"
 
-export type EventCodeDataSourceRecord = {
+export type GeocodeDataSourceRecord = {
     id: number;
     no: number;
     value: string;
     value_name: string;
+    location_name: string;
+    group: string;
     description: string;
     createdBy: string | null;
     updatedBy: string | null;
 }
 
-const EventCodes = () => {
+const Geocodes = () => {
     const token = useTokenStore(state => state.token)
     const queryClient = useQueryClient()
     const user = useUserStore(state => state.user)
     const [isFormModalOpen, setIsFormModalOpen] = useState(false)
     const [isPDFModalOpen, setIsPDFModalOpen] = useState(false)
-    const [recordToEdit, setRecordToEdit] = useState<EventCodeDataSourceRecord | null>(null)
+    const [recordToEdit, setRecordToEdit] = useState<GeocodeDataSourceRecord | null>(null)
     const [searchText, setSearchText] = useState("")
     const [pdfDataUrl, setPdfDataUrl] = useState<string>('');
 
-    const { data: eventCodes, isLoading: eventCodesLoading } = useQuery({
-        queryKey: ['OASIS', 'eventCodes'],
-        queryFn: () => getOASISEventCodes(token ?? "")
+    const { data: geocodes, isLoading: geocodesLoading } = useQuery({
+        queryKey: ['OASIS', 'geocodes'],
+        queryFn: () => getOASISGeocodeRefs(token ?? "")
     })
 
-    const deleteEventCodesMutation = useMutation({
-        mutationFn: (id: number) => deleteOASISEventCode(token ?? "", id),
+    const deleteGeocodeMutation = useMutation({
+        mutationFn: (id: number) => deleteOASISGeocodeRef(token ?? "", id),
         onSuccess: () => {
-            message.success("Event Code deleted")
-            queryClient.invalidateQueries({ queryKey: ['OASIS', 'eventCodes'] })
+            message.success("Geocode deleted")
+            queryClient.invalidateQueries({ queryKey: ['OASIS', 'geocodes'] })
         },
-        onError: () => {
-            message.error("Failed to delete event code")
+        onError: (err) => {
+            message.error(err.message)
         }
     })
 
-    const dataSource = [...(eventCodes?.results || [])]
+    const dataSource = [...(geocodes?.results || [])]
         .reverse()
         .map((item, index) => ({
             id: item?.id,
             no: index + 1,
             value: item?.value,
             value_name: item?.value_name,
+            location_name: item?.location_name,
+            group: item?.group,
             description: item?.description,
             createdBy: item?.created_by,
             updatedBy: item?.updated_by
@@ -66,6 +70,8 @@ const EventCodes = () => {
         return (
             item?.value?.toLowerCase().includes(searchLower) ||
             item?.value_name?.toLowerCase().includes(searchLower) ||
+            item?.location_name?.toLowerCase().includes(searchLower) ||
+            item?.group?.toLowerCase().includes(searchLower) ||
             item?.description?.toLowerCase().includes(searchLower) ||
             item?.createdBy?.toLowerCase().includes(searchLower) ||
             item?.updatedBy?.toLowerCase().includes(searchLower)
@@ -81,21 +87,21 @@ const EventCodes = () => {
         setRecordToEdit(null)
     }
 
-    const handleEditOpenModal = (record: EventCodeDataSourceRecord) => {
+    const handleEditOpenModal = (record: GeocodeDataSourceRecord) => {
         setIsFormModalOpen(true)
         setRecordToEdit(record)
     }
 
-    const handleDelete = (record: EventCodeDataSourceRecord) => {
+    const handleDelete = (record: GeocodeDataSourceRecord) => {
         Modal.confirm({
             centered: true,
-            title: `Delete event code "${record?.value}"?`,
+            title: `Delete geocode "${record?.value_name}"?`,
             content: 'This action cannot be undone.',
             okText: 'Yes, delete it',
             okType: 'danger',
             cancelText: 'Cancel',
             onOk: async () => {
-                deleteEventCodesMutation.mutate(record?.id)
+                deleteGeocodeMutation.mutate(record?.id)
             }
         })
     }
@@ -123,23 +129,41 @@ const EventCodes = () => {
         }));
     };
 
-    const columns: ColumnsType<EventCodeDataSourceRecord> = [
+    const columns: ColumnsType<GeocodeDataSourceRecord> = [
         {
             title: 'No.',
             dataIndex: 'no',
             key: 'no',
         },
         {
-            title: 'Value',
+            title: 'Geocode',
             dataIndex: 'value',
             key: 'value',
             sorter: (a, b) => (a.value || '').toLowerCase().localeCompare((b.value || '').toLowerCase()),
         },
         {
-            title: 'Value Name',
+            title: 'Geocode Name',
             dataIndex: 'value_name',
             key: 'value_name',
             sorter: (a, b) => (a.value_name || '').toLowerCase().localeCompare((b.value_name || '').toLowerCase()),
+            filters: generateFilters(dataSource || [], 'value_name'),
+            onFilter: (value, record) => record.value_name === value,
+        },
+        {
+            title: 'Location',
+            dataIndex: 'location_name',
+            key: 'location_name',
+            sorter: (a, b) => (a.location_name || '').toLowerCase().localeCompare((b.location_name || '').toLowerCase()),
+            filters: generateFilters(dataSource || [], 'location_name'),
+            onFilter: (value, record) => record.location_name === value,
+        },
+        {
+            title: 'Group',
+            dataIndex: 'group',
+            key: 'group',
+            sorter: (a, b) => (a.group || '').toLowerCase().localeCompare((b.group || '').toLowerCase()),
+            filters: generateFilters(dataSource || [], 'group'),
+            onFilter: (value, record) => record.group === value,
         },
         {
             title: 'Description',
@@ -167,7 +191,7 @@ const EventCodes = () => {
             align: 'center',
             title: 'Actions',
             key: 'actions',
-            render: (_: unknown, record: EventCodeDataSourceRecord) => (
+            render: (_: unknown, record: GeocodeDataSourceRecord) => (
                 <div className="w-full justify-center items-center gap-12">
                     <Button
                         onClick={() => handleEditOpenModal(record)}
@@ -195,7 +219,7 @@ const EventCodes = () => {
                 dataKey: typeof col.key === "string" ? col.key : ""
             }));
 
-        const title = "OASIS Event Codes";
+        const title = "OASIS Geocode";
         const filename = title;
 
         const preparedBy = user?.first_name && user?.last_name ? `${user?.first_name} ${user?.last_name}` : user?.email
@@ -233,8 +257,8 @@ const EventCodes = () => {
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(dataSource || []);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "OASIS_Event_Code");
-        XLSX.writeFile(wb, "OASIS_Event_Code.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "OASIS_Geocode");
+        XLSX.writeFile(wb, "OASIS_Geocode.xlsx");
     };
 
     const items: MenuProps['items'] = [
@@ -247,7 +271,7 @@ const EventCodes = () => {
         {
             key: '2',
             label: (
-                <CSVLink data={dataSource || []} filename="OASIS_Event_Code.csv">
+                <CSVLink data={dataSource || []} filename="OASIS_Geocode.csv">
                     Export CSV
                 </CSVLink>
             ),
@@ -288,13 +312,13 @@ const EventCodes = () => {
                 onCancel={handleCloseModal}
                 onClose={handleCloseModal}
             >
-                <EventCodeForm
+                <GeocodeForm
                     recordToEdit={recordToEdit}
                     handleClose={handleCloseModal}
                 />
             </Modal>
 
-            <div className="text-3xl font-bold mb-6 text-[#1E365D]">Event Codes</div>
+            <div className="text-3xl font-bold mb-6 text-[#1E365D]">Geocodes</div>
             <div className="w-full flex justify-between">
                 <div className="flex items-center gap-2">
                     <div className="flex gap-2">
@@ -326,7 +350,7 @@ const EventCodes = () => {
                         onClick={handleOpenModal}
                         className="h-10 bg-[#1E365D] text-white"
                     >
-                        <FaPlus /> Add Event Code
+                        <FaPlus /> Add Geocode
                     </Button>
                 </div>
             </div>
@@ -341,10 +365,10 @@ const EventCodes = () => {
                 className="mt-2"
                 dataSource={filteredDataSource}
                 columns={columns}
-                loading={eventCodesLoading}
+                loading={geocodesLoading}
             />
         </>
     )
 }
 
-export default EventCodes
+export default Geocodes

@@ -1,71 +1,83 @@
+import { patchOASISParameterReference, postOASISParameterReference } from "@/lib/oasis-query";
 import { useTokenStore } from "@/store/useTokenStore";
-import { AudienceDataSourceRecord } from "../Audience";
-import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Input, message } from "antd";
-import { patchOASISAudience, postOASISAudience } from "@/lib/oasis-query";
+import { useEffect, useState } from "react";
+import { ParameterReferenceDataSourceRecord } from "../Parameter";
 
-export type AudienceFormType = {
-    audience_text: string;
+export type ParameterReferenceFormType = {
+    param_name: string;
+    param_value: string;
     description: string;
 };
 
 type Props = {
-    recordToEdit: AudienceDataSourceRecord | null;
+    recordToEdit: ParameterReferenceDataSourceRecord | null;
     handleClose: () => void;
 };
 
-const AudienceForm = ({ handleClose, recordToEdit }: Props) => {
+const ParameterForm = ({ recordToEdit, handleClose }: Props) => {
     const token = useTokenStore(state => state.token);
     const queryClient = useQueryClient();
-    const [form, setForm] = useState<AudienceFormType>({
-        audience_text: "",
+    const [form, setForm] = useState<ParameterReferenceFormType>({
+        param_name: "",
+        param_value: "",
         description: "",
     });
 
     useEffect(() => {
         if (recordToEdit) {
             setForm({
-                audience_text: recordToEdit.audience_text,
+                param_name: recordToEdit.param_name,
+                param_value: recordToEdit.param_value,
                 description: recordToEdit.description,
             });
         } else {
             setForm({
-                audience_text: "",
+                param_name: "",
+                param_value: "",
                 description: "",
             });
         }
     }, [recordToEdit]);
 
     const mutation = useMutation({
-        mutationKey: [recordToEdit ? 'edit' : 'add', 'audience'],
+        mutationKey: [recordToEdit ? 'edit' : 'add', 'parameter'],
         mutationFn: () => {
             if (recordToEdit) {
-                return patchOASISAudience(token ?? "", recordToEdit.id, form);
+                return patchOASISParameterReference(token ?? "", recordToEdit.id, form);
             } else {
-                return postOASISAudience(token ?? "", form);
+                return postOASISParameterReference(token ?? "", form);
             }
         },
         onSuccess: () => {
-            message.success(`Successfully ${recordToEdit ? "updated" : "added"} audience`);
-            queryClient.invalidateQueries({ queryKey: ['OASIS', 'audience'] });
+            message.success(`Successfully ${recordToEdit ? "updated" : "added"} parameter.`);
+            queryClient.invalidateQueries({ queryKey: ['OASIS', 'parameters'] });
             handleClose();
-            setForm({ audience_text: "", description: "" })
+            setForm({ param_name: "", param_value: "", description: "" })
         },
         onError: (err) => message.error(err.message.replace(/[{}[\]]/g, ''))
     });
 
     return (
         <div className="w-full flex flex-col gap-4">
-            <h1 className="text-xl font-semibold">{recordToEdit ? "Edit" : "Add"} Audience</h1>
+            <h1 className="text-xl font-semibold">{recordToEdit ? "Edit" : "Add"} Parameter</h1>
 
             <form className="w-full flex flex-col gap-4" onSubmit={e => e.preventDefault()}>
                 <div>
-                    <span className="text-lg font-semibold">Audience</span>
+                    <span className="text-lg font-semibold">Parameter Name</span>
                     <Input
                         className="h-10"
-                        value={form.audience_text}
-                        onChange={e => setForm(prev => ({ ...prev, audience_text: e.target.value }))}
+                        value={form.param_name}
+                        onChange={e => setForm(prev => ({ ...prev, param_name: e.target.value }))}
+                    />
+                </div>
+                <div>
+                    <span className="text-lg font-semibold">Parameter Value</span>
+                    <Input
+                        className="h-10"
+                        value={form.param_value}
+                        onChange={e => setForm(prev => ({ ...prev, param_value: e.target.value }))}
                     />
                 </div>
                 <div>
@@ -88,6 +100,6 @@ const AudienceForm = ({ handleClose, recordToEdit }: Props) => {
             </form>
         </div>
     );
-}
+};
 
-export default AudienceForm
+export default ParameterForm;
