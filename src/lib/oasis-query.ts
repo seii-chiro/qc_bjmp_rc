@@ -31,6 +31,7 @@ import { AudienceFormType } from "@/pages/oasis/maintenance/forms/AudienceForm";
 import { CategoryFormType } from "@/pages/oasis/maintenance/forms/CategoriesForm";
 import { CertaintyFormType } from "@/pages/oasis/maintenance/forms/CertaintyForm";
 import { CodeFormType } from "@/pages/oasis/maintenance/forms/CodeForm";
+import { MessageTypeFormType } from "@/pages/oasis/maintenance/forms/MessageTypeForm";
 
 export async function getOASISRestrictions(
   token: string
@@ -141,6 +142,72 @@ export async function getOASISMessageTypes(
   }
 
   return res.json();
+}
+
+export async function postOASISMessageType(
+  token: string,
+  payload: MessageTypeFormType
+): Promise<OASISAudience> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-msg-type/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISMessageType(
+  token: string,
+  id: number,
+  payload: Partial<MessageTypeFormType>
+): Promise<OASISAudience> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-msg-type/${id}/`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISMessageType(token: string, id: number) {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-msg-type/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to delete message type.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function getOASISCodes(
