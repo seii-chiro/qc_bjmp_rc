@@ -43,8 +43,8 @@ const Statuses = () => {
       message.success("Status deleted")
       queryClient.invalidateQueries({ queryKey: ['OASIS', 'status'] })
     },
-    onError: () => {
-      message.error("Failed to delete status")
+    onError: (err) => {
+      message.error(err.message)
     }
   })
 
