@@ -40,6 +40,7 @@ import { EventCodeFormType } from "@/pages/oasis/maintenance/forms/EventCodeForm
 import { InstructionFormType } from "@/pages/oasis/maintenance/forms/InstructionForm";
 import { ParameterReferenceFormType } from "@/pages/oasis/maintenance/forms/ParameterForm";
 import { GeocodeFormType } from "@/pages/oasis/maintenance/forms/GeocodeForm";
+import { EventFormType } from "@/pages/oasis/maintenance/forms/EventForm";
 
 export async function getOASISRestrictions(
   token: string
@@ -1325,6 +1326,66 @@ export async function getOASISEventTypes(
   }
 
   return res.json();
+}
+
+export async function postOASISEventType(
+  token: string,
+  payload: EventFormType
+): Promise<OASISEventType> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/event-type/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISEventType(
+  token: string,
+  id: number,
+  payload: Partial<EventFormType>
+): Promise<OASISEventType> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/event-type/${id}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISEventType(token: string, id: number) {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/event-type/${id}/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete event type.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function postOASISAlert(
