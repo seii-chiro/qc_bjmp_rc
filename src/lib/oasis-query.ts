@@ -38,6 +38,7 @@ import { NoteFormType } from "@/pages/oasis/maintenance/forms/NoteForm";
 import { LanguageFormType } from "@/pages/oasis/maintenance/forms/LanguageForm";
 import { EventCodeFormType } from "@/pages/oasis/maintenance/forms/EventCodeForm";
 import { InstructionFormType } from "@/pages/oasis/maintenance/forms/InstructionForm";
+import { ParameterReferenceFormType } from "@/pages/oasis/maintenance/forms/ParameterForm";
 
 export async function getOASISRestrictions(
   token: string
@@ -1059,6 +1060,75 @@ export async function getOASISParameterReference(
   }
 
   return res.json();
+}
+
+export async function postOASISParameterReference(
+  token: string,
+  payload: ParameterReferenceFormType
+): Promise<OASISParameterReference> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-parameter-reference/`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISParameterReference(
+  token: string,
+  id: number,
+  payload: Partial<ParameterReferenceFormType>
+): Promise<OASISParameterReference> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-parameter-reference/${id}/`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISParameterReference(token: string, id: number) {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-parameter-reference/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to delete parameter reference.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function getOASISInstructions(
