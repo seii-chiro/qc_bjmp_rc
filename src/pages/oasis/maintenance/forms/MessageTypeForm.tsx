@@ -29,6 +29,11 @@ const MessageTypeForm = ({ recordToEdit, handleClose }: Props) => {
                 code: recordToEdit.code,
                 description: recordToEdit.description,
             });
+        } else {
+            setForm({
+                code: "",
+                description: "",
+            });
         }
     }, [recordToEdit]);
 
@@ -45,6 +50,7 @@ const MessageTypeForm = ({ recordToEdit, handleClose }: Props) => {
             message.success(`Successfully ${recordToEdit ? "updated" : "added"} message type`);
             queryClient.invalidateQueries({ queryKey: ['OASIS', 'message-type'] });
             handleClose();
+            setForm({ code: "", description: "" })
         },
         onError: (err) => message.error(err.message.replace(/[{}[\]]/g, ''))
     });

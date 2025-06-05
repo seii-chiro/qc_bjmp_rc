@@ -75,6 +75,7 @@ const MessageTypes = () => {
 
   const handleCloseModal = () => {
     setIsFormModalOpen(false)
+    setRecordToEdit(null)
   }
 
   const handleEditOpenModal = (record: MessageTypeDataSourceRecord) => {

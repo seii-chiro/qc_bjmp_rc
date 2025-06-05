@@ -75,6 +75,7 @@ const Audience = () => {
 
   const handleCloseModal = () => {
     setIsFormModalOpen(false)
+    setRecordToEdit(null)
   }
 
   const handleEditOpenModal = (record: AudienceDataSourceRecord) => {

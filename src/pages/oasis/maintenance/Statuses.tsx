@@ -75,6 +75,7 @@ const Statuses = () => {
 
   const handleCloseModal = () => {
     setIsFormModalOpen(false)
+    setRecordToEdit(null)
   }
 
   const handleEditOpenModal = (record: StatusDataSourceRecord) => {

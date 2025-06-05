@@ -29,6 +29,11 @@ const AudienceForm = ({ handleClose, recordToEdit }: Props) => {
                 audience_text: recordToEdit.audience_text,
                 description: recordToEdit.description,
             });
+        } else {
+            setForm({
+                audience_text: "",
+                description: "",
+            });
         }
     }, [recordToEdit]);
 
@@ -45,6 +50,7 @@ const AudienceForm = ({ handleClose, recordToEdit }: Props) => {
             message.success(`Successfully ${recordToEdit ? "updated" : "added"} audience`);
             queryClient.invalidateQueries({ queryKey: ['OASIS', 'audience'] });
             handleClose();
+            setForm({ audience_text: "", description: "" })
         },
         onError: (err) => message.error(err.message.replace(/[{}[\]]/g, ''))
     });

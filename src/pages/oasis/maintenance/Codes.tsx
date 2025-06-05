@@ -75,6 +75,7 @@ const Codes = () => {
 
   const handleCloseModal = () => {
     setIsFormModalOpen(false)
+    setRecordToEdit(null)
   }
 
   const handleEditOpenModal = (record: CodeDataSourceRecord) => {

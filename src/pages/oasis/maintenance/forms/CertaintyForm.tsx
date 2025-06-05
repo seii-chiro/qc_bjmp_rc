@@ -29,6 +29,11 @@ const CertaintyForm = ({ recordToEdit, handleClose }: Props) => {
                 code: recordToEdit.code,
                 description: recordToEdit.description,
             });
+        } else {
+            setForm({
+                code: "",
+                description: "",
+            });
         }
     }, [recordToEdit]);
 
@@ -45,6 +50,7 @@ const CertaintyForm = ({ recordToEdit, handleClose }: Props) => {
             message.success(`Successfully ${recordToEdit ? "updated" : "added"} certainty`);
             queryClient.invalidateQueries({ queryKey: ['OASIS', 'certainty'] });
             handleClose();
+            setForm({ code: "", description: "" })
         },
         onError: (err) => message.error(err.message.replace(/[{}[\]]/g, ''))
     });

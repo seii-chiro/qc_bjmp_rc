@@ -75,6 +75,7 @@ const Categories = () => {
 
   const handleCloseModal = () => {
     setIsFormModalOpen(false)
+    setRecordToEdit(null)
   }
 
   const handleEditOpenModal = (record: CategoryDataSourceRecord) => {
