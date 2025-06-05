@@ -34,6 +34,7 @@ import { CodeFormType } from "@/pages/oasis/maintenance/forms/CodeForm";
 import { MessageTypeFormType } from "@/pages/oasis/maintenance/forms/MessageTypeForm";
 import { ScopeFormType } from "@/pages/oasis/maintenance/forms/ScopeForm";
 import { RestrictionFormType } from "@/pages/oasis/maintenance/forms/RestrictionForm";
+import { NoteFormType } from "@/pages/oasis/maintenance/forms/NoteForm";
 
 export async function getOASISRestrictions(
   token: string
@@ -370,6 +371,66 @@ export async function getOASISNotes(
   }
 
   return res.json();
+}
+
+export async function postOASISNote(
+  token: string,
+  payload: NoteFormType
+): Promise<OASISNote> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-note/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISNote(
+  token: string,
+  id: number,
+  payload: Partial<NoteFormType>
+): Promise<OASISNote> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-note/${id}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISNote(token: string, id: number) {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-note/${id}/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete note.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function getOASISEventCodes(
