@@ -32,6 +32,7 @@ import { CategoryFormType } from "@/pages/oasis/maintenance/forms/CategoriesForm
 import { CertaintyFormType } from "@/pages/oasis/maintenance/forms/CertaintyForm";
 import { CodeFormType } from "@/pages/oasis/maintenance/forms/CodeForm";
 import { MessageTypeFormType } from "@/pages/oasis/maintenance/forms/MessageTypeForm";
+import { ScopeFormType } from "@/pages/oasis/maintenance/forms/ScopeForm";
 
 export async function getOASISRestrictions(
   token: string
@@ -553,6 +554,66 @@ export async function getOASISScopes(
   }
 
   return res.json();
+}
+
+export async function postOASISScopes(
+  token: string,
+  payload: ScopeFormType
+): Promise<OASISStatus> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-scope/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISScopes(
+  token: string,
+  id: number,
+  payload: Partial<ScopeFormType>
+): Promise<OASISStatus> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-scope/${id}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISScopes(token: string, id: number) {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-scope/${id}/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete Scope.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function getOASISResponseTypes(
