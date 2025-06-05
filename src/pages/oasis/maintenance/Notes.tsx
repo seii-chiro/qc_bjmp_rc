@@ -48,16 +48,16 @@ const Notes = () => {
     }
   })
 
-  const dataSource = notes?.results.map((item, index) => {
-    return ({
+  const dataSource = [...(notes?.results || [])]
+    .reverse()
+    .map((item, index) => ({
       id: item?.id,
       no: index + 1,
       note_text: item?.note_text,
       description: item?.description,
       createdBy: item?.created_by,
       updatedBy: item?.updated_by
-    })
-  })
+    }));
 
   const filteredDataSource = dataSource?.filter(item => {
     const searchLower = searchText.toLowerCase()

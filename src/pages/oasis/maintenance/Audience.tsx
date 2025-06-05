@@ -48,16 +48,16 @@ const Audience = () => {
     }
   })
 
-  const dataSource = audience?.results.map((item, index) => {
-    return ({
+  const dataSource = [...(audience?.results || [])]
+    .reverse()
+    .map((item, index) => ({
       id: item?.id,
       no: index + 1,
       audience_text: item?.audience_text,
       description: item?.description,
       createdBy: item?.created_by,
       updatedBy: item?.updated_by
-    })
-  })
+    }));
 
   const filteredDataSource = dataSource?.filter(item => {
     const searchLower = searchText.toLowerCase()
