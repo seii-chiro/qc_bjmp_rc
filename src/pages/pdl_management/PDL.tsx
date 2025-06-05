@@ -3,7 +3,7 @@ import { GodotLink, Header } from "../assets/components/link"
 const PDL = () => {
     return (
         <div className="flex flex-wrap gap-5">
-            <div className="border text-gray-700 border-gray-200 p-5 w-96 shadow-sm hover:shadow-md rounded-md">
+            <div className="border text-gray-700 border-gray-200 p-5 w-96 shadow-sm hover:shadow-md rounded-md h-fit">
                 <Header title="PDLs Information"/>
                 <div className="mt-2 ml-8">
                     <GodotLink link="pdl" title="PDL" />
@@ -13,7 +13,7 @@ const PDL = () => {
                     <GodotLink link="gang-affiliation" title="Gang Affiliations" />
                 </div>
             </div>
-            <div className="border text-gray-700 border-gray-200 p-5 w-96 shadow-sm hover:shadow-md rounded-md">
+            <div className="border text-gray-700 border-gray-200 p-5 w-96 shadow-sm hover:shadow-md rounded-md h-fit">
                 <div className="mt-2 ml-8">
                     <GodotLink link="police-precinct" title="Police Precincts" />
                     <GodotLink link="court-branches" title="Courts/Branches" />
@@ -25,6 +25,7 @@ const PDL = () => {
             <div className="border text-gray-700 border-gray-200 p-5 w-96 shadow-sm hover:shadow-md rounded-md">
                 <Header title="Maintenance"/>
                 <div className="mt-2 ml-8">
+                    <GodotLink link="pdl-category" title="PDL Category" />
                     <GodotLink link="pdl-visitation-status" title="PDL Visitation Status" />
                     <GodotLink link="/jvms/maintenance/ethnicities" title="Ethnicities" />
                     <GodotLink link="skills" title="Skills" />

@@ -1,33 +1,31 @@
+import { deletePDLCategory, getPDLCategory, patchPDLCategory } from "@/lib/personnel-queries";
+import { getOrganization, getUser } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Form, Input, Menu, message, Modal } from "antd";
 import Table, { ColumnsType } from "antd/es/table";
 import { useState } from "react";
-import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
-import { GoDownload, GoPlus } from "react-icons/go";
 import { CSVLink } from "react-csv";
+import bjmp from '../../../assets/Logo/QCJMD.png'
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-import { getOrganization, getUser } from "@/lib/queries";
-import bjmp from '../../../assets/Logo/QCJMD.png'
-import { deletePersonnelStatus, getPersonnelStatus, patchPersonnelStatus } from "@/lib/personnel-queries";
-import { PersonnelDesignationPayload } from "@/lib/issues-difinitions";
-import AddPersonnelStatus from "./AddPersonnelStatus";
+import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
+import { GoDownload, GoPlus } from "react-icons/go";
+import AddPDLCategory from "./AddPDLCategory";
 
-type StatusPayload = {
+type PDLCategoryPayload = {
     id: number,
     name: string,
     description: string,
 }
-
-const PersonnelStatus = () => {
+const PDLCategory = () => {
     const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
-    const [personnelStatus, setPersonnelStatus] = useState<StatusPayload | null>(null);
+    const [PDLCategory, setPDLCategory] = useState<PDLCategoryPayload | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
@@ -47,9 +45,9 @@ const PersonnelStatus = () => {
         setPdfDataUrl(null); 
     };
 
-    const { data: personnelStatusData } = useQuery({
-        queryKey: ['personnel-status'],
-        queryFn: () => getPersonnelStatus(token ?? ""),
+    const { data: pdlCategoryData } = useQuery({
+        queryKey: ['pdl-category'],
+        queryFn: () => getPDLCategory(token ?? ""),
     });
 
     const { data: UserData } = useQuery({
@@ -63,83 +61,82 @@ const PersonnelStatus = () => {
     })
 
     const deleteMutation = useMutation({
-        mutationFn: (id: number) => deletePersonnelStatus(token ?? "", id),
+        mutationFn: (id: number) => deletePDLCategory(token ?? "", id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["personnel-status"] });
-            messageApi.success("Personnel Status deleted successfully");
+            queryClient.invalidateQueries({ queryKey: ["pdl-category"] });
+            messageApi.success("PDL Category deleted successfully");
         },
         onError: (error: any) => {
-            messageApi.error(error.message || "Failed to delete Personnel Status");
+            messageApi.error(error.message || "Failed to delete PDL Category");
         },
     });
 
-    const { mutate: editPersonnelStatus, isLoading: isUpdating } = useMutation({
-        mutationFn: (updated: PersonnelDesignationPayload) =>
-            patchPersonnelStatus(token ?? "", updated.id, updated),
+    const { mutate: editPDLCategory, isLoading: isUpdating } = useMutation({
+        mutationFn: (updated: PDLCategoryPayload) =>
+            patchPDLCategory(token ?? "", updated.id, updated),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["personnel-status"] });
-            messageApi.success("Personnel Status updated successfully");
+            queryClient.invalidateQueries({ queryKey: ["pdl-category"] });
+            messageApi.success("PDL Category updated successfully");
             setIsEditModalOpen(false);
         },
         onError: () => {
-            messageApi.error("Failed to update Personnel Status");
+            messageApi.error("Failed to update PDL Category");
         },
     });
 
-    const handleEdit = (record: PersonnelDesignationPayload) => {
-        setPersonnelStatus(record);
+    const handleEdit = (record: PDLCategoryPayload) => {
+        setPDLCategory(record);
         form.setFieldsValue(record);
         setIsEditModalOpen(true);
     };
 
     const handleUpdate = (values: any) => {
-        if (personnelStatus && personnelStatus.id) {
-            const updatedPersonnelStatus: PersonnelDesignationPayload = {
-                ...personnelStatus,
+        if (PDLCategory && PDLCategory.id) {
+            const updatedPDLCategory: PDLCategoryPayload = {
+                ...PDLCategory,
                 ...values,
             };
-            editPersonnelStatus(updatedPersonnelStatus);
+            editPDLCategory(updatedPDLCategory);
         } else {
-            messageApi.error("Selected Personnel Status is invalid");
+            messageApi.error("Selected PDL Category is invalid");
         }
     };
 
-const dataSource = personnelStatusData?.results
+const dataSource = pdlCategoryData?.results
     ?.slice() // make a shallow copy
     ?.sort((a, b) => b.id - a.id) // sort by descending ID (newest first)
-    ?.map((status, index) => ({
+    ?.map((category, index) => ({
         key: index + 1,
-        id: status?.id,
-        name: status?.name,
-        description: status?.description,
+        id: category?.id,
+        name: category?.name,
+        description: category?.description,
     }));
 
-    const filteredData = dataSource?.filter((status) =>
-        Object.values(status).some((value) =>
+    const filteredData = dataSource?.filter((category) =>
+        Object.values(category).some((value) =>
             String(value).toLowerCase().includes(searchText.toLowerCase())
         )
     );
-
-    const columns: ColumnsType<StatusPayload> = [
+    const columns: ColumnsType<PDLCategoryPayload> = [
         {
             title: 'No.',
             key: 'index',
             render: (_text, _record, index) => index + 1,
         },
         {
-            title: 'Personnel Status',
+            title: 'PDL Category',
             dataIndex: 'name',
             key: 'name',
             sorter: (a, b) => a.name.localeCompare(b.name),
             defaultSortOrder: 'descend',
             sortDirections: ['descend', 'ascend'],
         },
-{
-  title: 'Description',
-  dataIndex: 'description',
-  key: 'description',
-  sorter: (a, b) => a.description.localeCompare(b.description),
-},
+        {
+            title: 'Description',
+            dataIndex: 'description',
+            key: 'description',
+            sorter: (a, b) => a.description.localeCompare(b.description),
+        },
         {
             title: "Action",
             key: "action",
@@ -163,8 +160,8 @@ const dataSource = personnelStatusData?.results
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(dataSource);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "PersonnelStatus");
-        XLSX.writeFile(wb, "PersonnelStatus.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "PDLCategory");
+        XLSX.writeFile(wb, "PDLCategory.xlsx");
     };
 
         const handleExportPDF = () => {
@@ -194,7 +191,7 @@ const dataSource = personnelStatusData?.results
             
                 doc.setTextColor(0, 102, 204);
                 doc.setFontSize(16);
-                doc.text("Personnel Status Report", 10, 15); 
+                doc.text("PDL Category Report", 10, 15); 
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(10);
                 doc.text(`Organization Name: ${organizationName}`, 10, 25);
@@ -218,7 +215,7 @@ const dataSource = personnelStatusData?.results
                 const pageData = tableData.slice(i, i + maxRowsPerPage);
         
                 autoTable(doc, { 
-                    head: [['No.', 'Personnel Status', 'Description']],
+                    head: [['No.', 'PDL Category', 'Description']],
                     body: pageData,
                     startY: startY,
                     margin: { top: 0, left: 10, right: 10 },
@@ -256,13 +253,14 @@ const dataSource = personnelStatusData?.results
             setPdfDataUrl(pdfOutput);
             setIsPdfModalOpen(true);
         };
+
         const menu = (
             <Menu>
                 <Menu.Item>
                     <a onClick={handleExportExcel}>Export Excel</a>
                 </Menu.Item>
                 <Menu.Item>
-                    <CSVLink data={dataSource} filename="PersonnelStatus.csv">
+                    <CSVLink data={dataSource} filename="PDLCategory.csv">
                         Export CSV
                     </CSVLink>
                 </Menu.Item>
@@ -271,7 +269,7 @@ const dataSource = personnelStatusData?.results
     return (
         <div>
             {contextHolder}
-            <h1 className="text-2xl font-bold text-[#1E365D]">Personnel Status</h1>
+            <h1 className="text-2xl font-bold text-[#1E365D]">PDL Category</h1>
             <div className="flex items-center justify-between my-4">
                 <div className="flex gap-2">
                     <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
@@ -294,7 +292,7 @@ const dataSource = personnelStatusData?.results
                         className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center"
                         onClick={showModal}>
                         <GoPlus />
-                            Add Personnel Status
+                            Add PDL Category
                     </button>
                 </div>
             </div>
@@ -310,7 +308,7 @@ const dataSource = personnelStatusData?.results
                 }}
             />
             <Modal
-                title="Personnel Status Report"
+                title="PDL Category Report"
                 open={isPdfModalOpen}
                 onCancel={handleClosePdfModal}
                 footer={null}
@@ -326,20 +324,20 @@ const dataSource = personnelStatusData?.results
             </Modal>
             <Modal
                 className="overflow-y-auto rounded-lg scrollbar-hide"
-                title="Add Personnel Status"
+                title="Add PDL Category"
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
                 width="30%"
                 style={{ maxHeight: "80vh", overflowY: "auto" }} 
                 >
-                <AddPersonnelStatus
+                <AddPDLCategory
                     onClose={handleCancel}
                     onAdded={() => setPagination({ current: 1, pageSize: pagination.pageSize })}
                     />
             </Modal>
             <Modal
-                title="Edit Personnel Status"
+                title="Edit PDL Category"
                 open={isEditModalOpen}
                 onCancel={() => setIsEditModalOpen(false)}
                 onOk={() => form.submit()}
@@ -348,8 +346,8 @@ const dataSource = personnelStatusData?.results
                 <Form form={form} layout="vertical" onFinish={handleUpdate}>
                 <Form.Item
                     name="name"
-                    label="Personnel Status Name"
-                    rules={[{ required: true, message: "Please input the Personnel Status name" }]}
+                    label="PDL Category Name"
+                    rules={[{ required: true, message: "Please input the PDL Category name" }]}
                 >
                     <Input />
                 </Form.Item>
@@ -366,4 +364,4 @@ const dataSource = personnelStatusData?.results
     )
 }
 
-export default PersonnelStatus
+export default PDLCategory

@@ -55,7 +55,7 @@ const Dashboard = () => {
     const [time, setTime] = useState(new Date().toLocaleTimeString());
     const isFullscreen = handle.active;
     const [activeTab, setActiveTab] = useState('visitLogs');
-    const [frequency, setFrequency] = useState('quarterly'); 
+    const [frequency, setFrequency] = useState('daily'); 
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [dateField, setDateField] = useState('date_convicted');
@@ -72,7 +72,7 @@ const Dashboard = () => {
     const [formEndYear, setFormEndYear] = useState(endYear);
 
     //VisitLog
-    const [visitFrequency, setVisitFrequency] = useState('quarterly');
+    const [visitFrequency, setVisitFrequency] = useState('daily');
     const [visitStartDate, setvisitStartDate] = useState('');
     const [visitendDate, setVisitEndDate] = useState(''); 
     const [visitStartYear, setVisitStartYear] = useState(currentYear.toString());
@@ -244,12 +244,30 @@ const Dashboard = () => {
         ? Object.values(counts).reduce((total, data) => total + (data.pdl_count || 0), 0)
         : summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active ?? 0;
 
+    function formatDateToMMDDYYYY(dateStr) {
+    const date = new Date(dateStr);
+    if (isNaN(date)) return ""; 
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${mm}-${dd}-${yyyy}`;
+    }
 
-    const fetchSummaryVisitorLog = async () => {
+    function getStartOfMonth(monthYearStr) {
+    // monthYearStr format: "MM-YYYY"
+    const [mm, yyyy] = monthYearStr.split("-");
+    return new Date(yyyy, mm - 1, 1); // 1st day of month
+    }
+
+    function getEndOfMonth(monthYearStr) {
+    const [mm, yyyy] = monthYearStr.split("-");
+    return new Date(yyyy, mm, 0); // last day of the month (0th day of next month)
+    }
+
+const fetchSummaryVisitorLog = async () => {
     let url = `${BASE_URL}/api/dashboard/summary-dashboard/`;
     const params = new URLSearchParams();
 
-    // Trim visitType to avoid unwanted characters like \r or \n
     params.append('visit_type', visitType.trim());
 
     if (visitFrequency === 'quarterly') {
@@ -258,28 +276,29 @@ const Dashboard = () => {
         params.append('end_year', visitendYear);
     } else if (visitFrequency === 'monthly') {
         url += 'get-monthly-visitor-logs-summary';
-        params.append('start_date', visitStartDate);
-        params.append('end_date', visitendDate);
+        params.append('start_date', visitStartDate); 
+        params.append('end_date', visitendDate);     
     } else if (visitFrequency === 'weekly') {
         url += 'get-weekly-visitor-logs-summary';
-        params.append('start_date', visitStartDate);
-        params.append('end_date', visitendDate);
+        params.append('start_date', formatDateToMMDDYYYY(visitStartDate));
+        params.append('end_date', formatDateToMMDDYYYY(visitendDate));
     } else if (visitFrequency === 'daily') {
         url += 'get-daily-visitor-logs-summary';
-        params.append('start_date', visitStartDate);
-        params.append('end_date', visitendDate);
+        params.append('start_date', formatDateToMMDDYYYY(visitStartDate));
+        params.append('end_date', formatDateToMMDDYYYY(visitendDate));
     }
 
     const res = await fetch(`${url}?${params.toString()}`, {
         headers: {
-        Authorization: `Token ${token}`,
-        "Content-Type": "application/json",
+            Authorization: `Token ${token}`,
+            "Content-Type": "application/json",
         },
     });
 
     if (!res.ok) throw new Error("Network error");
     return res.json();
-    };
+};
+
 
     const { data: visitorLogData } = useQuery({
     queryKey: ['visit-log', visitType.trim(), visitFrequency, visitStartYear, visitendYear, visitStartDate, visitendDate],
@@ -288,29 +307,29 @@ const Dashboard = () => {
     });
 
     let visitCounts = {};
-    if (visitFrequency === 'quarterly') {
-    visitCounts = visitorLogData?.success?.quarterly_visitor_logs_summary || {};
-    } else if (visitFrequency === 'monthly') {
-    visitCounts = visitorLogData?.success?.monthly_visitor_logs_summary || {};
-    } else if (visitFrequency === 'weekly') {
-    visitCounts = visitorLogData?.success?.weekly_visitor_logs_summary || {};
-    } else if (visitFrequency === 'daily') {
-    visitCounts = visitorLogData?.success?.daily_visitor_logs_summary || {};
-    }
+    if (visitFrequency === 'daily') {
+        visitCounts = visitorLogData?.success?.daily_visitor_logs_summary || {};
+        } else if (visitFrequency === 'monthly') {
+        visitCounts = visitorLogData?.success?.monthly_visitor_logs_summary || {};
+        } else if (visitFrequency === 'weekly') {
+        visitCounts = visitorLogData?.success?.weekly_visitor_logs_summary || {};
+        } else if (visitFrequency === 'quarterly') {
+        visitCounts = visitorLogData?.success?.quarterly_visitor_logs_summary || {};
+        }
+
 
 const totalVisit = isFormChanged
     ? Object.values(visitCounts).reduce((total, data) => total + (data?.logins || 0), 0)
     : visitType.trim() === 'MainGateVisit'
-        ? maingateLog?.results?.[0]?.tracking_logs?.filter(log => log.status === "In").length || 0
-        : visitType.trim() === 'VisitorStationVisit'
-        ? visitorLog?.results?.[0]?.tracking_logs?.filter(log => log.status === "In").length || 0
-        : 0;
-
+    ? Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logins || 0), 0)
+    : visitType.trim() === 'VisitorStationVisit'
+    ? Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logins || 0), 0)
+    : 0
 
     const totalVisitOut = isFormChanged
     ? Object.values(visitCounts).reduce((total, data) => total + (data?.logouts || 0), 0)
     : visitType === 'MainGateVisit'
-        ? maingateLog?.results?.[0]?.tracking_logs?.filter(log => log.status === "Out").length || 0
+        ?  Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logouts || 0), 0)
         : visitType === 'VisitorStationVisit'
         ? visitorLog?.results?.[0]?.tracking_logs?.filter(log => log.status === "Out").length || 0
         : 0;
@@ -353,16 +372,11 @@ const totalVisit = isFormChanged
     const PDL_COLORS = ['#3471EC', '#7ED26C', '#FE319D'];
     const COLORS = ['#3471EC', '#FE319D', '#AF4BCE'];
 
-    // const enteredPDLCount = pdlLog?.results[0]?.tracking_logs?.filter(log => log.status === "In").length || 0;
-    // const exitedPDLCount = pdlLog?.results[0]?.tracking_logs?.filter(log => log.status === "Out").length || 0;
 
     const PDLEnteredExitData = [
         { name: 'Entered', value: totalVisitPDLStation },
         { name: 'Exited', value: totalVisitPDLStationOut },
     ];
-
-    // const enteredCount = maingateLog?.results[0]?.tracking_logs?.filter(log => log.status === "In").length || 0;
-    // const exitedCount = maingateLog?.results[0]?.tracking_logs?.filter(log => log.status === "Out").length || 0;
 
     const VisitorEnteredExitData = [
     { name: 'Entered', value: totalVisit },
@@ -687,7 +701,7 @@ const totalVisit = isFormChanged
         if (activeTab === 'visitLogs') {
         setvisitType(formVisitType);
         setVisitFrequency(formVisitFrequency);
-        setvisitStartDate(formVisitFrequency);
+        setvisitStartDate(formVisitStartDate);
         setVisitEndDate(formVisitEndDate);
         setVisitStartYear(formVisitStartYear);
         setVisitEndYear(formVisitEndYear);
@@ -702,6 +716,13 @@ const totalVisit = isFormChanged
         setIsFormChanged(true);
         setVisible(false);
     };
+
+    const activeDormName = systemsettingdata?.results?.[0]?.jail_facility?.jail_name || 'Default Dorm';
+    const congestionRateRaw = summarydata?.success?.jail_congestion_rates?.[activeDormName];
+
+    const formattedRate = typeof congestionRateRaw === 'number'
+    ? `${congestionRateRaw.toFixed(2)}%`
+    : '0%';
     return (
         <div>
             <div id="dashboard">
@@ -761,9 +782,7 @@ const totalVisit = isFormChanged
                                         <Card3
                                             image={release}
                                             title='Congestion Rate'
-                                            count={summarydata?.success?.jail_congestion_rates_for_all?.total_congestion_rate === "Total capacity not set or zero"
-                                                    ? '0'
-                                                    : `${(parseFloat(summarydata?.success?.jail_congestion_rates_for_all?.total_congestion_rate) || 0).toFixed(2)}%`}
+                                            count={formattedRate}
                                             />
                                     </>
                                 )}
@@ -1859,7 +1878,7 @@ const totalVisit = isFormChanged
                                 type="text"
                                 placeholder={formVisitFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
                                 value={formVisitStartDate}
-                                onChange={e => setFormVisitStartDate(e.target.value)}
+                                onChange={e => setFormVisitStartDate(e.target.value)} 
                                 size="large"
                                 bordered
                                 />

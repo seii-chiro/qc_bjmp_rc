@@ -66,29 +66,78 @@ const Personnel = () => {
         enabled: debouncedSearch.length > 0,
     });
 
-    const { data, isFetching } = useQuery({
-        queryKey: ['personnel', 'personnel-table', page, limit],
-        queryFn: async (): Promise<PaginatedResponse<PersonnelType>> => {
-            // Add offset parameter for Django REST Framework's pagination
-            const offset = (page - 1) * limit;
-            const res = await fetch(
-                `${BASE_URL}/api/codes/personnel/?page=${page}&limit=${limit}&offset=${offset}`,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Token ${token}`,
-                    },
-                }
-            );
+    // const { data, isFetching } = useQuery({
+    //     queryKey: ['personnel', 'personnel-table', page, limit],
+    //     queryFn: async (): Promise<PaginatedResponse<PersonnelType>> => {
+    //         // Add offset parameter for Django REST Framework's pagination
+    //         const offset = (page - 1) * limit;
+    //         const res = await fetch(
+    //             `${BASE_URL}/api/codes/personnel/?page=${page}&limit=${limit}&offset=${offset}`,
+    //             {
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                     Authorization: `Token ${token}`,
+    //                 },
+    //             }
+    //         );
 
-            if (!res.ok) {
-                throw new Error('Failed to fetch Personnel data.');
-            }
+    //         if (!res.ok) {
+    //             throw new Error('Failed to fetch Personnel data.');
+    //         }
 
-            return res.json();
+    //         return res.json();
+    //     },
+    //     behavior: keepPreviousData(),
+    // });
+const { data, isFetching } = useQuery({
+    queryKey: [
+        "personnel",
+        "personnel-table",
+        page,
+        limit,
+        genderFilter,
+        statusFilter,
+    ],
+    queryFn: async (): Promise<PaginatedResponse<PersonnelType>> => {
+        const offset = (page - 1) * limit;
+        const params = new URLSearchParams();
+
+        params.append("page", String(page));
+        params.append("limit", String(limit));
+        params.append("offset", String(offset));
+
+        if (genderFilter.length > 0) {
+        // Join and encode gender filters
+        params.append(
+            "gender",
+            genderFilter.map(encodeURIComponent).join(",")
+        );
+        }
+
+        if (statusFilter.length > 0) {
+        // Join and encode status filters
+        params.append(
+            "status",
+            statusFilter.map(encodeURIComponent).join(",")
+        );
+        }
+
+        const res = await fetch(`${BASE_URL}/api/codes/personnel/?${params.toString()}`, {
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Token ${token}`,
         },
-        behavior: keepPreviousData(),
-    });
+        });
+
+        if (!res.ok) {
+        throw new Error("Failed to fetch Personnel data.");
+        }
+
+        return res.json();
+    },
+    enabled: !!token,
+    keepPreviousData: true,
+});
 
     const { data: UserData } = useQuery({
         queryKey: ['user'],
@@ -110,33 +159,32 @@ const Personnel = () => {
     const [searchParams] = useSearchParams();
     const gender = searchParams.get("gender") || "all";
     const genderList = gender !== "all" ? gender.split(",").map(decodeURIComponent) : [];
-
     const { data: personnelGenderData, isLoading: personnelByGenderLoading } = useQuery({
         queryKey: ['personnel', 'personnel-table', page, genderList],
         queryFn: async (): Promise<PaginatedResponse<PersonnelType>> => {
             const offset = (page - 1) * limit;
-            const res = await fetch(
-                `${BASE_URL}/api/codes/personnel/?gender=${encodeURIComponent(genderList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Token ${token}`,
-                    },
-                }
-            );
-    
+
+            const genderParam = genderList.length > 0 ? `gender=${encodeURIComponent(genderList.join(","))}` : '';
+            const url = `${BASE_URL}/api/codes/personnel/?${genderParam}${genderParam ? '&' : ''}page=${page}&limit=${limit}&offset=${offset}`;
+
+            const res = await fetch(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Token ${token}`,
+                },
+            });
+
             if (!res.ok) {
                 throw new Error('Failed to fetch Personnel Gender data.');
             }
-    
+
             return res.json();
         },
         enabled: !!token,
     });
-
-    const genderFilteredPersonnelIds = new Set(
-        (personnelGenderData?.results || []).map(personnel => personnel.id)
-    );
+    // const genderFilteredPersonnelIds = new Set(
+    //     (personnelGenderData?.results || []).map(personnel => personnel.id)
+    // );
 
     const status = searchParams.get("status") || "all";
     const statusList = status !== "all" ? status.split(",").map(decodeURIComponent) : [];
@@ -176,9 +224,9 @@ const Personnel = () => {
         enabled: !!token,
     });
 
-    const statusFilteredPersonnelIds = new Set(
-        (personnelStatusData?.results || []).map(personnel => personnel.id)
-    );
+    // const statusFilteredPersonnelIds = new Set(
+    //     (personnelStatusData?.results || []).map(personnel => personnel.id)
+    // );
 
     const rankFilters = Array.from(
     new Set((data?.results || []).map(item => item.rank).filter(Boolean))
@@ -187,11 +235,7 @@ const Personnel = () => {
     value: rank,
     }));
 
-    const dataSource = (data?.results || []).filter(personnel =>
-    gender === "all" ? true : genderFilteredPersonnelIds.has(personnel.id) 
-    && 
-    status === "all" ? true : statusFilteredPersonnelIds.has(personnel.id) 
-    ).map((personnel, index) => ({
+    const dataSource = (data?.results || []).map((personnel, index) => ({
         key: index + 1,
                 id: personnel?.id,
                 personnel_reg_no: personnel?.personnel_reg_no ?? '',
@@ -205,17 +249,17 @@ const Personnel = () => {
                 updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
-        const filteredData = dataSource.filter(personnel => {
-            const matchesSearch = Object.values(personnel).some(value =>
-                String(value).toLowerCase().includes(searchText.toLowerCase())
-            );
+        // const filteredData = dataSource.filter(personnel => {
+        //     const matchesSearch = Object.values(personnel).some(value =>
+        //         String(value).toLowerCase().includes(searchText.toLowerCase())
+        //     );
 
-            const matchesGender = genderFilter.length === 0 || genderFilter.includes(personnel.gender);
-            const matchesRank = rankFilter.length === 0 || rankFilter.includes(personnel.rank);
-            const matchesStatus = statusFilter.length === 0 || statusFilter.includes(personnel.status);
+        //     const matchesGender = genderFilter.length === 0 || genderFilter.includes(personnel.gender);
+        //     const matchesRank = rankFilter.length === 0 || rankFilter.includes(personnel.rank);
+        //     const matchesStatus = statusFilter.length === 0 || statusFilter.includes(personnel.status);
 
-            return matchesSearch && matchesGender && matchesRank && matchesStatus;
-            });
+        //     return matchesSearch && matchesGender && matchesRank && matchesStatus;
+        //     });
 
     const columns: ColumnType<PersonnelForm> = [
         {
@@ -241,35 +285,35 @@ const Personnel = () => {
         key: 'gender',
         sorter: (a, b) => a.gender.localeCompare(b.gender),
         filters: Array.from(
-            new Set((personnelGenderData?.results || []).map(personnel => personnel?.person?.gender?.gender_option))
+            new Set((data?.results || []).map(personnel => personnel?.person?.gender?.gender_option))
         )
             .filter(Boolean)
             .map(gender => ({ text: gender, value: gender })),
-        onFilter: (value, record) => record.gender === value,
         filteredValue: genderFilter,
         },
         {
-            title: 'Rank',
-            dataIndex: 'rank',
-            key: 'rank',
-            sorter: (a, b) => a.rank.localeCompare(b.rank),
-            filters: rankFilters,
-            filteredValue: rankFilter, 
-            onFilter: (value, record) => record.rank === value,
+        title: 'Rank',
+        dataIndex: 'rank',
+        key: 'rank',
+        sorter: (a, b) => a.rank.localeCompare(b.rank),
+        filters: rankFilters,
+        filteredValue: rankFilter,
+        onFilter: (value, record) => record.rank === value,
         },
-        {
-        title: 'Status',
-        dataIndex: 'status',
-        key: 'status',
-        sorter: (a, b) => a.status.localeCompare(b.status),
-        filters: Array.from(
-            new Set((personnelStatusData?.results || []).map(personnel => personnel?.status))
-        )
-            .filter(Boolean)
-            .map(status => ({ text: status, value: status })),
-        onFilter: (value, record) => record.status === value,
-        filteredValue: statusFilter,
-        },
+{
+  title: 'Status',
+  dataIndex: 'status',
+  key: 'status',
+  sorter: (a, b) => a.status.localeCompare(b.status),
+  filters: Array.from(
+      new Set((data?.results || []).map(personnel => personnel?.status))
+    )
+    .filter(Boolean)
+    .map(status => ({ text: status, value: status })),
+  filteredValue: statusFilter,
+  onFilter: (value, record) => record.status === value,
+},
+
         {
             title: "Action",
             key: "action",
@@ -311,27 +355,23 @@ const handleExportPDF = async () => {
     const footerHeight = 32;
     const maxRowsPerPage = 26;
 
-    // Fetch all personnel data
-    const allData = await fetchAllPersonnels();
+    // const allData = await fetchAllPersonnels();
+    let allData;
+    if (searchText.trim() === '') {
+        allData = await fetchAllPersonnels();
+    } else {
+        allData = await fetchPersonnels(searchText.trim());
+    }
     const allResults = allData?.results || [];
-
-    // Filter data based on the selected gender and status
-    // const filteredResults = allResults.filter(personnel => {
-    //     const matchesGender = gender === "all" || personnel?.person?.gender?.gender_option === gender;
-    //     const matchesStatus = status === "all" || personnel?.status === status;
-    //     return matchesGender && matchesStatus;
-    // });
 
     const filteredResults = allResults.filter(personnel => {
         const genderValue = personnel?.person?.gender?.gender_option ?? '';
         const statusValue = personnel?.status ?? '';
         const rankValue = personnel?.rank ?? '';
 
-        // Your global filters for personnel
         const matchesGlobalGender = gender === "all" || genderValue === gender;
         const matchesGlobalStatus = status === "all" || statusValue === status;
 
-        // Your column filters for personnel (make sure these are arrays of selected filters)
         const matchesColumnGender = genderFilter.length === 0 || genderFilter.includes(genderValue);
         const matchesColumnStatus = statusFilter.length === 0 || statusFilter.includes(statusValue);
         const matchesColumnRank = rankFilter.length === 0 || rankFilter.includes(rankValue);
@@ -619,7 +659,7 @@ const handleExportPDF = async () => {
                             record_status: personnel?.record_status ?? '',
                             updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
                                 }))
-                            : filteredData
+                            : dataSource
                 }
                 scroll={{ x: 800}}
                 pagination={{
@@ -634,9 +674,9 @@ const handleExportPDF = async () => {
                     },
                     }} 
                     onChange={(pagination, filters, sorter) => {
-                        setGenderFilter(filters.gender as string[] || []);
-                        setRankFilter(filters.rank as string[] || []);
-                        setStatusFilter(filters.status as string[] || []);
+                        setGenderFilter(filters.gender as string[] ?? []);setStatusFilter(filters.status as string[] ?? []);
+                        setRankFilter(filters.rank as string[] ?? []);
+                        
                     }}
                 rowKey="id"
                 

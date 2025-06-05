@@ -150,6 +150,7 @@ import PersonnelStatus from "./pages/personnel_management/personnel-status/Perso
 import PersonnelType from "./pages/personnel_management/personnel-type/PersonnelType.tsx";
 import PersonnelAppStatus from "./pages/personnel_management/personnel-app-status/PersonnelAppStatus.tsx";
 import PDLVisitationStatus from "./pages/pdl_management/pdl-visitation-status/PDLVisitationStatus.tsx";
+import PDLCategory from "./pages/pdl_management/pdl-category/PDLCategory.tsx";
 
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -505,6 +506,10 @@ function App() {
                 {
                     path: "pdls/pdl-visitation-status",
                     element: <PDLVisitationStatus />
+                },
+                {
+                    path: "pdls/pdl-category",
+                    element: <PDLCategory />
                 },
                 {
                     path: "visitors",

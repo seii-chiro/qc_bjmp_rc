@@ -119,29 +119,65 @@ const Visitor = () => {
         enabled: debouncedSearch.length > 0,
     });
 
-    const { data, isFetching } = useQuery({
-        queryKey: ['visitors', 'visitor-table', page, limit],
-        queryFn: async (): Promise<PaginatedResponse<NewVisitorType>> => {
-            // Add offset parameter for Django REST Framework's pagination
-            const offset = (page - 1) * limit;
-            const res = await fetch(
-                `${BASE_URL}/api/visitors/visitor/?page=${page}&limit=${limit}&offset=${offset}`,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Token ${token}`,
-                    },
-                }
-            );
+    // const { data, isFetching } = useQuery({
+    //     queryKey: ['visitors', 'visitor-table', page, limit],
+    //     queryFn: async (): Promise<PaginatedResponse<NewVisitorType>> => {
+    //         // Add offset parameter for Django REST Framework's pagination
+    //         const offset = (page - 1) * limit;
+    //         const res = await fetch(
+    //             `${BASE_URL}/api/visitors/visitor/?page=${page}&limit=${limit}&offset=${offset}`,
+    //             {
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                     Authorization: `Token ${token}`,
+    //                 },
+    //             }
+    //         );
 
-            if (!res.ok) {
-                throw new Error('Failed to fetch Visitors data.');
-            }
+    //         if (!res.ok) {
+    //             throw new Error('Failed to fetch Visitors data.');
+    //         }
 
-            return res.json();
-        },
-        behavior: keepPreviousData(),
-    });
+    //         return res.json();
+    //     },
+    //     behavior: keepPreviousData(),
+    // });
+const { data, isFetching } = useQuery({
+    queryKey: ['visitors', 'visitor-table', page, limit, genderColumnFilter, visitorTypeColumnFilter],
+    queryFn: async (): Promise<PaginatedResponse<NewVisitorType>> => {
+        const offset = (page - 1) * limit;
+
+        const params = new URLSearchParams();
+        params.append('page', String(page));
+        params.append('limit', String(limit));
+        params.append('offset', String(offset));
+
+        if (genderColumnFilter.length > 0) {
+        params.append('gender', genderColumnFilter.map(encodeURIComponent).join(','));
+        }
+        if (visitorTypeColumnFilter.length > 0) {
+        params.append('visitor_type', visitorTypeColumnFilter.map(encodeURIComponent).join(','));
+        }
+
+        const res = await fetch(
+        `${BASE_URL}/api/visitors/visitor/?${params.toString()}`,
+        {
+            headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+            },
+        }
+        );
+
+        if (!res.ok) {
+        throw new Error('Failed to fetch Visitors data.');
+        }
+
+        return res.json();
+    },
+    enabled: !!token,
+    keepPreviousData: true,
+});
 
     const { data: UserData } = useQuery({
         queryKey: ['user'],
@@ -217,52 +253,57 @@ const Visitor = () => {
         enabled: !!token,
     });
 
-    const genderFilteredVisitorIds = new Set(
-        (visitorGenderData?.results || []).map(visitor => visitor.id)
-    );
+    // const genderFilteredVisitorIds = new Set(
+    //     (visitorGenderData?.results || []).map(visitor => visitor.id)
+    // );
 
-    const visitorTypeFilters = Array.from(
-    new Set((data?.results || []).map(item => item.visitor_type).filter(Boolean))
-    ).map(type => ({
-    text: type,
-    value: type,
-    }));
+    const visitorType = searchParams.get("visitor_type") || "all";
+    const visitorTypeList = visitorType !== "all" ? visitorType.split(",").map(decodeURIComponent) : [];
 
-    const dataSource = (data?.results || []).filter(visitor =>
-        gender === "all" ? true : genderFilteredVisitorIds.has(visitor.id)
-    ).map((visitor, index) => {
-        const barangay = visitor?.person?.addresses[0]?.barangay || '';
-        const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
-        const province = visitor?.person?.addresses[0]?.province || '';
-        
-        const addressParts = [barangay, cityMunicipality, province].filter(part => part);
-        const address = addressParts.join(', ');
+    const { data: visitorTypeData, isLoading: visitorsByTypeLoading } = useQuery({
+        queryKey: ["visitors", 'visitor-table', page, visitorTypeList],
+        queryFn: async (): Promise<PaginatedResponse<NewVisitorType>> => {
+            const offset = (page - 1) * limit;
+            const res = await fetch(
+                `${BASE_URL}/api/visitors/visitor/?visitor_type=${encodeURIComponent(visitorTypeList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
 
-        return {
-            ...visitor,
-            key: index + 1,
-            id: visitor?.id,
-            name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
-            visitor_reg_no: visitor?.visitor_reg_no,
-            visitor_type: visitor?.visitor_type,
-            nationality: visitor?.person?.nationality,
-            full_address: visitor?.person?.addresses[0]?.full_address ?? '',
-            address: address,
-             gender: visitor?.person?.gender?.gender_option ?? '',
-            organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
-            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-        };
+            if (!res.ok) {
+                throw new Error('Failed to fetch Visitors data.');
+            }
+
+            return res.json();
+        },
+        enabled: !!token,
     });
 
-    const filteredData = dataSource.filter(visitor => {
-    const matchesSearch = Object.values(visitor).some(value =>
-        String(value).toLowerCase().includes(searchText.toLowerCase())
-    );
+    const dataSource = (data?.results || []).map((visitor, index) => {
+    const barangay = visitor?.person?.addresses[0]?.barangay || '';
+    const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
+    const province = visitor?.person?.addresses[0]?.province || '';
+    const addressParts = [barangay, cityMunicipality, province].filter(Boolean);
+    const address = addressParts.join(', ');
 
-    const matchesGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(visitor.gender);
-    const matchesVisitorType = visitorTypeColumnFilter.length === 0 || visitorTypeColumnFilter.includes(visitor.visitor_type);
-
-    return matchesSearch && matchesGender && matchesVisitorType;
+    return {
+        ...visitor,
+        key: index + 1,
+        id: visitor?.id,
+        name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+        visitor_reg_no: visitor?.visitor_reg_no,
+        visitor_type: visitor?.visitor_type,
+        nationality: visitor?.person?.nationality,
+        full_address: visitor?.person?.addresses[0]?.full_address ?? '',
+        address: address,
+        gender: visitor?.person?.gender?.gender_option ?? '',
+        organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
+        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+    };
     });
 
     const columns: ColumnsType<VisitorResponse> = [
@@ -295,11 +336,10 @@ const Visitor = () => {
         key: 'gender',
         sorter: (a, b) => a.gender.localeCompare(b.gender),
         filters: Array.from(
-            new Set((visitorGenderData?.results || []).map(visitor => visitor?.person?.gender?.gender_option))
-        )
+            new Set((data?.results || []).map(visitor => visitor?.person?.gender?.gender_option))
+            )
             .filter(Boolean)
             .map(gender => ({ text: gender, value: gender })),
-        onFilter: (value, record) => record.gender === value,
         filteredValue: genderColumnFilter,
         },
         {
@@ -307,9 +347,13 @@ const Visitor = () => {
             dataIndex: 'visitor_type',
             key: 'visitor_type',
             sorter: (a, b) => a.visitor_type.localeCompare(b.visitor_type),
-            filters: visitorTypeFilters,
-            filteredValue: visitorTypeColumnFilter, 
-            onFilter: (value, record) => record.visitor_type === value,
+            filters: Array.from(
+            new Set((visitorTypeData?.results || []).map(visitor => visitor?.visitor_type))
+        )
+            .filter(Boolean)
+            .map(visitor_type => ({ text: visitor_type, value: visitor_type })),
+        onFilter: (value, record) => record.visitor_type === value,
+        filteredValue: visitorTypeColumnFilter, 
         },
         {
             title: 'Address',
@@ -317,21 +361,6 @@ const Visitor = () => {
             key: 'full_address',
             sorter: (a, b) => a.full_address.localeCompare(b.full_address),
         },
-        // {
-        //     title: 'Approved By',
-        //     dataIndex: 'approved_by',
-        //     key: 'approved_by',
-        //     sorter: (a, b) => a.approved_by.localeCompare(b.approved_by),
-        //     filters: [
-        //         ...Array.from(
-        //             new Set(allVisitor.map(item => item.approved_by))
-        //         ).map(approved_by => ({
-        //             text: approved_by,
-        //             value: approved_by,
-        //         }))
-        //     ],
-        //     onFilter: (value, record) => record.approved_by === value,
-        // },
         {
             title: "Action",
             key: "action",
@@ -406,154 +435,280 @@ const Visitor = () => {
         return data;
     };
 
-    const lastPrintIndexRef = useRef(0);
+    // const handleExportPDF = async () => {
+    //     setIsLoading(true);
+    //     setLoadingMessage("Generating PDF... Please wait.");
+
+    //     const doc = new jsPDF('landscape');
+    //     const headerHeight = 48;
+    //     const footerHeight = 32;
+    //     const maxRowsPerPage = 17;
+
+    //     const organizationName = dataSource[0]?.organization || "Bureau of Jail Management and Penology";
+    //     const PreparedBy = dataSource[0]?.updated || "";
+    //     const today = new Date();
+    //     const formattedDate = today.toISOString().split("T")[0];
+    //     const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+
+    //     let startY = headerHeight;
+    //     let printSource;
+
+    //     const allData = await fetchAllVisitors();
+    //     const allResults = allData?.results || [];
+    //     const filteredResults = allResults.filter(visitor => {
+    //         const genderValue = visitor?.person?.gender?.gender_option ?? '';
+    //         const visitorTypeValue = visitor?.visitor_type ?? '';
+
+    //         const matchesGlobalGender = gender === "all" || genderValue === gender;
+    //         const matchesGlobalType = visitorType === "all" || visitorTypeValue === visitorType;  // fixed: previously comparing visitorTypeValue === gender (typo)
+            
+    //         const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
+    //         const matchesColumnVisitorType = visitorTypeColumnFilter.length === 0 || visitorTypeColumnFilter.includes(visitorTypeValue);
+
+    //         // New: combine searchable fields into a string for searchText matching
+    //         const searchableString = [
+    //             visitor?.visitor_reg_no ?? '',
+    //             visitor?.person?.first_name ?? '',
+    //             visitor?.person?.middle_name ?? '',
+    //             visitor?.person?.last_name ?? '',
+    //             visitor?.visitor_type ?? '',
+    //             visitor?.person?.gender?.gender_option ?? '',
+    //             visitor?.person?.nationality ?? '',
+    //             visitor?.person?.addresses[0]?.full_address ?? '',
+    //         ].join(' ').toLowerCase();
+
+    //         const matchesSearch = searchText.trim() === '' || searchableString.includes(searchText.toLowerCase());
+
+    //         return (
+    //             matchesGlobalGender &&
+    //             matchesGlobalType &&
+    //             matchesColumnGender &&
+    //             matchesColumnVisitorType &&
+    //             matchesSearch
+    //         );
+    //         });
+
+    //         printSource = filteredResults.map((visitor, index) => ({
+    //             key: index + 1,
+    //             id: visitor?.id,
+    //             visitor_reg_no: visitor?.visitor_reg_no,
+    //             name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+    //             visitor_type: visitor?.visitor_type,
+    //             full_address: visitor?.person?.addresses[0]?.full_address,
+    //             address: visitor?.address,
+    //             gender: visitor?.person?.gender?.gender_option,
+    //         }));
+    //     const addHeader = () => {
+    //         const pageWidth = doc.internal.pageSize.getWidth();
+    //         const imageWidth = 30;
+    //         const imageHeight = 30;
+    //         const margin = 10;
+    //         const imageX = pageWidth - imageWidth - margin;
+    //         const imageY = 12;
+
+    //         doc.addImage(bjmp, "PNG", imageX, imageY, imageWidth, imageHeight);
+
+    //         doc.setTextColor(0, 102, 204);
+    //         doc.setFontSize(16);
+    //         doc.text("Visitor Report", 10, 15);
+    //         doc.setTextColor(0, 0, 0);
+    //         doc.setFontSize(10);
+    //         doc.text(`Organization Name: ${organizationName}`, 10, 25);
+    //         doc.text("Report Date: " + formattedDate, 10, 30);
+    //         doc.text("Prepared By: " + PreparedBy, 10, 35);
+    //         doc.text("Department/ Unit: IT", 10, 40);
+    //         doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
+    //     };
+
+    //     addHeader();
+
+    //     const tableData = printSource.map((item, index) => [
+    //         index + 1,
+    //         item.visitor_reg_no,
+    //         item.name,
+    //         item.gender,
+    //         item.visitor_type,
+    //         item.full_address,
+    //     ]);
+
+    //     for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
+    //         const pageData = tableData.slice(i, i + maxRowsPerPage);
+
+    //         autoTable(doc, {
+    //             head: [["No.", "Visitor No.", "Name", "Gender", "Visitor Type", "Address"]],
+    //             body: pageData,
+    //             startY: startY,
+    //             margin: { top: 0, left: 10, right: 10 },
+    //             didDrawPage: function (data) {
+    //                 if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+    //                     addHeader();
+    //                 }
+    //             },
+    //         });
+
+    //         if (i + maxRowsPerPage < tableData.length) {
+    //             doc.addPage();
+    //             startY = headerHeight;
+    //         }
+    //     }
+
+    //     const pageCount = doc.internal.getNumberOfPages();
+    //     for (let page = 1; page <= pageCount; page++) {
+    //         doc.setPage(page);
+    //         const footerText = [
+    //             "Document Version: Version 1.0",
+    //             "Confidentiality Level: Internal use only",
+    //             "Contact Info: " + PreparedBy,
+    //             `Timestamp of Last Update: ${formattedDate}`,
+    //         ].join("\n");
+    //         const footerX = 10;
+    //         const footerY = doc.internal.pageSize.height - footerHeight + 15;
+    //         const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+
+    //         doc.setFontSize(8);
+    //         doc.text(footerText, footerX, footerY);
+    //         doc.text(`${page} / ${pageCount}`, pageX, footerY);
+    //     }
+
+    //     const pdfOutput = doc.output("datauristring");
+    //     setPdfDataUrl(pdfOutput);
+    //     setIsPdfModalOpen(true);
+    //     setIsLoading(false);
+    // };
+
     const handleExportPDF = async () => {
-        setIsLoading(true);
-        setLoadingMessage("Generating PDF... Please wait.");
+    setIsLoading(true);
+    setLoadingMessage("Generating PDF... Please wait.");
 
-        const doc = new jsPDF('landscape');
-        const headerHeight = 48;
-        const footerHeight = 32;
-        const maxRowsPerPage = 26;
+    const doc = new jsPDF('landscape');
+    const headerHeight = 48;
+    const footerHeight = 32;
+    const maxRowsPerPage = 17;
 
-        const organizationName = filteredData[0]?.organization || "Bureau of Jail Management and Penology";
-        const PreparedBy = filteredData[0]?.updated || "";
-        const today = new Date();
-        const formattedDate = today.toISOString().split("T")[0];
-        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+    const organizationName = dataSource[0]?.organization || "Bureau of Jail Management and Penology";
+    const PreparedBy = dataSource[0]?.updated || "";
+    const today = new Date();
+    const formattedDate = today.toISOString().split("T")[0];
+    const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
-        let startY = headerHeight;
-        let printSource;
+    let startY = headerHeight;
+    let printSource;
 
-        const isFiltering = filteredData.length > 0;
+    let allData;
+    if (searchText.trim() === '') {
+        allData = await fetchAllVisitors();
+    } else {
+        allData = await fetchVisitors(searchText.trim());
+    }
 
-        if (isFiltering) {
-            printSource = filteredData.map((visitor, index) => ({
-                key: index + 1,
-                id: visitor?.id,
-                visitor_reg_no: visitor?.visitor_reg_no,
-                name: visitor?.name,
-                visitor_type: visitor?.visitor_type,
-                full_address: visitor?.full_address,
-                address: visitor?.address,
-                nationality: visitor?.nationality,
-                gender: visitor?.gender,
-                updated: visitor?.updated,
-            }));
+    const allResults = allData?.results || [];
 
-            lastPrintIndexRef.current = 0;
-            }
-            else {
-            const allData = await fetchAllVisitors();
-            const allResults = allData?.results || [];
+    const filteredResults = allResults.filter(visitor => {
+        const genderValue = visitor?.person?.gender?.gender_option ?? '';
+        const visitorTypeValue = visitor?.visitor_type ?? '';
 
-            printSource = allResults
-                .slice(lastPrintIndexRef.current, lastPrintIndexRef.current + 800)
-                .map((visitor, index) => {
-                    const barangay = visitor?.person?.addresses[0]?.barangay || '';
-                    const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
-                    const province = visitor?.person?.addresses[0]?.province || '';
-                    const addressParts = [barangay, cityMunicipality, province].filter(part => part);
-                    const address = addressParts.join(', ');
+        const matchesGlobalGender = gender === "all" || genderValue === gender;
+        const matchesGlobalType = visitorType === "all" || visitorTypeValue === visitorType;
 
-                    return {
-                        key: lastPrintIndexRef.current + index + 1,
-                        id: visitor?.id,
-                        visitor_reg_no: visitor?.visitor_reg_no,
-                        name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
-                        visitor_type: visitor?.visitor_type,
-                        full_address: visitor?.person?.addresses[0]?.full_address ?? '',
-                        address: address,
-                        nationality: visitor?.person?.nationality,
-                        gender: visitor?.person?.gender?.gender_option,
-                        updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
-                    };
-                });
+        const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
+        const matchesColumnVisitorType = visitorTypeColumnFilter.length === 0 || visitorTypeColumnFilter.includes(visitorTypeValue);
 
-            lastPrintIndexRef.current += 800;
-            if (lastPrintIndexRef.current >= allResults.length) {
-                lastPrintIndexRef.current = 0;
-            }
-        }
+        return (
+        matchesGlobalGender &&
+        matchesGlobalType &&
+        matchesColumnGender &&
+        matchesColumnVisitorType
+        );
+    });
 
-        const addHeader = () => {
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const imageWidth = 30;
-            const imageHeight = 30;
-            const margin = 10;
-            const imageX = pageWidth - imageWidth - margin;
-            const imageY = 12;
+    printSource = filteredResults.map((visitor, index) => ({
+        key: index + 1,
+        id: visitor?.id,
+        visitor_reg_no: visitor?.visitor_reg_no,
+        name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ? visitor?.person?.middle_name[0] + '.' : ''} ${visitor?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+        visitor_type: visitor?.visitor_type,
+        full_address: visitor?.person?.addresses[0]?.full_address,
+        address: visitor?.address,
+        gender: visitor?.person?.gender?.gender_option,
+    }));
 
-            doc.addImage(bjmp, "PNG", imageX, imageY, imageWidth, imageHeight);
+    const addHeader = () => {
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const imageWidth = 30;
+        const imageHeight = 30;
+        const margin = 10;
+        const imageX = pageWidth - imageWidth - margin;
+        const imageY = 12;
 
-            doc.setTextColor(0, 102, 204);
-            doc.setFontSize(16);
-            doc.text("Visitor Report", 10, 15);
-            doc.setTextColor(0, 0, 0);
-            doc.setFontSize(10);
-            doc.text(`Organization Name: ${organizationName}`, 10, 25);
-            doc.text("Report Date: " + formattedDate, 10, 30);
-            doc.text("Prepared By: " + PreparedBy, 10, 35);
-            doc.text("Department/ Unit: IT", 10, 40);
-            doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
-        };
+        doc.addImage(bjmp, "PNG", imageX, imageY, imageWidth, imageHeight);
 
-        addHeader();
-
-        const tableData = printSource.map((item, index) => [
-            index + 1,
-            item.visitor_reg_no,
-            item.name,
-            item.gender,
-            item.visitor_type,
-            item.full_address,
-        ]);
-
-        for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
-            const pageData = tableData.slice(i, i + maxRowsPerPage);
-
-            autoTable(doc, {
-                head: [["No.", "Visitor No.", "Name", "Gender", "Visitor Type", "Address"]],
-                body: pageData,
-                startY: startY,
-                margin: { top: 0, left: 10, right: 10 },
-                didDrawPage: function (data) {
-                    if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                        addHeader();
-                    }
-                },
-            });
-
-            if (i + maxRowsPerPage < tableData.length) {
-                doc.addPage();
-                startY = headerHeight;
-            }
-        }
-
-        const pageCount = doc.internal.getNumberOfPages();
-        for (let page = 1; page <= pageCount; page++) {
-            doc.setPage(page);
-            const footerText = [
-                "Document Version: Version 1.0",
-                "Confidentiality Level: Internal use only",
-                "Contact Info: " + PreparedBy,
-                `Timestamp of Last Update: ${formattedDate}`,
-            ].join("\n");
-            const footerX = 10;
-            const footerY = doc.internal.pageSize.height - footerHeight + 15;
-            const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
-
-            doc.setFontSize(8);
-            doc.text(footerText, footerX, footerY);
-            doc.text(`${page} / ${pageCount}`, pageX, footerY);
-        }
-
-        const pdfOutput = doc.output("datauristring");
-        setPdfDataUrl(pdfOutput);
-        setIsPdfModalOpen(true);
-        setIsLoading(false);
+        doc.setTextColor(0, 102, 204);
+        doc.setFontSize(16);
+        doc.text("Visitor Report", 10, 15);
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(`Organization Name: ${organizationName}`, 10, 25);
+        doc.text("Report Date: " + formattedDate, 10, 30);
+        doc.text("Prepared By: " + PreparedBy, 10, 35);
+        doc.text("Department/ Unit: IT", 10, 40);
+        doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
     };
 
+    addHeader();
+
+    const tableData = printSource.map((item, index) => [
+        index + 1,
+        item.visitor_reg_no,
+        item.name,
+        item.gender,
+        item.visitor_type,
+        item.full_address,
+    ]);
+
+    for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
+        const pageData = tableData.slice(i, i + maxRowsPerPage);
+
+        autoTable(doc, {
+        head: [["No.", "Visitor No.", "Name", "Gender", "Visitor Type", "Address"]],
+        body: pageData,
+        startY: startY,
+        margin: { top: 0, left: 10, right: 10 },
+        didDrawPage: function (data) {
+            if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+            addHeader();
+            }
+        },
+        });
+
+        if (i + maxRowsPerPage < tableData.length) {
+        doc.addPage();
+        startY = headerHeight;
+        }
+    }
+
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let page = 1; page <= pageCount; page++) {
+        doc.setPage(page);
+        const footerText = [
+        "Document Version: Version 1.0",
+        "Confidentiality Level: Internal use only",
+        "Contact Info: " + PreparedBy,
+        `Timestamp of Last Update: ${formattedDate}`,
+        ].join("\n");
+        const footerX = 10;
+        const footerY = doc.internal.pageSize.height - footerHeight + 15;
+        const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+
+        doc.setFontSize(8);
+        doc.text(footerText, footerX, footerY);
+        doc.text(`${page} / ${pageCount}`, pageX, footerY);
+    }
+
+    const pdfOutput = doc.output("datauristring");
+    setPdfDataUrl(pdfOutput);
+    setIsPdfModalOpen(true);
+    setIsLoading(false);
+    };
 
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
@@ -629,12 +784,12 @@ const handleExportCSV = async () => {
 const menu = (
     <Menu>
         <Menu.Item>
-            <a onClick={handleExportExcel} disabled={isLoading}> {/* Disable if loading */}
+            <a onClick={handleExportExcel} disabled={isLoading}>
                 {isLoading ? <span className="loader"></span> : 'Export Excel'}
             </a>
         </Menu.Item>
         <Menu.Item>
-            <a onClick={handleExportCSV} disabled={isLoading}> {/* Disable if loading */}
+            <a onClick={handleExportCSV} disabled={isLoading}>
                 {isLoading ? <span className="loader"></span> : 'Export CSV'}
             </a>
         </Menu.Item>
@@ -646,11 +801,10 @@ const menu = (
 
     const element = modalContentRef.current;
 
-    // Set scale to improve resolution (default is 1)
     const scale = 2;
 
     const canvas = await html2canvas(element, {
-        scale: scale,         // Higher scale = better quality
+        scale: scale,       
         useCORS: true,
         backgroundColor: "#ffffff",
         scrollY: -window.scrollY,
@@ -664,14 +818,12 @@ const menu = (
 
     const imgProps = pdf.getImageProperties(imgData);
 
-    // Convert canvas dimensions from px to mm (1 px ≈ 0.264583 mm)
     const imgWidth = canvas.width * 0.264583;
     const imgHeight = canvas.height * 0.264583;
 
     let finalWidth = imgWidth;
     let finalHeight = imgHeight;
 
-    // Scale down if image is taller than the page
     if (imgHeight > pdfHeight) {
         const ratio = pdfHeight / imgHeight;
         finalHeight = pdfHeight;
@@ -723,7 +875,7 @@ const menu = (
                 </div>
                 <div className="overflow-x-auto">
                     <Table
-                    loading={isFetching || searchLoading || visitorsByGenderLoading}
+                    loading={isFetching || searchLoading || visitorsByGenderLoading || visitorsByTypeLoading}
                     columns={columns}
                     dataSource={
                         debouncedSearch
@@ -754,7 +906,7 @@ const menu = (
                             organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
                             updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
                             }))
-                        : filteredData
+                        : dataSource
                     }
                     scroll={{ x: 800 }}
                     pagination={{
