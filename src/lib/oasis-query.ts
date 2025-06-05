@@ -42,12 +42,15 @@ import { InstructionFormType } from "@/pages/oasis/maintenance/forms/Instruction
 export async function getOASISRestrictions(
   token: string
 ): Promise<PaginatedResponse<OASISRestrictions>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-restriction/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-restriction/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Restrictions.");
@@ -125,12 +128,15 @@ export async function deleteOASISRestriction(token: string, id: number) {
 export async function getOASISStatus(
   token: string
 ): Promise<PaginatedResponse<OASISStatus>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-status/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-status/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Status.");
@@ -202,12 +208,15 @@ export async function deleteOASISStatus(token: string, id: number) {
 export async function getOASISMessageTypes(
   token: string
 ): Promise<PaginatedResponse<OASISMessageType>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-msg-type/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-msg-type/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Message Types.");
@@ -285,12 +294,15 @@ export async function deleteOASISMessageType(token: string, id: number) {
 export async function getOASISCodes(
   token: string
 ): Promise<PaginatedResponse<OASISCode>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-code/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-code/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Codes.");
@@ -362,12 +374,15 @@ export async function deleteOASISCode(token: string, id: number) {
 export async function getOASISNotes(
   token: string
 ): Promise<PaginatedResponse<OASISNote>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-note/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-note/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Notes.");
@@ -439,12 +454,15 @@ export async function deleteOASISNote(token: string, id: number) {
 export async function getOASISEventCodes(
   token: string
 ): Promise<PaginatedResponse<OASISEventCode>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-event-code/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-event-code/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Events.");
@@ -522,12 +540,15 @@ export async function deleteOASISEventCode(token: string, id: number) {
 export async function getOASISCertainty(
   token: string
 ): Promise<PaginatedResponse<OASISCertainty>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-certainty/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-certainty/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Certainties.");
@@ -605,12 +626,15 @@ export async function deleteOASISCertainty(token: string, id: number) {
 export async function getOASISUrgency(
   token: string
 ): Promise<PaginatedResponse<OASISUrgency>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-urgency/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-urgency/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Urgencies.");
@@ -622,12 +646,15 @@ export async function getOASISUrgency(
 export async function getOASISSeverity(
   token: string
 ): Promise<PaginatedResponse<OASISSeverity>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-severity/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-severity/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Severities.");
@@ -639,12 +666,15 @@ export async function getOASISSeverity(
 export async function getOASISCategories(
   token: string
 ): Promise<PaginatedResponse<OASISCategory>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-category/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-category/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Categories.");
@@ -722,12 +752,15 @@ export async function deleteOASISCategories(token: string, id: number) {
 export async function getOASISLanguages(
   token: string
 ): Promise<PaginatedResponse<OASISLanguage>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-language/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-language/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Languages.");
@@ -805,12 +838,15 @@ export async function deleteOASISLanguage(token: string, id: number) {
 export async function getOASISScopes(
   token: string
 ): Promise<PaginatedResponse<OASISScope>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-scope/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-scope/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Scopes.");
@@ -882,12 +918,15 @@ export async function deleteOASISScopes(token: string, id: number) {
 export async function getOASISResponseTypes(
   token: string
 ): Promise<PaginatedResponse<OASISResponseType>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-response-type/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-response-type/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Response Types.");
@@ -899,12 +938,15 @@ export async function getOASISResponseTypes(
 export async function getOASISAudience(
   token: string
 ): Promise<PaginatedResponse<OASISAudience>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-audience/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-audience/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch audience.");
@@ -982,12 +1024,15 @@ export async function deleteOASISAudience(token: string, id: number) {
 export async function getOASISParameter(
   token: string
 ): Promise<PaginatedResponse<OASISParameter>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/parameter/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/parameter/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch parameters.");
@@ -1040,7 +1085,7 @@ export async function postOASISInstruction(
   token: string,
   payload: InstructionFormType
 ): Promise<OASISInstruction> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-event-code/`, {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-instruction/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -1063,7 +1108,7 @@ export async function patchOASISInstruction(
   payload: Partial<InstructionFormType>
 ): Promise<OASISInstruction> {
   const res = await fetch(
-    `${BASE_URL}/api/oasis_app_v1_2/cap-event-code/${id}/`,
+    `${BASE_URL}/api/oasis_app_v1_2/cap-instruction/${id}/`,
     {
       method: "PATCH",
       headers: {
@@ -1084,7 +1129,7 @@ export async function patchOASISInstruction(
 
 export async function deleteOASISInstruction(token: string, id: number) {
   const res = await fetch(
-    `${BASE_URL}/api/oasis_app_v1_2/cap-event-code/${id}/`,
+    `${BASE_URL}/api/oasis_app_v1_2/cap-instruction/${id}/`,
     {
       method: "DELETE",
       headers: {
@@ -1125,12 +1170,15 @@ export async function getOASISGeocodeRefs(
 export async function getOASISEventTypes(
   token: string
 ): Promise<PaginatedResponse<OASISEventType>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/event-type/?limit=10000`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/event-type/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Event Types.");
