@@ -33,6 +33,7 @@ import { CertaintyFormType } from "@/pages/oasis/maintenance/forms/CertaintyForm
 import { CodeFormType } from "@/pages/oasis/maintenance/forms/CodeForm";
 import { MessageTypeFormType } from "@/pages/oasis/maintenance/forms/MessageTypeForm";
 import { ScopeFormType } from "@/pages/oasis/maintenance/forms/ScopeForm";
+import { RestrictionFormType } from "@/pages/oasis/maintenance/forms/RestrictionForm";
 
 export async function getOASISRestrictions(
   token: string
@@ -49,6 +50,72 @@ export async function getOASISRestrictions(
   }
 
   return res.json();
+}
+
+export async function postOASISRestriction(
+  token: string,
+  payload: RestrictionFormType
+): Promise<OASISRestrictions> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-restriction/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISRestriction(
+  token: string,
+  id: number,
+  payload: Partial<RestrictionFormType>
+): Promise<OASISRestrictions> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-restriction/${id}/`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISRestriction(token: string, id: number) {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-restriction/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to delete restriction.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function getOASISStatus(
