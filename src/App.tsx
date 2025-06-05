@@ -144,12 +144,12 @@ import Audience from "./pages/oasis/maintenance/Audience.tsx";
 import EventCodes from "./pages/oasis/maintenance/EventCodes.tsx";
 import Instructions from "./pages/oasis/maintenance/Instructions.tsx";
 import Parameter from "./pages/oasis/maintenance/Parameter.tsx";
-import Geocode from "./pages/oasis/maintenance/Geocode.tsx";
 import PersonnelDesignation from "./pages/personnel_management/personnel-designation/PersonnelDesignation.tsx";
 import PersonnelStatus from "./pages/personnel_management/personnel-status/PersonnelStatus.tsx";
 import PersonnelType from "./pages/personnel_management/personnel-type/PersonnelType.tsx";
 import PersonnelAppStatus from "./pages/personnel_management/personnel-app-status/PersonnelAppStatus.tsx";
 import PDLVisitationStatus from "./pages/pdl_management/pdl-visitation-status/PDLVisitationStatus.tsx";
+import Geocodes from "./pages/oasis/maintenance/Geocodes.tsx";
 
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -776,7 +776,7 @@ function App() {
                 },
                 {
                     path: "incidents/oasis/geocode",
-                    element: <Geocode />
+                    element: <Geocodes />
                 },
                 {
                     path: "person",
