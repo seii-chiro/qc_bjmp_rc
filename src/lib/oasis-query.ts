@@ -1689,10 +1689,13 @@ export async function postOASISAlertNotification(
 }
 
 export async function getOASISAlertNotification(
-  token: string
+  token: string,
+  params: { limit?: number; offset?: number } = {}
 ): Promise<PaginatedResponse<OASISAlertNotification>> {
+  const { limit = 10, offset = 0 } = params;
+
   const res = await fetch(
-    `${BASE_URL}/api/oasis_app_v1_2/user-alert-notification/?limit=10`,
+    `${BASE_URL}/api/oasis_app_v1_2/user-alert-notification/?limit=${limit}&offset=${offset}`,
     {
       headers: {
         "Content-Type": "application/json",
