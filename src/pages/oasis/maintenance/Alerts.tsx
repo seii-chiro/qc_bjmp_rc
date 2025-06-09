@@ -9,9 +9,10 @@ import { FaPlus } from "react-icons/fa"
 import { generatePDFReport, PDFColumn } from "../generatePDF"
 import { useUserStore } from "@/store/useUserStore"
 import { GoDownload } from "react-icons/go"
-import { CSVLink } from "react-csv"
 import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom"
+import { OASISAlert } from "@/lib/oasis-response-definition"
+import { PaginatedResponse } from "@/lib/queries"
 
 export type AlertDataSourceRecord = {
     id: number;
@@ -32,10 +33,21 @@ const Alerts = () => {
     const [isPDFModalOpen, setIsPDFModalOpen] = useState(false)
     const [searchText, setSearchText] = useState("")
     const [pdfDataUrl, setPdfDataUrl] = useState<string>('');
+    const [currentPage, setCurrentPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
 
     const { data: alerts, isLoading: alertsLoading } = useQuery({
-        queryKey: ['OASIS', 'alerts'],
-        queryFn: () => getOASISAlerts(token ?? "")
+        queryKey: ['OASIS', 'alerts', currentPage, pageSize],
+        queryFn: () => getOASISAlerts(token ?? "", currentPage, pageSize),
+        placeholderData: prev => prev,
+        enabled: !!token
+    })
+
+    const { refetch: refetchAllAlerts } = useQuery({
+        queryKey: ['OASIS', 'alerts', 'export'],
+        queryFn: () => getOASISAlerts(token ?? "", 1, 10000),
+        enabled: false,
+        staleTime: 5 * 60 * 1000,
     })
 
     const deleteAlertMutation = useMutation({
@@ -52,7 +64,7 @@ const Alerts = () => {
     const dataSource = [...(alerts?.results || [])]
         .map((item, index) => ({
             id: item?.id,
-            no: index + 1,
+            no: (currentPage - 1) * pageSize + index + 1,
             alert: item?.infos?.[0]?.alert,
             event: item?.infos?.[0]?.event,
             status: item?.status,
@@ -72,6 +84,31 @@ const Alerts = () => {
             item?.response_type?.toLowerCase().includes(searchLower)
         )
     })
+
+    const getExportData = async (): Promise<PaginatedResponse<OASISAlert> | undefined> => {
+        const cachedData = queryClient.getQueryData<PaginatedResponse<OASISAlert>>(['OASIS', 'alerts', 'export']);
+        const queryState = queryClient.getQueryState(['OASIS', 'alerts', 'export']);
+
+        if (cachedData && queryState && Date.now() - queryState.dataUpdatedAt < 5 * 60 * 1000) {
+            return cachedData;
+        } else {
+            const result = await refetchAllAlerts();
+            return result.data;
+        }
+    };
+
+    const prepareExportDataSource = (exportData?: PaginatedResponse<OASISAlert>) => {
+        return [...(exportData?.results || [])].map((item: OASISAlert, index: number) => ({
+            id: item.id,
+            no: index + 1,
+            alert: item.infos?.[0]?.alert ?? "",
+            event: item.infos?.[0]?.event ?? "",
+            status: item.status ?? "",
+            sender: item.sender ?? "",
+            severity: item.infos?.[0]?.severity ?? "",
+            response_type: item.infos?.[0]?.response_type ?? ""
+        }));
+    };
 
     const handleDelete = (record: AlertDataSourceRecord) => {
         Modal.confirm({
@@ -186,41 +223,53 @@ const Alerts = () => {
         },
     ]
 
-    const handleGeneratePDF = () => {
-        const headers: PDFColumn[] = columns
-            ?.filter(col => col.title !== "Actions")
-            .map(col => ({
-                header: typeof col.title === "string" ? col.title : "",
-                dataKey: typeof col.key === "string" ? col.key : ""
-            }));
+    const handleGeneratePDF = async () => {
+        try {
+            const exportData = await getExportData();
+            if (!exportData) throw new Error("No data");
 
-        const title = "OASIS Audience";
-        const filename = title;
+            const exportDataSource = prepareExportDataSource(exportData);
 
-        const preparedBy = user?.first_name && user?.last_name ? `${user?.first_name} ${user?.last_name}` : user?.email
+            const headers: PDFColumn[] = columns
+                ?.filter(col => col.title !== "Actions")
+                .map(col => ({
+                    header: typeof col.title === "string" ? col.title : "",
+                    dataKey: typeof col.key === "string" ? col.key : ""
+                }));
 
-        const result = generatePDFReport({
-            title,
-            headers,
-            data: dataSource || [],
-            filename,
-            orientation: "landscape",
-            showDate: true,
-            showPageNumbers: true,
-            modalPreview: true,
-            preview: true,
-            preparedBy
-        });
+            const title = "OASIS Alerts";
+            const filename = title;
 
-        if (result.success && result.pdfDataUrl) {
-            setPdfDataUrl(result.pdfDataUrl);
+            const preparedBy = user?.first_name && user?.last_name
+                ? `${user.first_name} ${user.last_name}`
+                : user?.email ?? "";
+
+            const result: { success: boolean, pdfDataUrl?: string } = generatePDFReport({
+                title,
+                headers,
+                data: exportDataSource,
+                filename,
+                orientation: "landscape",
+                showDate: true,
+                showPageNumbers: true,
+                modalPreview: true,
+                preview: true,
+                preparedBy,
+            });
+
+            if (result.success && result.pdfDataUrl) {
+                setPdfDataUrl(result.pdfDataUrl);
+            }
+
+            return result;
+        } catch (error) {
+            message.error("Failed to generate PDF");
+            console.error("PDF generation error:", error);
         }
-
-        return result;
     };
 
-    const handleOpenPDFModal = () => {
-        handleGeneratePDF();
+    const handleOpenPDFModal = async () => {
+        await handleGeneratePDF();
         setIsPDFModalOpen(true);
     };
 
@@ -229,11 +278,51 @@ const Alerts = () => {
         setPdfDataUrl('');
     };
 
-    const handleExportExcel = () => {
-        const ws = XLSX.utils.json_to_sheet(dataSource || []);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "OASIS_Alert");
-        XLSX.writeFile(wb, "OASIS_Alert.xlsx");
+    const handleExportExcel = async () => {
+        try {
+            const exportData = await getExportData();
+            const exportDataSource = prepareExportDataSource(exportData);
+
+            const ws = XLSX.utils.json_to_sheet(exportDataSource || []);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "OASIS_Alert");
+            XLSX.writeFile(wb, "OASIS_Alert.xlsx");
+        } catch (error) {
+            message.error("Failed to export Excel");
+            console.error("Excel export error:", error);
+        }
+    };
+
+    const handleExportCSV = async () => {
+        try {
+            const exportData = await getExportData();
+            const exportDataSource = prepareExportDataSource(exportData);
+
+            if (exportDataSource.length === 0) {
+                message.warning("No data to export");
+                return;
+            }
+
+            const headers = Object.keys(exportDataSource[0]).join(',');
+            const csvContent = exportDataSource.map(row =>
+                Object.values(row).map(val =>
+                    typeof val === 'string' && val.includes(',') ? `"${val}"` : val
+                ).join(',')
+            ).join('\n');
+
+            const fullCsv = headers + '\n' + csvContent;
+
+            const blob = new Blob([fullCsv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'OASIS_Alert.csv';
+            link.click();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            message.error("Failed to export CSV");
+            console.error("CSV export error:", error);
+        }
     };
 
     const items: MenuProps['items'] = [
@@ -246,9 +335,7 @@ const Alerts = () => {
         {
             key: '2',
             label: (
-                <CSVLink data={dataSource || []} filename="OASIS_Alert.csv">
-                    Export CSV
-                </CSVLink>
+                <a onClick={handleExportCSV}>Export CSV</a>
             ),
         },
     ];
@@ -327,6 +414,25 @@ const Alerts = () => {
                 dataSource={filteredDataSource}
                 columns={columns}
                 loading={alertsLoading}
+                pagination={{
+                    current: currentPage,
+                    pageSize: pageSize,
+                    total: alerts?.count || 0,
+                    showSizeChanger: true,
+                    showQuickJumper: false,
+                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+                    pageSizeOptions: ['10', '20', '50', '100'],
+                    onChange: (page, size) => {
+                        setCurrentPage(page)
+                        if (size !== pageSize) {
+                            setPageSize(size)
+                        }
+                    },
+                    onShowSizeChange: (current, size) => {
+                        setCurrentPage(1)
+                        setPageSize(size)
+                    }
+                }}
             />
         </>
     )
