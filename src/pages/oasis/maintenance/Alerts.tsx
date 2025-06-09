@@ -21,6 +21,7 @@ export type AlertDataSourceRecord = {
     event: string;
     status: string | null;
     sender: string | null;
+    addresses: string | null;
     severity: string | null;
     response_type: string | null;
 }
@@ -69,6 +70,7 @@ const Alerts = () => {
             event: item?.infos?.[0]?.event,
             status: item?.status,
             sender: item?.sender,
+            addresses: item?.addresses,
             severity: item?.infos?.[0]?.severity,
             response_type: item?.infos?.[0]?.response_type
         }));
@@ -81,6 +83,7 @@ const Alerts = () => {
             item?.status?.toLowerCase().includes(searchLower) ||
             item?.sender?.toLowerCase().includes(searchLower) ||
             item?.severity?.toLowerCase().includes(searchLower) ||
+            item?.addresses?.toLowerCase().includes(searchLower) ||
             item?.response_type?.toLowerCase().includes(searchLower)
         )
     })
@@ -106,6 +109,7 @@ const Alerts = () => {
             status: item.status ?? "",
             sender: item.sender ?? "",
             severity: item.infos?.[0]?.severity ?? "",
+            addresses: item?.addresses ?? "",
             response_type: item.infos?.[0]?.response_type ?? ""
         }));
     };
@@ -198,6 +202,12 @@ const Alerts = () => {
             sorter: (a, b) => (a.sender || '').toLowerCase().localeCompare((b.sender || '').toLowerCase()),
             filters: generateFilters(dataSource || [], 'sender'),
             onFilter: (value, record) => record.sender === value,
+        },
+        {
+            title: 'Recipient(s)',
+            dataIndex: 'addresses',
+            key: 'addresses',
+            sorter: (a, b) => (a.addresses || '').toLowerCase().localeCompare((b.addresses || '').toLowerCase()),
         },
         {
             align: 'center',
