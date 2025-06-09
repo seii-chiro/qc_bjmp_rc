@@ -1581,14 +1581,20 @@ export async function deleteOASISEventType(token: string, id: number) {
 }
 
 export async function getOASISAlerts(
-  token: string
+  token: string,
+  page: number = 1,
+  pageSize: number = 10
 ): Promise<PaginatedResponse<OASISAlert>> {
-  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/alert/?limit=10`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const offset = (page - 1) * pageSize;
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/alert/?limit=${pageSize}&offset=${offset}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     const err = await res.json();
