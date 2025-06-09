@@ -90,7 +90,6 @@ const OasisAlertForm = () => {
 
     const [searchInputs, setSearchInputs] = useState<{ [key: string]: string }>({});
     const [generatedAlertXML, setGeneratedAlertXML] = useState<string | null>(null)
-    console.log(generatedAlertXML)
 
     const { data: restrictions, isLoading: restrictionsLoading } = useQuery({
         queryKey: ["OASIS-CAP-Restriction"],
@@ -225,9 +224,6 @@ const OasisAlertForm = () => {
         },
         onError: (err) => message.error(err.message)
     })
-
-    console.log(categorizedGeocodes)
-    console.log(OASISAlertForm);
 
     return (
         <div className="oasis-container">
