@@ -1580,6 +1580,24 @@ export async function deleteOASISEventType(token: string, id: number) {
   return text ? JSON.parse(text) : null;
 }
 
+export async function getOASISAlerts(
+  token: string
+): Promise<PaginatedResponse<OASISAlert>> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/alert/?limit=10`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
 export async function postOASISAlert(
   token: string,
   payload: OASISAlertFormType
@@ -1599,6 +1617,45 @@ export async function postOASISAlert(
   }
 
   return res.json();
+}
+
+export async function patchOASISAlert(
+  token: string,
+  id: number,
+  payload: Partial<OASISAlertFormType>
+): Promise<OASISAlert> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/alert/${id}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISAlert(token: string, id: number) {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/alert/${id}/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete alert.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function postOASISAlertNotification(
