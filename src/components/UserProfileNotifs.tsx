@@ -14,7 +14,7 @@ import {
 import { LogoutOutlined } from "@ant-design/icons";
 import profile_fallback from "@/assets/profile_placeholder.jpg";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import {
     getOASISAlertNotification,
     updateOASISAlertNotifStatus,
@@ -22,6 +22,7 @@ import {
 import { useState } from "react";
 import XMLPreview from "./XMLPreview";
 import { FaRegBell } from "react-icons/fa";
+import { OASISAlertNotification } from "@/lib/oasis-response-definition";
 
 const { Text } = Typography;
 
@@ -47,12 +48,24 @@ const UserProfileNotifs = ({ user, onLogout }: Props) => {
     }
 
     const {
-        data: OASISAlertNotfication,
-        isLoading: OASISAlertNotficationLoading,
+        data,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isLoading,
         refetch,
-    } = useQuery({
+    } = useInfiniteQuery({
         queryKey: ["user", "oasis-alert-notifs"],
-        queryFn: () => getOASISAlertNotification(token ?? ""),
+        queryFn: ({ pageParam = 0 }) =>
+            getOASISAlertNotification(token ?? "", {
+                limit: 10,
+                offset: pageParam,
+            }),
+        initialPageParam: 0, // Add this required property
+        getNextPageParam: (lastPage, allPages) => {
+            const fetchedCount = allPages.flatMap((page) => page.results).length;
+            return fetchedCount < lastPage.count ? fetchedCount : undefined;
+        },
         refetchInterval: 12_000,
     });
 
@@ -67,20 +80,26 @@ const UserProfileNotifs = ({ user, onLogout }: Props) => {
         onError: (err) => message.error(err.message),
     });
 
-    const notifications = (OASISAlertNotfication?.results || [])
-        .slice()
+    const notificationsMap = new Map<number, OASISAlertNotification>();
+
+    if (data?.pages) {
+        data.pages.forEach((page) => {
+            page.results.forEach((notif) => {
+                notificationsMap.set(notif.id, notif);
+            });
+        });
+    }
+
+    const notifications = Array.from(notificationsMap.values())
         .sort((a, b) => {
-            // Unread first
             if (a.status === "unread" && b.status !== "unread") return -1;
             if (a.status !== "unread" && b.status === "unread") return 1;
-            // Latest first (by created_at or notified_at)
             const dateA = new Date(a.created_at || a.notified_at || 0).getTime();
             const dateB = new Date(b.created_at || b.notified_at || 0).getTime();
             return dateB - dateA;
         });
-    const unreadCount = notifications.filter(
-        (notif) => notif?.status === "unread"
-    ).length;
+
+    const unreadCount = notifications.filter((n) => n.status === "unread").length;
 
     const formatTimeAgo = (dateString: string) => {
         const date = new Date(dateString);
@@ -101,7 +120,7 @@ const UserProfileNotifs = ({ user, onLogout }: Props) => {
     const dropdownContent = (
         <div className="w-80 max-h-96 overflow-hidden flex flex-col bg-white border border-gray-500/35 rounded-md">
             <div className="p-3 border-b border-gray-200">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pr-4">
                     <Text strong className="text-base">
                         Notifications
                     </Text>
@@ -112,68 +131,82 @@ const UserProfileNotifs = ({ user, onLogout }: Props) => {
             </div>
 
             <div className="flex-1 overflow-y-auto scrollbar-thin">
-                {OASISAlertNotficationLoading ? (
+                {isLoading ? (
                     <div className="p-4 text-center">
                         <Spin size="small" />
                         <Text className="ml-2 text-gray-500">Loading notifications...</Text>
                     </div>
                 ) : notifications.length > 0 ? (
-                    <List
-                        dataSource={notifications}
-                        renderItem={(item) => (
-                            <List.Item
-                                className={`px-3 py-2 hover:bg-gray-50 cursor-pointer border-none ${item.status === "unread" ? "bg-blue-50" : ""
-                                    }`}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenModal(item?.alert?.to_xml_link)
-                                    updateNotifStatus.mutate({
-                                        notif_id: item?.id,
-                                        payload: { status: "read" },
-                                    })
-                                }}
-                            >
-                                <div className="w-full flex flex-col pl-4 pr-2">
-                                    <div className="w-full flex justify-between items-center">
-                                        <div className="flex justify-between items-start mb-1">
-                                            <Text strong className="text-sm">
-                                                {item.alert?.identifier || "OASIS Alert"}
+                    <>
+                        <List
+                            dataSource={notifications}
+                            renderItem={(item) => (
+                                <List.Item
+                                    className={`px-3 py-2 hover:bg-gray-50 cursor-pointer border-none ${item.status === "unread" ? "bg-blue-50" : ""
+                                        }`}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenModal(item?.alert?.to_xml_link)
+                                        updateNotifStatus.mutate({
+                                            notif_id: item?.id,
+                                            payload: { status: "read" },
+                                        })
+                                    }}
+                                >
+                                    <div className="w-full flex flex-col pl-4 pr-2">
+                                        <div className="w-full flex justify-between items-center">
+                                            <div className="flex justify-between items-start mb-1">
+                                                <Text strong className="text-sm">
+                                                    {item.alert?.identifier || "OASIS Alert"}
+                                                </Text>
+                                                {item.status === "unread" && (
+                                                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-1 ml-1"></div>
+                                                )}
+                                            </div>
+                                            <Text className="text-xs text-gray-400">
+                                                {formatTimeAgo(
+                                                    item.created_at ||
+                                                    item.notified_at ||
+                                                    new Date().toISOString()
+                                                )}
                                             </Text>
-                                            {item.status === "unread" && (
-                                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-1 ml-1"></div>
-                                            )}
                                         </div>
-                                        <Text className="text-xs text-gray-400">
-                                            {formatTimeAgo(
-                                                item.created_at ||
-                                                item.notified_at ||
-                                                new Date().toISOString()
-                                            )}
-                                        </Text>
+                                        <div className="w-full flex justify-between items-center">
+                                            <Text className="text-xs text-gray-600 block mb-1">
+                                                {item.user || item.updated_at || "New alert notification"}
+                                            </Text>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    updateNotifStatus.mutate({
+                                                        notif_id: item?.id,
+                                                        payload: {
+                                                            status: item?.status === "read" ? "unread" : "read",
+                                                        },
+                                                    })
+                                                }}
+                                                className="text-xs hover:text-green-700 font-semibold"
+                                            >
+                                                Mark as {item?.status === "read" ? "unread" : "read"}
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="w-full flex justify-between items-center">
-                                        <Text className="text-xs text-gray-600 block mb-1">
-                                            {item.user || item.updated_at || "New alert notification"}
-                                        </Text>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                updateNotifStatus.mutate({
-                                                    notif_id: item?.id,
-                                                    payload: {
-                                                        status: item?.status === "read" ? "unread" : "read",
-                                                    },
-                                                })
-                                            }}
-                                            className="text-xs hover:text-green-700 font-semibold"
-                                        >
-                                            Mark as {item?.status === "read" ? "unread" : "read"}
-                                        </button>
-                                    </div>
-                                </div>
-                            </List.Item>
+                                </List.Item>
+                            )}
+                        />
+                        {hasNextPage && (
+                            <div className="text-center py-2">
+                                <Button
+                                    onClick={() => fetchNextPage()}
+                                    loading={isFetchingNextPage}
+                                    type="link"
+                                    className="text-blue-500"
+                                >
+                                    Load More
+                                </Button>
+                            </div>
                         )}
-                    />
+                    </>
                 ) : (
                     <div className="p-4">
                         <Empty
