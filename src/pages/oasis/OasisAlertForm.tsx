@@ -499,7 +499,7 @@ const OasisAlertForm = () => {
                             }
                         >
                             {status?.results?.map((item, index) => (
-                                <Option key={index} value={item?.id} label={item?.description}>
+                                <Option key={index} value={item?.id} label={item?.code}>
                                     <div className="flex flex-col">
                                         <span>{item?.code}</span>
                                         <span className="text-xs text-gray-500">
