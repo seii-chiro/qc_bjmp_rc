@@ -244,7 +244,7 @@ export async function getPerson(token: string): Promise<NewPerson[]> {
 export async function getGenders(
   token: string
 ): Promise<PaginatedResponse<Gender>> {
-  const res = await fetch(GENDER_CODE.getGENDER_CODE, {
+  const res = await fetch(`${GENDER_CODE.getGENDER_CODE}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -277,8 +277,10 @@ export const deleteGENDER_CODE = async (token: string, id: number) => {
   return text ? JSON.parse(text) : {};
 };
 
-export async function getCivilStatus(token: string): Promise<CivilStatus[]> {
-  const res = await fetch(CIVIL_STATUS.getCIVIL_STATUS, {
+export async function getCivilStatus(
+  token: string
+): Promise<PaginatedResponse<CivilStatus>> {
+  const res = await fetch(`${CIVIL_STATUS.getCIVIL_STATUS}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -292,8 +294,10 @@ export async function getCivilStatus(token: string): Promise<CivilStatus[]> {
   return res.json();
 }
 
-export async function getNationalities(token: string): Promise<Nationality[]> {
-  const res = await fetch(NATIONALITY.getNATIONALITY, {
+export async function getNationalities(
+  token: string
+): Promise<PaginatedResponse<Nationality>> {
+  const res = await fetch(`${NATIONALITY.getNATIONALITY}?limit=10000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -309,13 +313,16 @@ export async function getNationalities(token: string): Promise<Nationality[]> {
 
 export async function getAffiliationTypes(
   token: string
-): Promise<Affiliation[]> {
-  const res = await fetch(AFFILIATION_TYPES.getAFFILIATION_TYPES, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+): Promise<PaginatedResponse<Affiliation>> {
+  const res = await fetch(
+    `${AFFILIATION_TYPES.getAFFILIATION_TYPES}?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Affiliation Types data.");
@@ -385,12 +392,15 @@ export const updateJail = async (
 export async function getSocialMediaPlatforms(
   token: string
 ): Promise<SocialMediaPlatforms[]> {
-  const res = await fetch(SOCIAL_MEDIA_PLATFORMS.getSOCIALMEDIAPLATFORMS, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${SOCIAL_MEDIA_PLATFORMS.getSOCIALMEDIAPLATFORMS}?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch PDLs data.");
@@ -664,8 +674,10 @@ export async function getMedia(token: string): Promise<Media[]> {
   return res.json();
 }
 
-export async function getJailRegion(token: string): Promise<JailRegion[]> {
-  const res = await fetch(JAIL_REGION.getJAILREGION, {
+export async function getJailRegion(
+  token: string
+): Promise<PaginatedResponse<JailRegion>> {
+  const res = await fetch(`${JAIL_REGION.getJAILREGION}?limit=10000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -679,8 +691,10 @@ export async function getJailRegion(token: string): Promise<JailRegion[]> {
   return res.json();
 }
 
-export async function getJail_Province(token: string): Promise<JailProvince[]> {
-  const res = await fetch(JAIL_PROVINCE.getJAIL_PROVINCE, {
+export async function getJail_Province(
+  token: string
+): Promise<PaginatedResponse<JailProvince>> {
+  const res = await fetch(`${JAIL_PROVINCE.getJAIL_PROVINCE}?limit=10000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -696,13 +710,16 @@ export async function getJail_Province(token: string): Promise<JailProvince[]> {
 
 export async function getJail_Municipality(
   token: string
-): Promise<JailMunicipality[]> {
-  const res = await fetch(JAIL_MUNICIPALITY.getJAIL_MUNICIPALITY, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+): Promise<PaginatedResponse<JailMunicipality>> {
+  const res = await fetch(
+    `${JAIL_MUNICIPALITY.getJAIL_MUNICIPALITY}?limit=50000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Jail Municipality data.");
@@ -711,8 +728,10 @@ export async function getJail_Municipality(
   return res.json();
 }
 
-export async function getJail_Barangay(token: string): Promise<JailBarangay[]> {
-  const res = await fetch(JAIL_BARANGAY.getJAIL_BARANGAY, {
+export async function getJail_Barangay(
+  token: string
+): Promise<PaginatedResponse<JailBarangay>> {
+  const res = await fetch(`${JAIL_BARANGAY.getJAIL_BARANGAY}?limit=50000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -726,8 +745,10 @@ export async function getJail_Barangay(token: string): Promise<JailBarangay[]> {
   return res.json();
 }
 
-export async function getVisitor_Type(token: string): Promise<VisitorType[]> {
-  const res = await fetch(VISITOR_TYPE.getVISITOR_TYPE, {
+export async function getVisitor_Type(
+  token: string
+): Promise<PaginatedResponse<VisitorType>> {
+  const res = await fetch(`${VISITOR_TYPE.getVISITOR_TYPE}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -786,9 +807,9 @@ export const updateVisitor_Type = async (
 
 export async function getVisitor_to_PDL_Relationship(
   token: string
-): Promise<VisitortoPDLRelationship[]> {
+): Promise<PaginatedResponse<VisitortoPDLRelationship>> {
   const res = await fetch(
-    VISITOR_TO_PDL_RELATIONSHIP.getVISITOR_TO_PDL_RELATIONSHIP,
+    `${VISITOR_TO_PDL_RELATIONSHIP.getVISITOR_TO_PDL_RELATIONSHIP}?limit=1000`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -913,8 +934,8 @@ export const deleteVisitor_Req_Docs = async (token: string, id: number) => {
   return text ? JSON.parse(text) : {};
 };
 
-export async function getRank(token: string): Promise<Rank[]> {
-  const res = await fetch(RANK.getRANK, {
+export async function getRank(token: string): Promise<PaginatedResponse<Rank>> {
+  const res = await fetch(`${RANK.getRANK}?limit=100`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -928,8 +949,10 @@ export async function getRank(token: string): Promise<Rank[]> {
   return res.json();
 }
 
-export async function getPosition(token: string): Promise<Position[]> {
-  const res = await fetch(POSITION.getPOSITION, {
+export async function getPosition(
+  token: string
+): Promise<PaginatedResponse<Position>> {
+  const res = await fetch(`${POSITION.getPOSITION}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -1172,8 +1195,10 @@ export const updateJail_Category = async (
   return response.json();
 };
 
-export async function getID_Type(token: string): Promise<IDType[]> {
-  const res = await fetch(ID_TYPE.getID_TYPE, {
+export async function getID_Type(
+  token: string
+): Promise<PaginatedResponse<IDType>> {
+  const res = await fetch(`${ID_TYPE.getID_TYPE}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -1294,8 +1319,8 @@ export async function getSystem_Setting(
   return res.json();
 }
 
-export async function getUser(token: string): Promise<User> {
-  const res = await fetch(USER.getUSER, {
+export async function getUser(token: string): Promise<PaginatedResponse<User>> {
+  const res = await fetch(`${USER.getUSER}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -1341,8 +1366,10 @@ export async function getEmployment_Type(
   return res.json();
 }
 
-export async function getDevice(token: string): Promise<Device[]> {
-  const res = await fetch(DEVICE.getDEVICE, {
+export async function getDevice(
+  token: string
+): Promise<PaginatedResponse<Device>> {
+  const res = await fetch(`${DEVICE.getDEVICE}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -2701,8 +2728,10 @@ export async function getIssueStatuses(token: string): Promise<IssueStatus[]> {
   return res.json();
 }
 
-export async function getEthnicity(token: string): Promise<Ethnicities[]> {
-  const res = await fetch(ETHNICITY.getETHNICITY, {
+export async function getEthnicity(
+  token: string
+): Promise<PaginatedResponse<Ethnicities>> {
+  const res = await fetch(`${ETHNICITY.getETHNICITY}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -2761,13 +2790,16 @@ export const deleteEthnicity = async (token: string, id: number) => {
 
 export async function getEthnicityProvince(
   token: string
-): Promise<EthnicityProvince[]> {
-  const res = await fetch(ETHNICITYPROVINCE.getETHNICITYPROVINCE, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+): Promise<PaginatedResponse<EthnicityProvince>> {
+  const res = await fetch(
+    `${ETHNICITYPROVINCE.getETHNICITYPROVINCE}?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Ethnicity Province data.");
@@ -2778,13 +2810,16 @@ export async function getEthnicityProvince(
 
 export async function getEthnicityProvinces(
   token: string
-): Promise<EthnicityProvince[]> {
-  const res = await fetch(ETHNICITYPROVINCE.getETHNICITYPROVINCE, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+): Promise<PaginatedResponse<EthnicityProvince>> {
+  const res = await fetch(
+    `${ETHNICITYPROVINCE.getETHNICITYPROVINCE}?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Ethnicity Province data.");
@@ -2839,8 +2874,8 @@ export const deleteEthnicityProvince = async (token: string, id: number) => {
   return text ? JSON.parse(text) : {};
 };
 
-export async function getLook(token: string): Promise<Look[]> {
-  const res = await fetch(LOOK.getLOOK, {
+export async function getLook(token: string): Promise<PaginatedResponse<Look>> {
+  const res = await fetch(`${LOOK.getLOOK}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -2854,8 +2889,10 @@ export async function getLook(token: string): Promise<Look[]> {
   return res.json();
 }
 
-export async function getLooks(token: string): Promise<Look[]> {
-  const res = await fetch(LOOK.getLOOK, {
+export async function getLooks(
+  token: string
+): Promise<PaginatedResponse<Look>> {
+  const res = await fetch(`${LOOK.getLOOK}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -2912,8 +2949,10 @@ export const deleteLook = async (token: string, id: number) => {
   return text ? JSON.parse(text) : {};
 };
 
-export async function getCourt(token: string): Promise<CourtRecord[]> {
-  const res = await fetch(COURT.getCOURT, {
+export async function getCourt(
+  token: string
+): Promise<PaginatedResponse<CourtRecord>> {
+  const res = await fetch(`${COURT.getCOURT}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -2946,8 +2985,10 @@ export const deleteCourt = async (token: string, id: number) => {
   return text ? JSON.parse(text) : {};
 };
 
-export async function getBranch(token: string): Promise<CourtDetails[]> {
-  const res = await fetch(BRANCH.getBRANCH, {
+export async function getBranch(
+  token: string
+): Promise<PaginatedResponse<CourtDetails>> {
+  const res = await fetch(`${BRANCH.getBRANCH}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -2980,8 +3021,10 @@ export const deleteBranch = async (token: string, id: number) => {
   return text ? JSON.parse(text) : {};
 };
 
-export async function getOccupations(token: string): Promise<Occupation[]> {
-  const res = await fetch(`${BASE_URL}/api/pdls/occupations/`, {
+export async function getOccupations(
+  token: string
+): Promise<PaginatedResponse<Occupation>> {
+  const res = await fetch(`${BASE_URL}/api/pdls/occupations/limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -3013,13 +3056,16 @@ export async function deleteOccupation(token: string, id: number) {
 
 export async function getEducationalAttainments(
   token: string
-): Promise<EducationalAttainment[]> {
-  const res = await fetch(`${BASE_URL}/api/standards/educational-attainment/`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+): Promise<PaginatedResponse<EducationalAttainment>> {
+  const res = await fetch(
+    `${BASE_URL}/api/standards/educational-attainment/?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Educational Attainment data.");
@@ -3079,8 +3125,10 @@ export async function deleteSuffixes(token: string, id: number) {
   return true;
 }
 
-export async function getContact(token: string): Promise<ContactType[]> {
-  const res = await fetch(`${BASE_URL}/api/standards/contacts/`, {
+export async function getContact(
+  token: string
+): Promise<PaginatedResponse<ContactType>> {
+  const res = await fetch(`${BASE_URL}/api/standards/contacts/?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -3111,12 +3159,15 @@ export async function deleteContact(token: string, id: number) {
 }
 
 export async function getAddressType(token: string): Promise<AddressData[]> {
-  const res = await fetch(`${BASE_URL}/api/standards/address-type/`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/standards/address-type/?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Address Type data.");
@@ -3203,13 +3254,16 @@ export async function deleteMultiBirthType(token: string, id: number) {
 
 export async function getIssueCategories(
   token: string
-): Promise<IssueCategory[]> {
-  const res = await fetch(`${BASE_URL}/api/issues_v2/issue-categories/`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+): Promise<PaginatedResponse<IssueCategory>> {
+  const res = await fetch(
+    `${BASE_URL}/api/issues_v2/issue-categories/?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Issue Categories data.");
@@ -3218,8 +3272,10 @@ export async function getIssueCategories(
   return res.json();
 }
 
-export async function getIssueTypes(token: string): Promise<IssueType[]> {
-  const res = await fetch(`${BASE_URL}/api/issues_v2/issue-types/`, {
+export async function getIssueTypes(
+  token: string
+): Promise<PaginatedResponse<IssueType>> {
+  const res = await fetch(`${BASE_URL}/api/issues_v2/issue-types/?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -3233,13 +3289,18 @@ export async function getIssueTypes(token: string): Promise<IssueType[]> {
   return res.json();
 }
 
-export async function getCourtBranches(token: string): Promise<CourtBranch[]> {
-  const res = await fetch(`${BASE_URL}/api/standards/court-branch/`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+export async function getCourtBranches(
+  token: string
+): Promise<PaginatedResponse<CourtBranch>> {
+  const res = await fetch(
+    `${BASE_URL}/api/standards/court-branch/?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Court Branches data.");
@@ -3250,13 +3311,16 @@ export async function getCourtBranches(token: string): Promise<CourtBranch[]> {
 
 export async function getCrimeCategories(
   token: string
-): Promise<CrimeCategory[]> {
-  const res = await fetch(`${BASE_URL}/api/standards/crime-category/`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+): Promise<PaginatedResponse<CrimeCategory>> {
+  const res = await fetch(
+    `${BASE_URL}/api/standards/crime-category/?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Crime Categories data.");
@@ -3265,8 +3329,8 @@ export async function getCrimeCategories(
   return res.json();
 }
 
-export async function getLaws(token: string): Promise<Law[]> {
-  const res = await fetch(`${BASE_URL}/api/standards/law/`, {
+export async function getLaws(token: string): Promise<PaginatedResponse<Law>> {
+  const res = await fetch(`${BASE_URL}/api/standards/law/?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -3280,8 +3344,10 @@ export async function getLaws(token: string): Promise<Law[]> {
   return res.json();
 }
 
-export async function getPrecincts(token: string): Promise<Precinct[]> {
-  const res = await fetch(`${BASE_URL}/api/pdls/precinct/`, {
+export async function getPrecincts(
+  token: string
+): Promise<PaginatedResponse<Precinct>> {
+  const res = await fetch(`${BASE_URL}/api/pdls/precinct/?limit=10000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -3295,8 +3361,10 @@ export async function getPrecincts(token: string): Promise<Precinct[]> {
   return res.json();
 }
 
-export async function getOffenses(token: string): Promise<Offense[]> {
-  const res = await fetch(`${BASE_URL}/api/standards/offense/`, {
+export async function getOffenses(
+  token: string
+): Promise<PaginatedResponse<Offense>> {
+  const res = await fetch(`${BASE_URL}/api/standards/offense/?limit=10000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -3312,13 +3380,16 @@ export async function getOffenses(token: string): Promise<Offense[]> {
 
 export async function getGangAffiliation(
   token: string
-): Promise<GangAffiliation[]> {
-  const res = await fetch(`${BASE_URL}/api/pdls/gang-affiliations/`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+): Promise<PaginatedResponse<GangAffiliation>> {
+  const res = await fetch(
+    `${BASE_URL}/api/pdls/gang-affiliations/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Gang Affiliations data.");
@@ -3329,9 +3400,9 @@ export async function getGangAffiliation(
 
 export async function getPersonnelAppStatus(
   token: string
-): Promise<PersonnelAppStatus[]> {
+): Promise<PaginatedResponse<PersonnelAppStatus>> {
   const res = await fetch(
-    `${BASE_URL}/api/pdls/personnel-application-statuses/`,
+    `${BASE_URL}/api/pdls/personnel-application-statuses/?limit=10000`,
     {
       headers: {
         "Content-Type": "application/json",
@@ -3347,8 +3418,10 @@ export async function getPersonnelAppStatus(
   return res.json();
 }
 
-export async function getPositions(token: string): Promise<Position[]> {
-  const res = await fetch(POSITION.getPOSITION, {
+export async function getPositions(
+  token: string
+): Promise<PaginatedResponse<Position>> {
+  const res = await fetch(`${POSITION.getPOSITION}?limit=10000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -3362,8 +3435,10 @@ export async function getPositions(token: string): Promise<Position[]> {
   return res.json();
 }
 
-export async function getRanks(token: string): Promise<Rank[]> {
-  const res = await fetch(`${BASE_URL}/api/codes/ranks/`, {
+export async function getRanks(
+  token: string
+): Promise<PaginatedResponse<Rank>> {
+  const res = await fetch(`${BASE_URL}/api/codes/ranks/?limit=10000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -3731,12 +3806,15 @@ export const patchIssues = async (
 export async function getReportingCategory(
   token: string
 ): Promise<ReportingCategory[]> {
-  const res = await fetch(`${BASE_URL}/api/issues/reporting-categories/`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/issues/reporting-categories/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Reporting Category data.");
@@ -3748,12 +3826,15 @@ export async function getReportingCategory(
 export async function getSeverityLevel(
   token: string
 ): Promise<SeverityLevel[]> {
-  const res = await fetch(`${BASE_URL}/api/issues/incident-severity-levels/`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+  const res = await fetch(
+    `${BASE_URL}/api/issues/incident-severity-levels/?limit=10000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch Incident Severity Level data.");
