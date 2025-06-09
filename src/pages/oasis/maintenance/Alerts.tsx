@@ -428,7 +428,7 @@ const Alerts = () => {
                             setPageSize(size)
                         }
                     },
-                    onShowSizeChange: (current, size) => {
+                    onShowSizeChange: (_, size) => {
                         setCurrentPage(1)
                         setPageSize(size)
                     }
