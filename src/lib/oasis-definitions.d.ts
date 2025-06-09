@@ -30,7 +30,7 @@ export type Info = {
   instruction: string | null;
   areas: Area[] | null;
   event: string | null;
-  event_code: string | null;
+  event_code: number | null;
   effective: string | null;
   onset: string | null;
   expires: string | null;
