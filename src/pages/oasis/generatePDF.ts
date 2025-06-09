@@ -103,21 +103,7 @@ export function generatePDFReport({
 
     doc.addImage(bjmp, "PNG", imageX, imageY, imageWidth, imageHeight);
 
-    // Add date if enabled
     const currentY = 45;
-    // if (showDate) {
-    //   doc.setFontSize(10);
-    //   doc.setFont("helvetica", "normal");
-    //   const currentDate = new Date().toLocaleDateString("en-US", {
-    //     year: "numeric",
-    //     month: "long",
-    //     day: "numeric",
-    //     hour: "2-digit",
-    //     minute: "2-digit",
-    //   });
-    //   doc.text(`Generated on: ${currentDate}`, margin, currentY);
-    //   currentY += 15;
-    // }
 
     // Prepare table columns
     const columns = headers.map((header) => ({
@@ -161,9 +147,8 @@ export function generatePDFReport({
         lineColor: "#E0E0E0",
         lineWidth: 0.1,
       },
-      margin: { top: margin, right: margin, bottom: margin, left: margin },
+      margin: { top: margin, right: margin, bottom: margin + 10, left: margin },
       tableWidth: "auto",
-      showHead: "everyPage",
       didDrawPage: function () {
         // Add page numbers if enabled
         if (showPageNumbers) {
