@@ -26,7 +26,7 @@ const Incidents = () => {
                 </div>
                 <div className="ml-8 mt-2 flex justify-between">
                     <div className="md:w-1/2">
-                        <GodotLink link="oasis" title="Send an Alert" />
+                        <GodotLink link="oasis/alerts/add_alert" title="Send an Alert" />
                         <GodotLink link="oasis/alerts" title="Alerts" />
                         <GodotLink link="oasis/status" title="Status" />
                         <GodotLink link="oasis/message_type" title="Message Type" />
