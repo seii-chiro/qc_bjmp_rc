@@ -2404,7 +2404,7 @@ export async function getCases(
 
 export async function getCountries(
   token: string
-): Promise<{ id: number; code: string; country: string }[]> {
+): Promise<PaginatedResponse<{ id: number; code: string; country: string }>> {
   const res = await fetch(`${BASE_URL}/api/codes/countries/?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
@@ -2488,8 +2488,10 @@ export const patchVisitor = async (
   return res.json();
 };
 
-export async function getUsers(token: string): Promise<UserAccounts[]> {
-  const res = await fetch(`${BASE_URL}/api/user/users/`, {
+export async function getUsers(
+  token: string
+): Promise<PaginatedResponse<UserAccounts>> {
+  const res = await fetch(`${BASE_URL}/api/user/users/?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
