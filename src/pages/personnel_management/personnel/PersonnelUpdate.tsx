@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Spinner from "@/components/loaders/Spinner";
 import { calculateAge } from "@/functions/calculateAge";
 import { getPersonnelTypes } from "@/lib/additionalQueries";
@@ -25,6 +26,7 @@ import { useLocation } from "react-router-dom";
 import { useMemo } from "react";
 import { Person } from "@/lib/pdl-definitions";
 import { sanitizeRFID } from "@/functions/sanitizeRFIDInput";
+import { EnrolledBiometrics } from "@/pages/visitor_management/edit-visitor/EditVisitor";
 
 const patchPerson = async (payload: Partial<PersonForm>, token: string, id: string) => {
     const res = await fetch(`${PERSON.postPERSON}${id}/`, {
@@ -154,12 +156,30 @@ const PersonnelUpdate = () => {
         position_id: null,
         rank_id: null,
         remarks_data: [],
-        approved_by: null,
-        verified_by: null,
+        approved_by_id: null,
+        approved_at: "",
+        verified_by_id: null,
+        verified_at: "",
         person_relationship_data: [],
         organization_id: 1,
         jail_id: 1,
         shortname: ""
+    })
+
+    const [enrolledBiometrics, setEnrolledBiometrics] = useState<EnrolledBiometrics>({
+        rightIrisIsEnrolled: false,
+        leftIrisIsEnrolled: false,
+        rightLittleIsEnrolled: false,
+        rightRingIsEnrolled: false,
+        rightMiddleIsEnrolled: false,
+        rightIndexIsEnrolled: false,
+        rightThumbIsEnrolled: false,
+        leftLittleIsEnrolled: false,
+        leftRingIsEnrolled: false,
+        leftMiddleIsEnrolled: false,
+        leftIndexIsEnrolled: false,
+        leftThumbIsEnrolled: false,
+        faceIsEnrolled: false,
     })
 
     const [personSearch, setPersonSearch] = useState("");
@@ -590,54 +610,48 @@ const PersonnelUpdate = () => {
             message.error("Person ID is not available.");
             return;
         }
-        patchPersonnelMutation.mutate();
-        patchPersonMutation.mutate();
 
         try {
+            // Patch basic info first
             await Promise.all([
-                ...(enrollFormFace?.upload_data
-                    ? [enrollFaceMutation.mutateAsync(personnel?.person?.id)]
-                    : []),
-                ...(enrollFormLeftIris?.upload_data
-                    ? [enrollLeftMutation.mutateAsync(personnel?.person?.id)]
-                    : []),
-                ...(enrollFormRightIris?.upload_data
-                    ? [enrollRightMutation.mutateAsync(personnel?.person?.id)]
-                    : []),
-                ...(enrollLeftLittleFinger?.upload_data
-                    ? [enrollLeftLittleMutation.mutateAsync(personnel?.person?.id)]
-                    : []),
-                ...(enrollLeftRingFinger?.upload_data
-                    ? [enrollLeftRingMutation.mutateAsync(personnel?.person?.id)]
-                    : []),
-                ...(enrollLeftMiddleFinger?.upload_data
-                    ? [enrollLeftMiddleMutation.mutateAsync(personnel?.person?.id)]
-                    : []),
-                ...(enrollLeftIndexFinger?.upload_data
-                    ? [enrollLeftIndexMutation.mutateAsync(personnel?.person?.id)]
-                    : []),
-                ...(enrollLeftThumbFinger?.upload_data
-                    ? [enrollLeftThumbMutation.mutateAsync(personnel?.person?.id)]
-                    : []),
-                ...(enrollRightLittleFinger?.upload_data
-                    ? [enrollRightLittleMutation.mutateAsync(personnel?.person?.id)]
-                    : []),
-                ...(enrollRightRingFinger?.upload_data
-                    ? [enrollRightRingMutation.mutateAsync(personnel?.person?.id)]
-                    : []),
-                ...(enrollRightMiddleFinger?.upload_data
-                    ? [enrollRightMiddleMutation.mutateAsync(personnel?.person?.id)]
-                    : []),
-                ...(enrollRightIndexFinger?.upload_data
-                    ? [enrollRightIndexMutation.mutateAsync(personnel?.person?.id)]
-                    : []),
-                ...(enrollRightThumbFinger?.upload_data
-                    ? [enrollRightThumbMutation.mutateAsync(personnel?.person?.id)]
-                    : []),
+                patchPersonnelMutation.mutateAsync(),
+                patchPersonMutation.mutateAsync(),
             ]);
+
+            // Config-driven biometric checks
+            const biometricConfigs = [
+                { form: enrollFormFace, enrolledKey: "faceIsEnrolled", mutation: enrollFaceMutation, label: "Face" },
+                { form: enrollFormLeftIris, enrolledKey: "leftIrisIsEnrolled", mutation: enrollLeftMutation, label: "Left Iris" },
+                { form: enrollFormRightIris, enrolledKey: "rightIrisIsEnrolled", mutation: enrollRightMutation, label: "Right Iris" },
+                { form: enrollLeftLittleFinger, enrolledKey: "leftLittleIsEnrolled", mutation: enrollLeftLittleMutation, label: "Left Little Finger" },
+                { form: enrollLeftRingFinger, enrolledKey: "leftRingIsEnrolled", mutation: enrollLeftRingMutation, label: "Left Ring Finger" },
+                { form: enrollLeftMiddleFinger, enrolledKey: "leftMiddleIsEnrolled", mutation: enrollLeftMiddleMutation, label: "Left Middle Finger" },
+                { form: enrollLeftIndexFinger, enrolledKey: "leftIndexIsEnrolled", mutation: enrollLeftIndexMutation, label: "Left Index Finger" },
+                { form: enrollLeftThumbFinger, enrolledKey: "leftThumbIsEnrolled", mutation: enrollLeftThumbMutation, label: "Left Thumb Finger" },
+                { form: enrollRightLittleFinger, enrolledKey: "rightLittleIsEnrolled", mutation: enrollRightLittleMutation, label: "Right Little Finger" },
+                { form: enrollRightRingFinger, enrolledKey: "rightRingIsEnrolled", mutation: enrollRightRingMutation, label: "Right Ring Finger" },
+                { form: enrollRightMiddleFinger, enrolledKey: "rightMiddleIsEnrolled", mutation: enrollRightMiddleMutation, label: "Right Middle Finger" },
+                { form: enrollRightIndexFinger, enrolledKey: "rightIndexIsEnrolled", mutation: enrollRightIndexMutation, label: "Right Index Finger" },
+                { form: enrollRightThumbFinger, enrolledKey: "rightThumbIsEnrolled", mutation: enrollRightThumbMutation, label: "Right Thumb Finger" },
+            ];
+
+            const enrollmentTasks = biometricConfigs.flatMap(({ form, enrolledKey, mutation, label }) => {
+                if (form?.upload_data) {
+                    if ((enrolledBiometrics as any)[enrolledKey]) {
+                        message.info(`${label} is already enrolled. Skipping...`);
+                        return [];
+                    }
+                    return [mutation.mutateAsync(personnelData.person.id)];
+                }
+                return [];
+            });
+
+            await Promise.all(enrollmentTasks);
+
+            message.success("Successfully updated personnel information.");
         } catch (err) {
             console.error("Enrollment error:", err);
-            message?.error("Some enrollment steps failed");
+            message.error("Some enrollment steps failed.");
         }
     };
 
@@ -1007,8 +1021,10 @@ const PersonnelUpdate = () => {
                         mobile_number: relationship?.person?.contacts?.[0]?.value
                     })
                 ) ?? [],
-            verified_by: personnelData?.verified_by ?? null,
-            approved_by: personnelData?.approved_by ?? null,
+            verified_by_id: users?.find(user => user?.email === personnelData?.verified_by)?.id ?? null,
+            verified_at: personnelData?.verified_at ?? "",
+            approved_by_id: users?.find(user => user?.email === personnelData?.approved_by)?.id ?? null,
+            approved_at: personnelData?.approved_at ?? "",
             shortname: personnelData?.person?.shortname ?? "",
         });
     }, [
@@ -1036,9 +1052,9 @@ const PersonnelUpdate = () => {
     useEffect(() => {
         setPersonnelForm(prev => ({
             ...prev,
-            verified_by: currentUser?.id ?? 0
+            verified_by_id: currentUser?.id ?? 0
         }))
-    }, [personnelForm?.verified_by, currentUser?.id])
+    }, [personnelForm?.verified_by_id, currentUser?.id])
 
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""}`;
@@ -1063,7 +1079,7 @@ const PersonnelUpdate = () => {
                             <div className='flex flex-col mt-2 flex-1'>
                                 <div className='flex gap-1 font-semibold'>Registration No.<span className='text-red-600'>*</span></div>
                                 <Input
-                                    value={personnelForm?.personnel_reg_no}
+                                    value={personnelForm?.personnel_reg_no ?? ""}
                                     readOnly
                                     placeholder="xxxx-xxxx-xxxx-xxxx"
                                     className='mt-2 h-10 rounded-md outline-gray-300'
@@ -1442,6 +1458,7 @@ const PersonnelUpdate = () => {
 
             {/**Biometrics */}
             <VisitorProfile
+                setEnrolledBiometrics={setEnrolledBiometrics}
                 inputGender={chosenGender}
                 visitorToEdit={personnelData}
                 icao={icao}
@@ -1565,7 +1582,11 @@ const PersonnelUpdate = () => {
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Date Verified</div>
-                                <input type="date" className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100" />
+                                <input
+                                    type="date"
+                                    className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    onChange={e => setPersonnelForm(prev => ({ ...prev, verified_at: e.target.value }))}
+                                />
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Approved By</div>
@@ -1579,7 +1600,7 @@ const PersonnelUpdate = () => {
                                     onChange={value => {
                                         setPersonnelForm(prev => ({
                                             ...prev,
-                                            approved_by: value
+                                            approved_by_id: value
                                         }))
                                     }}
                                 />
@@ -1589,6 +1610,7 @@ const PersonnelUpdate = () => {
                                 <input
                                     type="date"
                                     className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    onChange={e => setPersonnelForm(prev => ({ ...prev, approved_at: e.target.value }))}
                                 />
                             </div>
                         </div>
