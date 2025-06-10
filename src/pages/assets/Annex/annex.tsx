@@ -121,16 +121,6 @@ const Annex = () => {
             title: "Annex Name",
             dataIndex: "floor_name",
             key: "floor_name",
-            sorter: (a, b) => a.floor_name.localeCompare(b.floor_name),
-                    filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.floor_name))
-                    ).map(floor_name => ({
-                        text: floor_name,
-                        value: floor_name,
-                    }))
-                ],
-                onFilter: (value, record) => record.floor_name === value,
         },
         {
             title: "Security Level",

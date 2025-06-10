@@ -1393,7 +1393,7 @@ const totalVisit = isFormVisitChanged
                                         <Title title="Entry/Exits to Jail Premises of Service Provider" />
                                     </div>
                                     <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
-                                        <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-[11rem] min-h-[100px]">
+                                        <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-60 min-h-[100px]" : "h-56 min-h-[160px]"}`}>
                                         {isServiceLoading ? (
                                             <Skeleton.Input active className="w-full h-full rounded-lg" />
                                         ) : (
@@ -1438,7 +1438,7 @@ const totalVisit = isFormVisitChanged
                                         <Title title="Entry/Exits to Jail Premises of Non Register Visitor" />
                                     </div>
                                     <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
-                                        <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-[11rem] min-h-[100px]">
+                                        <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-60 min-h-[100px]" : "h-56 min-h-[160px]"}`}>
                                         {isNonServiceLoading ? (
                                             <Skeleton.Input active className="w-full h-full rounded-lg" />
                                         ) : (

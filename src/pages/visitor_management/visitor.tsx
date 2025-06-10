@@ -131,11 +131,9 @@ const { data, isFetching } = useQuery({
 
         if (genderColumnFilter.length > 0) {
             params.append("gender", genderColumnFilter.join(","));
-        // params.append('', genderColumnFilter.map(encodeURIComponent).join(','));
         }
         if (visitorTypeColumnFilter.length > 0) {
             params.append("visitor_type", visitorTypeColumnFilter.join(","));
-        // params.append('', visitorTypeColumnFilter.map(encodeURIComponent).join(','));
         }
 
         const res = await fetch(

@@ -368,7 +368,6 @@ export const patchPDLCategory = async (
     throw new Error("Failed to update PDL Category");
   }
 
-<<<<<<< HEAD
     return response.json();
 };
 
@@ -409,7 +408,3 @@ export const patchNonPDLIL = async (
 
     return response.json();
 };
-=======
-  return response.json();
-};
->>>>>>> e47f49fb510535f255fe2529f3d1c7245139e499

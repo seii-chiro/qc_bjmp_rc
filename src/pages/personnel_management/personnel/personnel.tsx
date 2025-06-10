@@ -58,7 +58,7 @@ const Personnel = () => {
     }, [searchText]);
 
     const { data: searchData, isLoading: searchLoading } = useQuery({
-        queryKey: ["visitors", debouncedSearch],
+        queryKey: ["personnel", debouncedSearch],
         queryFn: () => fetchPersonnels(debouncedSearch),
         behavior: keepPreviousData(),
         enabled: debouncedSearch.length > 0,
@@ -71,6 +71,7 @@ const Personnel = () => {
             page,
             limit,
             genderFilter,
+            statusFilter,
             rankFilter,
         ],
         queryFn: async (): Promise<PaginatedResponse<PersonnelType>> => {
@@ -90,8 +91,25 @@ const Personnel = () => {
             }
 
             if (rankFilter.length > 0) {
-            params.append("rank", rankFilter.join(","));
-            }
+                const rankNames: string[] = [];
+                const rankCodes: string[] = [];
+
+                rankFilter.forEach((item) => {
+                    const match = item.match(/^(.*)\(([^()]+)\)$/);
+                    if (match) {
+                    rankNames.push(match[1].trim());
+                    rankCodes.push(match[2].trim());
+                    }
+                });
+
+                if (rankNames.length > 0) {
+                    params.append("rank_name", rankNames.join(","));
+                }
+
+                if (rankCodes.length > 0) {
+                    params.append("rank_code", rankCodes.join(","));
+                }
+                }
 
             const res = await fetch(`${BASE_URL}/api/codes/personnel/?${params.toString()}`, {
             headers: {

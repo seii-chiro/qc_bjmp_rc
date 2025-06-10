@@ -87,15 +87,6 @@ const DeviceSetting = () => {
             dataIndex: 'device',
             key: 'device',
             sorter: (a, b) => a.device.localeCompare(b.device),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.device))
-                ).map(device => ({
-                    text: device,
-                    value: device,
-                }))
-            ],
-            onFilter: (value, record) => record.device === value,
         },
         {
             title: 'Setting Key',
@@ -123,15 +114,6 @@ const DeviceSetting = () => {
             dataIndex: 'description',
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.description))
-                ).map(description => ({
-                    text: description,
-                    value: description,
-                }))
-            ],
-            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",

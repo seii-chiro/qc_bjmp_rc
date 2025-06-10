@@ -70,15 +70,12 @@ const PDLtable = () => {
 
             if (genderColumnFilter.length > 0) {
                 params.append("gender", genderColumnFilter.join(","));
-            // params.append("gender", genderColumnFilter.map(encodeURIComponent).join(","));
             }
             if (statusColumnFilter.length > 0) {
                 params.append("status", statusColumnFilter.join(","));
-            // params.append("status", statusColumnFilter.map(encodeURIComponent).join(","));
             }
             if (visitationColumnFilter.length > 0) {
                 params.append("visitation_status", visitationColumnFilter.join(","));
-            // params.append("", visitationColumnFilter.map(encodeURIComponent).join(","));
             }
 
             const res = await fetch(`${BASE_URL}/api/pdls/pdl/?${params.toString()}`, {

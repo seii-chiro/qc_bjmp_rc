@@ -4,7 +4,7 @@ import { getUser, PaginatedResponse } from "@/lib/queries";
 import { BASE_URL } from "@/lib/urls";
 import { PersonnelForm } from "@/lib/visitorFormDefinition";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Dropdown, Menu, Spin, Table } from "antd";
 import { ColumnType } from "antd/es/table";
 import { useEffect, useState } from "react";
@@ -13,25 +13,64 @@ import * as XLSX from 'xlsx';
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import logoBase64 from "../../assets/logoBase64";
+import { useSearchParams } from "react-router-dom";
 pdfMake.vfs = pdfFonts.vfs;
 
 const ListPDLs = () => {
-    const token = useTokenStore().token; 
+    const token = useTokenStore().token;
+    const [searchText, setSearchText] = useState(""); 
     const [pdl, setpdl] = useState([]);
     const [loadingMessage, setLoadingMessage] = useState('');
     const [downloadLoading, setDownloadLoading] = useState<'pdf' | 'excel' | 'csv' | null>(null);
+    const [visitationColumnFilter, setvisitationColumnFilter] = useState<string[]>([]);
+    const [statusColumnFilter, setstatusColumnFilter] = useState<string[]>([]);
     const [pdlLoading, setPDLLoading] = useState(true);
     const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
     const [isLoading, setIsLoading] = useState(false);
+    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [page, setPage] = useState(1);
     const [limit, setlimit] = useState(10);
 
+    const fetchPDLs = async (search: string) => {
+        const res = await fetch(`${BASE_URL}/api/pdls/pdl/?search=${search}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    useEffect(() => {
+        const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
+        return () => clearTimeout(timeout);
+    }, [searchText]);
+
+    const { data: searchData, isLoading: searchLoading } = useQuery({
+        queryKey: ["pdls", debouncedSearch],
+        queryFn: () => fetchPDLs(debouncedSearch),
+        behavior: keepPreviousData(),
+        enabled: debouncedSearch.length > 0,
+    });
+
     const { data, isFetching, error } = useQuery({
-        queryKey: ['pdl','pdl-table', page, limit],
+        queryKey: ['pdl','pdl-table', page, limit, statusColumnFilter, visitationColumnFilter],
         queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
             const offset = (page - 1) * limit;
-            const res = await fetch(
-                `${BASE_URL}/api/pdls/pdl/?page=${page}&limit=${limit}&offset=${offset}`,
+            const params = new URLSearchParams();
+            params.append("page", String(page));
+            params.append("limit", String(limit));
+            params.append("offset", String(offset));
+
+            if (statusColumnFilter.length > 0) {
+                params.append("status", statusColumnFilter.join(","));
+            }
+            if (visitationColumnFilter.length > 0) {
+                params.append("visitation_status", visitationColumnFilter.join(","));
+            }
+            const res = await fetch(`${BASE_URL}/api/pdls/pdl/?${params.toString()}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -48,6 +87,39 @@ const ListPDLs = () => {
         },
         keepPreviousData: true,
     });
+    
+    const [searchParams] = useSearchParams();
+    const status = searchParams.get("status") || "all";
+    const statusList = status !== "all" ? status.split(",").map(decodeURIComponent) : [];
+
+    const { data: pdlStatusData, isLoading: pdlByStatusLoading } = useQuery({
+        queryKey: ['pdls', 'pdls-table', page, statusList],
+            queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
+                const offset = (page - 1) * limit;
+                const res = await fetch(
+                    `${BASE_URL}/api/pdls/pdl/?status=${encodeURIComponent(statusList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Token ${token}`,
+                        },
+                    }
+                );
+        
+                if (!res.ok) {
+                    throw new Error('Failed to fetch PDL Status data.');
+                }
+        
+                return res.json();
+            },
+        enabled: !!token,
+    });
+    
+    useEffect(() => {
+    if (statusList.length > 0 && JSON.stringify(statusColumnFilter) !== JSON.stringify(statusList)) {
+        setstatusColumnFilter(statusList);
+    }
+    }, [statusList, statusColumnFilter]);
 
     const fetchOrganization = async () => {
         const res = await fetch(`${BASE_URL}/api/codes/organizations/`, {
@@ -60,6 +132,58 @@ const ListPDLs = () => {
         if (!res.ok) throw new Error("Network error");
         return res.json();
     };
+
+const visitation_status = searchParams.get("visitation_status") || "all";
+    const visitationList = visitation_status !== "all" ? visitation_status.split(",").map(decodeURIComponent) : [];
+
+    useEffect(() => {
+    if (visitationList.length > 0 && JSON.stringify(visitationColumnFilter) !== JSON.stringify(visitationList)) {
+        setvisitationColumnFilter(visitationList);
+    }
+    }, [visitationList, visitationColumnFilter]);
+
+    const { data: pdlVisitationStatusData, isLoading: pdlByVisitationStatusLoading } = useQuery({
+            queryKey: ['pdls', 'pdls-table', page, visitationList],
+                queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
+                    const offset = (page - 1) * limit;
+                    const res = await fetch(
+                        `${BASE_URL}/api/pdls/pdl/?visitation_status=${encodeURIComponent(visitationList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                        {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Token ${token}`,
+                            },
+                        }
+                    );
+            
+                    if (!res.ok) {
+                        throw new Error('Failed to fetch PDL Visitation Status data.');
+                    }
+            
+                    return res.json();
+                },
+            enabled: !!token,
+        });
+
+    const { data: visitationStatusData } = useQuery({
+    queryKey: ['visitation-status'],
+    queryFn: async () => {
+        const res = await fetch(`${BASE_URL}/api/pdls/pdl-visitation-statuses/`, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+        },
+        });
+        if (!res.ok) throw new Error('Failed to fetch Visitation Status');
+        return res.json();
+    },
+    enabled: !!token,
+    });
+
+    const visitationFilters = visitationStatusData?.results?.map(visitation => ({
+    text: visitation.name,
+    value: visitation.name,
+    })) ?? [];
 
     const { data: UserData } = useQuery({
         queryKey: ['user'],
@@ -116,7 +240,7 @@ const ListPDLs = () => {
         };
     }) || [];
 
-    const columns: ColumnType<PersonnelForm>[] = [
+    const columns: ColumnType<PDLs>[] = [
         {
             title: 'No.',
             key: 'no',
@@ -131,6 +255,7 @@ const ListPDLs = () => {
             title: 'Full Name',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => a.name.localeCompare(b.name),
         },
         {
             title: 'Date of Birth',
@@ -146,6 +271,14 @@ const ListPDLs = () => {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
+            filters: [
+                { text: 'Committed', value: 'Committed' },
+                { text: 'Convicted', value: 'Convicted' },
+                { text: 'Released', value: 'Released' },
+                { text: 'Hospitalized', value: 'Hospitalized' },
+            ],
+            filteredValue: statusColumnFilter,
+            onFilter: (value, record) => record.status === value,
         },
         {
             title: 'Date of Commitment',
@@ -156,6 +289,9 @@ const ListPDLs = () => {
             title: 'Visiting Eligibility',
             dataIndex: 'visitation_status',
             key: 'visitation_status',
+            filters: visitationFilters,
+            filteredValue: visitationColumnFilter,
+            onFilter: (value, record) => record.visitation_status === value,
         },
         {
             title: 'Notes',
@@ -191,24 +327,46 @@ const ListPDLs = () => {
             ];
 
             let body: any[][] = [];
-            
-            const dataToUse = await fetchAllPDLs();
-const pdlResults = dataToUse?.results || [];
 
-if (pdlResults.length > 0) {
-    body = pdlResults.map((pdls: any, index: number) => {
-            return [
-            (index + 1).toString(),
-            pdls?.id ?? '',
-            `${pdls?.person?.first_name ?? ''} ${pdls?.person?.middle_name ?? ''} ${pdls?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
-            pdls?.person?.date_of_birth,
-            pdls?.cases?.[0]?.offense,
-            pdls?.status ?? '',
-            pdls?.date_of_admission,
-            pdls?.visitation_status,
-            pdls?.notes,
-            ];
+            let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllPDLs();
+            } else {
+                allData = await fetchPDLs(searchText.trim());
+            }
+        const allResults = allData?.results || [];
+        const pdlResults = allResults?.filter(pdl => {
+            const statusValue = pdl?.status ?? '';
+            const visitationStatusValue = pdl?.visitation_status ?? '';
+
+            const matchesGlobalStatus = status === "all" || statusValue === status;
+            const matchesGlobalVisitationStatus = visitation_status === "all" || visitationStatusValue === visitation_status;
+
+            const matchesColumnStatus = statusColumnFilter.length === 0 || statusColumnFilter.includes(statusValue);
+            const matchesColumnVisitation = visitationColumnFilter.length === 0 || visitationColumnFilter.includes(visitationStatusValue);
+
+            return (
+                matchesGlobalStatus &&
+                matchesColumnStatus &&
+                matchesColumnVisitation &&
+                matchesGlobalVisitationStatus
+            );
         });
+
+    if (pdlResults.length > 0) {
+        body = pdlResults.map((pdls: any, index: number) => {
+                return [
+                (index + 1).toString(),
+                pdls?.id ?? '',
+                `${pdls?.person?.first_name ?? ''} ${pdls?.person?.middle_name ?? ''} ${pdls?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+                pdls?.person?.date_of_birth,
+                pdls?.cases?.[0]?.offense,
+                pdls?.status ?? '',
+                pdls?.date_of_admission,
+                pdls?.visitation_status,
+                pdls?.notes,
+                ];
+            });
         } else {
         body = [['No pdl data available', '', '', '', '', '', '', '', '']];
         }
@@ -351,15 +509,31 @@ if (pdlResults.length > 0) {
 
 const downloadExcel = async () => {
     try {
-        const response = await fetchAllPDLs(); 
-        const pdlList = response?.results || [];
+        let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllPDLs();
+            } else {
+                allData = await fetchPDLs(searchText.trim());
+            }
+        const allResults = allData?.results || [];
+        const pdlResults = allResults?.filter(pdl => {
+            const statusValue = pdl?.status ?? '';
+            const visitationStatusValue = pdl?.visitation_status ?? '';
 
-        if (pdlList.length === 0) {
-            console.error('No pdl data available for export.');
-            return;
-        }
+            const matchesGlobalStatus = status === "all" || statusValue === status;
+            const matchesGlobalVisitationStatus = visitation_status === "all" || visitationStatusValue === visitation_status;
 
-        const excelData = pdlList.map((pdl, index) => {
+            const matchesColumnStatus = statusColumnFilter.length === 0 || statusColumnFilter.includes(statusValue);
+            const matchesColumnVisitation = visitationColumnFilter.length === 0 || visitationColumnFilter.includes(visitationStatusValue);
+            
+            return (
+                matchesGlobalStatus &&
+                matchesColumnStatus &&
+                matchesColumnVisitation &&
+                matchesGlobalVisitationStatus
+            );
+        });
+        const excelData = pdlResults.map((pdl, index) => {
 
             return {
                 'No.': index + 1,
@@ -387,13 +561,30 @@ const downloadExcel = async () => {
 
 const downloadCSV = async () => {
     try {
-        const response = await fetchAllPDLs();
-        const pdlList = response?.results || [];
+        let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllPDLs();
+            } else {
+                allData = await fetchPDLs(searchText.trim());
+            }
+        const allResults = allData?.results || [];
+        const pdlResults = allResults?.filter(pdl => {
+            const statusValue = pdl?.status ?? '';
+            const visitationStatusValue = pdl?.visitation_status ?? '';
 
-        if (pdlList.length === 0) {
-            console.error('No pdl data available for export.');
-            return;
-        }
+            const matchesGlobalStatus = status === "all" || statusValue === status;
+            const matchesGlobalVisitationStatus = visitation_status === "all" || visitationStatusValue === visitation_status;
+
+            const matchesColumnStatus = statusColumnFilter.length === 0 || statusColumnFilter.includes(statusValue);
+            const matchesColumnVisitation = visitationColumnFilter.length === 0 || visitationColumnFilter.includes(visitationStatusValue);
+            
+            return (
+                matchesGlobalStatus &&
+                matchesColumnStatus &&
+                matchesColumnVisitation &&
+                matchesGlobalVisitationStatus
+            );
+        });
 
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
@@ -409,7 +600,7 @@ const downloadCSV = async () => {
                 'Notes',
         ];
 
-        const csvData = pdlList.map((pdls, index) => {
+        const csvData = pdlResults.map((pdls, index) => {
             return [
                 (index + 1).toString(),
             pdls?.id ?? '',
@@ -481,6 +672,33 @@ const menu = (
     </Menu>
 );
 
+    const totalRecords = debouncedSearch 
+    ? data?.count || 0 
+    : status !== "all"
+    ? pdlStatusData?.count || 0
+    : visitation_status !== "all"
+    ? pdlVisitationStatusData?.count || 0
+    : data?.count || 0;
+
+    const mapPDL = (pdl, index) => ({
+    key: index + 1,
+    id: pdl?.id ?? 'N/A',
+    pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
+    first_name: pdl?.person?.first_name ?? 'N/A',
+    middle_name: pdl?.person?.middle_name ?? '',
+    last_name: pdl?.person?.last_name ?? '',
+    name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
+    cell_no: pdl?.cell?.cell_no ?? 'N/A',
+    cell_name: pdl?.cell?.cell_name ?? 'N/A',
+    gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
+    look: pdl?.look ?? 'N/A',
+    status: pdl?.status ?? 'N/A',
+    gender: pdl?.person?.gender?.gender_option,
+    visitation_status: pdl?.visitation_status ?? 'N/A',
+    floor: pdl?.cell?.floor ?? 'N/A',
+    date_of_admission: pdl?.date_of_admission ?? 'N/A',
+    });
+
     return (
         <div className="md:px-10">
                 <div className="my-5 flex justify-between">
@@ -494,12 +712,21 @@ const menu = (
             <div>
                 <div className="overflow-x-auto rounded-lg border border-gray-200 mt-2 shadow-sm">
                     <Table 
-                        dataSource={dataSource} 
+                        loading={isFetching || pdlByStatusLoading || pdlByVisitationStatusLoading}
+                        dataSource={
+                        debouncedSearch
+                            ? (searchData?.results || []).map(mapPDL)
+                            : status !== "all"
+                                ? (pdlStatusData?.results || []).map(mapPDL)
+                                : visitation_status !== "all"
+                                ? (pdlVisitationStatusData?.results || []).map(mapPDL)
+                                : dataSource
+                        } 
                         columns={columns} 
                         pagination={{
                             current: page,
                             pageSize: limit,
-                            total: data?.count,
+                            total: totalRecords,
                             showSizeChanger: true, 
                             pageSizeOptions: ['10', '20', '50', '100'], 
                             onChange: (page, pageSize) => {
@@ -507,6 +734,12 @@ const menu = (
                                 setlimit(pageSize);
                             },
                         }} 
+                        onChange={(pagination, filters, sorter) => {
+                    setPage(pagination.current || 1);
+                        setstatusColumnFilter(filters.status as string[] || []);
+                        setvisitationColumnFilter(filters.visitation_status as string[] || []);
+                    }}
+                    rowKey="id"
                     />
                 </div>
             </div>

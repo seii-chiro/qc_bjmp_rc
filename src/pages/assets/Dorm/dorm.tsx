@@ -92,48 +92,18 @@ const Dorm = () => {
             dataIndex: "floor",
             key: "floor",
             sorter: (a, b) => a.floor - b.floor,
-            sortDirections: ["ascend", "descend"],
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.floor))
-                    ).map(floor => ({
-                        text: floor,
-                        value: floor,
-                    }))
-                ],
-                onFilter: (value, record) => record.floor === value,
         },
         {
             title: "Dorm No",
             dataIndex: "cell_no",
             key: "cell_no",
             sorter: (a, b) => a.cell_no - b.cell_no,
-            sortDirections: ["ascend", "descend"],
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.cell_no))
-                    ).map(cell_no => ({
-                        text: cell_no,
-                        value: cell_no,
-                    }))
-                ],
-                onFilter: (value, record) => record.cell_no === value,
         },
         {
             title: "Dorm Name",
             dataIndex: "cell_name",
             key: "cell_name",
             sorter: (a, b) => a.cell_name.localeCompare(b.cell_name),
-            sortDirections: ["ascend", "descend"],
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.cell_name))
-                    ).map(cell_name => ({
-                        text: cell_name,
-                        value: cell_name,
-                    }))
-                ],
-                onFilter: (value, record) => record.cell_name === value,
         },
         {
             title: "Action",

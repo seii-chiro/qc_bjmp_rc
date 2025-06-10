@@ -108,30 +108,12 @@ const DeviceType = () => {
             dataIndex: 'purpose',
             key: 'purpose',
             sorter: (a, b) => a.purpose.localeCompare(b.purpose),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.purpose))
-                ).map(purpose => ({
-                    text: purpose,
-                    value: purpose,
-                }))
-            ],
-            onFilter: (value, record) => record.purpose === value,
         },
         {
             title: 'Remarks',
             dataIndex: 'remarks',
             key: 'remarks',
             sorter: (a, b) => a.remarks.localeCompare(b.remarks),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.remarks))
-                ).map(remarks => ({
-                    text: remarks,
-                    value: remarks,
-                }))
-            ],
-            onFilter: (value, record) => record.remarks === value,
         },
         {
             title: 'Device Usage',
