@@ -26,7 +26,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
   const irisScannerTimeout = useSystemSettingsStore((state) => state?.irisScannerTimeout) || 60;
 
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
-  const [isFetching, setIsFetching] = useState(false);
+  // const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const [irisCapturePayload, setIrisCapturePayload] = useState<IrisCapturePayload>({ TimeOut: irisScannerTimeout, IrisSide: 0 })
@@ -100,7 +100,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
     }
 
     processingRef.current = true;
-    setIsFetching(true);
+    // setIsFetching(true);
     setError(null);
 
     try {
@@ -179,7 +179,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
       message.error(`Error: ${err.message}`);
       setError(err);
     } finally {
-      setIsFetching(false);
+      // setIsFetching(false);
       setTimeout(() => {
         processingRef.current = false;
       }, 1000);
@@ -189,21 +189,39 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
 
   // New function to handle verification that prevents duplicate processing
   const handleVerificationSuccess = (data: any) => {
-    message.info(data?.message === "Match found." ? "Match Found" : "No Matches Found");
+    const messageContent = data?.message === "Match found." ? "Match Found" : "No Matches Found"
 
     // Only process the data if a match was found AND we're not already processing
     if (data?.message === "Match found." && !processingRef.current) {
       processVisitorLog(data);
-      // setIrisVerificationResponse(data)
+      message.open({
+        key: 'iris-verification',
+        type: 'info',
+        content: messageContent,
+        duration: 3,
+      });
     }
   };
 
   const verifyIrisMutation = useMutation({
     mutationKey: ['iris-verification'],
     mutationFn: verifyIris,
+    onMutate: () => {
+      message.open({
+        key: 'iris-verification',
+        type: 'loading',
+        content: 'Verifying person’s iris...',
+        duration: 0,
+      });
+    },
     onSuccess: handleVerificationSuccess,
     onError: () => {
-      message.info("Match Not Found");
+      message.open({
+        key: 'iris-verification',
+        type: 'info',
+        content: 'Match Not Found',
+        duration: 3,
+      });
     },
   });
 
@@ -262,9 +280,9 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
     }
   });
 
-  if (isFetching) {
-    message.info("Processing scan...");
-  }
+  // if (isFetching) {
+  //   message.info("Processing scan...");
+  // }
 
   if (error) {
     message.error(`Error: ${error.message}`);

@@ -27,7 +27,7 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
     const fingerScannerTimeout = useSystemSettingsStore(state => state.fingerScannerTimeout);
 
     const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
-    const [isFetching, setIsFetching] = useState(false);
+    // const [isFetching, setIsFetching] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
     const [lastScannedPdl, setLastScannedPdl] = useState<any | null>(null);
@@ -151,16 +151,34 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
     const verifyFingerprintMutation = useMutation({
         mutationKey: ['fingerprint-verification'],
         mutationFn: verifyFingerprint,
+        onMutate: () => {
+            message.open({
+                key: 'fingerprint-verification',
+                type: 'loading',
+                content: 'Verifying person’s fingerprint(s)...',
+                duration: 0,
+            });
+        },
         onSuccess: (data) => {
             setFingerprintVerificationResult((prev: any[] | null) => {
                 const updatedResults = prev?.filter(item => item.data[0]?.subject_id !== data?.data[0]?.subject_id) || [];
                 return [...updatedResults, data];
             });
-            message.warning("Match Found");
+            message.open({
+                key: 'fingerprint-verification',
+                type: 'warning',
+                content: 'Match Found',
+                duration: 3,
+            });
         },
         onError: (error) => {
             console.error("Biometric enrollment failed:", error);
-            message.info("Match Not Found");
+            message.open({
+                key: 'fingerprint-verification',
+                type: 'info',
+                content: 'Match Not Found',
+                duration: 3,
+            });
         },
     });
 
@@ -201,7 +219,7 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
 
     useEffect(() => {
         const fetchVisitorLog = async () => {
-            setIsFetching(true);
+            // setIsFetching(true);
             setError(null);
 
             const isPDLStation = selectedArea?.toLowerCase() === "pdl station";
@@ -337,8 +355,6 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                 message.warning(isPDLStation ? "No person ID provided." : "No ID number provided.");
                 message.error(`Error: ${err.message}`);
                 setError(err);
-            } finally {
-                setIsFetching(false);
             }
         };
 
@@ -357,9 +373,9 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [LeftFingerResponse, RightFingerResponse, ThumbFingerResponse]);
 
-    if (isFetching) {
-        message.info("Processing scan...");
-    }
+    // if (isFetching) {
+    //     message.info("Processing scan...");
+    // }
 
     if (error) {
         message.error(`Error: ${error.message}`);
