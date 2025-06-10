@@ -23,7 +23,7 @@ import MultipleBirthSiblings from "./MultipleBirthSiblings";
 import Remarks from "./Remarks";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
 import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
-import { downloadBase64Image } from "@/functions/dowloadBase64Image";
+// import { downloadBase64Image } from "@/functions/dowloadBase64Image";
 import { sanitizeRFID } from "@/functions/sanitizeRFIDInput";
 
 const addPerson = async (payload: PersonForm, token: string) => {
@@ -497,7 +497,8 @@ const VisitorRegistration = () => {
                 !personForm.gender_id ||
                 !personForm.date_of_birth ||
                 !personForm.place_of_birth ||
-                !personForm.civil_status_id
+                !personForm.civil_status_id ||
+                !visitorForm?.id_number
             ) {
                 throw new Error("Please fill out all required fields");
             }
@@ -508,33 +509,26 @@ const VisitorRegistration = () => {
             const id = data?.id;
 
             try {
-                // First, run visitor mutation
-                const visitorRes = await addVisitorMutation.mutateAsync(id);
-
-                // Only generate QR if status is "Verified"
-                if (visitorRes?.visitor_app_status?.toLowerCase() === "verified") {
-                    // Get visitor QR from returned ID
-                    const qrRes = await fetch(`${BASE_URL}/api/visitors/visitor/${visitorRes.id}/`, {
-                        headers: {
-                            Authorization: `Token ${token}`,
-                        },
-                    });
-
-                    if (!qrRes.ok) {
-                        throw new Error("Failed to fetch QR code");
-                    }
-
-                    const qrData = await qrRes.json();
-                    const base64Image = qrData?.encrypted_id_number_qr;
-
-                    // Create a download link
-                    if (base64Image) {
-                        downloadBase64Image(
-                            base64Image,
-                            `visitor-${visitorRes?.person?.first_name}-${visitorRes?.person?.last_name}-qr.png`
-                        );
-                    }
-                }
+                await addVisitorMutation.mutateAsync(id);
+                // They have the option to generate ID so I commented this one out.
+                // if (visitorRes?.visitor_app_status?.toLowerCase() === "verified") {
+                //     const qrRes = await fetch(`${BASE_URL}/api/visitors/visitor/${visitorRes.id}/`, {
+                //         headers: {
+                //             Authorization: `Token ${token}`,
+                //         },
+                //     });
+                //     if (!qrRes.ok) {
+                //         throw new Error("Failed to fetch QR code");
+                //     }
+                //     const qrData = await qrRes.json();
+                //     const base64Image = qrData?.encrypted_id_number_qr;
+                //     if (base64Image) {
+                //         downloadBase64Image(
+                //             base64Image,
+                //             `visitor-${visitorRes?.person?.first_name}-${visitorRes?.person?.last_name}-qr.png`
+                //         );
+                //     }
+                // }
                 // Run biometric mutations
                 await Promise.all([
                     ...(enrollFormFace?.upload_data ? [enrollFaceMutation.mutateAsync(id)] : []),
@@ -1236,11 +1230,11 @@ const VisitorRegistration = () => {
 
                         <div className="flex items-center justify-between w-full gap-5">
                             <div className='flex flex-col mt-2 w-[18.5%]'>
-                                <div className='flex gap-1'>ID No.</div>
-                                <input
+                                <div className='flex gap-1'>ID No. <p className='text-red-600'>*</p></div>
+                                <Input
                                     value={visitorForm?.id_number ?? ""}
                                     type="text"
-                                    className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    className="mt-2 px-3 py-2 rounded-md"
                                     onChange={e => handleRFIDScan(e.target.value)}
                                 />
                             </div>
