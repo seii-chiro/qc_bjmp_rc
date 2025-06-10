@@ -55,22 +55,54 @@ const SummaryCountofPersonnel = () => {
         queryFn: fetchOrganization,
     });
 
-    const fetchPersonnel = async () => {
-        const res = await fetch(`${BASE_URL}/api/codes/personnel/`, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
+  // const { data: allPersonnelData, isFetching } = useQuery({
+  //     queryKey: [
+  //         "personnel",
+  //         "personnel-table",
+  //         page,
+  //         limit,
+  //     ],
 
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-    };
+  //     queryFn: async (): Promise<PaginatedResponse<PersonnelType>> => {
+  //         const offset = (page - 1) * limit;
+  //         const params = new URLSearchParams();
+  
+  //         params.append("page", String(page));
+  //         params.append("limit", String(limit));
+  //         params.append("offset", String(offset));
 
-    const { data: allPersonnel } = useQuery({
-        queryKey: ['personnel'],
-        queryFn: fetchPersonnel,
-    });
+  //         const res = await fetch(`${BASE_URL}/api/codes/personnel/?${params.toString()}`, {
+  //         headers: {
+  //             "Content-Type": "application/json",
+  //             Authorization: `Token ${token}`,
+  //         },
+  //         });
+  
+  //         if (!res.ok) {
+  //         throw new Error("Failed to fetch Personnel data.");
+  //         }
+  
+  //         return res.json();
+  //     },
+  //     enabled: !!token,
+  //     keepPreviousData: true,
+  // });
+
+  const { data: allPersonnelData } = useQuery({
+      queryKey: ["allPersonnel"],
+      queryFn: async () => {
+          const res = await fetch(`${BASE_URL}/api/codes/personnel/?limit=10000`, {
+              headers: {
+                  Authorization: `Token ${token}`,
+                  "Content-Type": "application/json",
+              },
+          });
+
+          if (!res.ok) throw new Error("Network error");
+          return res.json();
+      },
+      enabled: !!token, 
+  });
 
     const fetchCivilStatuses = async () => {
         const res = await fetch(`${BASE_URL}/api/codes/civil-statuses/`, {
@@ -212,7 +244,7 @@ const SummaryCountofPersonnel = () => {
   const { data: employmentTypeData } = useQuery({ queryKey: ['employment-type'], queryFn: fetchEmploymentType });
 
 
-  const filteredPersonnel = allPersonnel?.results?.filter(personnel => {
+  const filteredPersonnel = allPersonnelData?.results?.filter(personnel => {
     const civilMatch = !civilStatusFilter || personnel?.person?.civil_status === civilStatusFilter;
     const genderMatch = !genderFilter || personnel?.person?.gender?.gender_option === genderFilter;
     const personnelTypeMatch = !personnelTypeFilter || personnel?.personnel_type === personnelTypeFilter;
@@ -327,7 +359,7 @@ const SummaryCountofPersonnel = () => {
 
     const organizationName = organizationData?.results?.[0]?.organization_name || "Bureau of Jail Management and Penology";
 
-    const filteredPersonnel = allPersonnel?.results?.filter(personnel => {
+    const filteredPersonnel = allPersonnelData?.results?.filter(personnel => {
       const civilMatch = !civilStatusFilter || personnel?.person?.civil_status === civilStatusFilter;
       const genderMatch = !genderFilter || personnel?.person?.gender?.gender_option === genderFilter;
       const personnelTypeMatch = !personnelTypeFilter || personnel?.personnel_type === personnelTypeFilter;
@@ -366,7 +398,8 @@ const SummaryCountofPersonnel = () => {
       (statusCounts["Vacation Leave"] || 0) +
       (statusCounts["Maternity Leave"] || 0) +
       (statusCounts["Paternity Leave"] || 0) +
-      (statusCounts["Compensatory Leave"] || 0);
+      (statusCounts["Compensatory Leave"] || 0) +
+      (statusCounts["Absent Without Leave"] || 0);
     const totalDuty = onDuty + offDuty + onLeave;
 
     const docDefinition = {
@@ -498,7 +531,7 @@ const SummaryCountofPersonnel = () => {
     const organizationName = organizationData?.results?.[0]?.organization_name || "Bureau of Jail Management and Penology";
     const preparedByText = UserData ? `${UserData.first_name} ${UserData.last_name}` : '';
 
-  const filteredPersonnel = allPersonnel?.results?.filter(personnel => {
+  const filteredPersonnel = allPersonnelData?.results?.filter(personnel => {
     const civilMatch = !civilStatusFilter || personnel?.person?.civil_status === civilStatusFilter;
     const genderMatch = !genderFilter || personnel?.person?.gender?.gender_option === genderFilter;
     const personnelTypeMatch = !personnelTypeFilter || personnel?.personnel_type === personnelTypeFilter;
@@ -537,7 +570,8 @@ const SummaryCountofPersonnel = () => {
       (statusCounts["Vacation Leave"] || 0) +
       (statusCounts["Maternity Leave"] || 0) +
       (statusCounts["Paternity Leave"] || 0) +
-      (statusCounts["Compensatory Leave"] || 0);
+      (statusCounts["Compensatory Leave"] || 0) +
+          (statusCounts["Absent Without Leave"] || 0);
     const totalDuty = onDuty + offDuty + onLeave;
 
     // Construct Excel data

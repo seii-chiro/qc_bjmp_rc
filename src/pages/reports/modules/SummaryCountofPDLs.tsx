@@ -392,7 +392,7 @@ const SummaryCountofPDLs = () => {
     }, [occupationData]);
 
     const fetchPDLs = async () => {
-        const res = await fetch(`${BASE_URL}/api/pdls/pdl/`, {
+        const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
@@ -406,6 +406,7 @@ const SummaryCountofPDLs = () => {
     const { data: allPDLs } = useQuery({
         queryKey: ['pdls'],
         queryFn: fetchPDLs,
+        enabled: !!token,
     });
 
     const calculateDefaultCounts = () => {

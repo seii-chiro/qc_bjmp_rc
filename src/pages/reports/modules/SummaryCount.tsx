@@ -1,5 +1,5 @@
-import { getSummary_Card, getUser } from "@/lib/queries";
-import { getVisitor } from "@/lib/query";
+import { getSummary_Card, getUser, PaginatedResponse } from "@/lib/queries";
+import { Visitor as NewVisitorType } from "@/lib/pdl-definitions";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
 // import { Select } from "antd";
@@ -17,6 +17,8 @@ const SummaryCount = () => {
     const token = useTokenStore().token;
     const [selectedGroup, setSelectedGroup] = useState('All');
     const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10); 
 
     const handleSelectChange = (value) => {
         setSelectedGroup(value);
@@ -27,10 +29,27 @@ const SummaryCount = () => {
         queryFn: () => getSummary_Card(token ?? "")
     });
 
+    // const { data: visitorData } = useQuery({
+    //     queryKey: ['visitor'],
+    //     queryFn: () => getVisitor(token ?? "")
+    // });
+
     const { data: visitorData } = useQuery({
-        queryKey: ['visitor'],
-        queryFn: () => getVisitor(token ?? "")
+        queryKey: ["allVisitor"],
+        queryFn: async () => {
+            const res = await fetch(`${BASE_URL}/api/visitors/visitor/?limit=10000`, {
+                headers: {
+                    Authorization: `Token ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!res.ok) throw new Error("Network error");
+            return res.json();
+        },
+        enabled: !!token, 
     });
+
 
 
     const { data: UserData } = useQuery({

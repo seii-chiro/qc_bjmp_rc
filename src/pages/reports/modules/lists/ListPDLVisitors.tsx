@@ -121,17 +121,13 @@ const fetchMainGateVisits = async () => {
     const dataSource = (data?.results || []).map((visitor, index) => {
         const fullName = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
 
-        // Match using visitor id from the nested visitor object
         const matchingVisit = mainGateVisitData?.results?.find(
             (visit: any) => visit.visitor?.id === visitor.id
         );
-
-        // Get the timestamp in if available
         const timestampIn = matchingVisit?.tracking_logs?.[0]?.timestamp_in
             ? new Date(matchingVisit.tracking_logs[0].timestamp_in).toLocaleString()
             : 'No Timestamp Available';
 
-        // Extract inmate visited from the matched visit
         let inmate_visited = '';
         if (matchingVisit?.visitor?.pdls?.length > 0) {
             inmate_visited = matchingVisit.visitor.pdls
@@ -246,20 +242,39 @@ const pdlVisitorResults = dataToUse?.results || [];
 
 if (pdlVisitorResults.length > 0) {
     body = pdlVisitorResults.map((visitor: any, index: number) => {
-        const inmate_visited = visitor?.pdls?.map(visitor => {
-        const person = visitor?.pdl?.person;
-        return person
-            ? `${person.first_name} ${person.middle_name ?? ''} ${person.last_name}`.trim()
-            : null;
-    }).filter(Boolean).join(', ') || 'No Inmates Available';
-     const matchingVisit = mainGateVisitData?.results?.find(
-            (visit: any) => visit.visitor === visitor.id
+    //     const inmate_visited = visitor?.pdls?.map(visitor => {
+    //     const person = visitor?.pdl?.person;
+    //     return person
+    //         ? `${person.first_name} ${person.middle_name ?? ''} ${person.last_name}`.trim()
+    //         : null;
+    // }).filter(Boolean).join(', ') || 'No Inmates Available';
+    //  const matchingVisit = mainGateVisitData?.results?.find(
+    //         (visit: any) => visit.visitor === visitor.id
+    //     );
+
+    //     const timestampIn = matchingVisit?.timestamp_in
+    //         ? new Date(matchingVisit.timestamp_in).toLocaleString()
+    //         : 'No Timestamp Available';
+
+        const matchingVisit = mainGateVisitData?.results?.find(
+            (visit: any) => visit.visitor?.id === visitor.id
         );
-
-        const timestampIn = matchingVisit?.timestamp_in
-            ? new Date(matchingVisit.timestamp_in).toLocaleString()
+        const timestampIn = matchingVisit?.tracking_logs?.[0]?.timestamp_in
+            ? new Date(matchingVisit.tracking_logs[0].timestamp_in).toLocaleString()
             : 'No Timestamp Available';
-
+            
+        let inmate_visited = '';
+        if (matchingVisit?.visitor?.pdls?.length > 0) {
+            inmate_visited = matchingVisit.visitor.pdls
+                .map((pdlObj: any) => {
+                    const person = pdlObj?.pdl?.person;
+                    return person
+                        ? `${person.first_name ?? ''} ${person.middle_name ?? ''} ${person.last_name ?? ''}`.trim()
+                        : null;
+                })
+                .filter(Boolean)
+                .join(', ');
+        }
             return [
             (index + 1).toString(),
             visitor?.visitor_reg_no ?? '',
@@ -422,19 +437,40 @@ const downloadExcel = async () => {
         }
 
         const excelData = visitorList.map((visitor, index) => {
-            const inmate_visited = visitor?.pdls?.map(visitor => {
-        const person = visitor?.pdl?.person;
-        return person
-            ? `${person.first_name} ${person.middle_name ?? ''} ${person.last_name}`.trim()
-            : null;
-        }).filter(Boolean).join(', ') || 'No Inmates Available';
-         const matchingVisit = mainGateVisitData?.results?.find(
-            (visit: any) => visit.visitor === visitor.id
-        );
+        //     const inmate_visited = visitor?.pdls?.map(visitor => {
+        // const person = visitor?.pdl?.person;
+        // return person
+        //     ? `${person.first_name} ${person.middle_name ?? ''} ${person.last_name}`.trim()
+        //     : null;
+        // }).filter(Boolean).join(', ') || 'No Inmates Available';
+        //  const matchingVisit = mainGateVisitData?.results?.find(
+        //     (visit: any) => visit.visitor === visitor.id
+        // );
 
-        const timestampIn = matchingVisit?.timestamp_in
-            ? new Date(matchingVisit.timestamp_in).toLocaleString()
+        // const timestampIn = matchingVisit?.timestamp_in
+        //     ? new Date(matchingVisit.timestamp_in).toLocaleString()
+        //     : 'No Timestamp Available';
+
+        const matchingVisit = mainGateVisitData?.results?.find(
+            (visit: any) => visit.visitor?.id === visitor.id
+        );
+        const timestampIn = matchingVisit?.tracking_logs?.[0]?.timestamp_in
+            ? new Date(matchingVisit.tracking_logs[0].timestamp_in).toLocaleString()
             : 'No Timestamp Available';
+            
+        let inmate_visited = '';
+        if (matchingVisit?.visitor?.pdls?.length > 0) {
+            inmate_visited = matchingVisit.visitor.pdls
+                .map((pdlObj: any) => {
+                    const person = pdlObj?.pdl?.person;
+                    return person
+                        ? `${person.first_name ?? ''} ${person.middle_name ?? ''} ${person.last_name ?? ''}`.trim()
+                        : null;
+                })
+                .filter(Boolean)
+                .join(', ');
+        }
+
             return {
                 'No.': index + 1,
                 'Visitor Number': visitor?.visitor_reg_no ?? '',
@@ -482,19 +518,26 @@ const downloadCSV = async () => {
         ];
 
         const csvData = visitorList.map((visitor, index) => {
-            const inmate_visited = visitor?.pdls?.map(visitor => {
-        const person = visitor?.pdl?.person;
-        return person
-            ? `${person.first_name} ${person.middle_name ?? ''} ${person.last_name}`.trim()
-            : null;
-    }).filter(Boolean).join(', ') || 'No Inmates Available';
-     const matchingVisit = mainGateVisitData?.results?.find(
-            (visit: any) => visit.visitor === visitor.id
-        );
 
-        const timestampIn = matchingVisit?.timestamp_in
-            ? new Date(matchingVisit.timestamp_in).toLocaleString()
-            : 'No Timestamp Available';
+            const matchingVisit = mainGateVisitData?.results?.find(
+                (visit: any) => visit.visitor?.id === visitor.id
+            );
+            const timestampIn = matchingVisit?.tracking_logs?.[0]?.timestamp_in
+                ? new Date(matchingVisit.tracking_logs[0].timestamp_in).toLocaleString()
+                : 'No Timestamp Available';
+                
+            let inmate_visited = '';
+            if (matchingVisit?.visitor?.pdls?.length > 0) {
+                inmate_visited = matchingVisit.visitor.pdls
+                    .map((pdlObj: any) => {
+                        const person = pdlObj?.pdl?.person;
+                        return person
+                            ? `${person.first_name ?? ''} ${person.middle_name ?? ''} ${person.last_name ?? ''}`.trim()
+                            : null;
+                    })
+                    .filter(Boolean)
+                    .join(', ');
+            }
             return [
                 (index + 1).toString(),
             visitor?.visitor_reg_no ?? '',

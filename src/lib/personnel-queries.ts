@@ -328,3 +328,41 @@ export const patchPDLCategory = async (
 
     return response.json();
 };
+
+export const deleteNonPDLVisitorIL = async (token: string, id: number) => {
+    const response = await fetch(`${BASE_URL}/api/non-pdl-visitor/impact-levels/${id}/`, {
+        method: "DELETE",
+        headers: {
+        Authorization: `Token ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to delete Non PDL Visitor Impact Level");
+    }
+
+    const text = await response.text();
+    return text ? JSON.parse(text) : {};
+};
+
+export const patchNonPDLIL = async (
+    token: string,
+    id: number,
+    updatedData: any
+    ) => {
+    const url = `${BASE_URL}/api/non-pdl-visitor/impact-levels/${id}/`;
+    const response = await fetch(url, {
+        method: "PATCH",
+        headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify(updatedData),
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to update Non PDL Visitor Impact Level");
+    }
+
+    return response.json();
+};
