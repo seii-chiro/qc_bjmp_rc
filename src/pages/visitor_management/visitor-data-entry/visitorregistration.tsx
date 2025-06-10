@@ -23,7 +23,7 @@ import MultipleBirthSiblings from "./MultipleBirthSiblings";
 import Remarks from "./Remarks";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
 import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
-import { downloadBase64Image } from "@/functions/dowloadBase64Image";
+// import { downloadBase64Image } from "@/functions/dowloadBase64Image";
 import { sanitizeRFID } from "@/functions/sanitizeRFIDInput";
 
 const addPerson = async (payload: PersonForm, token: string) => {
@@ -135,11 +135,13 @@ const VisitorRegistration = () => {
         person_id: 0,
         visitor_type_id: 0,
         record_status_id: 1,
-        verified_by: 0,
-        approved_by: 0,
+        verified_by_id: 0,
+        approved_by_id: 0,
         pdl_data: [],
         remarks_data: [],
         id_number: null,
+        approved_at: null,
+        verified_at: null,
     })
 
     const [icao, setIcao] = useState("")
@@ -497,7 +499,8 @@ const VisitorRegistration = () => {
                 !personForm.gender_id ||
                 !personForm.date_of_birth ||
                 !personForm.place_of_birth ||
-                !personForm.civil_status_id
+                !personForm.civil_status_id ||
+                !visitorForm?.id_number
             ) {
                 throw new Error("Please fill out all required fields");
             }
@@ -508,33 +511,26 @@ const VisitorRegistration = () => {
             const id = data?.id;
 
             try {
-                // First, run visitor mutation
-                const visitorRes = await addVisitorMutation.mutateAsync(id);
-
-                // Only generate QR if status is "Verified"
-                if (visitorRes?.visitor_app_status?.toLowerCase() === "verified") {
-                    // Get visitor QR from returned ID
-                    const qrRes = await fetch(`${BASE_URL}/api/visitors/visitor/${visitorRes.id}/`, {
-                        headers: {
-                            Authorization: `Token ${token}`,
-                        },
-                    });
-
-                    if (!qrRes.ok) {
-                        throw new Error("Failed to fetch QR code");
-                    }
-
-                    const qrData = await qrRes.json();
-                    const base64Image = qrData?.encrypted_id_number_qr;
-
-                    // Create a download link
-                    if (base64Image) {
-                        downloadBase64Image(
-                            base64Image,
-                            `visitor-${visitorRes?.person?.first_name}-${visitorRes?.person?.last_name}-qr.png`
-                        );
-                    }
-                }
+                await addVisitorMutation.mutateAsync(id);
+                // They have the option to generate ID so I commented this one out.
+                // if (visitorRes?.visitor_app_status?.toLowerCase() === "verified") {
+                //     const qrRes = await fetch(`${BASE_URL}/api/visitors/visitor/${visitorRes.id}/`, {
+                //         headers: {
+                //             Authorization: `Token ${token}`,
+                //         },
+                //     });
+                //     if (!qrRes.ok) {
+                //         throw new Error("Failed to fetch QR code");
+                //     }
+                //     const qrData = await qrRes.json();
+                //     const base64Image = qrData?.encrypted_id_number_qr;
+                //     if (base64Image) {
+                //         downloadBase64Image(
+                //             base64Image,
+                //             `visitor-${visitorRes?.person?.first_name}-${visitorRes?.person?.last_name}-qr.png`
+                //         );
+                //     }
+                // }
                 // Run biometric mutations
                 await Promise.all([
                     ...(enrollFormFace?.upload_data ? [enrollFaceMutation.mutateAsync(id)] : []),
@@ -769,9 +765,9 @@ const VisitorRegistration = () => {
     useEffect(() => {
         setVisitorForm(prev => ({
             ...prev,
-            verified_by: currentUser?.id ?? 0
+            verified_by_id: currentUser?.id ?? 0
         }))
-    }, [visitorForm?.verified_by, currentUser?.id])
+    }, [visitorForm?.verified_by_id, currentUser?.id])
 
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""}`;
@@ -1206,7 +1202,11 @@ const VisitorRegistration = () => {
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Date Verified</div>
-                                <input type="date" className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100" />
+                                <input
+                                    type="date"
+                                    className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    onChange={e => setVisitorForm(prev => ({ ...prev, verified_at: e.target.value }))}
+                                />
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Approved By</div>
@@ -1220,7 +1220,7 @@ const VisitorRegistration = () => {
                                     onChange={value => {
                                         setVisitorForm(prev => ({
                                             ...prev,
-                                            approved_by: value
+                                            approved_by_id: value
                                         }))
                                     }}
                                 />
@@ -1230,17 +1230,18 @@ const VisitorRegistration = () => {
                                 <input
                                     type="date"
                                     className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    onChange={e => setVisitorForm(prev => ({ ...prev, approved_at: e.target.value }))}
                                 />
                             </div>
                         </div>
 
                         <div className="flex items-center justify-between w-full gap-5">
                             <div className='flex flex-col mt-2 w-[18.5%]'>
-                                <div className='flex gap-1'>ID No.</div>
-                                <input
+                                <div className='flex gap-1'>ID No. <p className='text-red-600'>*</p></div>
+                                <Input
                                     value={visitorForm?.id_number ?? ""}
                                     type="text"
-                                    className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    className="mt-2 px-3 py-2 rounded-md"
                                     onChange={e => handleRFIDScan(e.target.value)}
                                 />
                             </div>

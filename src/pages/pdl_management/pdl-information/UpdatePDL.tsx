@@ -61,6 +61,7 @@ import UpdateMultipleBirthSiblings from "./UpdateMultiBirthSibling";
 import UpdatePdlVisitor from "./UpdatePdlVisitor";
 import { EthnicityProvince } from "@/lib/definitions";
 import { Person } from "@/lib/pdl-definitions";
+import { EnrolledBiometrics } from "@/pages/visitor_management/edit-visitor/EditVisitor";
 
 const patchPerson = async (payload: PersonForm, token: string, id: string) => {
     const res = await fetch(`${PERSON.postPERSON}${id}/`, {
@@ -222,6 +223,22 @@ const UpdatePDL = () => {
         placeholderData: (previousData) => previousData,
         staleTime: 10 * 60 * 1000,
     });
+
+    const [enrolledBiometrics, setEnrolledBiometrics] = useState<EnrolledBiometrics>({
+        rightIrisIsEnrolled: false,
+        leftIrisIsEnrolled: false,
+        rightLittleIsEnrolled: false,
+        rightRingIsEnrolled: false,
+        rightMiddleIsEnrolled: false,
+        rightIndexIsEnrolled: false,
+        rightThumbIsEnrolled: false,
+        leftLittleIsEnrolled: false,
+        leftRingIsEnrolled: false,
+        leftMiddleIsEnrolled: false,
+        leftIndexIsEnrolled: false,
+        leftThumbIsEnrolled: false,
+        faceIsEnrolled: false,
+    })
 
     const [icao, setIcao] = useState("");
 
@@ -683,54 +700,48 @@ const UpdatePDL = () => {
             message.error("Person ID is not available.");
             return;
         }
-        patchPdlMutation.mutate();
-        patchPersonMutation.mutate();
 
         try {
+            // Patch basic info first
             await Promise.all([
-                ...(enrollFormFace?.upload_data
-                    ? [enrollFaceMutation.mutateAsync(pdlData?.person?.id)]
-                    : []),
-                ...(enrollFormLeftIris?.upload_data
-                    ? [enrollLeftMutation.mutateAsync(pdlData?.person?.id)]
-                    : []),
-                ...(enrollFormRightIris?.upload_data
-                    ? [enrollRightMutation.mutateAsync(pdlData?.person?.id)]
-                    : []),
-                ...(enrollLeftLittleFinger?.upload_data
-                    ? [enrollLeftLittleMutation.mutateAsync(pdlData?.person?.id)]
-                    : []),
-                ...(enrollLeftRingFinger?.upload_data
-                    ? [enrollLeftRingMutation.mutateAsync(pdlData?.person?.id)]
-                    : []),
-                ...(enrollLeftMiddleFinger?.upload_data
-                    ? [enrollLeftMiddleMutation.mutateAsync(pdlData?.person?.id)]
-                    : []),
-                ...(enrollLeftIndexFinger?.upload_data
-                    ? [enrollLeftIndexMutation.mutateAsync(pdlData?.person?.id)]
-                    : []),
-                ...(enrollLeftThumbFinger?.upload_data
-                    ? [enrollLeftThumbMutation.mutateAsync(pdlData?.person?.id)]
-                    : []),
-                ...(enrollRightLittleFinger?.upload_data
-                    ? [enrollRightLittleMutation.mutateAsync(pdlData?.person?.id)]
-                    : []),
-                ...(enrollRightRingFinger?.upload_data
-                    ? [enrollRightRingMutation.mutateAsync(pdlData?.person?.id)]
-                    : []),
-                ...(enrollRightMiddleFinger?.upload_data
-                    ? [enrollRightMiddleMutation.mutateAsync(pdlData?.person?.id)]
-                    : []),
-                ...(enrollRightIndexFinger?.upload_data
-                    ? [enrollRightIndexMutation.mutateAsync(pdlData?.person?.id)]
-                    : []),
-                ...(enrollRightThumbFinger?.upload_data
-                    ? [enrollRightThumbMutation.mutateAsync(pdlData?.person?.id)]
-                    : []),
+                patchPdlMutation.mutateAsync(),
+                patchPersonMutation.mutateAsync(),
             ]);
+
+            // Config-driven biometric checks
+            const biometricConfigs = [
+                { form: enrollFormFace, enrolledKey: "faceIsEnrolled", mutation: enrollFaceMutation, label: "Face" },
+                { form: enrollFormLeftIris, enrolledKey: "leftIrisIsEnrolled", mutation: enrollLeftMutation, label: "Left Iris" },
+                { form: enrollFormRightIris, enrolledKey: "rightIrisIsEnrolled", mutation: enrollRightMutation, label: "Right Iris" },
+                { form: enrollLeftLittleFinger, enrolledKey: "leftLittleIsEnrolled", mutation: enrollLeftLittleMutation, label: "Left Little Finger" },
+                { form: enrollLeftRingFinger, enrolledKey: "leftRingIsEnrolled", mutation: enrollLeftRingMutation, label: "Left Ring Finger" },
+                { form: enrollLeftMiddleFinger, enrolledKey: "leftMiddleIsEnrolled", mutation: enrollLeftMiddleMutation, label: "Left Middle Finger" },
+                { form: enrollLeftIndexFinger, enrolledKey: "leftIndexIsEnrolled", mutation: enrollLeftIndexMutation, label: "Left Index Finger" },
+                { form: enrollLeftThumbFinger, enrolledKey: "leftThumbIsEnrolled", mutation: enrollLeftThumbMutation, label: "Left Thumb Finger" },
+                { form: enrollRightLittleFinger, enrolledKey: "rightLittleIsEnrolled", mutation: enrollRightLittleMutation, label: "Right Little Finger" },
+                { form: enrollRightRingFinger, enrolledKey: "rightRingIsEnrolled", mutation: enrollRightRingMutation, label: "Right Ring Finger" },
+                { form: enrollRightMiddleFinger, enrolledKey: "rightMiddleIsEnrolled", mutation: enrollRightMiddleMutation, label: "Right Middle Finger" },
+                { form: enrollRightIndexFinger, enrolledKey: "rightIndexIsEnrolled", mutation: enrollRightIndexMutation, label: "Right Index Finger" },
+                { form: enrollRightThumbFinger, enrolledKey: "rightThumbIsEnrolled", mutation: enrollRightThumbMutation, label: "Right Thumb Finger" },
+            ];
+
+            const enrollmentTasks = biometricConfigs.flatMap(({ form, enrolledKey, mutation, label }) => {
+                if (form?.upload_data) {
+                    if ((enrolledBiometrics as any)[enrolledKey]) {
+                        message.info(`${label} is already enrolled. Skipping...`);
+                        return [];
+                    }
+                    return [mutation.mutateAsync(pdlData.person.id)];
+                }
+                return [];
+            });
+
+            await Promise.all(enrollmentTasks);
+
+            message.success("Successfully updated PDL information.");
         } catch (err) {
             console.error("Enrollment error:", err);
-            message?.error("Some enrollment steps failed");
+            message.error("Some enrollment steps failed.");
         }
     };
 
@@ -1895,6 +1906,7 @@ const UpdatePDL = () => {
 
             {/**Biometrics */}
             <VisitorProfile
+                setEnrolledBiometrics={setEnrolledBiometrics}
                 inputGender={chosenGender}
                 visitorToEdit={pdlData}
                 icao={icao}

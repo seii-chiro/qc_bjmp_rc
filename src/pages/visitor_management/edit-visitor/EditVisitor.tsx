@@ -29,6 +29,22 @@ import UpdateMultipleBirthSiblings from "@/pages/pdl_management/pdl-information/
 import Remarks from "../visitor-data-entry/Remarks";
 import { sanitizeRFID } from "@/functions/sanitizeRFIDInput";
 
+export type EnrolledBiometrics = {
+    rightIrisIsEnrolled: boolean;
+    leftIrisIsEnrolled: boolean;
+    rightLittleIsEnrolled: boolean;
+    rightRingIsEnrolled: boolean;
+    rightMiddleIsEnrolled: boolean;
+    rightIndexIsEnrolled: boolean;
+    rightThumbIsEnrolled: boolean;
+    leftLittleIsEnrolled: boolean;
+    leftRingIsEnrolled: boolean;
+    leftMiddleIsEnrolled: boolean;
+    leftIndexIsEnrolled: boolean;
+    leftThumbIsEnrolled: boolean;
+    faceIsEnrolled: boolean;
+}
+
 const patchPerson = async (payload: PersonForm, token: string, id: string) => {
     const res = await fetch(`${PERSON.postPERSON}${id}/`, {
         method: "PATCH",
@@ -124,11 +140,8 @@ const VisitorRegistration = () => {
         affiliation_id: [],
     })
     const [visitorForm, setVisitorForm] = useState<VisitorForm>({
-        created_by: "",
-        create_at: "",
-        approved_at: "",
-        approved_by: 1,
-        approved_by_id: 1,
+        approved_at: null,
+        approved_by_id: null,
         id_number: null,
         jail_id: 1,
         org_id: 1,
@@ -137,9 +150,8 @@ const VisitorRegistration = () => {
         remarks: "",
         remarks_data: [],
         shortname: "",
-        verified_at: "",
-        verified_by: 1,
-        verified_by_id: 1,
+        verified_at: null,
+        verified_by_id: null,
         visited_pdl_have_twins: false,
         visited_pdl_twin_name: "",
         visitor_app_status_id: null,
@@ -149,11 +161,27 @@ const VisitorRegistration = () => {
         visitor_type_id: 1,
     })
 
+    const [enrolledBiometrics, setEnrolledBiometrics] = useState<EnrolledBiometrics>({
+        rightIrisIsEnrolled: false,
+        leftIrisIsEnrolled: false,
+        rightLittleIsEnrolled: false,
+        rightRingIsEnrolled: false,
+        rightMiddleIsEnrolled: false,
+        rightIndexIsEnrolled: false,
+        rightThumbIsEnrolled: false,
+        leftLittleIsEnrolled: false,
+        leftRingIsEnrolled: false,
+        leftMiddleIsEnrolled: false,
+        leftIndexIsEnrolled: false,
+        leftThumbIsEnrolled: false,
+        faceIsEnrolled: false,
+    })
+
     const [icao, setIcao] = useState("")
 
     const [enrollFormFace, setEnrollFormFace] = useState<BiometricRecordFace>(
         {
-            remarks: "Test",
+            remarks: "",
             person: 0,
             biometric_type: "face",
             position: "face",
@@ -614,34 +642,46 @@ const VisitorRegistration = () => {
         }
 
         try {
-            // Wait for patch operations first
+            // Patch basic info first
             await Promise.all([
                 patchVisitorMutation.mutateAsync(),
                 patchPersonMutation.mutateAsync(),
             ]);
 
-            // Then perform enrollment mutations
-            await Promise.all([
-                ...(enrollFormFace?.upload_data ? [enrollFaceMutation.mutateAsync(visitorData.person.id)] : []),
-                ...(enrollFormLeftIris?.upload_data ? [enrollLeftMutation.mutateAsync(visitorData.person.id)] : []),
-                ...(enrollFormRightIris?.upload_data ? [enrollRightMutation.mutateAsync(visitorData.person.id)] : []),
-                ...(enrollLeftLittleFinger?.upload_data ? [enrollLeftLittleMutation.mutateAsync(visitorData.person.id)] : []),
-                ...(enrollLeftRingFinger?.upload_data ? [enrollLeftRingMutation.mutateAsync(visitorData.person.id)] : []),
-                ...(enrollLeftMiddleFinger?.upload_data ? [enrollLeftMiddleMutation.mutateAsync(visitorData.person.id)] : []),
-                ...(enrollLeftIndexFinger?.upload_data ? [enrollLeftIndexMutation.mutateAsync(visitorData.person.id)] : []),
-                ...(enrollLeftThumbFinger?.upload_data ? [enrollLeftThumbMutation.mutateAsync(visitorData.person.id)] : []),
-                ...(enrollRightLittleFinger?.upload_data ? [enrollRightLittleMutation.mutateAsync(visitorData.person.id)] : []),
-                ...(enrollRightRingFinger?.upload_data ? [enrollRightRingMutation.mutateAsync(visitorData.person.id)] : []),
-                ...(enrollRightMiddleFinger?.upload_data ? [enrollRightMiddleMutation.mutateAsync(visitorData.person.id)] : []),
-                ...(enrollRightIndexFinger?.upload_data ? [enrollRightIndexMutation.mutateAsync(visitorData.person.id)] : []),
-                ...(enrollRightThumbFinger?.upload_data ? [enrollRightThumbMutation.mutateAsync(visitorData.person.id)] : []),
-            ]);
+            // Config-driven biometric checks
+            const biometricConfigs = [
+                { form: enrollFormFace, enrolledKey: "faceIsEnrolled", mutation: enrollFaceMutation, label: "Face" },
+                { form: enrollFormLeftIris, enrolledKey: "leftIrisIsEnrolled", mutation: enrollLeftMutation, label: "Left Iris" },
+                { form: enrollFormRightIris, enrolledKey: "rightIrisIsEnrolled", mutation: enrollRightMutation, label: "Right Iris" },
+                { form: enrollLeftLittleFinger, enrolledKey: "leftLittleIsEnrolled", mutation: enrollLeftLittleMutation, label: "Left Little Finger" },
+                { form: enrollLeftRingFinger, enrolledKey: "leftRingIsEnrolled", mutation: enrollLeftRingMutation, label: "Left Ring Finger" },
+                { form: enrollLeftMiddleFinger, enrolledKey: "leftMiddleIsEnrolled", mutation: enrollLeftMiddleMutation, label: "Left Middle Finger" },
+                { form: enrollLeftIndexFinger, enrolledKey: "leftIndexIsEnrolled", mutation: enrollLeftIndexMutation, label: "Left Index Finger" },
+                { form: enrollLeftThumbFinger, enrolledKey: "leftThumbIsEnrolled", mutation: enrollLeftThumbMutation, label: "Left Thumb Finger" },
+                { form: enrollRightLittleFinger, enrolledKey: "rightLittleIsEnrolled", mutation: enrollRightLittleMutation, label: "Right Little Finger" },
+                { form: enrollRightRingFinger, enrolledKey: "rightRingIsEnrolled", mutation: enrollRightRingMutation, label: "Right Ring Finger" },
+                { form: enrollRightMiddleFinger, enrolledKey: "rightMiddleIsEnrolled", mutation: enrollRightMiddleMutation, label: "Right Middle Finger" },
+                { form: enrollRightIndexFinger, enrolledKey: "rightIndexIsEnrolled", mutation: enrollRightIndexMutation, label: "Right Index Finger" },
+                { form: enrollRightThumbFinger, enrolledKey: "rightThumbIsEnrolled", mutation: enrollRightThumbMutation, label: "Right Thumb Finger" },
+            ];
 
-            message.success("Visitor updated and biometric data enrolled.");
+            const enrollmentTasks = biometricConfigs.flatMap(({ form, enrolledKey, mutation, label }) => {
+                if (form?.upload_data) {
+                    if ((enrolledBiometrics as any)[enrolledKey]) {
+                        message.info(`${label} is already enrolled. Skipping...`);
+                        return [];
+                    }
+                    return [mutation.mutateAsync(visitorData.person.id)];
+                }
+                return [];
+            });
 
+            await Promise.all(enrollmentTasks);
+
+            message.success("Successfully updated visitor information.");
         } catch (err) {
             console.error("Enrollment error:", err);
-            message?.error("Some enrollment steps failed");
+            message.error("Some enrollment steps failed.");
         }
     };
 
@@ -852,6 +892,10 @@ const VisitorRegistration = () => {
             skill_id: visitorData?.person?.skill ?? [],
             talent_id: visitorData?.person?.talent ?? [],
             interest_id: visitorData?.person?.interest ?? [],
+            media_data: visitorData?.person.media?.map((media: any) => ({
+                ...media,
+                media_base64: media?.media_binary
+            })) ?? [],
             media_identifier_data: visitorData?.person?.media_identifiers ?? [],
             media_requirement_data: visitorData?.person?.media_requirements ?? [],
             diagnosis_data: visitorData?.person?.diagnoses ?? [],
@@ -883,9 +927,11 @@ const VisitorRegistration = () => {
             })) ?? [],
             visitor_app_status_id: visitorData?.visitor_app_status_id ?? prev.visitor_app_status_id ?? 1,
             record_status_id: visitorData?.record_status_id ?? prev.record_status_id ?? 1,
-            verified_by_id: visitorData?.verified_by_id ?? currentUser?.id ?? null,
-            approved_by_id: visitorData?.approved_by_id ?? prev.approved_by ?? currentUser?.id ?? null,
-            pdl_data: visitorData?.pdls?.map((pdl: { pdl: { id: any; }; relationship_to_pdl: string; }) => ({
+            verified_by_id: users?.find(user => user?.email === visitorData?.verified_by)?.id ?? null,
+            approved_by_id: users?.find(user => user?.email === visitorData?.approved_by)?.id ?? null,
+            pdl_data: visitorData?.pdls?.map((pdl: {
+                pdl: any; relationship_to_pdl: string;
+            }) => ({
                 ...pdl,
                 pdl_id: pdl?.pdl?.id,
                 last_name: pdl?.pdl?.person?.last_name,
@@ -906,7 +952,7 @@ const VisitorRegistration = () => {
         }));
     }, [visitorData, barangays, civilStatuses, countries, currentUser?.id, municipalities, nationalities, provinces, regions, relationships, users]);
 
-    // console.log("Person Form", personForm)
+    console.log("Visitor Form", visitorForm)
 
     const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
 
@@ -1276,6 +1322,7 @@ const VisitorRegistration = () => {
             </Modal>
 
             <VisitorProfile
+                setEnrolledBiometrics={setEnrolledBiometrics}
                 inputGender={chosenGender}
                 visitorToEdit={visitorData}
                 icao={icao}
@@ -1357,9 +1404,7 @@ const VisitorRegistration = () => {
                                 <input
                                     type="date"
                                     className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
-                                    value={
-                                        visitorForm?.verified_at ? visitorForm.verified_at.split('T')[0] : ''
-                                    }
+                                    value={visitorForm?.verified_at?.split("T")?.[0] ?? ""}
                                     onChange={e => {
                                         const date = e.target.value;
                                         setVisitorForm(prev => ({
@@ -1372,7 +1417,7 @@ const VisitorRegistration = () => {
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Approved By</div>
                                 <Select
-                                    value={visitorForm?.approved_by ?? null}
+                                    value={visitorForm?.approved_by_id ?? null}
                                     loading={userLoading}
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={users?.map((user) => ({
@@ -1391,10 +1436,8 @@ const VisitorRegistration = () => {
                                 <div className='flex gap-1'>Date Approved</div>
                                 <input
                                     type="date"
+                                    value={visitorForm?.approved_at?.split("T")?.[0] ?? ""}
                                     className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
-                                    value={
-                                        visitorForm?.approved_at ? visitorForm.approved_at.split('T')[0] : ''
-                                    }
                                     onChange={e => {
                                         const date = e.target.value;
                                         setVisitorForm(prev => ({

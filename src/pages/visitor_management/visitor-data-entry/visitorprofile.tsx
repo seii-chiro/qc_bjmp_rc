@@ -16,9 +16,10 @@ import { Signature } from "./Signature";
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useSystemSettingsStore } from "@/store/useSystemSettingStore";
-
+import { EnrolledBiometrics } from "../edit-visitor/EditVisitor";
 
 type Props = {
+    setEnrolledBiometrics?: Dispatch<SetStateAction<EnrolledBiometrics>>;
     visitorToEdit?: any;
     inputGender: string;
     setPersonForm: Dispatch<SetStateAction<PersonForm>>;
@@ -63,7 +64,8 @@ const VisitorProfile = ({
     enrollFormRightIris,
     setEnrollFormFace,
     visitorToEdit,
-    inputGender
+    inputGender,
+    setEnrolledBiometrics
 }: Props) => {
     const token = useTokenStore()?.token;
     const faceHandle = useFullScreenHandle();
@@ -302,6 +304,194 @@ const VisitorProfile = ({
         }
 
     }, [visitorToEdit?.person?.media]);
+
+    useEffect(() => {
+        const biometricArray = visitorToEdit?.person?.biometrics ?? [];
+
+        const rightIris = biometricArray.find((biometric: { position: string; }) => biometric?.position === "iris_right")?.data
+        const leftIris = biometricArray.find((biometric: { position: string; }) => biometric?.position === "iris_left")?.data
+
+        const face = biometricArray.find((biometric: { position: string; }) => biometric?.position === "face")?.data
+
+        const rightLittle = biometricArray.find((biometric: { position: string; }) => biometric?.position === "finger_right_little")?.data
+        const rightRing = biometricArray.find((biometric: { position: string; }) => biometric?.position === "finger_right_ring")?.data
+        const rightMiddle = biometricArray.find((biometric: { position: string; }) => biometric?.position === "finger_right_middle")?.data
+        const rightIndex = biometricArray.find((biometric: { position: string; }) => biometric?.position === "finger_right_index")?.data
+        const rightThumb = biometricArray.find((biometric: { position: string; }) => biometric?.position === "finger_right_thumb")?.data
+
+        const leftLittle = biometricArray.find((biometric: { position: string; }) => biometric?.position === "finger_left_little")?.data
+        const leftRing = biometricArray.find((biometric: { position: string; }) => biometric?.position === "finger_left_ring")?.data
+        const leftMiddle = biometricArray.find((biometric: { position: string; }) => biometric?.position === "finger_left_middle")?.data
+        const leftIndex = biometricArray.find((biometric: { position: string; }) => biometric?.position === "finger_left_index")?.data
+        const leftThumb = biometricArray.find((biometric: { position: string; }) => biometric?.position === "finger_left_thumb")?.data
+
+        if (rightIris) {
+            setEnrollFormRightIris(prev => ({
+                ...prev,
+                upload_data: rightIris
+            }))
+            if (setEnrolledBiometrics) {
+                setEnrolledBiometrics(prev => ({
+                    ...prev,
+                    rightIrisIsEnrolled: true
+                }));
+            }
+        }
+
+        if (leftIris) {
+            setEnrollFormLeftIris(prev => ({
+                ...prev,
+                upload_data: leftIris
+            }))
+            if (setEnrolledBiometrics) {
+                setEnrolledBiometrics(prev => ({
+                    ...prev,
+                    leftIrisIsEnrolled: true
+                }));
+            }
+        }
+
+        if (face) {
+            setIcao(face)
+            if (setEnrolledBiometrics) {
+                setEnrolledBiometrics(prev => ({
+                    ...prev,
+                    faceIsEnrolled: true
+                }));
+            }
+        }
+
+        if (rightLittle) {
+            setEnrollRightLittleFinger(prev => ({
+                ...prev,
+                upload_data: rightLittle
+            }))
+            if (setEnrolledBiometrics) {
+                setEnrolledBiometrics(prev => ({
+                    ...prev,
+                    rightLittleIsEnrolled: true
+                }));
+            }
+        }
+
+        if (rightRing) {
+            setEnrollRightRingFinger(prev => ({
+                ...prev,
+                upload_data: rightRing
+            }))
+            if (setEnrolledBiometrics) {
+                setEnrolledBiometrics(prev => ({
+                    ...prev,
+                    rightRingIsEnrolled: true
+                }));
+            }
+        }
+
+        if (rightMiddle) {
+            setEnrollRightMiddleFinger(prev => ({
+                ...prev,
+                upload_data: rightMiddle
+            }))
+            if (setEnrolledBiometrics) {
+                setEnrolledBiometrics(prev => ({
+                    ...prev,
+                    rightMiddleIsEnrolled: true
+                }));
+            }
+        }
+
+        if (rightIndex) {
+            setEnrollRightIndexFinger(prev => ({
+                ...prev,
+                upload_data: rightIndex
+            }))
+            if (setEnrolledBiometrics) {
+                setEnrolledBiometrics(prev => ({
+                    ...prev,
+                    rightIndexIsEnrolled: true
+                }));
+            }
+        }
+
+        if (rightThumb) {
+            setEnrollRightThumbFinger(prev => ({
+                ...prev,
+                upload_data: rightThumb
+            }))
+            if (setEnrolledBiometrics) {
+                setEnrolledBiometrics(prev => ({
+                    ...prev,
+                    rightThumbIsEnrolled: true
+                }));
+            }
+        }
+
+        if (leftLittle) {
+            setEnrollLeftLittleFinger(prev => ({
+                ...prev,
+                upload_data: leftLittle
+            }))
+            if (setEnrolledBiometrics) {
+                setEnrolledBiometrics(prev => ({
+                    ...prev,
+                    leftLittleIsEnrolled: true
+                }));
+            }
+        }
+
+        if (leftRing) {
+            setEnrollLeftRingFinger(prev => ({
+                ...prev,
+                upload_data: leftRing
+            }))
+            if (setEnrolledBiometrics) {
+                setEnrolledBiometrics(prev => ({
+                    ...prev,
+                    leftRingIsEnrolled: true
+                }));
+            }
+        }
+
+        if (leftMiddle) {
+            setEnrollLeftMiddleFinger(prev => ({
+                ...prev,
+                upload_data: leftMiddle
+            }))
+            if (setEnrolledBiometrics) {
+                setEnrolledBiometrics(prev => ({
+                    ...prev,
+                    leftMiddleIsEnrolled: true
+                }));
+            }
+        }
+
+        if (leftIndex) {
+            setEnrollLeftIndexFinger(prev => ({
+                ...prev,
+                upload_data: leftIndex
+            }))
+            if (setEnrolledBiometrics) {
+                setEnrolledBiometrics(prev => ({
+                    ...prev,
+                    leftIndexIsEnrolled: true
+                }));
+            }
+        }
+
+        if (leftThumb) {
+            setEnrollLeftThumbFinger(prev => ({
+                ...prev,
+                upload_data: leftThumb
+            }))
+            if (setEnrolledBiometrics) {
+                setEnrolledBiometrics(prev => ({
+                    ...prev,
+                    leftThumbIsEnrolled: true
+                }));
+            }
+        }
+
+    }, [visitorToEdit?.person?.biometrics])
 
     // UseEffect to update the enrollment data when LeftFingerResponse or RightFingerResponse changes
     useEffect(() => {
@@ -926,6 +1116,8 @@ const VisitorProfile = ({
         irisScannerUninitThenInitMutation.mutate()
         fingerScannerUninitThenInitMutation.mutate()
     }, [])
+
+    console.log(visitorToEdit)
 
     return (
         <div className="w-full mt-5">
