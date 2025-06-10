@@ -135,11 +135,13 @@ const VisitorRegistration = () => {
         person_id: 0,
         visitor_type_id: 0,
         record_status_id: 1,
-        verified_by: 0,
-        approved_by: 0,
+        verified_by_id: 0,
+        approved_by_id: 0,
         pdl_data: [],
         remarks_data: [],
         id_number: null,
+        approved_at: null,
+        verified_at: null,
     })
 
     const [icao, setIcao] = useState("")
@@ -763,9 +765,9 @@ const VisitorRegistration = () => {
     useEffect(() => {
         setVisitorForm(prev => ({
             ...prev,
-            verified_by: currentUser?.id ?? 0
+            verified_by_id: currentUser?.id ?? 0
         }))
-    }, [visitorForm?.verified_by, currentUser?.id])
+    }, [visitorForm?.verified_by_id, currentUser?.id])
 
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""}`;
@@ -1200,7 +1202,11 @@ const VisitorRegistration = () => {
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Date Verified</div>
-                                <input type="date" className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100" />
+                                <input
+                                    type="date"
+                                    className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    onChange={e => setVisitorForm(prev => ({ ...prev, verified_at: e.target.value }))}
+                                />
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Approved By</div>
@@ -1214,7 +1220,7 @@ const VisitorRegistration = () => {
                                     onChange={value => {
                                         setVisitorForm(prev => ({
                                             ...prev,
-                                            approved_by: value
+                                            approved_by_id: value
                                         }))
                                     }}
                                 />
@@ -1224,6 +1230,7 @@ const VisitorRegistration = () => {
                                 <input
                                     type="date"
                                     className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    onChange={e => setVisitorForm(prev => ({ ...prev, approved_at: e.target.value }))}
                                 />
                             </div>
                         </div>
