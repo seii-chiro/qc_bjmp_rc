@@ -2,7 +2,7 @@
 import { BASE_URL } from '@/lib/urls'
 import { useTokenStore } from '@/store/useTokenStore'
 import { useQuery } from '@tanstack/react-query'
-import { Select } from 'antd'
+import { message, Select } from 'antd'
 import { useEffect, useState } from 'react'
 import img_placeholder from "@/assets/img_placeholder.jpg"
 import { toPng } from 'html-to-image';
@@ -60,7 +60,7 @@ const VisitorID = () => {
     });
 
     // Fetch visitor-specific logs when a visitor is chosen
-    const { data: specificVisitor } = useQuery({
+    const { data: specificVisitor, isLoading: specificVisitorLoading, isError: specificVisitorError } = useQuery({
         queryKey: ['visitor-specific-logs', chosenVisitor],
         queryFn: async () => {
             if (!chosenVisitor) return [];
@@ -76,8 +76,10 @@ const VisitorID = () => {
             if (!res.ok) throw new Error("Failed to fetch visitor logs");
             return res.json();
         },
-        enabled: !!chosenVisitor, // Only run when chosenVisitor is set
+        enabled: !!chosenVisitor,
     });
+
+    const specificVisitorReady = !specificVisitorLoading && !specificVisitorError
 
     const handleDownloadAll = async () => {
         const zip = new JSZip();
@@ -104,6 +106,26 @@ const VisitorID = () => {
         });
     };
 
+    useEffect(() => {
+        // Only show loading message if we have a chosen visitor and are currently loading
+        if (chosenVisitor && specificVisitorLoading) {
+            message.open({
+                key: 'searching-chosen-visitor',
+                type: 'loading',
+                content: 'Fetching visitor information...',
+                duration: 0,
+            });
+        } else if (chosenVisitor && specificVisitorReady) {
+            // Only show success message if we have a chosen visitor and data is ready
+            message.open({
+                key: 'searching-chosen-visitor',
+                type: 'success',
+                content: 'Process complete!',
+                duration: 2,
+            });
+        }
+    }, [specificVisitorLoading, specificVisitorReady, chosenVisitor])
+
     return (
         <div>
             <div className='w-full h-full flex flex-col gap-10 mt-10'>
@@ -115,11 +137,20 @@ const VisitorID = () => {
                         placeholder='Select Visitor'
                         className='w-72 h-10'
                         value={chosenVisitor}
-                        options={visitors?.results?.map((visitor: { id_number: any; person: { first_name: any; middle_name: any; last_name: any } }) => ({
-                            value: visitor.id_number,
-                            label: `${visitor?.person?.first_name ?? ""} ${visitor?.person?.middle_name ?? ""} ${visitor?.person?.last_name ?? ""}`,
-                        })) ?? []}
-                        onChange={value => setChosenVisitor(value)}
+                        options={visitors?.results
+                            ?.filter((visitor: { id_number: any }) => visitor.id_number) // Filter out visitors without id_number
+                            ?.map((visitor: { id_number: any; person: { first_name: any; middle_name: any; last_name: any } }) => ({
+                                value: visitor.id_number,
+                                label: `${visitor?.person?.first_name ?? ""} ${visitor?.person?.middle_name ?? ""} ${visitor?.person?.last_name ?? ""}`,
+                            })) ?? []}
+                        onChange={value => {
+                            if (value.trim() === "" || !value) {
+                                message.warning("The chosen visitor have no ID Number")
+                                return
+                            }
+
+                            setChosenVisitor(value)
+                        }}
                         notFoundContent={visitorsLoading || isFetching ? <span>Loading...</span> : 'No visitors found'}
                         onSearch={value => {
                             setSearchQuery(value);
