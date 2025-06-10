@@ -185,12 +185,14 @@ export type VisitorForm = {
   visitor_app_status_id: number | null;
   org_id?: number;
   jail_id?: number;
-  person_id: number;
+  person_id?: number;
   visitor_type_id: number;
   record_status_id: number;
   pdl_data: VisitorPdl[];
-  verified_by: number;
-  approved_by: number;
+  verified_by_id: number | null;
+  verified_at: string | null;
+  approved_by_id: number | null;
+  approved_at: string | null;
   remarks_data: RemarksData[];
   id_number: number | null;
 };
