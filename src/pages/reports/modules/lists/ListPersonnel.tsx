@@ -4,7 +4,7 @@ import { getUser, PaginatedResponse } from "@/lib/queries";
 import { BASE_URL } from "@/lib/urls";
 import { PersonnelForm } from "@/lib/visitorFormDefinition";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Dropdown, Menu, Spin, Table } from "antd";
 import { ColumnType } from "antd/es/table";
 import { useEffect, useState } from "react";
@@ -13,28 +13,84 @@ import * as XLSX from 'xlsx';
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import logoBase64 from "../../assets/logoBase64";
+import { useSearchParams } from "react-router-dom";
+import { Personnel } from "@/lib/pdl-definitions";
 pdfMake.vfs = pdfFonts.vfs;
 
 const ListPersonnel = () => {
     const token = useTokenStore().token; 
+    const [searchText, setSearchText] = useState("");
     const [personnel, setPersonnel] = useState([]);
     const [loadingMessage, setLoadingMessage] = useState('');
     const [personnelLoading, setPersonnelLoading] = useState(true);
     const [downloadLoading, setDownloadLoading] = useState<'pdf' | 'excel' | 'csv' | null>(null);
-    
-    // const [pdfDataUrl, setPdfDataUrl] = useState('');
+    const [rankFilter, setRankFilter] = useState<string[]>([]);
+    const [statusFilter, setStatusFilter] = useState<string[]>([]);
+    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
-    // const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
 
+    const fetchPersonnels = async (search: string) => {
+        const res = await fetch(`${BASE_URL}/api/codes/personnel/?search=${search}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    useEffect(() => {
+        const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
+        return () => clearTimeout(timeout);
+    }, [searchText]);
+
+    const { data: searchData, isLoading: searchLoading } = useQuery({
+        queryKey: ["personnel", debouncedSearch],
+        queryFn: () => fetchPersonnels(debouncedSearch),
+        behavior: keepPreviousData(),
+        enabled: debouncedSearch.length > 0,
+    });
+
     const { data, isFetching, error } = useQuery({
-        queryKey: ['personnel', 'personnel-table', page, limit],
+        queryKey: ['personnel', 'personnel-table', page, limit,        statusFilter, rankFilter,],
         queryFn: async (): Promise<PaginatedResponse<PersonnelType>> => {
             const offset = (page - 1) * limit;
-            const res = await fetch(
-                `${BASE_URL}/api/codes/personnel/?page=${page}&limit=${limit}&offset=${offset}`,
+            const params = new URLSearchParams();
+
+            params.append("page", String(page));
+            params.append("limit", String(limit));
+            params.append("offset", String(offset));
+            if (statusFilter.length > 0) {
+            params.append("status", statusFilter.join(","));
+            }
+
+            if (rankFilter.length > 0) {
+                const rankNames: string[] = [];
+                const rankCodes: string[] = [];
+
+                rankFilter.forEach((item) => {
+                    const match = item.match(/^(.*)\(([^()]+)\)$/);
+                    if (match) {
+                    rankNames.push(match[1].trim());
+                    rankCodes.push(match[2].trim());
+                    }
+                });
+
+                if (rankNames.length > 0) {
+                    params.append("rank_name", rankNames.join(","));
+                }
+
+                if (rankCodes.length > 0) {
+                    params.append("rank_code", rankCodes.join(","));
+                }
+            }
+
+            const res = await fetch(`${BASE_URL}/api/codes/personnel/?${params.toString()}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -51,6 +107,138 @@ const ListPersonnel = () => {
         },
         keepPreviousData: true,
     });
+
+    const [searchParams] = useSearchParams();
+const status = searchParams.get("status") || "all";
+    const statusList = status !== "all" ? status.split(",").map(decodeURIComponent) : [];
+    
+    const { data: personnelStatusData, isLoading: personnelByStatusLoading } = useQuery({
+        queryKey: ['personnel', 'personnel-table', page, statusList],
+        queryFn: async (): Promise<PaginatedResponse<PersonnelType>> => {
+            const offset = (page - 1) * limit;
+            const res = await fetch(
+                `${BASE_URL}/api/codes/personnel/?status=${encodeURIComponent(statusList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+    
+            if (!res.ok) {
+                throw new Error('Failed to fetch Personnel Status data.');
+            }
+    
+            return res.json();
+        },
+        enabled: !!token,
+    });
+
+    const rank = searchParams.get("rank") || "all";
+    const rankList = rank !== "all" ? rank.split(",").map(decodeURIComponent) : [];
+
+    const { data: personnelRankData, isLoading: personnelByRankLoading } = useQuery({
+        queryKey: ['personnel', 'personnel-table', page, rankList],
+        queryFn: async (): Promise<PaginatedResponse<PersonnelType>> => {
+            const offset = (page - 1) * limit;
+            const params = new URLSearchParams();
+
+            params.append("page", String(page));
+            params.append("limit", String(limit));
+            params.append("offset", String(offset));
+
+            const rankNames: string[] = [];
+            const rankCodes: string[] = [];
+
+            rankList.forEach((item) => {
+                const match = item.match(/^(.*)\(([^()]+)\)\s*\(([^()]+)\)$/);
+                if (match) {
+                    const name = `${match[1].trim()}(${match[2].trim()})`;
+                    const code = match[3].trim();                       
+                    rankNames.push(name);
+                    rankCodes.push(code);
+                }
+            });
+
+            if (rankNames.length > 0) {
+                params.append("rank_name", rankNames.join(","));
+            }
+
+            if (rankCodes.length > 0) {
+                params.append("rank_code", rankCodes.join(","));
+            }
+
+            const res = await fetch(
+                `${BASE_URL}/api/codes/personnel/?${params.toString()}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch Personnel Rank data.');
+            }
+
+            return res.json();
+        },
+        enabled: !!token,
+    });
+
+    useEffect(() => {
+        if (statusList.length > 0 && JSON.stringify(statusFilter) !== JSON.stringify(statusList)) {
+            setStatusFilter(statusList);
+        }
+    }, [statusList, statusFilter]);
+
+    useEffect(() => {
+        if (rankList.length > 0 && JSON.stringify(rankFilter) !== JSON.stringify(rankList)) {
+            setRankFilter(rankList);
+        }
+    }, [rankList, rankFilter]);
+        
+    const { data: rankData } = useQuery({
+    queryKey: ['rank-options'],
+    queryFn: async () => {
+        const res = await fetch(`${BASE_URL}/api/codes/ranks/`, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+        },
+        });
+        if (!res.ok) throw new Error('Failed to fetch ranks');
+        return res.json();
+    },
+    enabled: !!token,
+    });
+
+    const { data: statusData } = useQuery({
+        queryKey: ['status-option'],
+        queryFn: async () => {
+            const res = await fetch(`${BASE_URL}/api/codes/personnel-status/`, {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Token ${token}`,
+            },
+            });
+            if (!res.ok) throw new Error('Failed to fetch Status');
+            return res.json();
+        },
+        enabled: !!token,
+    });
+
+    const rankFilters = rankData?.results?.map(rank => ({
+    text: `${rank.rank_name} (${rank.rank_code})`,
+    value: `${rank.rank_name} (${rank.rank_code})`,
+    })) ?? [];
+
+    const statusFilters = statusData?.results?.map(status => ({
+    text: status.name,
+    value: status.name ,
+    })) ?? [];
 
     const fetchOrganization = async () => {
         const res = await fetch(`${BASE_URL}/api/codes/organizations/`, {
@@ -122,7 +310,7 @@ const ListPersonnel = () => {
         };
     }) || [];
 
-    const columns: ColumnType<PersonnelForm>[] = [
+    const columns: ColumnType<Personnel>[] = [
         {
             title: 'No.',
             key: 'no',
@@ -137,6 +325,7 @@ const ListPersonnel = () => {
             title: 'Full Name',
             dataIndex: 'person',
             key: 'person',
+            sorter: (a, b) => a.person.localeCompare(b.person),
         },
         {
             title: 'Position',
@@ -147,6 +336,9 @@ const ListPersonnel = () => {
             title: 'Rank/Grade',
             dataIndex: 'rank',
             key: 'rank',
+            filters: rankFilters,
+            filteredValue: rankFilter,
+            onFilter: (value, record) => record.rank === value,
         },
         {
             title: 'Department/Unit',
@@ -157,6 +349,10 @@ const ListPersonnel = () => {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
+            filters: statusFilters
+            ,
+            filteredValue: statusFilter,
+            onFilter: (value, record) => record.status === value,
         },
         {
             title: 'Contact No.',
@@ -195,11 +391,34 @@ const ListPersonnel = () => {
 
             let body: any[][] = [];
             
-            const dataToUse = await fetchAllPersonnel();
-const personnelResults = dataToUse?.results || [];
+            let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllPersonnel();
+            } else {
+                allData = await fetchPersonnels(searchText.trim());
+            }
+            const allResults = allData?.results || [];
 
-if (personnelResults.length > 0) {
-    body = personnelResults.map((person: any, index: number) => {
+            const filteredResults = allResults.filter(personnel => {
+                const statusValue = personnel?.status ?? '';
+                const rankValue = personnel?.rank ?? '';
+
+                const matchesGlobalStatus = status === "all" || statusValue === status;
+                const matchesGlobalRank = rank === "all" || rankValue === rank;
+
+                const matchesColumnStatus = statusFilter.length === 0 || statusFilter.includes(statusValue);
+                const matchesColumnRank = rankFilter.length === 0 || rankFilter.includes(rankValue);
+
+                return (
+                    matchesGlobalStatus &&
+                    matchesColumnStatus &&
+                    matchesColumnRank &&
+                    matchesGlobalRank
+                );
+            });
+
+if (filteredResults.length > 0) {
+    body = filteredResults.map((person: any, index: number) => {
             const phoneContact = person?.person?.contacts?.find((contact: any) => contact.type === 'Phone');
             const emailContact = person?.person?.contacts?.find((contact: any) => contact.type === 'Email');
 
@@ -357,15 +576,33 @@ if (personnelResults.length > 0) {
 
 const downloadExcel = async () => {
     try {
-        const response = await fetchAllPersonnel(); 
-        const personnelList = response?.results || [];
+        let allData;
+                if (searchText.trim() === '') {
+                    allData = await fetchAllPersonnel();
+                } else {
+                    allData = await fetchPersonnels(searchText.trim());
+                }
+                const allResults = allData?.results || [];
 
-        if (personnelList.length === 0) {
-            console.error('No personnel data available for export.');
-            return;
-        }
+                const filteredResults = allResults.filter(personnel => {
+                    const statusValue = personnel?.status ?? '';
+                    const rankValue = personnel?.rank ?? '';
 
-        const excelData = personnelList.map((person, index) => {
+                    const matchesGlobalStatus = status === "all" || statusValue === status;
+                    const matchesGlobalRank = rank === "all" || rankValue === rank;
+
+                    const matchesColumnStatus = statusFilter.length === 0 || statusFilter.includes(statusValue);
+                    const matchesColumnRank = rankFilter.length === 0 || rankFilter.includes(rankValue);
+
+                    return (
+                        matchesGlobalStatus &&
+                        matchesColumnStatus &&
+                        matchesColumnRank &&
+                        matchesGlobalRank
+                    );
+                });
+
+        const excelData = filteredResults.map((person, index) => {
             const phoneContact = person?.person?.contacts?.find(contact => contact.type === 'Phone');
             const emailContact = person?.person?.contacts?.find(contact => contact.type === 'Email');
 
@@ -395,13 +632,32 @@ const downloadExcel = async () => {
 
 const downloadCSV = async () => {
     try {
-        const response = await fetchAllPersonnel();
-        const personnelList = response?.results || [];
 
-        if (personnelList.length === 0) {
-            console.error('No personnel data available for export.');
-            return;
-        }
+        let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllPersonnel();
+            } else {
+                allData = await fetchPersonnels(searchText.trim());
+            }
+            const allResults = allData?.results || [];
+
+            const filteredResults = allResults.filter(personnel => {
+                const statusValue = personnel?.status ?? '';
+                const rankValue = personnel?.rank ?? '';
+
+                const matchesGlobalStatus = status === "all" || statusValue === status;
+                const matchesGlobalRank = rank === "all" || rankValue === rank;
+
+                const matchesColumnStatus = statusFilter.length === 0 || statusFilter.includes(statusValue);
+                const matchesColumnRank = rankFilter.length === 0 || rankFilter.includes(rankValue);
+
+                return (
+                    matchesGlobalStatus &&
+                    matchesColumnStatus &&
+                    matchesColumnRank &&
+                    matchesGlobalRank
+                );
+            });
 
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
@@ -417,7 +673,7 @@ const downloadCSV = async () => {
             'Email'
         ];
 
-        const csvData = personnelList.map((person, index) => {
+        const csvData = filteredResults.map((person, index) => {
             const phoneContact = person?.person?.contacts?.find(contact => contact.type === 'Phone');
             const emailContact = person?.person?.contacts?.find(contact => contact.type === 'Email');
 
@@ -493,36 +749,74 @@ const menu = (
     </Menu>
 );
 
+    const totalRecords = debouncedSearch 
+    ? data?.count || 0
+    : status !== "all"
+    ? personnelStatusData?.count || 0
+    : rank !== "all"
+    ? personnelRankData?.count || 0
+    : data?.count || 0; 
+    
+    const mapPersonnel = (personnel, index) => ({
+        id: personnel?.id,
+        key: index + 1,
+        organization: personnel?.organization ?? '',
+        personnel_reg_no: personnel?.personnel_reg_no ?? '',
+        person: `${personnel?.person?.first_name ?? ''} ${personnel?.person?.middle_name ?? ''} ${personnel?.person?.last_name ?? ''}`,
+        shortname: personnel?.person?.shortname ?? '',
+        rank: personnel?.rank ?? '',
+        status: personnel?.status ?? '',
+        gender: personnel?.person?.gender?.gender_option ?? '',
+        date_joined: personnel?.date_joined ?? '',
+        record_status: personnel?.record_status ?? '',
+        updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+    });
 
-if (isFetching) return <Spinner />;
-    if (error) return <p>Error: {error.message}</p>;
-    return (
-        <div className="md:px-10">
-            <div className="my-5 flex justify-between">
-                <h1 className="text-2xl font-bold text-[#1E365D]">List of Personnel</h1>
-                <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-    <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
-        <GoDownload /> {downloadLoading ? 'Processing...' : 'Download'}
-    </a>
-</Dropdown>
+        if (isFetching) return <Spinner />;
+            if (error) return <p>Error: {error.message}</p>;
+            return (
+                <div className="md:px-10">
+                    <div className="my-5 flex justify-between">
+                        <h1 className="text-2xl font-bold text-[#1E365D]">List of Personnel</h1>
+                        <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
+            <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
+                <GoDownload /> {downloadLoading ? 'Processing...' : 'Download'}
+            </a>
+        </Dropdown>
             </div>
             <div>
                 <div className="overflow-x-auto rounded-lg border border-gray-200 mt-2 shadow-sm">
-                    <Table 
-                        dataSource={dataSource} 
-                        columns={columns} 
-                        pagination={{
-                            current: page,
-                            pageSize: limit,
-                            total: data?.count,
-                            showSizeChanger: true, 
-                            pageSizeOptions: ['10', '20', '50', '100'], 
-                            onChange: (page, pageSize) => {
-                                setPage(page);
-                                setLimit(pageSize);
-                            },
-                        }} 
-                    />
+            <Table
+                loading={isFetching || searchLoading || personnelByStatusLoading || personnelByRankLoading}
+                columns={columns}
+                dataSource={
+                    debouncedSearch
+                        ? (searchData?.results || []).map(mapPersonnel)
+                        : status !== "all"
+                            ? (personnelStatusData?.results || []).map(mapPersonnel)
+                        : rank !== "all"
+                            ? (personnelRankData?.results || []).map(mapPersonnel)
+                            : dataSource
+                }
+                scroll={{ x: 800}}
+                pagination={{
+                    current: page,
+                    pageSize: limit,
+                    total: totalRecords,
+                    pageSizeOptions: ['10', '20', '50', '100'],
+                    showSizeChanger: true, 
+                    onChange: (newPage, newPageSize) => {
+                        setPage(newPage);
+                        setLimit(newPageSize); 
+                    },
+                    }} 
+                    onChange={(pagination, filters, sorter) => {
+                        setStatusFilter(filters.status as string[] ?? []);
+                        setRankFilter(filters.rank as string[] ?? []);
+                    }}
+                rowKey="id"
+                
+            />
                 </div>
             </div>
         </div>

@@ -89,30 +89,12 @@ const RecordStatus = () => {
             dataIndex: 'status',
             key: 'status',
             sorter: (a, b) => a.status.localeCompare(b.status), 
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.status))
-                ).map(status => ({
-                    text: status,
-                    value: status,
-                }))
-            ],
-            onFilter: (value, record) => record.status === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.description))
-                ).map(description => ({
-                    text: description,
-                    value: description,
-                }))
-            ],
-            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",

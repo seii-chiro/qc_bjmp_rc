@@ -6,13 +6,13 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Dropdown, Form, Input, Menu, message, Modal } from "antd";
-import Table, { ColumnsType } from "antd/es/table";
+import { Button, Dropdown, Form, Input, Menu, message, Modal, Space } from "antd";
+import Table from "antd/es/table";
 import { useEffect, useRef, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
-import { data, NavLink, useSearchParams } from "react-router-dom";
+import { NavLink, useSearchParams } from "react-router-dom";
 import { BASE_URL } from "@/lib/urls";
 import { PaginatedResponse } from "@/pages/personnel_management/personnel/personnel-backup";
 
@@ -60,21 +60,22 @@ const PDLtable = () => {
     });
 
     const { data, isFetching } = useQuery({
-        queryKey: ["pdls", "pdl-table", page, limit, genderColumnFilter, statusColumnFilter],
+        queryKey: ["pdls", "pdl-table", page, limit, genderColumnFilter, statusColumnFilter, visitationColumnFilter],
         queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
             const offset = (page - 1) * limit;
             const params = new URLSearchParams();
             params.append("page", String(page));
             params.append("limit", String(limit));
             params.append("offset", String(offset));
+
             if (genderColumnFilter.length > 0) {
-            params.append("gender", genderColumnFilter.map(encodeURIComponent).join(","));
+                params.append("gender", genderColumnFilter.join(","));
             }
             if (statusColumnFilter.length > 0) {
-            params.append("status", statusColumnFilter.map(encodeURIComponent).join(","));
+                params.append("status", statusColumnFilter.join(","));
             }
             if (visitationColumnFilter.length > 0) {
-            params.append("visitation_status", visitationColumnFilter.map(encodeURIComponent).join(","));
+                params.append("visitation_status", visitationColumnFilter.join(","));
             }
 
             const res = await fetch(`${BASE_URL}/api/pdls/pdl/?${params.toString()}`, {
@@ -159,10 +160,6 @@ const PDLtable = () => {
             enabled: !!token,
         });
 
-    // const genderFilteredPDLIds = new Set(
-    //     (pdlsGenderData?.results || []).map(pdl => pdl.id)
-    // );
-
     const status = searchParams.get("status") || "all";
     const statusList = status !== "all" ? status.split(",").map(decodeURIComponent) : [];
 
@@ -200,11 +197,6 @@ const PDLtable = () => {
             },
         enabled: !!token,
     });
-    // const statusFilteredPDLIds = new Set(
-    //     (pdlStatusData?.results || []).map(pdl => pdl.id)
-    // );
-
-    // VISITATION STATUS
 
     const visitation_status = searchParams.get("visitation_status") || "all";
     const visitationList = visitation_status !== "all" ? visitation_status.split(",").map(decodeURIComponent) : [];
@@ -237,6 +229,27 @@ const PDLtable = () => {
                 },
             enabled: !!token,
         });
+
+    const { data: visitationStatusData } = useQuery({
+    queryKey: ['visitation-status'],
+    queryFn: async () => {
+        const res = await fetch(`${BASE_URL}/api/pdls/pdl-visitation-statuses/`, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+        },
+        });
+        if (!res.ok) throw new Error('Failed to fetch Visitation Status');
+        return res.json();
+    },
+    enabled: !!token,
+    });
+
+    const visitationFilters = visitationStatusData?.results?.map(visitation => ({
+    text: visitation.name,
+    value: visitation.name,
+    })) ?? [];
+        
     const dataSource = (data?.results || []).map((pdl, index) => {
         const address = [
             pdl?.person?.addresses?.[0]?.barangay,
@@ -251,7 +264,7 @@ const PDLtable = () => {
             key: index + 1,
             id: pdl?.id,
             name: `${pdl?.person?.first_name ?? ""} ${pdl?.person?.middle_name ?? ""} ${pdl?.person?.last_name ?? ""}`.trim(),
-            gender: pdl?.person?.gender?.gender_option ?? "",
+            gender: pdl?.person?.gender?.gender_option?.trim() ?? "",
             status: pdl?.status ?? "",
             visitation_status: pdl?.visitation_status,
             address,
@@ -271,36 +284,40 @@ const PDLtable = () => {
         sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
-        title: "Gender",
-        dataIndex: "gender",
-        key: "gender",
+        title: 'Gender',
+        dataIndex: 'gender',
+        key: 'gender',
         sorter: (a, b) => a.gender.localeCompare(b.gender),
-        filters: Array.from(new Set(data?.results.map((p) => p.person?.gender?.gender_option))).filter(Boolean).map((gender) => ({ text: gender, value: gender })),
+        filters: [
+            { text: 'Male', value: 'Male' },
+            { text: 'LGBTQ + GAY / BISEXUAL', value: 'LGBTQ + GAY / BISEXUAL' },
+            { text: 'LGBTQ + TRANSGENDER', value: 'LGBTQ + TRANSGENDER' },
+        ],
         filteredValue: genderColumnFilter,
+        onFilter: (value, record) => record.gender === value,
     },
     {
-        title: "Status",
-        dataIndex: "status",
-        key: "status",
-        filters: Array.from(new Set(data?.results.map((p) => p.status))).filter(Boolean).map((status) => ({ text: status, value: status })),
+        title: 'Status',
+        dataIndex: 'status',
+        key: 'status',
+        sorter: (a, b) => a.status.localeCompare(b.status),
+        filters: [
+            { text: 'Committed', value: 'Committed' },
+            { text: 'Convicted', value: 'Convicted' },
+            { text: 'Released', value: 'Released' },
+            { text: 'Hospitalized', value: 'Hospitalized' },
+        ],
         filteredValue: statusColumnFilter,
         onFilter: (value, record) => record.status === value,
     },
     {
-        title: "Visitation Status",
-        dataIndex: "visitation_status",
-        key: "visitation_status",
-        filters: Array.from(
-            new Set(data?.results.map((p) => p.visitation_status))
-        )
-            .filter(Boolean)
-            .map((visitation_status) => ({
-                text: visitation_status,
-                value: visitation_status,
-            })),
+        title: 'Visitation Status',
+        dataIndex: 'visitation_status',
+        key: 'visitation_status',
+        sorter: (a, b) => a.visitation_status.localeCompare(b.visitation_status),
+        filters: visitationFilters,
         filteredValue: visitationColumnFilter,
-        onFilter: (value, record) =>
-  (record.visitation_status || '').trim().toLowerCase() === (value as string).trim().toLowerCase(),
+        onFilter: (value, record) => record.visitation_status === value,
     },
     {
         title: "Address",
@@ -364,17 +381,14 @@ const PDLtable = () => {
             const statusValue = pdl?.status ?? '';
             const visitationStatusValue = pdl?.visitation_status ?? '';
 
-            // Global filter logic: "all" means no filter, else match exact
             const matchesGlobalGender = gender === "all" || genderValue === gender;
             const matchesGlobalStatus = status === "all" || statusValue === status;
             const matchesGlobalVisitationStatus = visitation_status === "all" || visitationStatusValue === visitation_status;
 
-            // Column filter logic: empty array means no filter, else match any in array
             const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
             const matchesColumnStatus = statusColumnFilter.length === 0 || statusColumnFilter.includes(statusValue);
             const matchesColumnVisitation = visitationColumnFilter.length === 0 || visitationColumnFilter.includes(visitationStatusValue);
 
-            // Combine both: must pass both global AND column filters
             return (
                 matchesGlobalGender &&
                 matchesGlobalStatus &&
@@ -500,16 +514,38 @@ const PDLtable = () => {
     const handleExportExcel = async () => {
         setIsLoading(true);
         try {
-            const fullDataSource = await fetchAllPDLs(); 
+                let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllPDLs();
+            } else {
+                allData = await fetchPDLs(searchText.trim());
+            }
+        const allResults = allData?.results || [];
 
-            // Filter data based on gender and status
-            const filteredData = fullDataSource?.results.filter(pdl => {
-                const matchesGender = gender === "all" || pdl?.person?.gender?.gender_option === gender;
-                const matchesStatus = status === "all" || pdl?.status === status;
-                return matchesGender && matchesStatus;
-            }) || [];
+        const filteredResults = allResults.filter(pdl => {
+            const genderValue = pdl?.person?.gender?.gender_option ?? '';
+            const statusValue = pdl?.status ?? '';
+            const visitationStatusValue = pdl?.visitation_status ?? '';
 
-            const exportData = filteredData.map(pdl => {
+            const matchesGlobalGender = gender === "all" || genderValue === gender;
+            const matchesGlobalStatus = status === "all" || statusValue === status;
+            const matchesGlobalVisitationStatus = visitation_status === "all" || visitationStatusValue === visitation_status;
+
+            const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
+            const matchesColumnStatus = statusColumnFilter.length === 0 || statusColumnFilter.includes(statusValue);
+            const matchesColumnVisitation = visitationColumnFilter.length === 0 || visitationColumnFilter.includes(visitationStatusValue);
+
+            return (
+                matchesGlobalGender &&
+                matchesGlobalStatus &&
+                matchesColumnGender &&
+                matchesColumnStatus &&
+                matchesColumnVisitation &&
+                matchesGlobalVisitationStatus
+            );
+            });
+
+            const exportData = filteredResults.map(pdl => {
                 const name = `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ? pdl?.person?.middle_name[0] + '.' : ''} ${pdl?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
                 return {
                     "Name": name,
@@ -536,16 +572,38 @@ const PDLtable = () => {
     const handleExportCSV = async () => {
         setIsLoading(true);
         try {
-            const fullDataSource = await fetchAllPDLs();
+                let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllPDLs();
+            } else {
+                allData = await fetchPDLs(searchText.trim());
+            }
+        const allResults = allData?.results || [];
 
-            // Filter data based on gender and status
-            const filteredData = fullDataSource?.results.filter(pdl => {
-                const matchesGender = gender === "all" || pdl?.person?.gender?.gender_option === gender;
-                const matchesStatus = status === "all" || pdl?.status === status;
-                return matchesGender && matchesStatus;
-            }) || [];
+        const filteredResults = allResults.filter(pdl => {
+            const genderValue = pdl?.person?.gender?.gender_option ?? '';
+            const statusValue = pdl?.status ?? '';
+            const visitationStatusValue = pdl?.visitation_status ?? '';
 
-            const exportData = filteredData.map(pdl => {
+            const matchesGlobalGender = gender === "all" || genderValue === gender;
+            const matchesGlobalStatus = status === "all" || statusValue === status;
+            const matchesGlobalVisitationStatus = visitation_status === "all" || visitationStatusValue === visitation_status;
+
+            const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
+            const matchesColumnStatus = statusColumnFilter.length === 0 || statusColumnFilter.includes(statusValue);
+            const matchesColumnVisitation = visitationColumnFilter.length === 0 || visitationColumnFilter.includes(visitationStatusValue);
+
+            return (
+                matchesGlobalGender &&
+                matchesGlobalStatus &&
+                matchesColumnGender &&
+                matchesColumnStatus &&
+                matchesColumnVisitation &&
+                matchesGlobalVisitationStatus
+            );
+            });
+
+            const exportData = filteredResults.map(pdl => {
                 const name = `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ? pdl?.person?.middle_name[0] + '.' : ''} ${pdl?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim();
                 return {
                     "Name": name,
@@ -558,8 +616,8 @@ const PDLtable = () => {
             }) || [];
 
             const csvContent = [
-                Object.keys(exportData[0]).join(","), // Header row
-                ...exportData.map(item => Object.values(item).join(",")) // Data rows
+                Object.keys(exportData[0]).join(","), 
+                ...exportData.map(item => Object.values(item).join(","))
             ].join("\n");
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -579,7 +637,7 @@ const PDLtable = () => {
     const menu = (
         <Menu>
             <Menu.Item>
-                <a onClick={handleExportExcel} disabled={isLoading}> {/* Disable if loading */}
+                <a onClick={handleExportExcel} disabled={isLoading}>
                     {isLoading ? <span className="loader"></span> : 'Export Excel'}
                 </a>
             </Menu.Item>
@@ -591,7 +649,7 @@ const PDLtable = () => {
         </Menu>
     );
 
-        const totalRecords = debouncedSearch 
+    const totalRecords = debouncedSearch 
     ? data?.count || 0
     : gender !== "all" 
     ? pdlsGenderData?.count || 0 
@@ -630,7 +688,7 @@ const PDLtable = () => {
                 <div className="flex gap-2">
                     <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
                         <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
-                            {isLoading ? <span className="loader"></span> : <GoDownload />} {/* Adding loader */}
+                            {isLoading ? <span className="loader"></span> : <GoDownload />}
                             {isLoading ? ' Loading...' : ' Export'}
                         </a>
                     </Dropdown>

@@ -119,29 +119,6 @@ const Visitor = () => {
         enabled: debouncedSearch.length > 0,
     });
 
-    // const { data, isFetching } = useQuery({
-    //     queryKey: ['visitors', 'visitor-table', page, limit],
-    //     queryFn: async (): Promise<PaginatedResponse<NewVisitorType>> => {
-    //         // Add offset parameter for Django REST Framework's pagination
-    //         const offset = (page - 1) * limit;
-    //         const res = await fetch(
-    //             `${BASE_URL}/api/visitors/visitor/?page=${page}&limit=${limit}&offset=${offset}`,
-    //             {
-    //                 headers: {
-    //                     'Content-Type': 'application/json',
-    //                     Authorization: `Token ${token}`,
-    //                 },
-    //             }
-    //         );
-
-    //         if (!res.ok) {
-    //             throw new Error('Failed to fetch Visitors data.');
-    //         }
-
-    //         return res.json();
-    //     },
-    //     behavior: keepPreviousData(),
-    // });
 const { data, isFetching } = useQuery({
     queryKey: ['visitors', 'visitor-table', page, limit, genderColumnFilter, visitorTypeColumnFilter],
     queryFn: async (): Promise<PaginatedResponse<NewVisitorType>> => {
@@ -153,10 +130,10 @@ const { data, isFetching } = useQuery({
         params.append('offset', String(offset));
 
         if (genderColumnFilter.length > 0) {
-        params.append('gender', genderColumnFilter.map(encodeURIComponent).join(','));
+            params.append("gender", genderColumnFilter.join(","));
         }
         if (visitorTypeColumnFilter.length > 0) {
-        params.append('visitor_type', visitorTypeColumnFilter.map(encodeURIComponent).join(','));
+            params.append("visitor_type", visitorTypeColumnFilter.join(","));
         }
 
         const res = await fetch(
@@ -253,10 +230,6 @@ const { data, isFetching } = useQuery({
         enabled: !!token,
     });
 
-    // const genderFilteredVisitorIds = new Set(
-    //     (visitorGenderData?.results || []).map(visitor => visitor.id)
-    // );
-
     const visitorType = searchParams.get("visitor_type") || "all";
     const visitorTypeList = visitorType !== "all" ? visitorType.split(",").map(decodeURIComponent) : [];
 
@@ -283,6 +256,46 @@ const { data, isFetching } = useQuery({
         enabled: !!token,
     });
 
+    const { data: genderData } = useQuery({
+    queryKey: ['gender-option'],
+    queryFn: async () => {
+        const res = await fetch(`${BASE_URL}/api/codes/genders/`, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+        },
+        });
+        if (!res.ok) throw new Error('Failed to fetch genders');
+        return res.json();
+    },
+    enabled: !!token,
+    });
+    
+    const genderFilters = genderData?.results?.map(gender => ({
+    text: gender.gender_option,
+    value: gender.gender_option,
+    })) ?? [];
+
+        const { data: typeData } = useQuery({
+        queryKey: ['type-option'],
+        queryFn: async () => {
+            const res = await fetch(`${BASE_URL}/api/codes/visitor-types/`, {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Token ${token}`,
+            },
+            });
+            if (!res.ok) throw new Error('Failed to fetch Visitor Type');
+            return res.json();
+        },
+        enabled: !!token,
+        });
+
+    const visitorTypeFilters = typeData?.results?.map(type => ({
+    text: type.visitor_type,
+    value: type.visitor_type,
+    })) ?? [];
+
     const dataSource = (data?.results || []).map((visitor, index) => {
     const barangay = visitor?.person?.addresses[0]?.barangay || '';
     const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
@@ -301,7 +314,7 @@ const { data, isFetching } = useQuery({
         full_address: visitor?.person?.addresses[0]?.full_address ?? '',
         address: address,
         gender: visitor?.person?.gender?.gender_option ?? '',
-        organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
+        organization: visitor?.org ?? 'Bureau of Jail Management and Penology',
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     };
     });
@@ -331,29 +344,22 @@ const { data, isFetching } = useQuery({
             },
         },
         {
-        title: 'Gender',
-        dataIndex: 'gender',
-        key: 'gender',
-        sorter: (a, b) => a.gender.localeCompare(b.gender),
-        filters: Array.from(
-            new Set((data?.results || []).map(visitor => visitor?.person?.gender?.gender_option))
-            )
-            .filter(Boolean)
-            .map(gender => ({ text: gender, value: gender })),
-        filteredValue: genderColumnFilter,
+            title: 'Gender',
+            dataIndex: 'gender',
+            key: 'gender',
+            sorter: (a, b) => a.gender.localeCompare(b.gender),
+            filters:  genderFilters,
+            filteredValue: genderColumnFilter,
+            onFilter: (value, record) => record.gender === value,
         },
         {
             title: 'Visitor Type',
             dataIndex: 'visitor_type',
             key: 'visitor_type',
             sorter: (a, b) => a.visitor_type.localeCompare(b.visitor_type),
-            filters: Array.from(
-            new Set((visitorTypeData?.results || []).map(visitor => visitor?.visitor_type))
-        )
-            .filter(Boolean)
-            .map(visitor_type => ({ text: visitor_type, value: visitor_type })),
-        onFilter: (value, record) => record.visitor_type === value,
-        filteredValue: visitorTypeColumnFilter, 
+            filters:  visitorTypeFilters,
+            filteredValue: visitorTypeColumnFilter,
+            onFilter: (value, record) => record.visitor_type === value,
         },
         {
             title: 'Address',
@@ -466,7 +472,15 @@ const { data, isFetching } = useQuery({
         const genderValue = visitor?.person?.gender?.gender_option ?? '';
         const visitorTypeValue = visitor?.visitor_type ?? '';
 
-        const matchesGlobalGender = gender === "all" || genderValue === gender;
+        const searchParams = new URLSearchParams(window.location.search);
+        const genderParam = searchParams.get("gender");
+        const genderList = genderParam?.split(",").map(decodeURIComponent) || [];
+
+        const matchesGlobalGender =
+        genderList.length === 0 ||
+        genderList.map(g => g.toLowerCase()).includes((genderValue ?? '').toLowerCase());
+
+        // const matchesGlobalGender = gender === "all" || genderValue === gender;
         const matchesGlobalType = visitorType === "all" || visitorTypeValue === visitorType;
 
         const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
@@ -575,16 +589,34 @@ const { data, isFetching } = useQuery({
     };
 
 const handleExportExcel = async () => {
-    let exportSource;
-
-    if (debouncedSearch && debouncedSearch.trim().length > 0 && searchData?.results?.length) {
-        exportSource = searchData.results;
+    let allData;
+    if (searchText.trim() === '') {
+        allData = await fetchAllVisitors();
     } else {
-        const fullDataSource = await fetchAllVisitors();
-        exportSource = fullDataSource?.results || [];
+        allData = await fetchVisitors(searchText.trim());
     }
 
-    const exportData = exportSource.map(visitor => {
+    const allResults = allData?.results || [];
+
+    const filteredResults = allResults.filter(visitor => {
+        const genderValue = visitor?.person?.gender?.gender_option ?? '';
+        const visitorTypeValue = visitor?.visitor_type ?? '';
+
+        const matchesGlobalGender = gender === "all" || genderValue === gender;
+        const matchesGlobalType = visitorType === "all" || visitorTypeValue === visitorType;
+
+        const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
+        const matchesColumnVisitorType = visitorTypeColumnFilter.length === 0 || visitorTypeColumnFilter.includes(visitorTypeValue);
+
+        return (
+        matchesGlobalGender &&
+        matchesGlobalType &&
+        matchesColumnGender &&
+        matchesColumnVisitorType
+        );
+    });
+
+    const exportData = filteredResults.map(visitor => {
         const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
         return {
             "Registration No.": visitor?.visitor_reg_no,
@@ -602,16 +634,34 @@ const handleExportExcel = async () => {
 };
 const handleExportCSV = async () => {
     try {
-        let exportSource;
+        let allData;
+    if (searchText.trim() === '') {
+        allData = await fetchAllVisitors();
+    } else {
+        allData = await fetchVisitors(searchText.trim());
+    }
 
-        if (debouncedSearch && debouncedSearch.trim().length > 0 && searchData?.results?.length) {
-            exportSource = searchData.results;
-        } else {
-            const fullDataSource = await fetchAllVisitors();
-            exportSource = fullDataSource?.results || [];
-        }
+    const allResults = allData?.results || [];
 
-        const exportData = exportSource.map(visitor => {
+    const filteredResults = allResults.filter(visitor => {
+        const genderValue = visitor?.person?.gender?.gender_option ?? '';
+        const visitorTypeValue = visitor?.visitor_type ?? '';
+
+        const matchesGlobalGender = gender === "all" || genderValue === gender;
+        const matchesGlobalType = visitorType === "all" || visitorTypeValue === visitorType;
+
+        const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
+        const matchesColumnVisitorType = visitorTypeColumnFilter.length === 0 || visitorTypeColumnFilter.includes(visitorTypeValue);
+
+        return (
+        matchesGlobalGender &&
+        matchesGlobalType &&
+        matchesColumnGender &&
+        matchesColumnVisitorType
+        );
+    });
+
+        const exportData = filteredResults.map(visitor => {
             const name = `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim();
             return {
                 "Registration No.": visitor?.visitor_reg_no,

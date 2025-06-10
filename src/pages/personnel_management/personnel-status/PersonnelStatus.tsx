@@ -134,12 +134,12 @@ const dataSource = personnelStatusData?.results
             defaultSortOrder: 'descend',
             sortDirections: ['descend', 'ascend'],
         },
-{
-  title: 'Description',
-  dataIndex: 'description',
-  key: 'description',
-  sorter: (a, b) => a.description.localeCompare(b.description),
-},
+        {
+        title: 'Description',
+        dataIndex: 'description',
+        key: 'description',
+        sorter: (a, b) => a.description.localeCompare(b.description),
+        },
         {
             title: "Action",
             key: "action",

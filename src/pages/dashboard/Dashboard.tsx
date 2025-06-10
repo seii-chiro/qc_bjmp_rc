@@ -49,6 +49,8 @@ const Dashboard = () => {
     const token = useTokenStore().token;
     const currentYear = new Date().getFullYear();
     const [isFormChanged, setIsFormChanged] = useState(false);
+    const [isFormVisitChanged, setIsFormVisitChanged] = useState(false);
+    const [isFormPDLVisitChanged, setIsFormPDLVisitChanged] = useState(false);
     const navigate = useNavigate();
     const [visible, setVisible] = useState(false);
     const currentDate = new Date().toLocaleDateString('en-us', { year: "numeric", month: "long", day: "numeric" });
@@ -60,6 +62,7 @@ const Dashboard = () => {
     const [endDate, setEndDate] = useState('');
     const [dateField, setDateField] = useState('date_convicted');
     const [visitType, setvisitType] = useState('MainGateVisit');
+    const [pdlvisitType, setpdlvisitType] = useState('PDLStationVisit');
     const [startYear, setStartYear] = useState(currentYear.toString());
     const [endYear, setEndYear] = useState(currentYear.toString());
 
@@ -84,6 +87,18 @@ const Dashboard = () => {
     const [formVisitStartYear, setFormVisitStartYear] = useState(visitStartYear);
     const [formVisitEndYear, setFormVisitEndYear] = useState(visitendYear);
 
+    const [formPDLFrequency, setFormPDLFrequency] = useState('daily');
+    const [formPDLStartDate, setFormPDLStartDate] = useState('');
+    const [formPDLEndDate, setFormPDLEndDate] = useState('');
+    const [formPDLStartYear, setFormPDLStartYear] = useState(currentYear.toString());
+    const [formPDLEndYear, setFormPDLEndYear] = useState(currentYear.toString());
+    const [formPDLVisitType, setFormPDLVisitType] = useState('PDLStationVisit');
+    const [pdlFrequency, setPDLFrequency] = useState('daily');
+    const [pdlStartDate, setPDLStartDate] = useState('');
+    const [pdlEndDate, setPDLEndDate] = useState('');
+    const [pdlStartYear, setPDLStartYear] = useState(currentYear.toString());
+    const [pdlEndYear, setPDLEndYear] = useState(currentYear.toString());
+
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
         return () => clearInterval(timer);
@@ -97,58 +112,6 @@ const Dashboard = () => {
     const { data: dailysummarydata } = useQuery({
         queryKey: ['daily-summary'],
         queryFn: () => getSummaryDaily(token ?? "")
-    });
-
-    const fetchMainLog = async () => {
-        const res = await fetch(`${BASE_URL}/api/visit-logs/main-gate-visits/`, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
-
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-    };
-
-    const { data: maingateLog } = useQuery({
-        queryKey: ['main-gate'],
-        queryFn: () => fetchMainLog(token ?? "")
-    });
-
-    const fetchVisitorLog = async () => {
-        const res = await fetch(`${BASE_URL}/api/visit-logs/visitor-station-visits/`, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
-
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-    };
-
-    const { data: visitorLog } = useQuery({
-        queryKey: ['visitor-log'],
-        queryFn: () => fetchVisitorLog(token ?? "")
-    });
-
-
-    const fetchPDLLog = async () => {
-        const res = await fetch(`${BASE_URL}/api/visit-logs/pdl-station-visits/`, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
-
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-    };
-
-    const { data: pdlLog } = useQuery({
-        queryKey: ['pdl-log'],
-        queryFn: () => fetchPDLLog(token ?? "")
     });
 
     const fetchSettings = async () => {
@@ -253,27 +216,18 @@ const Dashboard = () => {
     return `${mm}-${dd}-${yyyy}`;
     }
 
-    function getStartOfMonth(monthYearStr) {
-    // monthYearStr format: "MM-YYYY"
-    const [mm, yyyy] = monthYearStr.split("-");
-    return new Date(yyyy, mm - 1, 1); // 1st day of month
-    }
-
-    function getEndOfMonth(monthYearStr) {
-    const [mm, yyyy] = monthYearStr.split("-");
-    return new Date(yyyy, mm, 0); // last day of the month (0th day of next month)
-    }
-
 const fetchSummaryVisitorLog = async () => {
     let url = `${BASE_URL}/api/dashboard/summary-dashboard/`;
     const params = new URLSearchParams();
+    if (visitType === 'PDLStationVisit') return null;
 
-    params.append('visit_type', visitType.trim());
+    params.append('visit_type', visitType);
 
-    if (visitFrequency === 'quarterly') {
-        url += 'get-quarterly-visitor-logs-summary';
-        params.append('start_year', visitStartYear);
-        params.append('end_year', visitendYear);
+    if (visitFrequency === 'daily') {
+        url += 'get-daily-visitor-logs-summary';
+        params.append('start_date', formatDateToMMDDYYYY(visitStartDate));
+        params.append('end_date', formatDateToMMDDYYYY(visitendDate));
+    
     } else if (visitFrequency === 'monthly') {
         url += 'get-monthly-visitor-logs-summary';
         params.append('start_date', visitStartDate); 
@@ -282,10 +236,10 @@ const fetchSummaryVisitorLog = async () => {
         url += 'get-weekly-visitor-logs-summary';
         params.append('start_date', formatDateToMMDDYYYY(visitStartDate));
         params.append('end_date', formatDateToMMDDYYYY(visitendDate));
-    } else if (visitFrequency === 'daily') {
-        url += 'get-daily-visitor-logs-summary';
-        params.append('start_date', formatDateToMMDDYYYY(visitStartDate));
-        params.append('end_date', formatDateToMMDDYYYY(visitendDate));
+    } else if (visitFrequency === 'quarterly') {
+        url += 'get-quarterly-visitor-logs-summary';
+        params.append('start_year', visitStartYear);
+        params.append('end_year', visitendYear);
     }
 
     const res = await fetch(`${url}?${params.toString()}`, {
@@ -299,10 +253,51 @@ const fetchSummaryVisitorLog = async () => {
     return res.json();
 };
 
+const fetchSummaryPDLVisitorLog = async () => {
+    let url = `${BASE_URL}/api/dashboard/summary-dashboard/`;
+    const params = new URLSearchParams();
+
+    params.append('visit_type', 'PDLStationVisit');
+
+    if (pdlFrequency === 'daily') {
+        url += 'get-daily-visitor-logs-summary';
+        params.append('start_date', formatDateToMMDDYYYY(pdlStartDate));
+        params.append('end_date', formatDateToMMDDYYYY(pdlEndDate));
+    
+    } else if (pdlFrequency === 'monthly') {
+        url += 'get-monthly-visitor-logs-summary';
+        params.append('start_date', pdlStartDate); 
+        params.append('end_date', pdlEndDate);     
+    } else if (pdlFrequency === 'weekly') {
+        url += 'get-weekly-visitor-logs-summary';
+        params.append('start_date', formatDateToMMDDYYYY(pdlStartDate));
+        params.append('end_date', formatDateToMMDDYYYY(pdlEndDate));
+    } else if (pdlFrequency === 'quarterly') {
+        url += 'get-quarterly-visitor-logs-summary';
+        params.append('start_year', pdlStartYear);
+        params.append('end_year', pdlEndYear);
+    }
+
+    const res = await fetch(`${url}?${params.toString()}`, {
+        headers: {
+            Authorization: `Token ${token}`,
+            "Content-Type": "application/json",
+        },
+    });
+
+    if (!res.ok) throw new Error("Network error");
+    return res.json();
+};
 
     const { data: visitorLogData } = useQuery({
     queryKey: ['visit-log', visitType.trim(), visitFrequency, visitStartYear, visitendYear, visitStartDate, visitendDate],
     queryFn: fetchSummaryVisitorLog,
+    enabled: !!token,
+    });
+
+    const { data: pdlVisitorLogData } = useQuery({
+    queryKey: ['pdl-log', pdlFrequency, pdlStartYear, pdlEndYear, pdlStartDate, pdlEndDate],
+    queryFn: fetchSummaryPDLVisitorLog,
     enabled: !!token,
     });
 
@@ -317,8 +312,18 @@ const fetchSummaryVisitorLog = async () => {
         visitCounts = visitorLogData?.success?.quarterly_visitor_logs_summary || {};
         }
 
+    let pdlvisitCounts = {};
+    if (pdlFrequency === 'daily') {
+        pdlvisitCounts = pdlVisitorLogData?.success?.daily_visitor_logs_summary || {};
+        } else if (pdlFrequency === 'monthly') {
+        pdlvisitCounts = pdlVisitorLogData?.success?.monthly_visitor_logs_summary || {};
+        } else if (pdlFrequency === 'weekly') {
+        pdlvisitCounts = pdlVisitorLogData?.success?.weekly_visitor_logs_summary || {};
+        } else if (pdlFrequency === 'quarterly') {
+        pdlvisitCounts = pdlVisitorLogData?.success?.quarterly_visitor_logs_summary || {};
+        }
 
-const totalVisit = isFormChanged
+const totalVisit = isFormVisitChanged
     ? Object.values(visitCounts).reduce((total, data) => total + (data?.logins || 0), 0)
     : visitType.trim() === 'MainGateVisit'
     ? Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logins || 0), 0)
@@ -326,21 +331,21 @@ const totalVisit = isFormChanged
     ? Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logins || 0), 0)
     : 0
 
-    const totalVisitOut = isFormChanged
+    const totalVisitOut = isFormVisitChanged
     ? Object.values(visitCounts).reduce((total, data) => total + (data?.logouts || 0), 0)
     : visitType === 'MainGateVisit'
         ?  Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logouts || 0), 0)
         : visitType === 'VisitorStationVisit'
-        ? visitorLog?.results?.[0]?.tracking_logs?.filter(log => log.status === "Out").length || 0
+        ? Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logouts || 0), 0)
         : 0;
 
-    const totalVisitPDLStation = isFormChanged && visitType === 'PDLStationVisit'
-        ? Object.values(visitCounts).reduce((total, data) => total + (data?.logins || 0), 0)
-        : pdlLog?.results?.[0]?.tracking_logs?.filter(log => log.status === "In").length || 0;
+    const totalVisitPDLStation = isFormPDLVisitChanged && pdlvisitType === 'PDLStationVisit'
+        ? Object.values(pdlvisitCounts).reduce((total, data) => total + (data?.logins || 0), 0)
+        : Object.values(pdlVisitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logins || 0), 0)
 
-    const totalVisitPDLStationOut = isFormChanged && visitType === 'PDLStationVisit'
-        ? Object.values(visitCounts).reduce((total, data) => total + (data?.logouts || 0), 0)
-        : pdlLog?.results?.[0]?.tracking_logs?.filter(log => log.status === "Out").length || 0;
+    const totalVisitPDLStationOut = isFormPDLVisitChanged && pdlvisitType === 'PDLStationVisit'
+        ? Object.values(pdlvisitCounts).reduce((total, data) => total + (data?.logouts || 0), 0)
+        : Object.values(pdlVisitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logouts || 0), 0)
 
     const latestDate = Object.keys(dailysummarydata?.success.daily_visit_summary || {})[0];
     const summary = dailysummarydata?.success.daily_visit_summary[latestDate];
@@ -536,7 +541,6 @@ const totalVisit = isFormChanged
         const element = document.getElementById("dashboard");
         if (!element) return;
 
-        // Save current styles including shadow/border
         const oldStyle = {
         width: element.style.width,
         height: element.style.height,
@@ -549,7 +553,6 @@ const totalVisit = isFormChanged
         outline: element.style.outline,
         };
 
-        // Apply full screen size and remove shadows/borders
         element.style.width = "100vw";
         element.style.height = "100vh";
         element.style.overflow = "visible";
@@ -678,7 +681,6 @@ const totalVisit = isFormChanged
         navigate(`/jvms/personnels/personnel?status=${encodeURIComponent(status)}`);
     };
     const handleCancel = () => {
-        // Reset visit logs form state
         setFormVisitType(visitType);
         setFormVisitFrequency(visitFrequency);
         setFormVisitStartDate(visitStartDate);
@@ -686,7 +688,13 @@ const totalVisit = isFormChanged
         setFormVisitStartYear(visitStartYear);
         setFormVisitEndYear(visitendYear);
 
-        // Reset summary data form state
+        setFormPDLVisitType(pdlvisitType);
+        setFormPDLFrequency(pdlFrequency);
+        setFormPDLStartDate(pdlStartDate);
+        setFormPDLEndDate(pdlEndDate);
+        setFormPDLStartYear(pdlStartYear);
+        setFormPDLEndYear(pdlEndYear);
+
         setFormDateField(dateField)
         setFormFrequency(frequency);
         setFormStartDate(startDate);
@@ -696,7 +704,6 @@ const totalVisit = isFormChanged
         setVisible(false);
     };
 
-    // Handle Apply Filters: apply changes based on active tab
     const handleApplyFilters = () => {
         if (activeTab === 'visitLogs') {
         setvisitType(formVisitType);
@@ -705,6 +712,13 @@ const totalVisit = isFormChanged
         setVisitEndDate(formVisitEndDate);
         setVisitStartYear(formVisitStartYear);
         setVisitEndYear(formVisitEndYear);
+        }else if (activeTab === 'pdlvisitorlogs') {
+        setpdlvisitType(formPDLVisitType);
+        setPDLFrequency(formPDLFrequency);
+        setPDLStartDate(formPDLStartDate);
+        setPDLEndDate(formPDLEndDate);
+        setPDLStartYear(formPDLStartYear);
+        setPDLEndYear(formPDLEndYear);
         } else if (activeTab === 'summaryData') {
         setDateField(formDateField);
         setFrequency(formFrequency);
@@ -713,6 +727,8 @@ const totalVisit = isFormChanged
         setStartYear(formStartYear);
         setEndYear(formEndYear);
         }
+        setIsFormPDLVisitChanged(true);
+        setIsFormVisitChanged(true);
         setIsFormChanged(true);
         setVisible(false);
     };
@@ -767,12 +783,6 @@ const totalVisit = isFormChanged
                                             count={summarydata?.success?.current_pdl_population?.Active ?? 0}
                                             linkto='/jvms/pdls/pdl'
                                         />
-                                        {/* <Card3
-                                            image={rate}
-                                            title='Jail Capacity'
-                                            count={systemsettingdata?.results[0]?.jail_facility?.jail_capacity ?? 0}
-                                            linkto="/jvms/assets/jail-facility"
-                                        /> */}
                                         <Card3
                                             image={rate}
                                             title="Jail Capacity"
@@ -1014,7 +1024,7 @@ const totalVisit = isFormChanged
                                                 image={trans}
                                                 title="Other"
                                                 count={personnelOtherCount || 0}
-                                                onClick={() => personnelHandleClick("Lgbtq+")}
+                                                onClick={() => personnelHandleClick("Other")}
                                             />
                                             </>
                                         )}
@@ -1108,12 +1118,12 @@ const totalVisit = isFormChanged
                                                 <Card3
                                                 image={pdl_enter}
                                                 title="Entered"
-                                                count={summary?.pdl_station_visits || 0}
+                                                count={totalVisitPDLStation}
                                                 />
                                                 <Card3
                                                 image={exited}
                                                 title="Exited"
-                                                count={0}
+                                                count={totalVisitPDLStationOut}
                                                 />
                                             </>
                                             )}
@@ -1245,12 +1255,12 @@ const totalVisit = isFormChanged
                                             <Card2
                                                 image={pdl_enter}
                                                 title="Entered"
-                                                count={totalVisitPDLStation}
+                                                count={summarydata?.success.premises_logs.personnel_logs_today["Time In"] || 0}
                                             />
                                             <Card2
                                                 image={exited}
                                                 title="Exited"
-                                                count={totalVisitPDLStationOut}
+                                                count={summarydata?.success.premises_logs.personnel_logs_today["Time Out"] || 0}
                                             />
                                             </>
                                         )}
@@ -1795,7 +1805,8 @@ const totalVisit = isFormChanged
                     style={{ padding: '24px' }}
                     >
                     <Tabs activeKey={activeTab} onChange={setActiveTab} className="mb-6">
-                        <TabPane tab="Visit Logs" key="visitLogs" />
+                        <TabPane tab="Visitor Logs" key="visitLogs" />
+                        <TabPane tab="PDL Logs" key="pdlvisitorlogs" />
                         <TabPane tab="Summary Data" key="summaryData" />
                     </Tabs>
 
@@ -1818,7 +1829,7 @@ const totalVisit = isFormChanged
                             >
                             <Option value="MainGateVisit">Main Gate</Option>
                             <Option value="VisitorStationVisit">Visitor Station</Option>
-                            <Option value="PDLStationVisit">PDL Station</Option>
+                            {/* <Option value="PDLStationVisit">PDL Station</Option> */}
                             </Select>
                         </div>
 
@@ -1891,6 +1902,102 @@ const totalVisit = isFormChanged
                                 placeholder={formVisitFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
                                 value={formVisitEndDate}
                                 onChange={e => setFormVisitEndDate(e.target.value)}
+                                size="large"
+                                bordered
+                                />
+                            </div>
+                            </div>
+                        )}
+                        </>
+                    )}
+
+                    {activeTab === 'pdlvisitorlogs' && (
+                        <>
+                        {/* Visit Type */}
+                        <div className="mb-6">
+                            <label className="block mb-2 font-semibold text-gray-700">Visit Type</label>
+                            <Select
+                            value={formPDLVisitType}
+                            onChange={setFormPDLVisitType}
+                            className="w-full"
+                            size="large"
+                            bordered
+                            >
+                            {/* <Option value="MainGateVisit">Main Gate</Option>
+                            <Option value="VisitorStationVisit">Visitor Station</Option> */}
+                            <Option value="PDLStationVisit">PDL Station</Option>
+                            </Select>
+                        </div>
+
+                        {/* Frequency */}
+                        <div className="mb-6">
+                            <label className="block mb-2 font-semibold text-gray-700">Frequency</label>
+                            <Select
+                            value={formPDLFrequency}
+                            onChange={setFormPDLFrequency}
+                            className="w-full"
+                            size="large"
+                            bordered
+                            >
+                            <Option value="daily">Daily</Option>
+                            <Option value="weekly">Weekly</Option>
+                            <Option value="monthly">Monthly</Option>
+                            <Option value="quarterly">Quarterly</Option>
+                            </Select>
+                        </div>
+
+                        {/* Date Inputs */}
+                        {formPDLFrequency === 'quarterly' ? (
+                            <div className="grid grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label className="block mb-2 font-semibold text-gray-700">Start Year</label>
+                                <Input
+                                type="number"
+                                min={2000}
+                                max={2100}
+                                value={formPDLStartYear}
+                                onChange={e => setFormPDLStartYear(e.target.value)}
+                                size="large"
+                                placeholder="e.g. 2023"
+                                bordered
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block mb-2 font-semibold text-gray-700">End Year</label>
+                                <Input
+                                type="number"
+                                min={2000}
+                                max={2100}
+                                value={formPDLEndYear}
+                                onChange={e => setFormPDLEndYear(e.target.value)}
+                                size="large"
+                                placeholder="e.g. 2024"
+                                bordered
+                                />
+                            </div>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label className="block mb-2 font-semibold text-gray-700">Start Date</label>
+                                <Input
+                                type="text"
+                                placeholder={formPDLFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
+                                value={formPDLStartDate}
+                                onChange={e => setFormPDLStartDate(e.target.value)} 
+                                size="large"
+                                bordered
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block mb-2 font-semibold text-gray-700">End Date</label>
+                                <Input
+                                type="text"
+                                placeholder={formPDLFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
+                                value={formPDLEndDate}
+                                onChange={e => setFormPDLEndDate(e.target.value)}
                                 size="large"
                                 bordered
                                 />

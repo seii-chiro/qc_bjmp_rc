@@ -1,6 +1,4 @@
-import { getProvidedServices, getServiceProviderTypes } from "@/lib/additionalQueries";
-import { getPerson } from "@/lib/queries";
-import { deleteServiceProvider, getNonPDL_Visitor, getService_Provider } from "@/lib/query";
+import { deleteServiceProvider, getNonPDL_Visitor } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Input, message } from "antd";
@@ -39,9 +37,7 @@ const NonPDL = () => {
         },
     });
     const dataSource = NonPDLVisitorData?.map((non_pdl_visitor, index) => {
-
-        // const matchedServiceProviderType = SPTypeData?.find(serv_prov_type => serv_prov_type.id === provider.serv_prov_type);
-    
+            
         return {
             key: index + 1,
             id: non_pdl_visitor?.id,

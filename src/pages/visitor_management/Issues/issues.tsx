@@ -1,4 +1,4 @@
-import { deleteIssues, getImpactLevels, getImpacts, getIssueCategory, getIssues, getIssueStatuses, getReportingCategory, getRiskLevels, getSeverityLevel, getUser, patchIssues } from "@/lib/queries";
+import { deleteIssues, getImpactLevels, getImpacts, getIssueCategory, getIssueStatuses, getReportingCategory, getRiskLevels, getSeverityLevel, getUser, patchIssues } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CSVLink } from "react-csv";
@@ -12,6 +12,8 @@ import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
 import moment from "moment";
+import { Issue } from "@/lib/definitions";
+import { BASE_URL } from "@/lib/urls";
 
 export type IssuesProps = {
     created_at: any;
@@ -75,6 +77,21 @@ const Issues = () => {
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
+    async function getIssues(token: string): Promise<Issue[]> {
+        const res = await fetch(`${BASE_URL}/api/issues_v2/issues/`, {
+            headers: {
+            "Content-Type": "application/json",
+            Authorization: `Token ${token}`,
+            },
+        });
+        
+        if (!res.ok) {
+            throw new Error("Failed to fetch Issues data.");
+        }
+        
+        return res.json();
+    }
+    
     const { data } = useQuery({
         queryKey: ['issues'],
         queryFn: () => getIssues(token ?? ""),
@@ -250,6 +267,7 @@ const Issues = () => {
             dataIndex: 'created_at',
             key: 'created_at',
             sorter: (a, b) => a.created_at.localeCompare(b.created_at),
+            defaultSortOrder: 'descend',
             render: (value) => value ? moment(value).format("YYYY-MM-DD hh:mm:ss A") : "",
         },
         {
@@ -312,6 +330,7 @@ const Issues = () => {
         {
             title: "Actions",
             key: "actions",
+            fixed: 'right',
             render: (_, record) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
                     <Button type="link" onClick={() => handleEdit(record)}>
@@ -336,7 +355,7 @@ const Issues = () => {
     };
 
     const handleExportPDF = () => {
-        const doc = new jsPDF();
+        const doc = new jsPDF('landscape');
         const headerHeight = 48;
         const footerHeight = 32;
         const organizationName = dataSource[0]?.organization || ""; 
@@ -346,7 +365,7 @@ const Issues = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 20; 
     
         let startY = headerHeight;
     
