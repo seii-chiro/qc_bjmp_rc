@@ -27,7 +27,6 @@ const XMLPreview = ({ chosenXML, token }: Props) => {
         try {
             const response = await fetch(`${BASE_URL}${chosenXML}`, { headers: { Authorization: `Token ${token}` } });
             let xmlText = await response.text();
-            console.log(xmlText)
 
             // Clean up malformed XML before saving
             xmlText = cleanXML(xmlText);

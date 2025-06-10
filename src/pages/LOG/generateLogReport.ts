@@ -53,45 +53,105 @@ export const generateLogReport = ({
   // Define column configurations
   const columnStyles: { [key: number]: any } = {};
 
-  // Auto-calculate column widths based on content or use custom widths
-  const totalWidth = doc.internal.pageSize.getWidth() - 28; // Account for margins
-  const autoColumnWidths =
-    columnWidths ||
-    headers.map((header) => {
-      // Customize widths based on typical content
-      switch (header.toLowerCase()) {
-        case "no.":
-          return totalWidth * 0.05; // 8% of total width
-        case "login":
-          return totalWidth * 0.12; // 15%
-        case "logout":
-          return totalWidth * 0.12; // 15%
-        case "duration":
-          return totalWidth * 0.1; // 10%
-        case "status":
-          return totalWidth * 0.1; // 10%
-        case "visitor name":
-          return totalWidth * 0.15; // 15%
-        case "visitor type":
-          return totalWidth * 0.11; // 12%
-        case "pdl name(s)":
-          return totalWidth * 0.15; // 15%
-        case "pdl type":
-          return totalWidth * 0.1;
-        default:
-          return totalWidth / headers.length;
-      }
+  // Calculate available width (full page width minus margins)
+  const availableWidth = pageWidth - margin * 2;
+
+  // Define base ratios for common column types
+  const getColumnRatio = (header: string): number => {
+    const headerLower = header.toLowerCase();
+    switch (headerLower) {
+      case "no.":
+      case "#":
+      case "number":
+        return 0.05; // Very small for numbers
+      case "login":
+      case "logout":
+        return 0.12; // Medium for timestamps
+      case "duration":
+        return 0.08; // Small for duration
+      case "status":
+        return 0.08; // Small for status
+      case "visitor name":
+      case "name":
+        return 0.18; // Larger for names
+      case "visitor type":
+      case "type":
+        return 0.11; // Medium for types
+      case "pdl name(s)":
+      case "pdl names":
+        return 0.18; // Larger for names
+      case "pdl type":
+        return 0.1; // Medium for types
+      case "remarks":
+      case "notes":
+      case "comments":
+        return 0.15; // Larger for text content
+      default:
+        return 0.12; // Default medium size
+    }
+  };
+
+  // Calculate column widths using ratios or custom widths
+  let calculatedWidths: number[];
+
+  if (columnWidths) {
+    // If custom widths provided, normalize them to fit available width
+    const totalCustomWidth = columnWidths.reduce(
+      (sum, width) => sum + width,
+      0
+    );
+    const scaleFactor = availableWidth / totalCustomWidth;
+    calculatedWidths = columnWidths.map((width) => width * scaleFactor);
+  } else {
+    // Calculate based on content and ratios
+    const baseRatios = headers.map((header) => getColumnRatio(header));
+
+    // Analyze actual content to adjust ratios if needed
+    const contentAnalysis = headers.map((header, colIndex) => {
+      const maxContentLength = Math.max(
+        header.length,
+        ...rows.map((row) => String(row[colIndex] || "").length)
+      );
+      return maxContentLength;
     });
+
+    // Adjust ratios based on actual content length
+    const adjustedRatios = baseRatios.map((ratio, index) => {
+      const contentLength = contentAnalysis[index];
+
+      // If content is significantly longer than expected, increase ratio
+      if (contentLength > 25 && ratio < 0.15) {
+        return Math.min(0.2, ratio * 1.5);
+      }
+      // If content is very short, ensure minimum width
+      if (contentLength < 5 && ratio > 0.1) {
+        return Math.max(0.05, ratio * 0.8);
+      }
+      return ratio;
+    });
+
+    // Normalize ratios to sum to 1
+    const totalRatio = adjustedRatios.reduce((sum, ratio) => sum + ratio, 0);
+    const normalizedRatios = adjustedRatios.map((ratio) => ratio / totalRatio);
+
+    // Calculate actual widths
+    calculatedWidths = normalizedRatios.map((ratio) => ratio * availableWidth);
+  }
 
   // Set column-specific styles
   headers.forEach((header, index) => {
     columnStyles[index] = {
-      cellWidth: autoColumnWidths[index],
+      cellWidth: calculatedWidths[index],
       overflow: "linebreak", // Handle long text
       valign: "top",
-      halign: ["visitor type", "duration", "status"].includes(
-        header.toLowerCase()
-      )
+      halign: [
+        "visitor type",
+        "duration",
+        "status",
+        "no.",
+        "#",
+        "number",
+      ].includes(header.toLowerCase())
         ? "center"
         : "left",
     };
@@ -115,8 +175,8 @@ export const generateLogReport = ({
       halign: "center",
     },
     columnStyles,
-    margin: { top: 10, right: 10, bottom: 10, left: 10 },
-    tableWidth: "auto",
+    margin: { top: 10, right: margin, bottom: 10, left: margin },
+    tableWidth: availableWidth, // Explicitly set table width
     // Add alternating row colors for better readability
     alternateRowStyles: {
       fillColor: [245, 245, 245],
@@ -188,34 +248,15 @@ export const generateLogReportSmart = ({
   rows,
   title,
   fileName = "report.pdf",
+  preparedBy,
 }: Omit<PDFOptions, "columnWidths">) => {
-  // Analyze content to determine optimal column widths
-  const columnWidths = headers.map((header, colIndex) => {
-    const maxContentLength = Math.max(
-      header.length,
-      ...rows.map((row) => String(row[colIndex] || "").length)
-    );
-
-    // Base width calculation
-    const baseWidth = Math.max(20, Math.min(60, maxContentLength * 2));
-    return baseWidth;
-  });
-
-  // Normalize widths to fit page
-  const totalCalculatedWidth = columnWidths.reduce(
-    (sum, width) => sum + width,
-    0
-  );
-  const pageWidth = 297 - 28; // A4 landscape minus margins
-  const scaleFactor = pageWidth / totalCalculatedWidth;
-
-  const normalizedWidths = columnWidths.map((width) => width * scaleFactor);
-
-  generateLogReport({
+  // Simply call the main function without custom widths
+  // It will automatically calculate optimal widths using the full page width
+  return generateLogReport({
     headers,
     rows,
     title,
     fileName,
-    columnWidths: normalizedWidths,
+    preparedBy,
   });
 };

@@ -1,3 +1,4 @@
+import Spinner from "@/components/loaders/Spinner";
 import { OASISAlertFormType } from "@/lib/oasis-definitions";
 import {
     generateOASISAlertXML,
@@ -19,14 +20,18 @@ import {
     getOASISSeverity,
     getOASISStatus,
     getOASISUrgency,
+    patchOASISAlert,
     postOASISAlert,
     postOASISAlertNotification,
 } from "@/lib/oasis-query";
+import { OASISAlert } from "@/lib/oasis-response-definition";
+import { BASE_URL } from "@/lib/urls";
 import "@/pages/oasis/oasisStyle.css";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, Input, message, Select } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 const { Option, OptGroup } = Select;
 
@@ -39,6 +44,8 @@ function escapeXml(xml: string) {
 
 const OasisAlertForm = () => {
     const token = useTokenStore()?.token;
+    const location = useLocation();
+    const alertID = location?.state || null;
 
     const [OASISAlertForm, setOASISAlertForm] = useState<OASISAlertFormType>({
         addresses: null,
@@ -90,7 +97,30 @@ const OasisAlertForm = () => {
 
     const [searchInputs, setSearchInputs] = useState<{ [key: string]: string }>({});
     const [generatedAlertXML, setGeneratedAlertXML] = useState<string | null>(null)
-    console.log(generatedAlertXML)
+
+    const { data: alertToEdit, isLoading: alertToEditLoading } = useQuery({
+        queryKey: ["OASIS-CAP-Alert-Edit"],
+        queryFn: async (): Promise<OASISAlert> => {
+            const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/alert/${alertID}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Token ${token}`,
+                },
+            });
+            if (!res.ok) {
+                const err = await res.json()
+                throw new Error(JSON.stringify(err))
+            }
+            return res.json();
+        },
+        enabled: !!alertID
+    });
+
+    const { data: generatedXMLEdit, isLoading: generatedXMLEditLoading } = useQuery({
+        queryKey: ["OASIS-CAP-Generate-XML-Edit"],
+        queryFn: () => generateOASISAlertXML(token ?? "", alertID),
+        enabled: !!alertID
+    });
 
     const { data: restrictions, isLoading: restrictionsLoading } = useQuery({
         queryKey: ["OASIS-CAP-Restriction"],
@@ -226,11 +256,154 @@ const OasisAlertForm = () => {
         onError: (err) => message.error(err.message)
     })
 
-    console.log(categorizedGeocodes)
-    console.log(OASISAlertForm);
+    const patchOASISAlertMutation = useMutation({
+        mutationKey: ['add-OASIS-Alert'],
+        mutationFn: () => patchOASISAlert(token ?? "", alertID, OASISAlertForm),
+        onSuccess: async (data) => {
+            message.success(`Successfully updated alert ${alertToEdit?.alert}`)
+            if (data?.id) {
+                addOASISAlertNotifMutation.mutate(data?.id)
+                const generatedXML = await generateOASISAlertXML(token ?? "", data?.id)
+                setGeneratedAlertXML(generatedXML)
+            }
+        },
+        onError: (err) => message.error(err.message)
+    })
+
+    const handleAlertSubmit = () => {
+        if (alertID) {
+            patchOASISAlertMutation.mutate()
+        } else {
+            addOASISAlertMutation.mutate()
+        }
+    }
+
+    useEffect(() => {
+        if (alertID && alertToEdit) {
+            const rawDateSent = new Date(alertToEdit?.sent);
+            const rawDateEffective = new Date(alertToEdit?.infos?.[0]?.effective);
+            const rawDateOnset = new Date(alertToEdit?.infos?.[0]?.onset);
+            const rawDateExpire = new Date(alertToEdit?.infos?.[0]?.expires);
+            const pad = (num: number) => num.toString().padStart(2, "0");
+
+            const dateSent = [
+                rawDateSent.getFullYear(),
+                "-",
+                pad(rawDateSent.getMonth() + 1),
+                "-",
+                pad(rawDateSent.getDate()),
+                "T",
+                pad(rawDateSent.getHours()),
+                ":",
+                pad(rawDateSent.getMinutes()),
+            ].join("");
+
+            const dateEffective = [
+                rawDateEffective.getFullYear(),
+                "-",
+                pad(rawDateEffective.getMonth() + 1),
+                "-",
+                pad(rawDateEffective.getDate()),
+                "T",
+                pad(rawDateEffective.getHours()),
+                ":",
+                pad(rawDateEffective.getMinutes()),
+            ].join("");
+
+            const dateOnset = [
+                rawDateOnset.getFullYear(),
+                "-",
+                pad(rawDateOnset.getMonth() + 1),
+                "-",
+                pad(rawDateOnset.getDate()),
+                "T",
+                pad(rawDateOnset.getHours()),
+                ":",
+                pad(rawDateOnset.getMinutes()),
+            ].join("");
+
+            const dateExpire = [
+                rawDateExpire.getFullYear(),
+                "-",
+                pad(rawDateExpire.getMonth() + 1),
+                "-",
+                pad(rawDateExpire.getDate()),
+                "T",
+                pad(rawDateExpire.getHours()),
+                ":",
+                pad(rawDateExpire.getMinutes()),
+            ].join("");
+
+            const processedInfos = alertToEdit?.infos?.map(info => ({
+                id: info.id,
+                language_id: languages?.results?.find(lang => lang?.code === info.language)?.id || null,
+                category_id: categories?.results?.find(cat => cat?.code === info.category)?.id || null,
+                urgency_id: urgencies?.results?.find(urg => urg?.code === info.urgency)?.id || null,
+                severity_id: severities?.results?.find(sev => sev?.code === info.severity)?.id || null,
+                certainty_id: certainties?.results?.find(cert => cert?.code === info.certainty)?.id || null,
+                event: info.event,
+                response_type: info.response_type,
+                audience: info.audience,
+                parameter: info.parameter,
+                event_code: +info.event_code,
+                effective: dateEffective || null,
+                onset: dateOnset || null,
+                expires: dateExpire || null,
+                sender_name: info.sender_name,
+                headline: info.headline,
+                description: info.description,
+                instruction: info.instruction,
+                web: info.web,
+                contact: info.contact,
+                areas: info.areas?.map(area => ({
+                    id: area.id,
+                    area_desc: area.area_desc,
+                    polygon: area.polygon,
+                    circle: area.circle,
+                    geocode: area.geocode,
+                    altitude: area.altitude,
+                    ceiling: area.ceiling
+                })) || []
+            })) || [];
+
+            setOASISAlertForm(prev => ({
+                ...prev,
+                identifier: alertToEdit?.identifier,
+                sender: alertToEdit?.sender || null,
+                sent: dateSent || null,
+                status_id: status?.results?.find(stat => stat?.code === alertToEdit?.status)?.id || null,
+                msg_type_id: messageTypes?.results?.find(type => type?.code === alertToEdit?.msg_type)?.id || null,
+                source: alertToEdit?.source,
+                scope_id: scopes?.results?.find(scope => scope?.code === alertToEdit?.scope)?.id || null,
+                restriction: alertToEdit?.restriction,
+                addresses: alertToEdit?.addresses,
+                code: alertToEdit?.code,
+                note: alertToEdit?.note,
+                references: alertToEdit?.references,
+                incidents: alertToEdit?.incidents,
+                infos: processedInfos
+            }))
+
+            setGeneratedAlertXML(generatedXMLEdit || null)
+        }
+    }, [
+        alertID,
+        alertToEdit,
+        status?.results,
+        messageTypes?.results,
+        scopes?.results,
+        categories?.results,
+        certainties?.results,
+        languages?.results,
+        severities?.results,
+        urgencies?.results,
+        generatedXMLEdit
+    ])
+
+    if (alertToEditLoading) return <Spinner />
 
     return (
-        <div className="oasis-container">
+        <div className="oasis-container mb-5">
             <h1>OASIS CAP v1.2 Full Alert Form - Ver 02.00</h1>
             <form id="cap-form">
                 <fieldset>
@@ -257,6 +430,7 @@ const OasisAlertForm = () => {
                             values (e.g., <code>BJMP20240528-001</code>).
                         </small>
                         <Input
+                            value={OASISAlertForm?.identifier || ""}
                             className="h-[2.625rem]"
                             id="identifier"
                             placeholder="This field is autogenerated."
@@ -270,6 +444,7 @@ const OasisAlertForm = () => {
                         <label htmlFor="sender">Sender *</label>
                         <small>Originator email or ID</small>
                         <Input
+                            value={OASISAlertForm?.sender || ""}
                             className="h-[2.625rem]"
                             id="sender"
                             type="email"
@@ -282,6 +457,7 @@ const OasisAlertForm = () => {
                         <label htmlFor="sent">Sent *</label>
                         <small>Time message sent (ISO 8601)</small>
                         <Input
+                            value={OASISAlertForm?.sent || ""}
                             className="h-[2.625rem]"
                             id="sent"
                             type="datetime-local"
@@ -323,7 +499,7 @@ const OasisAlertForm = () => {
                             }
                         >
                             {status?.results?.map((item, index) => (
-                                <Option key={index} value={item?.id} label={item?.description}>
+                                <Option key={index} value={item?.id} label={item?.code}>
                                     <div className="flex flex-col">
                                         <span>{item?.code}</span>
                                         <span className="text-xs text-gray-500">
@@ -391,6 +567,7 @@ const OasisAlertForm = () => {
                             <code>Municipal DRRMO Field Report</code>
                         </small>
                         <Input
+                            value={OASISAlertForm?.source || ""}
                             className="h-[2.625rem]"
                             id="source"
                             onChange={e => setOASISAlertForm(prev => ({ ...prev, source: e.target.value }))}
@@ -511,6 +688,7 @@ const OasisAlertForm = () => {
                             <code>mayor@city.gov governor@province.gov.ph</code>
                         </small>
                         <Input.TextArea
+                            value={OASISAlertForm?.addresses || ""}
                             id="addresses"
                             className="!h-20"
                             onChange={e => setOASISAlertForm(prev => ({ ...prev, addresses: e.target.value }))}
@@ -633,6 +811,7 @@ const OasisAlertForm = () => {
                             </code>
                         </small>
                         <Input.TextArea
+                            value={OASISAlertForm?.references || ""}
                             id="references"
                             className="!h-20"
                             onChange={e => setOASISAlertForm(prev => ({ ...prev, references: e.target.value }))}
@@ -650,6 +829,7 @@ const OasisAlertForm = () => {
                             <code>INC2024-045 INC2024-046</code>
                         </small>
                         <Input
+                            value={OASISAlertForm?.incidents || ""}
                             className="h-[2.625rem]"
                             id="incidents"
                             onChange={e => setOASISAlertForm(prev => ({ ...prev, incidents: e.target.value }))}
@@ -1827,8 +2007,8 @@ const OasisAlertForm = () => {
                 <div className="w-full flex justify-end">
                     <Button
                         type="primary"
-                        onClick={() => addOASISAlertMutation.mutate()}
-                        loading={addOASISAlertMutation.isPending}
+                        onClick={handleAlertSubmit}
+                        loading={alertID ? patchOASISAlertMutation.isPending : addOASISAlertMutation.isPending}
                     >
                         Generate CAP XML
                     </Button>
@@ -1841,14 +2021,16 @@ const OasisAlertForm = () => {
                     Download XML
                 </button>
             </form>
-            <h2>Generated XML Output</h2>
+            <h2 className="font-bold mb-2 text-lg">Generated XML Output</h2>
             <div className="p-4 bg-black text-green-400 font-mono text-sm overflow-auto max-h-[70vh] rounded-md">
                 <pre
                     className="whitespace-pre-wrap"
                     dangerouslySetInnerHTML={{
                         __html: generatedAlertXML
                             ? escapeXml(generatedAlertXML)
-                            : "Loading...",
+                            : generatedXMLEditLoading || addOASISAlertMutation.isPending ?
+                                "Loading..."
+                                : "NO XML TO LOAD",
                     }}
                 />
             </div>

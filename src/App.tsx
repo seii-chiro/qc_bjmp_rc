@@ -151,6 +151,7 @@ import PersonnelAppStatus from "./pages/personnel_management/personnel-app-statu
 import PDLVisitationStatus from "./pages/pdl_management/pdl-visitation-status/PDLVisitationStatus.tsx";
 import PDLCategory from "./pages/pdl_management/pdl-category/PDLCategory.tsx";
 import Geocodes from "./pages/oasis/maintenance/Geocodes.tsx";
+import Alerts from "./pages/oasis/maintenance/Alerts.tsx";
 
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -708,7 +709,11 @@ function App() {
                     element: <ServiceProvider />
                 },
                 {
-                    path: "incidents/oasis",
+                    path: "incidents/oasis/alerts",
+                    element: <Alerts />
+                },
+                {
+                    path: "incidents/oasis/alerts/add_alert",
                     element: <OasisAlertForm />
                 },
                 {

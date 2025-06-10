@@ -646,6 +646,66 @@ export async function getOASISUrgency(
   return res.json();
 }
 
+export async function postOASISUrgency(
+  token: string,
+  payload: StatusFormType
+): Promise<OASISStatus> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-urgency/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISUrgency(
+  token: string,
+  id: number,
+  payload: Partial<StatusFormType>
+): Promise<OASISStatus> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-urgency/${id}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISUrgency(token: string, id: number) {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-urgency/${id}/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete urgency.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
 export async function getOASISSeverity(
   token: string
 ): Promise<PaginatedResponse<OASISSeverity>> {
@@ -664,6 +724,72 @@ export async function getOASISSeverity(
   }
 
   return res.json();
+}
+
+export async function postOASISSeverity(
+  token: string,
+  payload: StatusFormType
+): Promise<OASISStatus> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-severity/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISSeverity(
+  token: string,
+  id: number,
+  payload: Partial<StatusFormType>
+): Promise<OASISStatus> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-severity/${id}/`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISSeverity(token: string, id: number) {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-severity/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to delete severity.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function getOASISCategories(
@@ -936,6 +1062,72 @@ export async function getOASISResponseTypes(
   }
 
   return res.json();
+}
+
+export async function postOASISResponseTypes(
+  token: string,
+  payload: StatusFormType
+): Promise<OASISStatus> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/cap-response-type/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function patchOASISResponseTypes(
+  token: string,
+  id: number,
+  payload: Partial<StatusFormType>
+): Promise<OASISStatus> {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-response-type/${id}/`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISResponseTypes(token: string, id: number) {
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/cap-response-type/${id}/`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to delete Status.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function getOASISAudience(
@@ -1388,6 +1580,30 @@ export async function deleteOASISEventType(token: string, id: number) {
   return text ? JSON.parse(text) : null;
 }
 
+export async function getOASISAlerts(
+  token: string,
+  page: number = 1,
+  pageSize: number = 10
+): Promise<PaginatedResponse<OASISAlert>> {
+  const offset = (page - 1) * pageSize;
+  const res = await fetch(
+    `${BASE_URL}/api/oasis_app_v1_2/alert/?limit=${pageSize}&offset=${offset}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
 export async function postOASISAlert(
   token: string,
   payload: OASISAlertFormType
@@ -1407,6 +1623,45 @@ export async function postOASISAlert(
   }
 
   return res.json();
+}
+
+export async function patchOASISAlert(
+  token: string,
+  id: number,
+  payload: Partial<OASISAlertFormType>
+): Promise<OASISAlert> {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/alert/${id}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+export async function deleteOASISAlert(token: string, id: number) {
+  const res = await fetch(`${BASE_URL}/api/oasis_app_v1_2/alert/${id}/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to delete alert.");
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
 
 export async function postOASISAlertNotification(
@@ -1434,10 +1689,13 @@ export async function postOASISAlertNotification(
 }
 
 export async function getOASISAlertNotification(
-  token: string
+  token: string,
+  params: { limit?: number; offset?: number } = {}
 ): Promise<PaginatedResponse<OASISAlertNotification>> {
+  const { limit = 10, offset = 0 } = params;
+
   const res = await fetch(
-    `${BASE_URL}/api/oasis_app_v1_2/user-alert-notification/?limit=10`,
+    `${BASE_URL}/api/oasis_app_v1_2/user-alert-notification/?limit=${limit}&offset=${offset}`,
     {
       headers: {
         "Content-Type": "application/json",

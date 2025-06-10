@@ -29,7 +29,6 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
   const token = useTokenStore()?.token;
 
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
-  const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const [inWatchList, setInWatchlist] = useState<string | null>(null)
@@ -108,12 +107,15 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
         return;
     }
 
-    setIsFetching(true);
+    let fetchingMessage: (() => void) | undefined = undefined;
+    let processingMessage: (() => void) | undefined = undefined;
+
     setError(null);
 
     try {
       let visitorData = verificationData;
 
+      fetchingMessage = message.loading("Fetching person information...", 0);
       // Skip fetch if selectedArea is "pdl station"
       if (selectedArea?.toLowerCase() !== "pdl station") {
         const res = await fetch(`${BASE_URL}/api/visit-logs/visitor-specific/?id_number=${idNumber}`, {
@@ -126,7 +128,6 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
 
         if (!res.ok) throw new Error(`Failed to fetch visitor. Status: ${res.status}`);
         visitorData = await res.json();
-
         setLastScanned(visitorData);
       } else {
         const res = await fetch(`${BASE_URL}/api/pdls/pdl/${pdlId}`, {
@@ -139,9 +140,11 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
 
         if (!res.ok) throw new Error(`Failed to fetch PDL. Status: ${res.status}`);
         visitorData = await res.json();
-
         setLastScannedPdl(visitorData);
       }
+
+      fetchingMessage?.();
+      processingMessage = message.loading("Processing...", 0);
 
       // Post to visit log endpoint
       const postRes = await fetch(visitsUrl, {
@@ -159,9 +162,7 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
       });
 
       if (!postRes.ok) throw new Error(`Failed to log visit. Status: ${postRes.status}`);
-
       const visitLogResponse = await postRes.json();
-      message.success("Visit logged successfully!");
 
       // Post to tracking endpoint
       if (visitLogResponse?.id) {
@@ -176,35 +177,50 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
 
         if (!trackingRes.ok) throw new Error(`Failed to log visit tracking. Status: ${trackingRes.status}`);
 
-        message.success("Visit tracking created successfully!");
-        message.success("Process Complete!");
+        processingMessage?.();
+        message.success("Visit and tracking logged successfully!");
       } else {
-        message.warning("Missing visit ID for tracking");
+        processingMessage?.();
+        message.warning("Visit logged, but tracking failed due to missing visit ID.");
       }
 
     } catch (err: any) {
+      fetchingMessage?.();
+      processingMessage?.();
       message.warning("No id number provided.");
       message.error(`Error: ${err.message}`);
       setError(err);
-    } finally {
-      setIsFetching(false);
     }
   };
 
   const verifyFaceMutation = useMutation({
     mutationKey: ['face-verification'],
     mutationFn: verifyFace,
+    onMutate: () => {
+      message.open({
+        key: 'face-verification',
+        type: 'loading',
+        content: 'Verifying person’s face...',
+        duration: 0,
+      });
+    },
     onSuccess: (data) => {
-      // setVerificationResult(data);
-      message.info("Match Found");
-      // Process visitor log after successful verification
+      message.open({
+        key: 'face-verification',
+        type: 'info',
+        content: 'Match Found',
+        duration: 3,
+      });
       processVisitorLog(data);
-      // setVerificationResult(data)
     },
     onError: (error) => {
       console.error("Biometric enrollment failed:", error);
-      // setVerificationResult((prev: any) => ({ ...prev, status: "match_not_found" }));
-      message.info("No Matches Found");
+      message.open({
+        key: 'face-verification',
+        type: 'info',
+        content: 'No Matches Found',
+        duration: 3,
+      });
     },
   });
 
@@ -222,10 +238,6 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
       message.info(`Watchlist: ${error.message}`);
     },
   });
-
-  if (isFetching) {
-    message.info("Processing scan...");
-  }
 
   if (error) {
     message.error(`Error: ${error.message}`);

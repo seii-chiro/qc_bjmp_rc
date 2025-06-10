@@ -13,7 +13,7 @@ export type SystemSettings = {
 export async function getSystemSettings(
   token: string
 ): Promise<PaginatedResponse<SystemSettings>> {
-  const res = await fetch(`${BASE_URL}/api/codes/system-settings/`, {
+  const res = await fetch(`${BASE_URL}/api/codes/system-settings/?limit=100`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,

@@ -101,6 +101,8 @@ const VisitLog = () => {
     setPage = setPDLPage;
   }
 
+  const isPDLView = view === "PDL";
+
   type VisitLogRow = {
     key: string | number;
     id: string | number;
@@ -121,7 +123,7 @@ const VisitLog = () => {
       render: (_: any, __: any, index: number) =>
         (page - 1) * limit + index + 1,
     },
-    {
+    !isPDLView ? {
       title: "Visitor Name",
       dataIndex: "visitor",
       key: "visitor",
@@ -130,16 +132,20 @@ const VisitLog = () => {
         const nameB = b.visitor?.toLowerCase() || "";
         return nameA.localeCompare(nameB);
       },
-    },
-    {
+    } : null,
+    !isPDLView ? {
       title: "Visitor Type",
       dataIndex: "visitor_type",
       key: "visitor_type",
       sorter: (a: VisitLogRow, b: VisitLogRow) =>
         (a.visitor_type || "").localeCompare(b.visitor_type || ""),
-    },
+    } : null,
     { title: "PDL Name(s)", dataIndex: "pdl_name", key: "pdl_name" },
-    { title: "PDL Type", dataIndex: "pdl_type", key: "pdl_type" },
+    !isPDLView ? {
+      title: "PDL Type",
+      dataIndex: "pdl_type",
+      key: "pdl_type",
+    } : null,
     {
       title: "Login",
       dataIndex: "timestampIn",
@@ -265,7 +271,7 @@ const VisitLog = () => {
         />
       ),
     },
-  ];
+  ].filter(Boolean);;
 
   const dataSource = (activeData?.results || [])
     .map(

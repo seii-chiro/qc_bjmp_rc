@@ -2,6 +2,7 @@ import { PersonForm, WatchlistForm } from "@/pages/threat/AddWatchlist";
 import { BASE_URL, BASE_URL_BIOMETRIC } from "./urls";
 import { Person } from "./pdl-definitions";
 import { BiometricRecordFace } from "./scanner-definitions";
+import { PaginatedResponse } from "./queries";
 
 export type WhiteListedRiskLevel = {
   id: number;
@@ -56,13 +57,16 @@ export type WatchlistPerson = {
 
 export async function getWhiteListedRiskLevels(
   token: string
-): Promise<WhiteListedRiskLevel[]> {
-  const res = await fetch(`${BASE_URL}/api/whitelists/risk-levels/`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+): Promise<PaginatedResponse<WhiteListedRiskLevel>> {
+  const res = await fetch(
+    `${BASE_URL}/api/whitelists/risk-levels/?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch risk levels.");
@@ -73,13 +77,16 @@ export async function getWhiteListedRiskLevels(
 
 export async function getWhiteListedThreatLevels(
   token: string
-): Promise<WhiteListedThreatLevel[]> {
-  const res = await fetch(`${BASE_URL}/api/whitelists/threat-levels/`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+): Promise<PaginatedResponse<WhiteListedThreatLevel>> {
+  const res = await fetch(
+    `${BASE_URL}/api/whitelists/threat-levels/?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch threat levels.");
@@ -90,13 +97,16 @@ export async function getWhiteListedThreatLevels(
 
 export async function getWhiteListedTypes(
   token: string
-): Promise<WhiteListedType[]> {
-  const res = await fetch(`${BASE_URL}/api/whitelists/whitelisted-types/`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Token ${token}`,
-    },
-  });
+): Promise<PaginatedResponse<WhiteListedType>> {
+  const res = await fetch(
+    `${BASE_URL}/api/whitelists/whitelisted-types/?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch whitelisted types.");
