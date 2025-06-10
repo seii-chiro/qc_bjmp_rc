@@ -271,6 +271,7 @@ const visitation_status = searchParams.get("visitation_status") || "all";
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
+            sorter: (a, b) => a.status.localeCompare(b.status),
             filters: [
                 { text: 'Committed', value: 'Committed' },
                 { text: 'Convicted', value: 'Convicted' },
@@ -289,6 +290,7 @@ const visitation_status = searchParams.get("visitation_status") || "all";
             title: 'Visiting Eligibility',
             dataIndex: 'visitation_status',
             key: 'visitation_status',
+            sorter: (a, b) => a.visitation_status.localeCompare(b.visitation_status),
             filters: visitationFilters,
             filteredValue: visitationColumnFilter,
             onFilter: (value, record) => record.visitation_status === value,
