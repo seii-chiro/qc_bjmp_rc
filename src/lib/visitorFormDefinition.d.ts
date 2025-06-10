@@ -308,8 +308,10 @@ export type PersonnelForm = {
   shortname: string;
   date_joined: string;
   personnel_type?: number | null;
-  verified_by: number | null;
-  approved_by: number | null;
+  verified_by_id: number | null;
+  verified_at: string | null;
+  approved_by_id: number | null;
+  approved_at: string | null;
 };
 
 export type NonPdlVisitorForm = {
