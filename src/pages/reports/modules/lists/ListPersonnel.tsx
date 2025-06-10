@@ -336,6 +336,7 @@ const status = searchParams.get("status") || "all";
             title: 'Rank/Grade',
             dataIndex: 'rank',
             key: 'rank',
+            sorter: (a, b) => a.rank.localeCompare(b.rank),
             filters: rankFilters,
             filteredValue: rankFilter,
             onFilter: (value, record) => record.rank === value,
@@ -349,8 +350,8 @@ const status = searchParams.get("status") || "all";
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            filters: statusFilters
-            ,
+            sorter: (a, b) => a.status.localeCompare(b.status),
+            filters: statusFilters,
             filteredValue: statusFilter,
             onFilter: (value, record) => record.status === value,
         },

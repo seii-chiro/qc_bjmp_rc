@@ -712,7 +712,7 @@ const totalVisit = isFormVisitChanged
         setVisitEndDate(formVisitEndDate);
         setVisitStartYear(formVisitStartYear);
         setVisitEndYear(formVisitEndYear);
-        }else if (activeTab === 'pdlvisitorlogs') {
+        } else if (activeTab === 'pdlvisitorlogs') {
         setpdlvisitType(formPDLVisitType);
         setPDLFrequency(formPDLFrequency);
         setPDLStartDate(formPDLStartDate);
@@ -733,8 +733,7 @@ const totalVisit = isFormVisitChanged
         setVisible(false);
     };
 
-    const activeDormName = systemsettingdata?.results?.[0]?.jail_facility?.jail_name || 'Default Dorm';
-    const congestionRateRaw = summarydata?.success?.jail_congestion_rates?.[activeDormName];
+    const congestionRateRaw = summarydata?.success?.jail_congestion_rates?.total_congestion_rate;
 
     const formattedRate = typeof congestionRateRaw === 'number'
     ? `${congestionRateRaw.toFixed(2)}%`

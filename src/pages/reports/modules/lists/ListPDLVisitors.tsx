@@ -304,11 +304,13 @@ const fetchMainGateVisits = async () => {
             title: 'Visitor Name',
             dataIndex: 'name',
             key: 'name',
+            sorter: (a, b) => a.name.localeCompare(b.name),
         },
         {
             title: 'Visitor Type',
             dataIndex: 'visitor_type',
             key: 'visitor_type',
+            sorter: (a, b) => a.visitor_type.localeCompare(b.visitor_type),
             filters:  visitorTypeFilters,
             filteredValue: visitorTypeColumnFilter,
             onFilter: (value, record) => record.visitor_type === value,
@@ -317,6 +319,7 @@ const fetchMainGateVisits = async () => {
             title: 'Gender',
             dataIndex: 'gender',
             key: 'gender',
+            sorter: (a, b) => a.gender.localeCompare(b.gender),
             filters:  genderFilters,
             filteredValue: genderColumnFilter,
             onFilter: (value, record) => record.gender === value,
@@ -688,8 +691,6 @@ const downloadCSV = async () => {
         const matchesGlobalGender =
         genderList.length === 0 ||
         genderList.map(g => g.toLowerCase()).includes((genderValue ?? '').toLowerCase());
-
-        // const matchesGlobalGender = gender === "all" || genderValue === gender;
         const matchesGlobalType = visitorType === "all" || visitorTypeValue === visitorType;
 
         const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
