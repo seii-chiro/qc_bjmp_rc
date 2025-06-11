@@ -91,7 +91,6 @@ const NonPdlVisitorRegistration = () => {
     const [editContactIndex, setEditContactIndex] = useState<number | null>(null);
 
     const { personnel, personnelLoading, isFetching, hasMore, handleSearch, loadMore } = usePersonnelSearch(token ?? "");
-    console.log(personnel)
 
     const [personForm, setPersonForm] = useState<PersonForm>({
         first_name: "",
@@ -129,7 +128,12 @@ const NonPdlVisitorRegistration = () => {
         reason_notes: "",
         reg_no: "",
         visitor_rel_personnel_id: null,
-        remarks_data: []
+        remarks_data: [],
+        approved_at: "",
+        approved_by_id: null,
+        verified_at: "",
+        verified_by_id: null,
+        visitor_status_id: null
     })
 
     const [icao, setIcao] = useState("")
@@ -710,9 +714,10 @@ const NonPdlVisitorRegistration = () => {
     useEffect(() => {
         setNonPdlVisitorForm(prev => ({
             ...prev,
-            verified_by: `${currentUser?.first_name ?? ""} ${currentUser?.last_name ?? ""}`
+            verified_by_id: currentUser?.id,
+            verified_by: `${currentUser?.first_name ?? ""} ${currentUser?.last_name ?? ""}` //idk why but its what the api want
         }))
-    }, [nonPdlVisitorForm?.verified_by, currentUser?.first_name, currentUser?.last_name])
+    }, [nonPdlVisitorForm?.verified_by_id, currentUser?.first_name, currentUser?.last_name, currentUser?.id,])
 
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""}`;
@@ -720,9 +725,6 @@ const NonPdlVisitorRegistration = () => {
     }, [personForm.first_name, personForm.last_name]);
 
     const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
-
-    // console.log(visitorForm)
-    // console.log(nonPdlVisitorForm)
 
     return (
         <div className='bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5'>
@@ -1266,7 +1268,12 @@ const NonPdlVisitorRegistration = () => {
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Date Verified</div>
-                                <input type="date" className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100" />
+                                <input
+                                    value={nonPdlVisitorForm?.verified_at}
+                                    type="date"
+                                    className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    onChange={e => setNonPdlVisitorForm(prev => ({ ...prev, verified_at: e.target.value }))}
+                                />
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Approved By</div>
@@ -1277,10 +1284,11 @@ const NonPdlVisitorRegistration = () => {
                                         value: user?.id,
                                         label: `${user?.first_name ?? ""} ${user?.last_name ?? ""}`,
                                     }))}
-                                    onChange={value => {
+                                    onChange={(value, label) => {
                                         setNonPdlVisitorForm(prev => ({
                                             ...prev,
-                                            approved_by: value
+                                            approved_by_id: value,
+                                            approved_by: label
                                         }))
                                     }}
                                 />
@@ -1288,8 +1296,10 @@ const NonPdlVisitorRegistration = () => {
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Date Approved</div>
                                 <input
+                                    value={nonPdlVisitorForm?.approved_at}
                                     type="date"
                                     className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    onChange={e => setNonPdlVisitorForm(prev => ({ ...prev, approved_at: e.target.value }))}
                                 />
                             </div>
                         </div>
@@ -1297,10 +1307,10 @@ const NonPdlVisitorRegistration = () => {
                         <div className="flex items-center justify-between w-full gap-5">
                             <div className='flex flex-col mt-2 w-[18.5%]'>
                                 <div className='flex gap-1'>ID No.</div>
-                                <input
+                                <Input
                                     value={nonPdlVisitorForm?.id_number}
                                     type="text"
-                                    className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    className="mt-2 px-3 py-2 rounded-md"
                                     onChange={e => handleRFIDScan(e.target.value)}
                                 />
                             </div>
