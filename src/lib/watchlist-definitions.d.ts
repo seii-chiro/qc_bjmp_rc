@@ -17,6 +17,7 @@ export type WatchlistRiskLevel = {
   created_at: string;
   updated_at: string;
   risk_severity: string;
+  risk_value: number | null;
   description: string;
 };
 

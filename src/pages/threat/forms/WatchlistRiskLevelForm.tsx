@@ -7,6 +7,7 @@ import { tableDataSourceRecord } from "../WatchlistRiskLevel";
 
 export type WatchlistRiskLevelFormType = {
     risk_severity: string;
+    risk_value: number | null;
     description: string;
 };
 
@@ -20,6 +21,7 @@ const WatchlistRiskLevelForm = ({ recordToEdit, handleClose }: Props) => {
     const queryClient = useQueryClient();
     const [form, setForm] = useState<WatchlistRiskLevelFormType>({
         risk_severity: "",
+        risk_value: null,
         description: "",
     });
 
@@ -28,11 +30,13 @@ const WatchlistRiskLevelForm = ({ recordToEdit, handleClose }: Props) => {
             setForm({
                 risk_severity: recordToEdit.risk_severity,
                 description: recordToEdit.description,
+                risk_value: recordToEdit?.risk_value || null
             });
         } else {
             setForm({
                 risk_severity: "",
                 description: "",
+                risk_value: null
             });
         }
     }, [recordToEdit]);
@@ -50,7 +54,7 @@ const WatchlistRiskLevelForm = ({ recordToEdit, handleClose }: Props) => {
             message.success(`Successfully ${recordToEdit ? "updated" : "added"} risk level.`);
             queryClient.invalidateQueries({ queryKey: ['watchlist', 'risk-levels'] });
             handleClose();
-            setForm({ risk_severity: "", description: "" })
+            setForm({ risk_severity: "", risk_value: null, description: "" })
         },
         onError: (err) => message.error(err.message.replace(/[{}[\]]/g, ''))
     });
@@ -66,6 +70,14 @@ const WatchlistRiskLevelForm = ({ recordToEdit, handleClose }: Props) => {
                         className="h-10"
                         value={form.risk_severity}
                         onChange={e => setForm(prev => ({ ...prev, risk_severity: e.target.value }))}
+                    />
+                </div>
+                <div>
+                    <span className="text-lg font-semibold">Risk Level Value</span>
+                    <Input
+                        className="h-10"
+                        value={form.risk_value || 0}
+                        onChange={e => setForm(prev => ({ ...prev, risk_value: +e.target.value }))}
                     />
                 </div>
                 <div>
