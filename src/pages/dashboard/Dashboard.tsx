@@ -256,11 +256,26 @@ const fetchSummaryVisitorLog = async () => {
 const fetchSummaryPDLVisitorLog = async () => {
     let url = `${BASE_URL}/api/dashboard/summary-dashboard/`;
     const params = new URLSearchParams();
-
     params.append('visit_type', 'PDLStationVisit');
+
+    if (pdlFrequency === 'daily') {
+        url += 'get-daily-visitor-logs-summary';
+        params.append('start_date', formatDateToMMDDYYYY(pdlStartDate));
+        params.append('end_date', formatDateToMMDDYYYY(pdlEndDate));
+    
+    } else if (pdlFrequency === 'monthly') {
+        url += 'get-monthly-visitor-logs-summary';
+        params.append('start_date', pdlStartDate); 
+        params.append('end_date', pdlEndDate);     
+    } else if (pdlFrequency === 'weekly') {
+        url += 'get-weekly-visitor-logs-summary';
+        params.append('start_date', formatDateToMMDDYYYY(pdlStartDate));
+        params.append('end_date', formatDateToMMDDYYYY(pdlEndDate));
+    } else if (pdlFrequency === 'quarterly') {
         url += 'get-quarterly-visitor-logs-summary';
         params.append('start_year', pdlStartYear);
         params.append('end_year', pdlEndYear);
+    }
 
     const res = await fetch(`${url}?${params.toString()}`, {
         headers: {
