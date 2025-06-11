@@ -6,10 +6,13 @@ import {
   IncidentType,
   SeverityLevel,
 } from "./incidents";
+import { PaginatedResponse } from "./queries";
 import { BASE_URL } from "./urls";
 
-export async function getIncidents(token: string): Promise<Incident[]> {
-  const res = await fetch(`${BASE_URL}/api/incidents/incidents/`, {
+export async function getIncidents(
+  token: string
+): Promise<PaginatedResponse<Incident>> {
+  const res = await fetch(`${BASE_URL}/api/incidents/incidents/?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -23,7 +26,9 @@ export async function getIncidents(token: string): Promise<Incident[]> {
   return res.json();
 }
 
-export async function getIncidentTypes(token: string): Promise<IncidentType[]> {
+export async function getIncidentTypes(
+  token: string
+): Promise<PaginatedResponse<IncidentType>> {
   const res = await fetch(`${BASE_URL}/api/incidents/incident-types/`, {
     headers: {
       "Content-Type": "application/json",
@@ -40,7 +45,7 @@ export async function getIncidentTypes(token: string): Promise<IncidentType[]> {
 
 export async function getIncidentStatus(
   token: string
-): Promise<IncidentStatus[]> {
+): Promise<PaginatedResponse<IncidentStatus>> {
   const res = await fetch(`${BASE_URL}/api/incidents/incident-statuses/`, {
     headers: {
       "Content-Type": "application/json",
@@ -57,7 +62,7 @@ export async function getIncidentStatus(
 
 export async function getSeverityLevels(
   token: string
-): Promise<SeverityLevel[]> {
+): Promise<PaginatedResponse<SeverityLevel>> {
   const res = await fetch(`${BASE_URL}/api/incidents/incident-severities/`, {
     headers: {
       "Content-Type": "application/json",
@@ -104,4 +109,3 @@ export async function patchIncident(token: string, id: number, payload: any) {
   if (!res.ok) throw new Error("Failed to update incident.");
   return res.json();
 }
-
