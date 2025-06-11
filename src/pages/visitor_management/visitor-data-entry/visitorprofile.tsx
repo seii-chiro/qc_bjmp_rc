@@ -1117,7 +1117,7 @@ const VisitorProfile = ({
         fingerScannerUninitThenInitMutation.mutate()
     }, [])
 
-    console.log(visitorToEdit)
+    // console.log(visitorToEdit)
 
     return (
         <div className="w-full mt-5">
