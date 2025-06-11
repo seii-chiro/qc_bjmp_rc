@@ -15,16 +15,66 @@ pdfMake.vfs = pdfFonts.vfs;
 const DashboardSummary = () => {
     const token = useTokenStore().token;
     const [organizationName, setOrganizationName] = useState('Bureau of Jail Management and Penology');
-    // const [isFormChanged, setIsFormChanged] = useState(false);
+    const [totalLoginsPDL, setTotalLoginsPDL] = useState(0);
+    const [totalLogoutsPDL, setTotalLogoutsPDL] = useState(0);
+    const [totalVisitsPDL, setTotalVisitsPDL] = useState(0);
+    
+    const [totalLoginsMainGate, setTotalLoginsMainGate] = useState(0);
+    const [totalLogoutsMainGate, setTotalLogoutsMainGate] = useState(0);
+    const [totalVisitsMainGate, setTotalVisitsMainGate] = useState(0);
+
+    const currentYear = new Date().getFullYear();
+    const [startYear, setStartYear] = useState(currentYear.toString());
+    const [endYear, setEndYear] = useState(currentYear.toString());
+
+    const fetchSummary = async (visitType: string) => {
+        const url = `${BASE_URL}/api/dashboard/summary-dashboard/get-quarterly-visitor-logs-summary`;
+        const params = new URLSearchParams({
+            visit_type: visitType,
+            start_year: startYear,
+            end_year: endYear,
+        });
+
+        const res = await fetch(`${url}?${params.toString()}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    useEffect(() => {
+        const getSummaries = async () => {
+            try {
+                const pdlData = await fetchSummary('PDLStationVisit');
+                const mainGateData = await fetchSummary('MainGateVisit');
+
+                // Process PDL Station Visit Data
+                const pdlSummary = pdlData.success.quarterly_visitor_logs_summary;
+                setTotalLoginsPDL(Object.values(pdlSummary).reduce((total, item) => total + (item.logins || 0), 0));
+                setTotalLogoutsPDL(Object.values(pdlSummary).reduce((total, item) => total + (item.logouts || 0), 0));
+                setTotalVisitsPDL(Object.values(pdlSummary).reduce((total, item) => total + (item.total_visits || 0), 0));
+
+                // Process Main Gate Visit Data
+                const mainGateSummary = mainGateData.success.quarterly_visitor_logs_summary;
+                setTotalLoginsMainGate(Object.values(mainGateSummary).reduce((total, item) => total + (item.logins || 0), 0));
+                setTotalLogoutsMainGate(Object.values(mainGateSummary).reduce((total, item) => total + (item.logouts || 0), 0));
+                setTotalVisitsMainGate(Object.values(mainGateSummary).reduce((total, item) => total + (item.total_visits || 0), 0));
+
+            } catch (error) {
+                console.error("Error fetching summaries:", error);
+            }
+        };
+
+        getSummaries();
+    }, [startYear, endYear, token]);
 
     const { data: summarydata } = useQuery({
         queryKey: ['summary-card'],
         queryFn: () => getSummary_Card(token ?? "")
-    });
-
-    const { data: maingatedata } = useQuery({
-        queryKey: ['main-gate'],
-        queryFn: () => getMainGate(token ?? "")
     });
 
     const { data: UserData } = useQuery({
@@ -50,9 +100,9 @@ const DashboardSummary = () => {
     });
 
     useEffect(() => {
-      if (organizationData?.results?.length > 0) {
-        setOrganizationName(organizationData.results[0]?.org_name ?? '');
-      }
+        if (organizationData?.results?.length > 0) {
+            setOrganizationName(organizationData.results[0]?.org_name ?? '');
+        }
     }, [organizationData]);
 
     const visitorOtherCount = Object.entries(summarydata?.success?.visitor_based_on_gender?.Active || {})
@@ -137,15 +187,15 @@ const DashboardSummary = () => {
         },
         {
             "Summary of Entry / Exit in Jail Premises": "PDLs",
-            Entry: 0,
-            Exit: 0,
-            Balance: 0,
+            Entry: totalLoginsPDL,
+            Exit: totalLogoutsPDL,
+            Balance: totalVisitsPDL,
         },
         {
             "Summary of Entry / Exit in Jail Premises": "Visitors",
-            Entry: maingatedata?.results?.filter(log => log.status === "In").length || 0,
-            Exit: maingatedata?.results?.filter(log => log.status === "Out").length || 0,
-            Balance: 0,
+            Entry: totalLoginsMainGate,
+            Exit: totalLogoutsMainGate,
+            Balance: totalVisitsMainGate,
         },
         {
             "Summary of Entry / Exit in Jail Premises": "BJMP Personnel",
@@ -185,22 +235,19 @@ const DashboardSummary = () => {
         XLSX.writeFile(workbook, 'DashboardSummary.xlsx');
     };
 
-    const InCount = maingatedata?.results?.filter(log => log.status === "In").length || 0;
-    const OutCount = maingatedata?.results?.filter(log => log.status === "Out").length || 0;
-
-    const generatePDF = async (summarydata, visitorOtherCount, personnelOtherCount, InCount, OutCount) => {
+    const generatePDF = async (summarydata, visitorOtherCount, personnelOtherCount, totalLoginsPDL, totalLogoutsPDL, totalVisitsPDL, totalLoginsMainGate, totalLogoutsMainGate, totalVisitsMainGate) => {
         const preparedByText = UserData ? `${UserData.first_name} ${UserData.last_name}` : '';
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
         const pdlBody = [
-            ["No.", "PDL Type", "Total"],
-            ["1", "Released PDL", summarydata?.success?.total_pdl_by_status?.Released?.Active || 0],
-            ["2", "Hospitalized PDL", summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active || 0],
-            ["3", "Convicted PDL", summarydata?.success?.total_pdl_by_status?.Convicted?.Active || 0],
-            ["4", "Committed PDL", summarydata?.success?.total_pdl_by_status?.Committed?.Active || 0],
-            ["5", "Jail Population", (
+            [ "PDL Type", "Total"],
+            [ "Released PDL", summarydata?.success?.total_pdl_by_status?.Released?.Active || 0],
+            [ "Hospitalized PDL", summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active || 0],
+            [ "Convicted PDL", summarydata?.success?.total_pdl_by_status?.Convicted?.Active || 0],
+            ["Committed PDL", summarydata?.success?.total_pdl_by_status?.Committed?.Active || 0],
+            [ "Jail Population", (
                 (summarydata?.success?.total_pdl_by_status?.Released?.Active || 0) +
                 (summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active || 0) +
                 (summarydata?.success?.total_pdl_by_status?.Convicted?.Active || 0) +
@@ -268,8 +315,8 @@ const DashboardSummary = () => {
 
         const entryExitBody = [
             ["Particulars", "Entry", "Exit", "Balance"],
-            ["PDLs", 0, 0, 0],
-            ["Visitors", InCount, OutCount, 0],
+            ["PDLs", totalLoginsPDL, totalLogoutsPDL, totalVisitsPDL],
+            ["Visitors", totalLoginsMainGate, totalLogoutsMainGate, totalVisitsMainGate],
             ["BJMP Personnel", 0, 0, 0],
             ["Service Providers", 0, 0, 0],
             ["Non-Registered Visitors", 0, 0, 0],
@@ -625,15 +672,15 @@ const createStyledTable = (title, body) => {
                             <tbody className="bg-white divide-y divide-gray-200">
                                 <tr>
                                     <td className="px-6 py-2 whitespace-nowrap text-lg">PDLs</td>
-                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
-                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
-                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">{totalLoginsPDL}</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">{totalLogoutsPDL}</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">{totalVisitsPDL}</td>
                                 </tr>
                                 <tr>
                                     <td className="px-6 py-2 whitespace-nowrap text-lg">Visitors</td>
-                                    <td className="px-6 py-2 whitespace-nowrap text-lg">{InCount}</td>
-                                    <td className="px-6 py-2 whitespace-nowrap text-lg">{OutCount}</td>
-                                    <td className="px-6 py-2 whitespace-nowrap text-lg">0</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">{totalLoginsMainGate}</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">{totalLogoutsMainGate}</td>
+                                    <td className="px-6 py-2 whitespace-nowrap text-lg">{totalVisitsMainGate}</td>
                                 </tr>
                                 <tr>
                                     <td className="px-6 py-2 whitespace-nowrap text-lg">BJMP Personnel</td>
@@ -659,10 +706,10 @@ const createStyledTable = (title, body) => {
                 </fieldset>
             </div>
             <div className="flex justify-end gap-5">
-                <button className="bg-[#1E365D] p-2 rounded-md text-white" onClick={() => exportToExcel(summarydata, visitorOtherCount, personnelOtherCount, InCount, OutCount)}>
+                <button className="bg-[#1E365D] p-2 rounded-md text-white" onClick={() => exportToExcel(summarydata, visitorOtherCount, personnelOtherCount, totalLoginsPDL, totalLogoutsPDL, totalVisitsPDL, totalLoginsMainGate, totalLogoutsMainGate, totalVisitsMainGate)}>
                     Download Excel
                 </button>
-                <button className="bg-[#1E365D] p-2 rounded-md text-white" onClick={() => generatePDF(summarydata, visitorOtherCount, personnelOtherCount, InCount, OutCount)}>
+                <button className="bg-[#1E365D] p-2 rounded-md text-white" onClick={() => generatePDF(summarydata, visitorOtherCount, personnelOtherCount, totalLoginsPDL, totalLogoutsPDL, totalVisitsPDL, totalLoginsMainGate, totalLogoutsMainGate, totalVisitsMainGate)}>
     Download PDF
 </button>
             </div>
