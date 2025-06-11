@@ -152,6 +152,9 @@ import PDLVisitationStatus from "./pages/pdl_management/pdl-visitation-status/PD
 import PDLCategory from "./pages/pdl_management/pdl-category/PDLCategory.tsx";
 import Geocodes from "./pages/oasis/maintenance/Geocodes.tsx";
 import Alerts from "./pages/oasis/maintenance/Alerts.tsx";
+import WatchlistType from "./pages/threat/WatchlistType.tsx";
+import WatchlistRiskLevel from "./pages/threat/WatchlistRiskLevel.tsx";
+import WatchlistThreatLevel from "./pages/threat/WatchlistThreatLevel.tsx";
 
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -447,6 +450,18 @@ function App() {
                 {
                     path: "threats/watchlist_registration",
                     element: <AddWatchlist />
+                },
+                {
+                    path: "threats/watchlist_types",
+                    element: <WatchlistType />
+                },
+                {
+                    path: "threats/watchlist_risk_level",
+                    element: <WatchlistRiskLevel />
+                },
+                {
+                    path: "threats/watchlist_threat_level",
+                    element: <WatchlistThreatLevel />
                 },
                 {
                     path: "screening",
