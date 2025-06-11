@@ -123,13 +123,15 @@ const ServiceProviderRegistration = () => {
         sp_reg_no: "",
         visitor_status: null,
         remarks_data: [],
-        approved_by: null,
-        verified_by: null,
+        approved_by_id: null,
+        verified_by_id: null,
         visitor_type_id: null,
         record_status_id: 1,
         service_type_id: null,
         remarks_many_data: [],
-        group_affiliation_id: null
+        group_affiliation_id: null,
+        approved_at: "",
+        verified_at: ""
     })
 
     const [icao, setIcao] = useState("")
@@ -784,9 +786,9 @@ const ServiceProviderRegistration = () => {
     useEffect(() => {
         setServiceProviderForm(prev => ({
             ...prev,
-            verified_by: currentUser?.id ?? 0
+            verified_by_id: currentUser?.id ?? 0
         }))
-    }, [serviceProviderForm?.verified_by, currentUser?.id])
+    }, [serviceProviderForm?.verified_by_id, currentUser?.id])
 
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""}`;
@@ -1227,7 +1229,7 @@ const ServiceProviderRegistration = () => {
                                     onChange={value => {
                                         setServiceProviderForm(prev => ({
                                             ...prev,
-                                            visitor_app_status_id: value
+                                            visitor_status: value
                                         }))
                                     }}
                                 />
@@ -1243,7 +1245,12 @@ const ServiceProviderRegistration = () => {
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Date Verified</div>
-                                <input type="date" className="mt-2 px-3 py-2 rounded-md outline-gray-300 border" />
+                                <input
+                                    value={serviceProviderForm?.verified_at}
+                                    type="date"
+                                    className="mt-2 px-3 py-2 rounded-md outline-gray-300 border"
+                                    onChange={e => setServiceProviderForm(prev => ({ ...prev, verified_at: e.target.value }))}
+                                />
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Approved By</div>
@@ -1257,7 +1264,7 @@ const ServiceProviderRegistration = () => {
                                     onChange={value => {
                                         setServiceProviderForm(prev => ({
                                             ...prev,
-                                            approved_by: value
+                                            approved_by_id: value
                                         }))
                                     }}
                                 />
@@ -1265,8 +1272,10 @@ const ServiceProviderRegistration = () => {
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Date Approved</div>
                                 <input
+                                    value={serviceProviderForm?.approved_at}
                                     type="date"
                                     className="mt-2 px-3 py-2 rounded-md border outline-gray-300"
+                                    onChange={e => setServiceProviderForm(prev => ({ ...prev, approved_at: e.target.value }))}
                                 />
                             </div>
                         </div>

@@ -324,9 +324,9 @@ export type NonPdlVisitorForm = {
   reg_no: string;
   id_number: string;
   reason_notes?: string;
-  verified_by?: string;
+  verified_by_id?: number | null;
   verified_at?: string;
-  approved_by?: string;
+  approved_by_id?: number | null;
   approved_at?: string;
   remarks_data?: RemarksData[];
 };
@@ -342,8 +342,8 @@ export type ServiceProviderForm = {
   approved_at?: string; // ISO date string
   person: number | null;
   visitor_status: number | null;
-  verified_by: number | null;
-  approved_by: number | null;
+  verified_by_id: number | null;
+  approved_by_id: number | null;
   remarks_data?: RemarksData[];
   remarks_many_data: ServiceProviderRemarksData[];
 };

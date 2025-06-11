@@ -17,6 +17,7 @@ export type tableDataSourceRecord = {
     id: number;
     no: number;
     risk_severity: string;
+    risk_value?: number | null;
     description: string;
     createdBy: string | null;
     updatedBy: string | null;
@@ -54,6 +55,7 @@ const WatchlistRiskLevel = () => {
             id: item?.id,
             no: index + 1,
             risk_severity: item?.risk_severity,
+            risk_value: item?.risk_value,
             description: item?.description,
             createdBy: item?.created_by,
             updatedBy: item?.updated_by

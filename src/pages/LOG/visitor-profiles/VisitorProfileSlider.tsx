@@ -21,12 +21,14 @@ const VisitorProfileSlider = () => {
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
     const logRefetchInterval = useSystemSettingsStore((state) => state.logRefetchInterval);
+    const didInitialLoad = useRef(false);
 
-    const { data: main_gate_logs_raw, isLoading: main_gate_logs_loading } = useQuery({
+    const { data: main_gate_logs_raw, isLoading: main_gate_logs_loading, isFetching } = useQuery({
         queryKey: ['main-gate-logs', logRefetchInterval],
         queryFn: async () => {
             // /api/visit-logs/main-gate-visits/?filter_today=true
-            const res = await fetch(`${BASE_URL}/api/visit-logs/main-gate-visits/`, {
+            // /api/visit-logs/main-gate-visits/
+            const res = await fetch(`${BASE_URL}/api/visit-logs/main-gate-visits/?filter_today=true`, {
                 headers: {
                     'Authorization': `Token ${token}`,
                     'Content-Type': 'application/json',
@@ -40,43 +42,57 @@ const VisitorProfileSlider = () => {
         refetchInterval: +logRefetchInterval * 1000 || 30000,
     })
 
+    //Daily if filter_today=true
     const main_gate_logs = main_gate_logs_raw?.results || []
 
-    const todayLogs = main_gate_logs?.filter((log: { timestamp_out: string; timestamp_in: string }) => {
-        if (log.timestamp_out) return false;
+    // const todayLogs = main_gate_logs?.filter((log: { timestamp_out: string; timestamp_in: string }) => {
+    //     if (log.timestamp_out) return false;
 
-        const logDate = log.timestamp_in ? new Date(log.timestamp_in) : null;
-        if (!logDate) return false;
+    //     const logDate = log.timestamp_in ? new Date(log.timestamp_in) : null;
+    //     if (!logDate) return false;
 
-        const today = new Date();
-        return (
-            logDate.getFullYear() === today.getFullYear() &&
-            logDate.getMonth() === today.getMonth() &&
-            logDate.getDate() === today.getDate()
-        );
-    });
+    //     const today = new Date();
+    //     return (
+    //         logDate.getFullYear() === today.getFullYear() &&
+    //         logDate.getMonth() === today.getMonth() &&
+    //         logDate.getDate() === today.getDate()
+    //     );
+    // });
 
-    const filteredLogs = todayLogs?.filter((log: { timestamp_out: string; timestamp_in: string }) => {
-        // Only logs with no timestamp_out
-        if (log.timestamp_out) return false;
+    const seen = new Set();
+    const filteredLogs = main_gate_logs?.filter((log: { timestamp_out: string; timestamp_in: string; visitor: any }) => {
+        // Uncomment if those who logged out shouldn't be displayed.
+        // if (log.timestamp_out) return false;
 
         // Parse timestamp_in as local time
         const logDate = log.timestamp_in ? new Date(log.timestamp_in) : null;
         if (!logDate) return false;
 
         const today = new Date();
-        return (
+        const isToday =
             logDate.getFullYear() === today.getFullYear() &&
             logDate.getMonth() === today.getMonth() &&
-            logDate.getDate() === today.getDate()
-        );
+            logDate.getDate() === today.getDate();
+
+        // Only include if not already seen
+        if (isToday && !seen.has(log?.visitor?.person?.id)) {
+            seen.add(log?.visitor?.person?.id);
+            return true;
+        }
+        return false;
     });
 
     useEffect(() => {
         if (!main_gate_logs_loading) {
+            didInitialLoad.current = true;
+        }
+    }, [main_gate_logs_loading]);
+
+    useEffect(() => {
+        if (didInitialLoad.current && !isFetching) {
             setLastRefreshed(new Date());
         }
-    }, [main_gate_logs_loading, main_gate_logs_raw]);
+    }, [isFetching]);
 
     useEffect(() => {
         if (!emblaApi) return
@@ -273,7 +289,8 @@ const VisitorProfileSlider = () => {
                     </button>
                 )}
                 <div className="absolute right-2 text-sm text-gray-500">
-                    {todayLogs?.length > 0 ? `${todayLogs?.length} total logs today` : 'No logs for today'}
+                    {/* {todayLogs?.length > 0 ? `${todayLogs?.length} total logs today` : 'No logs for today'}  old - uncomment when fetching the entire log*/}
+                    {main_gate_logs?.length > 0 ? `${main_gate_logs?.length} total logs today` : 'No logs for today'}
                 </div>
             </div>
         </>

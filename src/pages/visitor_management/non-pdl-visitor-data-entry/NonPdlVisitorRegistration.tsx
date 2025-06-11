@@ -1,4 +1,4 @@
-import { DatePicker, Input, message, Modal, Select, Table } from "antd";
+import { DatePicker, Input, message, Modal, Select, Spin, Table } from "antd";
 import { Plus } from "lucide-react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import AddAddress from "../visitor-data-entry/AddAddress";
@@ -9,7 +9,6 @@ import { useMutation, useQueries } from "@tanstack/react-query";
 import {
     getCivilStatus, getCountries, getCurrentUser, getGenders, getJail_Barangay,
     getJail_Municipality, getJail_Province, getJailRegion, getNationalities,
-    getPersonnel,
     getPrefixes, getReligion, getSuffixes, getUsers, getVisitor_Type, getVisitorAppStatus
 } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -21,9 +20,10 @@ import Remarks from "../visitor-data-entry/Remarks";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
 import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
 import Identifiers from "../personnel-data-entry/Identifiers";
-import { getNonPdlVisitorReasons, getRelationships } from "@/lib/additionalQueries";
+import { getNonPdlVisitorReasons, getRelationshipOfVisitorToPersonnel } from "@/lib/additionalQueries";
 import { downloadBase64Image } from "@/functions/dowloadBase64Image";
 import { sanitizeRFID } from "@/functions/sanitizeRFIDInput";
+import usePersonnelSearch from "./custom-hooks/usePersonnelSearch";
 
 const addPerson = async (payload: PersonForm, token: string) => {
 
@@ -90,6 +90,8 @@ const NonPdlVisitorRegistration = () => {
     const [editAddressIndex, setEditAddressIndex] = useState<number | null>(null);
     const [editContactIndex, setEditContactIndex] = useState<number | null>(null);
 
+    const { personnel, personnelLoading, isFetching, hasMore, handleSearch, loadMore } = usePersonnelSearch(token ?? "");
+
     const [personForm, setPersonForm] = useState<PersonForm>({
         first_name: "",
         middle_name: "",
@@ -126,7 +128,12 @@ const NonPdlVisitorRegistration = () => {
         reason_notes: "",
         reg_no: "",
         visitor_rel_personnel_id: null,
-        remarks_data: []
+        remarks_data: [],
+        approved_at: "",
+        approved_by_id: null,
+        verified_at: "",
+        verified_by_id: null,
+        visitor_status_id: null
     })
 
     const [icao, setIcao] = useState("")
@@ -305,98 +312,25 @@ const NonPdlVisitorRegistration = () => {
 
     const dropdownOptions = useQueries({
         queries: [
-            {
-                queryKey: ['visitor-type'],
-                queryFn: () => getVisitor_Type(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['person-gender'],
-                queryFn: () => getGenders(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['person-nationality'],
-                queryFn: () => getNationalities(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['person-civil-status'],
-                queryFn: () => getCivilStatus(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['religion'],
-                queryFn: () => getReligion(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['regions'],
-                queryFn: () => getJailRegion(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['provinces'],
-                queryFn: () => getJail_Province(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['city/municipality'],
-                queryFn: () => getJail_Municipality(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['barangays'],
-                queryFn: () => getJail_Barangay(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['countries'],
-                queryFn: () => getCountries(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['personnel'],
-                queryFn: () => getPersonnel(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['users'],
-                queryFn: () => getUsers(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['visitor-app-status'],
-                queryFn: () => getVisitorAppStatus(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['current-user'],
-                queryFn: () => getCurrentUser(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['prefix'],
-                queryFn: () => getPrefixes(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['suffix'],
-                queryFn: () => getSuffixes(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['non-pdl-relationship'],
-                queryFn: () => getRelationships(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
-            {
-                queryKey: ['non-pdl-reasons'],
-                queryFn: () => getNonPdlVisitorReasons(token ?? ""),
-                staleTime: 10 * 60 * 1000
-            },
+            { queryKey: ['visitor-type'], queryFn: () => getVisitor_Type(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['person-gender'], queryFn: () => getGenders(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['person-nationality'], queryFn: () => getNationalities(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['person-civil-status'], queryFn: () => getCivilStatus(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['religion'], queryFn: () => getReligion(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['regions'], queryFn: () => getJailRegion(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['provinces'], queryFn: () => getJail_Province(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['city/municipality'], queryFn: () => getJail_Municipality(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['barangays'], queryFn: () => getJail_Barangay(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['countries'], queryFn: () => getCountries(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['users'], queryFn: () => getUsers(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['visitor-app-status'], queryFn: () => getVisitorAppStatus(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['current-user'], queryFn: () => getCurrentUser(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['prefix'], queryFn: () => getPrefixes(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['suffix'], queryFn: () => getSuffixes(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['non-pdl-relationship'], queryFn: () => getRelationshipOfVisitorToPersonnel(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['non-pdl-reasons'], queryFn: () => getNonPdlVisitorReasons(token ?? ""), staleTime: 10 * 60 * 1000 },
         ]
-    })
+    });
 
     const enrollFaceMutation = useMutation({
         mutationKey: ['enroll-face-mutation'],
@@ -579,21 +513,19 @@ const NonPdlVisitorRegistration = () => {
     const municipalities = dropdownOptions?.[7]?.data?.results;
     const barangays = dropdownOptions?.[8]?.data?.results;
     const countries = dropdownOptions?.[9]?.data?.results;
-    const personnel = dropdownOptions?.[10]?.data?.results;
-    const personnelLoading = dropdownOptions?.[10]?.isLoading;
-    const users = dropdownOptions?.[11]?.data?.results;
-    const userLoading = dropdownOptions?.[11]?.isLoading;
-    const visitorAppStatus = dropdownOptions?.[12]?.data?.results;
-    const visitorAppStatusLoading = dropdownOptions?.[12]?.isLoading;
-    const currentUser = dropdownOptions?.[13]?.data;
-    const prefixes = dropdownOptions?.[14]?.data?.results;
-    const prefixesLoading = dropdownOptions?.[14]?.isLoading;
-    const suffixes = dropdownOptions?.[15]?.data?.results;
-    const suffixesLoading = dropdownOptions?.[15]?.isLoading;
-    const relationships = dropdownOptions?.[16]?.data?.results;
-    const relationshipsLoading = dropdownOptions?.[16]?.isLoading;
-    const reasons = dropdownOptions?.[17]?.data?.results;
-    const reasonsLoading = dropdownOptions?.[17]?.isLoading;
+    const users = dropdownOptions?.[10]?.data?.results;
+    const userLoading = dropdownOptions?.[10]?.isLoading;
+    const visitorAppStatus = dropdownOptions?.[11]?.data?.results;
+    const visitorAppStatusLoading = dropdownOptions?.[11]?.isLoading;
+    const currentUser = dropdownOptions?.[12]?.data;
+    const prefixes = dropdownOptions?.[13]?.data?.results;
+    const prefixesLoading = dropdownOptions?.[13]?.isLoading;
+    const suffixes = dropdownOptions?.[14]?.data?.results;
+    const suffixesLoading = dropdownOptions?.[14]?.isLoading;
+    const relationships = dropdownOptions?.[15]?.data?.results;
+    const relationshipsLoading = dropdownOptions?.[15]?.isLoading;
+    const reasons = dropdownOptions?.[16]?.data?.results;
+    const reasonsLoading = dropdownOptions?.[16]?.isLoading;
 
     const addressDataSource = personForm?.address_data?.map((address, index) => {
         return ({
@@ -782,9 +714,10 @@ const NonPdlVisitorRegistration = () => {
     useEffect(() => {
         setNonPdlVisitorForm(prev => ({
             ...prev,
-            verified_by: `${currentUser?.first_name ?? ""} ${currentUser?.last_name ?? ""}`
+            verified_by_id: currentUser?.id,
+            verified_by: `${currentUser?.first_name ?? ""} ${currentUser?.last_name ?? ""}` //idk why but its what the api want
         }))
-    }, [nonPdlVisitorForm?.verified_by, currentUser?.first_name, currentUser?.last_name])
+    }, [nonPdlVisitorForm?.verified_by_id, currentUser?.first_name, currentUser?.last_name, currentUser?.id,])
 
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""}`;
@@ -792,9 +725,6 @@ const NonPdlVisitorRegistration = () => {
     }, [personForm.first_name, personForm.last_name]);
 
     const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
-
-    // console.log(visitorForm)
-    // console.log(nonPdlVisitorForm)
 
     return (
         <div className='bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5'>
@@ -870,7 +800,7 @@ const NonPdlVisitorRegistration = () => {
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={relationships?.map(relationship => ({
                                         value: relationship?.id,
-                                        label: relationship?.relationship_name
+                                        label: relationship?.relationship_personnel
                                     }))}
                                     onChange={(value) => {
                                         setNonPdlVisitorForm(prev => (
@@ -1072,8 +1002,10 @@ const NonPdlVisitorRegistration = () => {
                         <div className="w-full mt-10 flex flex-col gap-6">
                             <h1 className='font-bold text-xl'>Personnel to Visit</h1>
                             <div className="flex gap-2 w-full">
-                                <label className="flex flex-col flex-[3]">
-                                    <span className="font-semibold flex gap-1">Personnel Name<span className='text-red-600'>*</span></span>
+                                <label className="flex flex-col flex-1">
+                                    <span className="font-semibold flex gap-1">
+                                        Personnel Name<span className='text-red-600'>*</span>
+                                    </span>
                                     <Select
                                         loading={personnelLoading}
                                         showSearch
@@ -1081,24 +1013,58 @@ const NonPdlVisitorRegistration = () => {
                                         placeholder="Personnel Name"
                                         value={nonPdlVisitorForm?.personnel_id}
                                         className='mt-2 h-10 rounded-md outline-gray-300 flex-1'
+                                        onSearch={handleSearch}
+                                        filterOption={false} // Disable client-side filtering since we're doing server-side search
+                                        notFoundContent={
+                                            isFetching ? (
+                                                <div className="flex items-center justify-center py-2">
+                                                    <Spin size="small" />
+                                                    <span className="ml-2">Searching...</span>
+                                                </div>
+                                            ) : (
+                                                "No personnel found"
+                                            )
+                                        }
+                                        dropdownRender={(menu) => (
+                                            <>
+                                                {menu}
+                                                {hasMore && (
+                                                    <div className="border-t p-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={loadMore}
+                                                            disabled={isFetching}
+                                                            className="w-full text-center text-blue-600 hover:text-blue-800 disabled:text-gray-400"
+                                                        >
+                                                            {isFetching ? (
+                                                                <div className="flex items-center justify-center">
+                                                                    <Spin size="small" />
+                                                                    <span className="ml-2">Loading more...</span>
+                                                                </div>
+                                                            ) : (
+                                                                "Load more..."
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
                                         options={personnel?.map(person => ({
                                             label: `${person?.person?.first_name} ${person?.person?.last_name}`,
                                             value: person?.id
                                         }))}
                                         onChange={(value) => {
-                                            setNonPdlVisitorForm(prev => (
-                                                {
-                                                    ...prev,
-                                                    personnel_id: value
-                                                }
-                                            ))
+                                            setNonPdlVisitorForm(prev => ({
+                                                ...prev,
+                                                personnel_id: value
+                                            }));
                                         }}
                                     />
                                 </label>
-                                <label>
+                                <label className="flex flex-col flex-1">
                                     <span className="font-semibold flex gap-1">Personnel Type<span className='text-red-600'>*</span></span>
                                     <Input
-                                        value={personnel?.find(person => person?.id === nonPdlVisitorForm?.personnel_id)?.person?.first_name}
+                                        value={personnel?.find(person => person?.id === nonPdlVisitorForm?.personnel_id)?.personnel_type}
                                         readOnly
                                         placeholder="Personnel Name"
                                         className='mt-2 h-10 rounded-md outline-gray-300'
@@ -1122,7 +1088,7 @@ const NonPdlVisitorRegistration = () => {
                                         className='mt-2 h-10 rounded-md outline-gray-300'
                                     />
                                 </label> */}
-                                <label className="flex flex-col flex-[4]">
+                                <label className="flex flex-col flex-[2]">
                                     <span className="font-semibold flex gap-1">Reason for Visit<span className='text-red-600'>*</span></span>
                                     <Select
                                         loading={reasonsLoading}
@@ -1302,7 +1268,12 @@ const NonPdlVisitorRegistration = () => {
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Date Verified</div>
-                                <input type="date" className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100" />
+                                <input
+                                    value={nonPdlVisitorForm?.verified_at}
+                                    type="date"
+                                    className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    onChange={e => setNonPdlVisitorForm(prev => ({ ...prev, verified_at: e.target.value }))}
+                                />
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Approved By</div>
@@ -1313,10 +1284,11 @@ const NonPdlVisitorRegistration = () => {
                                         value: user?.id,
                                         label: `${user?.first_name ?? ""} ${user?.last_name ?? ""}`,
                                     }))}
-                                    onChange={value => {
+                                    onChange={(value, label) => {
                                         setNonPdlVisitorForm(prev => ({
                                             ...prev,
-                                            approved_by: value
+                                            approved_by_id: value,
+                                            approved_by: label
                                         }))
                                     }}
                                 />
@@ -1324,8 +1296,10 @@ const NonPdlVisitorRegistration = () => {
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Date Approved</div>
                                 <input
+                                    value={nonPdlVisitorForm?.approved_at}
                                     type="date"
                                     className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    onChange={e => setNonPdlVisitorForm(prev => ({ ...prev, approved_at: e.target.value }))}
                                 />
                             </div>
                         </div>
@@ -1333,10 +1307,10 @@ const NonPdlVisitorRegistration = () => {
                         <div className="flex items-center justify-between w-full gap-5">
                             <div className='flex flex-col mt-2 w-[18.5%]'>
                                 <div className='flex gap-1'>ID No.</div>
-                                <input
+                                <Input
                                     value={nonPdlVisitorForm?.id_number}
                                     type="text"
-                                    className="mt-2 px-3 py-2 rounded-md outline-gray-300 bg-gray-100"
+                                    className="mt-2 px-3 py-2 rounded-md"
                                     onChange={e => handleRFIDScan(e.target.value)}
                                 />
                             </div>

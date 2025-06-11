@@ -1021,7 +1021,7 @@ const PersonnelUpdate = () => {
                         mobile_number: relationship?.person?.contacts?.[0]?.value
                     })
                 ) ?? [],
-            verified_by_id: users?.find(user => user?.email === personnelData?.verified_by)?.id ?? null,
+            verified_by_id: users?.find(user => user?.email === personnelData?.verified_by)?.id ?? currentUser?.id ?? null,
             verified_at: personnelData?.verified_at ?? "",
             approved_by_id: users?.find(user => user?.email === personnelData?.approved_by)?.id ?? null,
             approved_at: personnelData?.approved_at ?? "",
@@ -1045,6 +1045,7 @@ const PersonnelUpdate = () => {
         relationships,
         persons,
         personnelStatus,
+        currentUser?.id
     ]);
 
     const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
