@@ -927,7 +927,7 @@ const VisitorRegistration = () => {
             })) ?? [],
             visitor_app_status_id: visitorData?.visitor_app_status_id ?? prev.visitor_app_status_id ?? 1,
             record_status_id: visitorData?.record_status_id ?? prev.record_status_id ?? 1,
-            verified_by_id: users?.find(user => user?.email === visitorData?.verified_by)?.id ?? null,
+            verified_by_id: users?.find(user => user?.email === visitorData?.verified_by)?.id ?? currentUser?.id ?? null,
             approved_by_id: users?.find(user => user?.email === visitorData?.approved_by)?.id ?? null,
             pdl_data: visitorData?.pdls?.map((pdl: {
                 pdl: any; relationship_to_pdl: string;
@@ -952,7 +952,7 @@ const VisitorRegistration = () => {
         }));
     }, [visitorData, barangays, civilStatuses, countries, currentUser?.id, municipalities, nationalities, provinces, regions, relationships, users]);
 
-    console.log("Visitor Form", visitorForm)
+    // console.log("Visitor Form", visitorForm)
 
     const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
 
