@@ -2512,3 +2512,21 @@ export type PDLVisitStatus = {
   name: string;
   description: string;
 };
+
+export type RelationshipOfVisitorToPersonnel = {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  risk_level: string;
+  impact_level: string;
+  threat_level: string;
+  record_status: string;
+  created_at: string; // ISO timestamp format
+  updated_at: string; // ISO timestamp format
+  relationship_personnel: string;
+  description: string;
+  risks: string;
+  impacts: string;
+  threats: string;
+  mitigation: string;
+};
