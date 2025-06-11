@@ -11,6 +11,9 @@ const Threat = () => {
                 </div>
                 <GodotLink title="Watchlist" link="watch-list" />
                 <GodotLink title="Watchlist Registration" link="watchlist_registration" />
+                <GodotLink title="Watchlist Type" link="watchlist_types" />
+                <GodotLink title="Watchlist Risk Level" link="watchlist_risk_level" />
+                <GodotLink title="Watchlist Threat Level" link="watchlist_threat_level" />
             </div>
             {/* <div className="w-96 border shadow-sm hover:shadow-md border-gray-200 p-5 rounded-md">
                 <NavLink to={"watchlist_registration"}>
