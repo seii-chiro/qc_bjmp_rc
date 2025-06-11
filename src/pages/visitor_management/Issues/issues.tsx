@@ -1,19 +1,20 @@
-import { deleteIssues, getImpactLevels, getImpacts, getIssueCategory, getIssueStatuses, getReportingCategory, getRiskLevels, getSeverityLevel, getUser, patchIssues } from "@/lib/queries";
+import { deleteIssues, getImpactLevels, getImpacts, getIssueCategories, getIssueCategory, getIssueStatuses, getReportingCategory, getRiskLevels, getSeverityLevel, getUser, PaginatedResponse, patchIssues } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { Button, Dropdown, Form, Input, Menu, message, Modal, Select, Table } from "antd"
 import { ColumnsType } from "antd/es/table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
 import moment from "moment";
 import { Issue } from "@/lib/definitions";
 import { BASE_URL } from "@/lib/urls";
+import { useSearchParams } from "react-router-dom";
 
 export type IssuesProps = {
     created_at: any;
@@ -42,13 +43,16 @@ export type IssuesProps = {
 
 const Issues = () => {
     const [searchText, setSearchText] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState("");
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const queryClient = useQueryClient();
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
     const [messageApi, contextHolder] = message.useMessage();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [issues, setIssues] = useState<IssuesProps>(
         {id: null,
         module: '',
@@ -74,28 +78,83 @@ const Issues = () => {
         created_at: null,
     }
     );
+    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [issueTypeFilter, setIssueTypeFilter] = useState<string[]>([]);
+    const [issueCategoryFilter, setIssueCategoryFilter] = useState<string[]>([]);
+    const [issueStatusFilter, setIssueStatusFilter] = useState<string[]>([]);
 
-    async function getIssues(token: string): Promise<Issue[]> {
-        const res = await fetch(`${BASE_URL}/api/issues_v2/issues/`, {
+    const fetchIssues = async (search: string) => {
+        const res = await fetch(`${BASE_URL}/api/issues_v2/issues/?search=${search}`, {
             headers: {
-            "Content-Type": "application/json",
-            Authorization: `Token ${token}`,
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
             },
         });
-        
-        if (!res.ok) {
-            throw new Error("Failed to fetch Issues data.");
-        }
-        
+
+        if (!res.ok) throw new Error("Network error");
         return res.json();
-    }
-    
-    const { data } = useQuery({
-        queryKey: ['issues'],
-        queryFn: () => getIssues(token ?? ""),
-    })
+    };
+
+    useEffect(() => {
+        const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
+        return () => clearTimeout(timeout);
+    }, [searchText]);
+
+    const { data: searchData, isLoading: searchLoading } = useQuery({
+        queryKey: ["issues", debouncedSearch],
+        queryFn: () => fetchIssues(debouncedSearch),
+        behavior: keepPreviousData(),
+        enabled: debouncedSearch.length > 0,
+    });
+
+    const { data, isFetching } = useQuery({
+        queryKey: [
+            "issues",
+            "issues-table",
+            page,
+            limit,
+            issueTypeFilter,
+            issueCategoryFilter,
+            issueStatusFilter
+        ],
+        queryFn: async (): Promise<PaginatedResponse<Issue>> => {
+            const offset = (page - 1) * limit;
+            const params = new URLSearchParams();
+
+            params.append("page", String(page));
+            params.append("limit", String(limit));
+            params.append("offset", String(offset));
+
+            if (issueTypeFilter.length > 0) {
+            params.append("issue_type", issueTypeFilter.join(","));
+            }
+
+            if (issueCategoryFilter.length > 0) {
+            params.append("issue_category", issueCategoryFilter.join(","));
+            }
+
+            if (issueStatusFilter.length > 0) {
+            params.append("status", issueStatusFilter.join(","));
+            }
+
+            const res = await fetch(`${BASE_URL}/api/issues_v2/issues/?${params.toString()}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Token ${token}`,
+            },
+            });
+
+            if (!res.ok) {
+            throw new Error("Failed to fetch Personnel data.");
+            }
+
+            return res.json();
+        },
+        enabled: !!token,
+        keepPreviousData: true,
+    });
 
     const { data: UserData } = useQuery({
         queryKey: ['user'],
@@ -138,7 +197,7 @@ const Issues = () => {
             },
             {
                 queryKey: ["issue-category"],
-                queryFn: () => getIssueCategory(token ?? ""),
+                queryFn: () => getIssueCategories(token ?? ""),
             },
             {
                 queryKey: ["issue-severity-level"],
@@ -236,12 +295,86 @@ const Issues = () => {
             ...prevForm,
             issue_status: value,
         }));
-    }; 
+    };
 
-    const dataSource = data?.results?.map((issues) => ({
-        key: issues?.id,
+    const [searchParams] = useSearchParams();
+    const issueType = searchParams.get("issue_type") || "all";
+    const issueTypeList = issueType !== "all" ? issueType.split(",").map(decodeURIComponent) : [];
+
+    const issueCategory = searchParams.get("issue_category") || "all";
+    const issueCategoryList = issueCategory !== "all" ? issueCategory.split(",").map(decodeURIComponent) : [];
+
+    const issueStatus = searchParams.get("status") || "all";
+    const issueStatusList = issueStatus !== "all" ? issueStatus.split(",").map(decodeURIComponent) : [];
+
+    useEffect(() => {
+    if (issueTypeList.length > 0 && JSON.stringify(issueTypeFilter) !== JSON.stringify(issueTypeList)) {
+        setIssueTypeFilter(issueTypeList);
+    }
+    }, [issueTypeList, issueTypeFilter]);
+
+    useEffect(() => {
+    if (issueCategoryList.length > 0 && JSON.stringify(issueCategoryFilter) !== JSON.stringify(issueCategoryList)) {
+        setIssueCategoryFilter(issueCategoryList);
+    }
+    }, [issueCategoryList, issueCategoryFilter]);
+
+     useEffect(() => {
+    if (issueStatusList.length > 0 && JSON.stringify(issueStatusFilter) !== JSON.stringify(issueStatusList)) {
+        setIssueStatusFilter(issueStatusList);
+    }
+    }, [issueStatusList, issueStatusFilter]);
+
+
+    const { data: TypeData, isLoading: issueByTypeLoading } = useQuery({
+    queryKey: ['issue-type-option'],
+    queryFn: async () => {
+        const res = await fetch(`${BASE_URL}/api/issues_v2/issue-types/`, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+        },
+        });
+        if (!res.ok) throw new Error('Failed to fetch Issue Type Option');
+        return res.json();
+    },
+    enabled: !!token,
+    });
+
+    const { data: CategoryData, isLoading: issueByCategoryLoading } = useQuery({
+    queryKey: ['issue-category-option'],
+    queryFn: async () => {
+        const res = await fetch(`${BASE_URL}/api/issues_v2/issue-categories/`, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+        },
+        });
+        if (!res.ok) throw new Error('Failed to fetch Issue Category Option');
+        return res.json();
+    },
+    enabled: !!token,
+    });
+
+    const { data: statusData, isLoading: issueByStatusLoading } = useQuery({
+    queryKey: ['issue-status-option'],
+    queryFn: async () => {
+        const res = await fetch(`${BASE_URL}/api/issues_v2/issue-statuses/`, {
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`,
+        },
+        });
+        if (!res.ok) throw new Error('Failed to fetch Issue Status Option');
+        return res.json();
+    },
+    enabled: !!token,
+    });
+
+    const dataSource = data?.results?.map((issues, index) => ({
+        key: index + 1,
         id: issues?.id ?? '',
-        created_at: issues?.created_at ?? '', // <-- fix here
+        created_at: issues?.created_at ?? '',
         issue_type: issues?.issue_type?.name ?? '',
         issue_category: issues?.issue_category?.name ?? '',
         categorization_rule: issues?.issue_category?.categorization_rule ?? '',
@@ -251,16 +384,26 @@ const Issues = () => {
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
-    const filteredData = dataSource?.filter((issues) =>
-        Object.values(issues).some((value) =>
-            String(value).toLowerCase().includes(searchText.toLowerCase())
-        )
-    );
+    const issueTypeFilters = TypeData?.results?.map(type => ({
+    text: type.name,
+    value: type.name,
+    })) ?? [];
+
+    const issueCategoryFilters = CategoryData?.results?.map(category => ({
+    text: category.name,
+    value: category.name,
+    })) ?? [];
+
+    const issueStatusFilters = statusData?.results?.map(status => ({
+    text: status.name,
+    value: status.name,
+    })) ?? [];
 
     const columns: ColumnsType<IssuesProps> = [
         {
             title: 'No.',
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
         },
         {
             title: 'Timestamp',
@@ -275,14 +418,8 @@ const Issues = () => {
             dataIndex: 'issue_type',
             key: 'issue_type',
             sorter: (a, b) => a.issue_type.localeCompare(b.issue_type),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.issue_type))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
+            filters: issueTypeFilters,
+            filteredValue: issueTypeFilter,
             onFilter: (value, record) => record.issue_type === value,
         },
         {
@@ -290,14 +427,8 @@ const Issues = () => {
             dataIndex: 'issue_category',
             key: 'issue_category',
             sorter: (a, b) => a.issue_category.localeCompare(b.issue_category),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.issue_category))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
+            filters: issueCategoryFilters,
+            filteredValue: issueCategoryFilter,
             onFilter: (value, record) => record.issue_category === value,
         },
         {
@@ -311,14 +442,8 @@ const Issues = () => {
             dataIndex: 'status',
             key: 'status',
             sorter: (a, b) => a.status.localeCompare(b.status),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.status))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
+            filters: issueStatusFilters,
+            filteredValue: issueStatusFilter,
             onFilter: (value, record) => record.status === value,
         },
         {
@@ -347,28 +472,76 @@ const Issues = () => {
             ),
         },
     ]
-    const handleExportExcel = () => {
-        const ws = XLSX.utils.json_to_sheet(dataSource);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Issues");
-        XLSX.writeFile(wb, "Issues.xlsx");
+
+    const fetchAllIssues = async () => {
+        const res = await fetch(`${BASE_URL}/api/issues_v2/issues/?limit=10000`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+        if (!res.ok) throw new Error("Network error");
+        return await res.json();
     };
 
-    const handleExportPDF = () => {
-        const doc = new jsPDF('landscape');
-        const headerHeight = 48;
-        const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+const handleExportPDF = async () => {
+    setIsLoading(true);
+    setLoadingMessage("Generating PDF... Please wait.");
     
-        const today = new Date();
-        const formattedDate = today.toISOString().split('T')[0];
-        const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-    
-        const maxRowsPerPage = 20; 
-    
-        let startY = headerHeight;
-    
+    const doc = new jsPDF('landscape');
+    const headerHeight = 48;
+    const footerHeight = 32;
+    const organizationName = dataSource[0]?.organization || ""; 
+    const PreparedBy = dataSource[0]?.updated_by || ''; 
+
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+    const maxRowsPerPage = 10; 
+    let startY = headerHeight;
+
+    try {
+        let allData;
+        if (searchText.trim() === '') {
+            allData = await fetchAllIssues();
+        } else {
+            allData = await fetchIssues(searchText.trim());
+        }
+        const allResults = allData?.results || [];
+
+        const filteredResults = allResults.filter(issues => {
+            const issueTypeValue = issues?.issue_type?.name ?? '';
+            const issueCategoryValue = issues?.issue_category?.name ?? '';
+            const statusValue = issues?.status?.name ?? '';
+
+            const matchesGlobalIssueType = issueType === "all" || issueTypeValue === issueType;
+            const matchesGlobalIssueCategory = issueCategory === "all" || issueCategoryValue === issueCategory;
+            const matchesGlobalStatus = issueStatus === "all" || statusValue === issueStatus;
+            const matchesColumnIssueType = issueTypeFilter.length === 0 || issueTypeFilter.includes(issueTypeValue);
+            const matchesColumnIssueCategory = issueCategoryFilter.length === 0 || issueCategoryFilter.includes(issueCategoryValue);
+            const matchesColumnStatus = issueStatusFilter.length === 0 || issueStatusFilter.includes(statusValue);
+
+            return (
+                matchesColumnIssueType &&
+                matchesGlobalIssueType &&
+                matchesColumnIssueCategory &&
+                matchesGlobalIssueCategory &&
+                matchesGlobalStatus &&
+                matchesColumnStatus
+            );
+        });
+
+        const printSource = filteredResults.map((issues, index) => ({
+            key: index + 1,
+            id: issues?.id ?? '',
+            created_at: issues?.created_at ?? '',
+            issue_type: issues?.issue_type?.name ?? '',
+            issue_category: issues?.issue_category?.name ?? '',
+            categorization_rule: issues?.issue_category?.categorization_rule ?? '',
+            status: issues?.status?.name ?? '',
+            description: issues?.status?.description ?? '',
+        }));
+
         const addHeader = () => {
             const pageWidth = doc.internal.pageSize.getWidth(); 
             const imageWidth = 30;
@@ -376,9 +549,8 @@ const Issues = () => {
             const margin = 10; 
             const imageX = pageWidth - imageWidth - margin;
             const imageY = 12;
-        
+
             doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-        
             doc.setTextColor(0, 102, 204);
             doc.setFontSize(16);
             doc.text("Issues Report", 10, 15); 
@@ -390,40 +562,40 @@ const Issues = () => {
             doc.text("Department/ Unit: IT", 10, 40);
             doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
         };
-        
-    
+
         addHeader(); 
-    
-const isSearching = searchText.trim().length > 0;
-    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+        const tableData = printSource.map((item, idx) => [
             idx + 1,
             item.issue_type || '',
             item.issue_category || '',
             item.categorization_rule || '',
             item.status || '',
         ]);
-    
+
         for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
-    
+
             autoTable(doc, { 
                 head: [['No.', 'Issue Type', 'Issue Category', 'Categorization Rule', 'Status']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
+                styles: {
+                    fontSize: 10,
+                },
                 didDrawPage: function (data) {
                     if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
                         addHeader(); 
                     }
                 },
             });
-    
+
             if (i + maxRowsPerPage < tableData.length) {
                 doc.addPage();
                 startY = headerHeight;
             }
         }
-    
+
         const pageCount = doc.internal.getNumberOfPages();
         for (let page = 1; page <= pageCount; page++) {
             doc.setPage(page);
@@ -440,44 +612,205 @@ const isSearching = searchText.trim().length > 0;
             doc.text(footerText, footerX, footerY);
             doc.text(`${page} / ${pageCount}`, pageX, footerY);
         }
-    
+
         const pdfOutput = doc.output('datauristring');
         setPdfDataUrl(pdfOutput);
         setIsPdfModalOpen(true);
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+        alert("An error occurred while generating the PDF. Please try again.");
+    } finally {
+        setIsLoading(false); // Ensure loading state is reset
+    }
+};
+
+const handleClosePdfModal = () => {
+    setIsPdfModalOpen(false);
+    setPdfDataUrl(null); 
+};
+
+    const handleExportExcel = async () => {
+        let allData;
+    if (searchText.trim() === '') {
+        allData = await fetchAllIssues();
+    } else {
+        allData = await fetchIssues(searchText.trim());
+    }
+    const allResults = allData?.results || [];
+
+    const printSource = allResults.map((issues, index) => ({
+        key: index + 1,
+        id: issues?.id ?? '',
+        created_at: issues?.created_at ?? '',
+        issue_type: issues?.issue_type?.name ?? '',
+        issue_category: issues?.issue_category?.name ?? '',
+        categorization_rule: issues?.issue_category?.categorization_rule ?? '',
+        status: issues?.status?.name ?? '',
+        description: issues?.status?.description ?? '',
+    }));
+
+        const filteredResults = printSource.filter(issues => {
+        const issueTypeValue = issues?.issue_type?.name ?? '';
+        const issueCategoryValue = issues?.issue_category?.name ?? '';
+        const statusValue = issues?.status?.name ?? '';
+
+        const matchesGlobalIssueType = issueType === "all" || issueTypeValue === issueType;
+        const matchesGlobalIssueCategory = issueCategory === "all" || issueCategoryValue === issueCategory;
+        const matchesGlobalStatus = issueStatus === "all" || statusValue === issueCategory;
+        const matchesColumnIssueType = issueTypeFilter.length === 0 || issueTypeFilter.includes(issueTypeValue);
+        const matchesColumnIssueCategory = issueCategoryFilter.length === 0 || issueCategoryFilter.includes(issueCategoryValue);
+        const matchesColumnStatus = issueStatusFilter.length === 0 || issueStatusFilter.includes(statusValue);
+
+        return (
+            matchesColumnIssueType &&
+            matchesGlobalIssueType &&
+            matchesColumnIssueCategory &&
+            matchesGlobalIssueCategory &&
+            matchesGlobalStatus &&
+            matchesColumnStatus
+        );
+        });
+
+        const exportData = filteredResults.map((issues, index) => {
+            return {
+                "No.": index + 1,
+                "Timestamp": issues?.created_at,
+                "Issue Type": issues?.issue_type,
+                "Issue Category": issues?.issue_category,
+                "Categorization Rule": issues?.categorization_rule,
+                "Status": issues?.status,
+                "Description": issues?.description,
+            };
+        });
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Issues");
+        XLSX.writeFile(wb, "Issues.xlsx");
     };
 
-    const handleClosePdfModal = () => {
-        setIsPdfModalOpen(false);
-        setPdfDataUrl(null); 
+        const handleExportCSV = async () => {
+        try {
+            let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllIssues();
+            } else {
+                allData = await fetchIssues(searchText.trim());
+            }
+            const allResults = allData?.results || [];
+
+        const filteredResults = allResults.filter(issues => {
+            const issueTypeValue = issues?.issue_type?.name ?? '';
+            const issueCategoryValue = issues?.issue_category?.name ?? '';
+            const statusValue = issues?.status?.name ?? '';
+
+            const matchesGlobalIssueType = issueType === "all" || issueTypeValue === issueType;
+            const matchesGlobalIssueCategory = issueCategory === "all" || issueCategoryValue === issueCategory;
+            const matchesGlobalStatus = issueStatus === "all" || statusValue === issueCategory;
+            const matchesColumnIssueType = issueTypeFilter.length === 0 || issueTypeFilter.includes(issueTypeValue);
+            const matchesColumnIssueCategory = issueCategoryFilter.length === 0 || issueCategoryFilter.includes(issueCategoryValue);
+            const matchesColumnStatus = issueStatusFilter.length === 0 || issueStatusFilter.includes(statusValue);
+
+            return (
+                matchesColumnIssueType &&
+                matchesGlobalIssueType &&
+                matchesColumnIssueCategory &&
+                matchesGlobalIssueCategory &&
+                matchesGlobalStatus &&
+                matchesColumnStatus
+            );
+        });
+
+            const printSource = filteredResults.map((issues, index) => ({
+                key: index + 1,
+                id: issues?.id ?? '',
+                created_at: issues?.created_at ?? '',
+                issue_type: issues?.issue_type?.name ?? '',
+                issue_category: issues?.issue_category?.name ?? '',
+                categorization_rule: issues?.issue_category?.categorization_rule ?? '',
+                status: issues?.status?.name ?? '',
+                description: issues?.status?.description ?? '',
+            }));
+
+            const exportData = printSource.map((issues, index) => {
+                return {
+                    "No.": index + 1,
+                    "Timestamps": issues?.created_at,
+                    "Issue Type": issues?.issue_type,
+                    "Issue Category": issues?.issue_category,
+                    "Categorization Rule": issues?.categorization_rule,
+                    "Status": issues?.status,
+                    "Description": issues?.description,
+                };
+            });
+
+            const csvContent = [
+                Object.keys(exportData[0]).join(","),
+                ...exportData.map(item => Object.values(item).join(",")) 
+            ].join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Issues.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Error exporting CSV:", error);
+        }
     };
 
     const menu = (
         <Menu>
             <Menu.Item>
-                <a onClick={handleExportExcel}>Export Excel</a>
+                <a onClick={handleExportExcel} disabled={isLoading}> {/* Disable if loading */}
+                    {isLoading ? <span className="loader"></span> : 'Export Excel'}
+                </a>
             </Menu.Item>
             <Menu.Item>
-                <CSVLink data={dataSource} filename="Issues.csv">
-                    Export CSV
-                </CSVLink>
+                <a onClick={handleExportCSV} disabled={isLoading}> {/* Disable if loading */}
+                    {isLoading ? <span className="loader"></span> : 'Export CSV'}
+                </a>
             </Menu.Item>
         </Menu>
     );
+
+    const totalRecords = debouncedSearch 
+    ? data?.count || 0
+    : data?.count || 0;
+
+    const mapIssues = (issues, index) => ({
+        key: index + 1,
+        id: issues?.id ?? '',
+        created_at: issues?.created_at ?? '',
+        issue_type: issues?.issue_type?.name ?? '',
+        issue_category: issues?.issue_category?.name ?? '',
+        categorization_rule: issues?.issue_category?.categorization_rule ?? '',
+        status: issues?.status?.name ?? '',
+        description: issues?.status?.description ?? '',
+    });
 
     return (
         <div>
         {contextHolder}<h1 className="text-2xl font-bold text-[#1E365D]">Issues</h1>
         <div className="flex items-center justify-between my-4">
         <div className="flex gap-2">
-                        <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-                            <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
-                                <GoDownload /> Export
-                            </a>
-                        </Dropdown>
-                        <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
-                            Print Report
-                        </button>
-                    </div>
+                    <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
+                        <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
+                            {isLoading ? <span className="loader"></span> : <GoDownload />}
+                            {isLoading ? ' Loading...' : ' Export'}
+                        </a>
+                    </Dropdown>
+                    <button 
+                        className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                        onClick={handleExportPDF} 
+                        disabled={isLoading}
+                    >
+                        {isLoading ? loadingMessage : 'PDF Report'}
+                    </button>
+                </div>
             <div className="flex gap-2 items-center">
                 <Input
                     placeholder="Search..."
@@ -487,17 +820,32 @@ const isSearching = searchText.trim().length > 0;
                 />
             </div>
         </div>
-                            <Table
-                        className="overflow-x-auto"
-                        columns={columns}
-                        dataSource={filteredData}
-                        scroll={{ x: 'max-content' }} 
-                        pagination={{
-                            current: pagination.current,
-                            pageSize: pagination.pageSize,
-                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
-                        }}
-                    />
+        <Table
+            className="overflow-x-auto"
+            loading={isFetching || searchLoading || issueByTypeLoading || issueByCategoryLoading || issueByStatusLoading}
+            columns={columns}
+                dataSource={debouncedSearch
+                        ? (searchData?.results || []).map(mapIssues)
+                            : dataSource}
+                scroll={{ x: 'max-content' }} 
+                pagination={{
+                current: page,
+                pageSize: limit,
+                total: totalRecords,
+                pageSizeOptions: ['10', '20', '50', '100'],
+                    showSizeChanger: true, 
+                    onChange: (newPage, newPageSize) => {
+                        setPage(newPage);
+                        setLimit(newPageSize); 
+                    },
+                }}
+                onChange={(pagination, filters, sorter) => {
+                    setIssueTypeFilter(filters.issue_type as string[] ?? []);
+                    setIssueCategoryFilter(filters.issue_category as string[] ?? []);
+                    setIssueStatusFilter(filters.status as string[] ?? []);
+                }}
+            rowKey="id"
+        />
         <Modal
                 title="Issues Report"
                 open={isPdfModalOpen}

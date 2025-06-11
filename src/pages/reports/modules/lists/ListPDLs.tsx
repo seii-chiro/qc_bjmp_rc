@@ -2,7 +2,6 @@ import Spinner from "@/components/loaders/Spinner";
 import { PDLs } from "@/lib/pdl-definitions";
 import { getUser, PaginatedResponse } from "@/lib/queries";
 import { BASE_URL } from "@/lib/urls";
-import { PersonnelForm } from "@/lib/visitorFormDefinition";
 import { useTokenStore } from "@/store/useTokenStore";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Dropdown, Menu, Spin, Table } from "antd";
@@ -48,7 +47,7 @@ const ListPDLs = () => {
         return () => clearTimeout(timeout);
     }, [searchText]);
 
-    const { data: searchData, isLoading: searchLoading } = useQuery({
+    const { data: searchData } = useQuery({
         queryKey: ["pdls", debouncedSearch],
         queryFn: () => fetchPDLs(debouncedSearch),
         behavior: keepPreviousData(),

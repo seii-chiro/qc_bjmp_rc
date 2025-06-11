@@ -63,8 +63,8 @@ const EmploymentType = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.results?.map((employmenttype) => ({
-        key: employmenttype.id,
+    const dataSource = data?.results?.map((employmenttype, index) => ({
+        key: index + 1,
         id: employmenttype?.id,
         employment_type: employmenttype?.employment_type ?? "N/A",
         description: employmenttype?.description ?? "N/A",

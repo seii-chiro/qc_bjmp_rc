@@ -989,3 +989,70 @@ export interface PersonnelApplicationStatusPayload {
   description: string;
   remarks: string;
 }
+export type ServiceProvidedPayload = {
+    id: number;
+    created_by: string;
+    updated_by: string;
+    record_status: string;
+    created_at: string; 
+    updated_at: string; 
+    service_provided: string;
+    description: string;
+    priority_level: 'Low' | 'Medium' | 'High'; 
+    service_frequency: 'Daily' | 'Weekly' | 'Monthly'; 
+};
+
+export type VisitorRelPersonnelRecord = {
+    id: number;
+    created_by: string;
+    updated_by: string;
+    risk_level: string;
+    impact_level: string;
+    threat_level: string;
+    record_status: string;
+    created_at: string; 
+    updated_at: string; 
+    relationship_personnel: string;
+    description: string;
+    risks: string;
+    impacts: string;
+    threats: string;
+    mitigation: string;
+    risk_level_id: number,
+    impact_level_id: number,
+    threat_level_id: number,
+    record_status_id: number,
+}
+
+export type ThreatLevel = {
+    id: number;
+    created_by: string;
+    updated_by: string;
+    record_status: string;
+    created_at: string; // ISO date string
+    updated_at: string; // ISO date string
+    threat_level: string;
+    description: string;
+}
+
+export type ReasonforVisitRecord = {
+    id: number;
+    created_by: string;
+    updated_by: string;
+    risk_level: string;
+    impact_level: string;
+    threat_level: string;
+    record_status: string;
+    created_at: string; 
+    updated_at: string; 
+    reason_visit: string;
+    description: string;
+    risks: string;
+    impacts: string;
+    threats: string;
+    mitigation: string;
+    risk_level_id: number,
+    impact_level_id: number,
+    threat_level_id: number,
+    record_status_id: number,
+}

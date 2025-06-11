@@ -1698,7 +1698,7 @@ const totalVisit = isFormVisitChanged
                                 {/* Personnel Entry/Exit Pie + Cards */}
                                 <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
                                 <div className="my-1">
-                                    <Title title="Entry/Exits to Jail Premises of BJMP Personnel" />
+                                    <Title title="Action Taken Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
                                 </div>
                                 <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
                                     <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-64 min-h-[180px]">
