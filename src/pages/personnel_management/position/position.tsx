@@ -76,7 +76,6 @@ const Position = () => {
             position_title: position?.position_title ?? 'N/A',
             position_level: position?.position_level ?? 'N/A',
             position_type: position?.position_type ?? 'N/A',
-            // rank_required: position?.rank_required ?? 'N/A',
             organization: position?.organization ?? 'N/A',
             updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
             is_active: position?.is_active ?? 'N/A',
@@ -101,76 +100,43 @@ const Position = () => {
             dataIndex: 'position_code',
             key: 'position_code',
             sorter: (a, b) => a.position_code.localeCompare(b.position_code),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.position_code))
-            //     ).map(position_code => ({
-            //         text: position_code,
-            //         value: position_code,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.position_code === value,
         },
         {
             title: 'Position Title',
             dataIndex: 'position_title',
             key: 'position_title',
             sorter: (a, b) => a.position_title.localeCompare(b.position_title),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.position_title))
-            //     ).map(position_title => ({
-            //         text: position_title,
-            //         value: position_title,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.position_title === value,
         },
         {
             title: 'Position Level',
             dataIndex: 'position_level',
             key: 'position_level',
             sorter: (a, b) => a.position_level.localeCompare(b.position_level),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.position_level))
-                ).map(position_level => ({
-                    text: position_level,
-                    value: position_level,
-                }))
-            ],
-            onFilter: (value, record) => record.position_level === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.position_level))
+            //     ).map(position_level => ({
+            //         text: position_level,
+            //         value: position_level,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.position_level === value,
         },
         {
             title: 'Position Type',
             dataIndex: 'position_type',
             key: 'position_type',
             sorter: (a, b) => a.position_type.localeCompare(b.position_type),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.position_type))
-                ).map(position_type => ({
-                    text: position_type,
-                    value: position_type,
-                }))
-            ],
-            onFilter: (value, record) => record.position_type === value,
+            // filters: [
+            //     ...Array.from(
+            //         new Set(filteredData.map(item => item.position_type))
+            //     ).map(position_type => ({
+            //         text: position_type,
+            //         value: position_type,
+            //     }))
+            // ],
+            // onFilter: (value, record) => record.position_type === value,
         },
-        // {
-        //     title: 'Rank Required',
-        //     dataIndex: 'rank_required',
-        //     key: 'rank_required',
-        //     sorter: (a, b) => a.rank_required - b.rank_required,
-        //     filters: [
-        //         ...Array.from(
-        //             new Set(filteredData.map(item => item.rank_required))
-        //         ).map(rank_required => ({
-        //             text: rank_required,
-        //             value: rank_required,
-        //         }))
-        //     ],
-        //     onFilter: (value, record) => record.rank_required === value,
-        // },
         {
             title: "Actions",
             key: "actions",
