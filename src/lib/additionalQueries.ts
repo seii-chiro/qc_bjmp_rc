@@ -6,6 +6,7 @@ import {
   PersonnelType,
   ProvidedService,
   Relationship,
+  RelationshipOfVisitorToPersonnel,
   ServiceProviderRemarks,
   ServiceProviderType,
 } from "./definitions";
@@ -81,6 +82,28 @@ export async function getRelationships(
 
   if (!res.ok) {
     throw new Error("Failed to fetch Relationships data.");
+  }
+
+  return res.json();
+}
+
+export async function getRelationshipOfVisitorToPersonnel(
+  token: string
+): Promise<PaginatedResponse<RelationshipOfVisitorToPersonnel>> {
+  const res = await fetch(
+    `${BASE_URL}/api/non-pdl-visitor/visitor-rel-personnel/?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(
+      "Failed to fetch realtionship of visitor to personnel data."
+    );
   }
 
   return res.json();
