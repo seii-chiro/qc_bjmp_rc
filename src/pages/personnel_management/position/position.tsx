@@ -79,7 +79,6 @@ const Position = () => {
             organization: position?.organization ?? 'N/A',
             updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
             is_active: position?.is_active ?? 'N/A',
-            
         }
     )) || [];
 
