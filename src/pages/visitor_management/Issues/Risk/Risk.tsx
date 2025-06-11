@@ -125,25 +125,14 @@ const columns: ColumnsType<RiskProps & { key: number }> = [
     { title: "No.", render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,},
     { title: "Risk", dataIndex: "name", key: "name", sorter: (a, b) => a.name.localeCompare(b.name), },
     // { title: "Description", dataIndex: "description", key: "description", sorter: (a, b) => a.description.localeCompare(b.description), },
-{
-    title: "Updated At",
-    dataIndex: "updated_at",
-    key: "updated_at",
-    render: (value) =>
-        value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
-    sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
-    filters: [
-        ...Array.from(
-            new Set(filteredData.map(item => moment(item.updated_at).format("MMMM D, YYYY h:mm A")))
-        ).map(dateTime => ({
-            text: dateTime,
-            value: dateTime,
-        }))
-    ],
-    onFilter: (value, record) =>
-        moment(record.updated_at).format("MMMM D, YYYY h:mm A") === value,
-},
-
+    {
+        title: "Updated At",
+        dataIndex: "updated_at",
+        key: "updated_at",
+        render: (value) =>
+            value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
+        sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+    },
     {
     title: "Updated At",
     dataIndex: "updated_at",
@@ -151,16 +140,6 @@ const columns: ColumnsType<RiskProps & { key: number }> = [
     render: (value) =>
         value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
     sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
-    filters: [
-        ...Array.from(
-            new Set(filteredData.map(item => moment(item.updated_at).format("MMMM D, YYYY h:mm A")))
-        ).map(dateTime => ({
-            text: dateTime,
-            value: dateTime,
-        }))
-    ],
-    onFilter: (value, record) =>
-        moment(record.updated_at).format("MMMM D, YYYY h:mm A") === value,
 },
     { title: "Risk Level", dataIndex: "risk_level", key: "risk_level", sorter: (a, b) => a.risk_level.localeCompare(b.risk_level), },
     {

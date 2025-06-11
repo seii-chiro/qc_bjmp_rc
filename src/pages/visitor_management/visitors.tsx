@@ -4,10 +4,14 @@ const Visitors = () => {
     return (
         <div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-5 text-gray-700">
+                
                 <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
-                    <GodotLink link="visitor" title="Visitors" />
-                    <GodotLink link="visitor-id" title="Visitor Identification" />
-                    <GodotLink link="visitor-registration" title="Visitor Registration" />
+                    <Header title="VISITOR INFORMATION" />
+                    <div className="mt-2 ml-8">
+                        <GodotLink link="visitor" title="Visitors" />
+                        <GodotLink link="visitor-id" title="Visitor Identification" />
+                        <GodotLink link="visitor-registration" title="Visitor Registration" />
+                    </div>
                 </div>
                 <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
                     <Header title="VISITOR REGISTRATION" />
@@ -18,15 +22,7 @@ const Visitors = () => {
                         <GodotLink link="non-pdl-visitor" title="Other Non-PDL Visitors" />
                     </div>
                 </div>
-                <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
-                    <Header title="MAINTENANCE" />
-                    <div className="mt-2 ml-8">
-                        <GodotLink link="visitor-type" title="Types of Visitors" />
-                        <GodotLink link="visitor-req-docs" title="Visitor Requirement Documents" />
-                        <GodotLink link="visitor-relationship" title="Visitor Relationship to PDL" />
-                        <GodotLink link="/jvms/issues" title="Issues and Findings" />
-                    </div>
-                </div>
+                
                 <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
                     <Header title="ISSUES" />
                     <div className="mt-2 ml-8">
@@ -38,6 +34,27 @@ const Visitors = () => {
                         <GodotLink link="/jvms/issues/impact-level" title="Impact Levels" />
                         <GodotLink link="/jvms/issues/recommended-action" title="Recommended Actions" />
                     </div>
+                </div>
+                <div className="border col-span-2 border-gray-200 p-5 md:p-8 w-full shadow-sm hover:shadow-md rounded-md">
+                    <Header title="MAINTENANCE" />
+                    <div className="grid grid-cols-1 mt-5 md:grid-cols-2 gap-5">
+                        <div className="ml-8">
+                            <GodotLink link="visitor-type" title="Types of Visitors" />
+                            <GodotLink link="visitor-req-docs" title="Visitor Requirement Documents" />
+                            <GodotLink link="visitor-relationship" title="Visitor Relationship to PDL" />
+                            <GodotLink link="/jvms/issues" title="Issues and Findings" />
+                        </div>
+                        <div className="ml-8">
+                            <h1 className="font-semibold text-lg text-gray-700">3rd Party Provider</h1>
+                            <GodotLink link="service-provided" title="Service Provided" />
+                            <div className="mt-2">
+                                <h1 className="font-semibold text-lg text-gray-700">Non-PDL Visitor</h1>
+                            <GodotLink link="visitor-relationship-personnel" title="Relationship (Visitor - Personnel)" />
+                            <GodotLink link="reason-for-visit" title="Reason for Visit" />
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         </div>

@@ -171,7 +171,7 @@ const PDLVisitationStatus = () => {
             const headerHeight = 48;
             const footerHeight = 32;
             const organizationName = OrganizationData?.results?.[0]?.org_name || "";
-            const PreparedBy = `${UserData?.first_name} ${UserData?.last_name}` || ''; 
+            const PreparedBy = `${UserData?.results?.[0]?.first_name} ${UserData?.results?.[0]?.last_name}` || ''; 
         
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
@@ -255,6 +255,7 @@ const PDLVisitationStatus = () => {
             setPdfDataUrl(pdfOutput);
             setIsPdfModalOpen(true);
         };
+
         const menu = (
             <Menu>
                 <Menu.Item>
@@ -267,6 +268,7 @@ const PDLVisitationStatus = () => {
                 </Menu.Item>
             </Menu>
         );
+
     return (
         <div>
             {contextHolder}
@@ -279,7 +281,7 @@ const PDLVisitationStatus = () => {
                         </a>
                     </Dropdown>
                     <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
-                        Print Report
+                        PDF Report
                     </button>
                 </div>
                 <div className="flex gap-2 items-center">

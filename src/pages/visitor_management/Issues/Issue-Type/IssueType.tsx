@@ -126,14 +126,12 @@ const IssueType = () => {
             key: index + 1,
             id: issue_type?.id ?? '',
             name: issue_type?.name ?? '',
-            // description: issue_type?.description ?? '',
             updated_at: issue_type?.updated_at ?? '',
             updated_by: issue_type?.updated_by ?? '',
             issue_category: issue_type?.issue_category?.name ?? '',
             issue_category_description: issue_type?.issue_category?.description ?? '',
-            // risk: issue_type?.risk ?? '',
             organization: issue_type?.organization ?? 'Bureau of Jail Management and Penology',
-            // updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -153,15 +151,6 @@ const IssueType = () => {
             dataIndex: 'name',
             key: 'name',
             sorter: (a, b) => a.name.localeCompare(b.name),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.name))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.name === value,
         },
         // {
         //     title: 'Description',
@@ -183,30 +172,12 @@ const IssueType = () => {
             dataIndex: 'issue_category',
             key: 'issue_category',
             sorter: (a, b) => a.issue_category.localeCompare(b.issue_category),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.issue_category))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.issue_category === value,
         },
         {
             title: 'Issue Category Description',
             dataIndex: 'issue_category_description',
             key: 'issue_category_description',
             sorter: (a, b) => a.issue_category_description.localeCompare(b.issue_category_description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.issue_category_description))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.issue_category_description === value,
         },
         // {
         //     title: 'Risk',

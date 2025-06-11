@@ -30,6 +30,7 @@ import {
   Relationship,
   Role,
   ServiceProviderPayload,
+  ThreatLevel,
   VisitLogForm,
   VisitorUpdatePayload,
   WatchlistPerson,
@@ -1071,6 +1072,135 @@ export const deleteGroup_Roles = async (token: string, id: number) => {
 
   if (!response.ok) {
     throw new Error("Failed to delete Group Roles");
+  }
+
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
+};
+
+export const updateServiceProvided = async (
+  token: string,
+  id: number,
+  updatedData: any
+) => {
+  const url = `${BASE_URL}/api/service-providers/provided-services/${id}/`;
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(updatedData),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update Service Provided");
+  }
+
+  return response.json();
+};
+
+export const deleteServiceProvided = async (token: string, id: number) => {
+  const response = await fetch(`${BASE_URL}/api/service-providers/provided-services/${id}/`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete Service Provided");
+  }
+
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
+};
+
+export const updateVisitorRelPersonnel = async (
+  token: string,
+  id: number,
+  updatedData: any
+) => {
+  const url = `${BASE_URL}/api/non-pdl-visitor/visitor-rel-personnel/${id}/`;
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(updatedData),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update Relationship");
+  }
+
+  return response.json();
+};
+
+export const deleteVisitorRelPersonnel = async (token: string, id: number) => {
+  const response = await fetch(`${BASE_URL}/api/non-pdl-visitor/visitor-rel-personnel/${id}/`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete Relationship");
+  }
+
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
+};
+
+export async function getThreatLevel(token: string): Promise<ThreatLevel> {
+  const res = await fetch(`${BASE_URL}/api/non-pdl-visitor/threat-levels/`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch Threat Level data.");
+  }
+
+  return res.json();
+}
+
+export const updateReasonforVisit = async (
+  token: string,
+  id: number,
+  updatedData: any
+) => {
+  const url = `${BASE_URL}/api/non-pdl-visitor/non-pdl-reason-visits/${id}/`;
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(updatedData),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update Reason for Visit");
+  }
+
+  return response.json();
+};
+
+export const deleteReasonforVisit = async (token: string, id: number) => {
+  const response = await fetch(`${BASE_URL}/api/non-pdl-visitor/non-pdl-reason-visits/${id}/`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete Reason for Visit");
   }
 
   const text = await response.text();

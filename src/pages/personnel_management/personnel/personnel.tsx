@@ -430,7 +430,7 @@ const handleExportPDF = async () => {
     const doc = new jsPDF('landscape');
     const headerHeight = 48;
     const footerHeight = 32;
-    const maxRowsPerPage = 18;
+    const maxRowsPerPage = 17;
 
     let allData;
     if (searchText.trim() === '') {
