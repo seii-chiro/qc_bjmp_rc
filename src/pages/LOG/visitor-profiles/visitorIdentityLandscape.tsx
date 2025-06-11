@@ -2,15 +2,41 @@
 import { calculateAge } from "@/functions/calculateAge"
 import no_img from "@/assets/noimg.png"
 import dayjs from "dayjs";
+import { useQuery } from "@tanstack/react-query";
+import { BASE_URL } from "@/lib/urls";
+import { useTokenStore } from "@/store/useTokenStore";
 
 
 const IdentificationLandscape = ({ visitor_log, visitHistory }: { visitor_log: any, visitHistory: any[] }) => {
+    const token = useTokenStore(state => state.token)
     const visitor = visitor_log?.visitor;
 
-    const visitHistoryForVisitor = visitHistory?.filter(log => log?.person === visitor_log?.person)
+    const { data: visitorVisitHistory } = useQuery({
+        queryKey: ['visitor-visit-history', visitor?.person?.id],
+        queryFn: async () => {
+            const res = await fetch(`${BASE_URL}/api/visit-logs/main-gate-visits/?person_id=${visitor?.person?.id}&limit=4`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Token ${token}`,
+                },
+            })
+            if (!res.ok) {
+                throw new Error("Failed to person's visit history.");
+            }
+            return res.json();
+        },
+        enabled: !!token && !!visitor?.person?.id
+    })
+
+    const visitHistoryForVisitor = visitorVisitHistory?.results || [];
+
+    // no need to filter since im only getting specific visitors anyway
+    // const visitHistoryForVisitor = visitorVisitHistory?.results
+    //     ? visitorVisitHistory?.results?.filter(log => log?.person === visitor_log?.person)
+    //     : [];
 
     const sortedVisitHistory = visitHistoryForVisitor
-        ?.slice() // create a shallow copy
+        ?.slice()
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 3);
 
