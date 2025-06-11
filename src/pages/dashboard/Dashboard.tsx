@@ -258,25 +258,9 @@ const fetchSummaryPDLVisitorLog = async () => {
     const params = new URLSearchParams();
 
     params.append('visit_type', 'PDLStationVisit');
-
-    if (pdlFrequency === 'daily') {
-        url += 'get-daily-visitor-logs-summary';
-        params.append('start_date', formatDateToMMDDYYYY(pdlStartDate));
-        params.append('end_date', formatDateToMMDDYYYY(pdlEndDate));
-    
-    } else if (pdlFrequency === 'monthly') {
-        url += 'get-monthly-visitor-logs-summary';
-        params.append('start_date', pdlStartDate); 
-        params.append('end_date', pdlEndDate);     
-    } else if (pdlFrequency === 'weekly') {
-        url += 'get-weekly-visitor-logs-summary';
-        params.append('start_date', formatDateToMMDDYYYY(pdlStartDate));
-        params.append('end_date', formatDateToMMDDYYYY(pdlEndDate));
-    } else if (pdlFrequency === 'quarterly') {
         url += 'get-quarterly-visitor-logs-summary';
         params.append('start_year', pdlStartYear);
         params.append('end_year', pdlEndYear);
-    }
 
     const res = await fetch(`${url}?${params.toString()}`, {
         headers: {
@@ -1251,12 +1235,12 @@ const totalVisit = isFormVisitChanged
                                             </>
                                         ) : (
                                             <>
-                                            <Card2
+                                            <Card3
                                                 image={pdl_enter}
                                                 title="Entered"
                                                 count={summarydata?.success.premises_logs.personnel_logs_today["Time In"] || 0}
                                             />
-                                            <Card2
+                                            <Card3
                                                 image={exited}
                                                 title="Exited"
                                                 count={summarydata?.success.premises_logs.personnel_logs_today["Time Out"] || 0}
@@ -1314,8 +1298,8 @@ const totalVisit = isFormVisitChanged
                                             </>
                                             ) : (
                                             <>
-                                                <Card2 image={pdl_enter} title="Entered" count={0} />
-                                                <Card2 image={exited} title="Exited" count={0} />
+                                                <Card3 image={pdl_enter} title="Entered" count={0} />
+                                                <Card3 image={exited} title="Exited" count={0} />
                                             </>
                                             )}
                                         </div>
@@ -1369,8 +1353,8 @@ const totalVisit = isFormVisitChanged
                                             </>
                                             ) : (
                                             <>
-                                                <Card2 image={pdl_enter} title="Entered" count={0} />
-                                                <Card2 image={exited} title="Exited" count={0} />
+                                                <Card3 image={pdl_enter} title="Entered" count={0} />
+                                                <Card3 image={exited} title="Exited" count={0} />
                                             </>
                                             )}
                                         </div>
@@ -1424,8 +1408,8 @@ const totalVisit = isFormVisitChanged
                                             </>
                                         ) : (
                                             <>
-                                            <Card2 image={pdl_enter} title="Entered" count={0} />
-                                            <Card2 image={exited} title="Exited" count={0} />
+                                            <Card3 image={pdl_enter} title="Entered" count={0} />
+                                            <Card3 image={exited} title="Exited" count={0} />
                                             </>
                                         )}
                                         </div>
