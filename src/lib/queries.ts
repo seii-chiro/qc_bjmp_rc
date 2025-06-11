@@ -1290,7 +1290,7 @@ export const updateJailArea = async (
 
 export async function getPersonnel(
   token: string
-): Promise<PaginatedResponse<Personnel>[]> {
+): Promise<PaginatedResponse<Personnel>> {
   const res = await fetch(PERSONNEL.getPersonnel, {
     headers: {
       "Content-Type": "application/json",
