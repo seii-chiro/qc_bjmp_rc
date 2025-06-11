@@ -7,7 +7,7 @@ import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 
 
-const IdentificationLandscape = ({ visitor_log, visitHistory }: { visitor_log: any, visitHistory: any[] }) => {
+const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHistory: any[] }) => {
     const token = useTokenStore(state => state.token)
     const visitor = visitor_log?.visitor;
 
