@@ -86,7 +86,7 @@ const PDLtovisit = ({
     } = useQuery({
         queryKey: ['pdls', pdlPage, debouncedPdlFirstName],
         queryFn: () => getPDLs(token ?? "", 10, pdlPage, debouncedPdlFirstName),
-        keepPreviousData: true,
+        placeholderData: prev => prev,
         staleTime: 10 * 60 * 1000,
     });
 
