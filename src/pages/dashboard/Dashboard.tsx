@@ -1475,8 +1475,8 @@ const totalVisit = isFormVisitChanged
                                             </>
                                         ) : (
                                             <>
-                                            <Card2 image={pdl_enter} title="Entered" count={0} />
-                                            <Card2 image={exited} title="Exited" count={0} />
+                                            <Card3 image={pdl_enter} title="Entered" count={0} />
+                                            <Card3 image={exited} title="Exited" count={0} />
                                             </>
                                         )}
                                         </div>
