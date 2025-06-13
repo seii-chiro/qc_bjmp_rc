@@ -266,6 +266,8 @@ const PDLtable = () => {
             name: `${pdl?.person?.first_name ?? ""} ${pdl?.person?.middle_name ?? ""} ${pdl?.person?.last_name ?? ""}`.trim(),
             gender: pdl?.person?.gender?.gender_option?.trim() ?? "",
             status: pdl?.status ?? "",
+            cell_name: pdl?.cell?.cell_name,
+            floor: pdl?.cell?.floor,
             visitation_status: pdl?.visitation_status,
             address,
         };
@@ -297,6 +299,18 @@ const PDLtable = () => {
         onFilter: (value, record) => record.gender === value,
     },
     {
+        title: "Dorm",
+        key: "cell_name",
+        render: (_, pdl) => pdl.cell_name,
+        sorter: (a, b) => a.cell_name.localeCompare(b.cell_name),
+    },
+        {
+        title: "Annex",
+        key: "floor",
+        render: (_, pdl) => pdl.floor,
+        sorter: (a, b) => a.floor.localeCompare(b.floor),
+    },
+    {
         title: 'Status',
         dataIndex: 'status',
         key: 'status',
@@ -318,12 +332,6 @@ const PDLtable = () => {
         filters: visitationFilters,
         filteredValue: visitationColumnFilter,
         onFilter: (value, record) => record.visitation_status === value,
-    },
-    {
-        title: "Address",
-        dataIndex: "address",
-        key: "address",
-        sorter: (a, b) => a.address.localeCompare(b.address),
     },
     {
         title: "Action",

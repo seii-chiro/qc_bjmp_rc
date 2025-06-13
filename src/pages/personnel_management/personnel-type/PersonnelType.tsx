@@ -1,19 +1,20 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Form, Input, Menu, message, Modal } from "antd";
 import Table, { ColumnsType } from "antd/es/table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload, GoPlus } from "react-icons/go";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-import { getOrganization, getUser } from "@/lib/queries";
+import { getOrganization, getUser, PaginatedResponse } from "@/lib/queries";
 import bjmp from '../../../assets/Logo/QCJMD.png'
 import { PersonnelDesignationPayload } from "@/lib/issues-difinitions";
 import { deletePersonnelType, getPersonnelType, patchPersonnelType } from "@/lib/personnel-queries";
 import AddPersonnelType from "./AddPersonnelType";
+import { BASE_URL } from "@/lib/urls";
 
 type TypePayload = {
     id: number,
@@ -24,11 +25,16 @@ type TypePayload = {
 
 const PersonnelType = () => {
     const [searchText, setSearchText] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState("");
     const token = useTokenStore().token;
+    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [form] = Form.useForm();
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [personnelType, setPersonnelType] = useState<TypePayload | null>(null);
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
@@ -47,9 +53,61 @@ const PersonnelType = () => {
         setIsPdfModalOpen(false);
         setPdfDataUrl(null); 
     };
-    const { data: personnelTypeData } = useQuery({
-        queryKey: ['personnel-type'],
-        queryFn: () => getPersonnelType(token ?? ""),
+
+    const fetchPersonnelType = async (search: string) => {
+        const res = await fetch(`${BASE_URL}/api/codes/personnel-type/?search=${search}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    useEffect(() => {
+        const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
+        return () => clearTimeout(timeout);
+    }, [searchText]);
+
+    const { data: searchData, isLoading: searchLoading } = useQuery({
+        queryKey: ["personnel-type", debouncedSearch],
+        queryFn: () => fetchPersonnelType(debouncedSearch),
+        behavior: keepPreviousData(),
+        enabled: debouncedSearch.length > 0,
+    });
+
+    const { data, isFetching } = useQuery({
+        queryKey: [
+            "personnel-type",
+            "personnel-type-table",
+            page,
+            limit,
+        ],
+        queryFn: async (): Promise<PaginatedResponse<PersonnelDesignationPayload>> => {
+            const offset = (page - 1) * limit;
+            const params = new URLSearchParams();
+
+            params.append("page", String(page));
+            params.append("limit", String(limit));
+            params.append("offset", String(offset));
+
+            const res = await fetch(`${BASE_URL}/api/codes/personnel-type/?${params.toString()}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Token ${token}`,
+            },
+            });
+
+            if (!res.ok) {
+            throw new Error("Failed to fetch Personnel Type data.");
+            }
+
+            return res.json();
+        },
+        enabled: !!token,
+        keepPreviousData: true,
     });
 
     const { data: UserData } = useQuery({
@@ -105,27 +163,18 @@ const PersonnelType = () => {
         }
     };
 
-    const dataSource = personnelTypeData?.results
-        ?.slice() 
-        ?.sort((a, b) => b.id - a.id) 
-        ?.map((type, index) => ({
+    const dataSource = data?.results?.map((type, index) => ({
             key: index + 1,
             id: type?.id,
             name: type?.name,
             description: type?.description,
         }));
 
-const filteredData = dataSource?.filter((status) =>
-        Object.values(status).some((value) =>
-            String(value).toLowerCase().includes(searchText.toLowerCase())
-        )
-    );
-
     const columns: ColumnsType<TypePayload> = [
         {
             title: 'No.',
-            key: 'index',
-            render: (_text, _record, index) => index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
         },
         {
             title: 'Personnel Type',
@@ -161,28 +210,51 @@ const filteredData = dataSource?.filter((status) =>
             ),
         },
     ]
-    const handleExportExcel = () => {
-        const ws = XLSX.utils.json_to_sheet(dataSource);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "PersonnelType");
-        XLSX.writeFile(wb, "PersonnelType.xlsx");
-    };
 
-        const handleExportPDF = () => {
-            const doc = new jsPDF();
+
+    const fetchAllPersonnelType = async () => {
+        const res = await fetch(`${BASE_URL}/api/codes/personnel-type/?limit=1000`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+        if (!res.ok) throw new Error("Network error");
+        return await res.json();
+    };
+    
+    const handleExportPDF = async () => {
+        setIsLoading(true);
+        setLoadingMessage("Generating PDF... Please wait.");
+        
+        try {
+            const doc = new jsPDF('landscape');
             const headerHeight = 48;
             const footerHeight = 32;
-            const organizationName = OrganizationData?.results?.[0]?.org_name || "";
-            const PreparedBy = `${UserData?.first_name} ${UserData?.last_name}` || ''; 
-        
+            const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+            const PreparedBy = `${UserData?.results?.[0]?.first_name} ${UserData?.results?.[0]?.last_name}` || ''; 
+
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
             const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-        
-            const maxRowsPerPage = 27; 
-        
+            const maxRowsPerPage = 16; 
             let startY = headerHeight;
-        
+
+            let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllPersonnelType();
+            } else {
+                allData = await fetchPersonnelType(searchText.trim());
+            }
+            
+            const allResults = allData?.results || [];
+            const printSource = allResults.map((type, index) => ({
+                key: index + 1,
+                id: type?.id,
+                name: type?.name,
+                description: type?.description,
+            }));
+
             const addHeader = () => {
                 const pageWidth = doc.internal.pageSize.getWidth(); 
                 const imageWidth = 30;
@@ -190,9 +262,8 @@ const filteredData = dataSource?.filter((status) =>
                 const margin = 10; 
                 const imageX = pageWidth - imageWidth - margin;
                 const imageY = 12;
-            
+
                 doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-            
                 doc.setTextColor(0, 102, 204);
                 doc.setFontSize(16);
                 doc.text("Personnel Type Report", 10, 15); 
@@ -204,17 +275,14 @@ const filteredData = dataSource?.filter((status) =>
                 doc.text("Department/ Unit: IT", 10, 40);
                 doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
             };
-            
-        
+
             addHeader(); 
-        
-    const isSearching = searchText.trim().length > 0;
-    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+            const tableData = printSource.map((item, idx) => [
                 idx + 1,
-                item.name,
-                item.description,
+                item.name || '',
+                item.description || '',
             ]);
-        
+
             for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
                 const pageData = tableData.slice(i, i + maxRowsPerPage);
         
@@ -223,6 +291,9 @@ const filteredData = dataSource?.filter((status) =>
                     body: pageData,
                     startY: startY,
                     margin: { top: 0, left: 10, right: 10 },
+                    styles: {
+                        fontSize: 10,
+                    },
                     didDrawPage: function (data) {
                         if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
                             addHeader(); 
@@ -256,20 +327,114 @@ const filteredData = dataSource?.filter((status) =>
             const pdfOutput = doc.output('datauristring');
             setPdfDataUrl(pdfOutput);
             setIsPdfModalOpen(true);
-        };
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            alert("An error occurred while generating the PDF. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-        const menu = (
-            <Menu>
-                <Menu.Item>
-                    <a onClick={handleExportExcel}>Export Excel</a>
-                </Menu.Item>
-                <Menu.Item>
-                    <CSVLink data={dataSource} filename="PersonnelType.csv">
-                        Export CSV
-                    </CSVLink>
-                </Menu.Item>
-            </Menu>
-        );
+    const handleExportExcel = async () => {
+        let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllPersonnelType();
+            } else {
+                allData = await fetchPersonnelType(searchText.trim());
+            }
+            
+            const allResults = allData?.results || [];
+            const printSource = allResults.map((type, index) => ({
+                key: index + 1,
+                id: type?.id,
+                name: type?.name,
+                description: type?.description,
+            }));
+
+        const exportData = printSource.map((type, index) => {
+            return {
+                "No.": index + 1,
+                "Personnel Type": type?.name,
+                "Description": type?.description,
+            };
+        });
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "PersonnelType");
+        XLSX.writeFile(wb, "PersonnelType.xlsx");
+    };
+
+
+    const handleExportCSV = async () => {
+        try {
+
+            let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllPersonnelType();
+            } else {
+                allData = await fetchAllPersonnelType(searchText.trim());
+            }
+            
+            const allResults = allData?.results || [];
+            const printSource = allResults.map((type, index) => ({
+                key: index + 1,
+                id: type?.id,
+                name: type?.name,
+                description: type?.description,
+            }));
+
+        const exportData = printSource.map((type, index) => {
+            return {
+                "No.": index + 1,
+                "Personnel Type": type?.name,
+                "Description": type?.description,
+            };
+        });
+            const csvContent = [
+                Object.keys(exportData[0]).join(","),
+                ...exportData.map(item => Object.values(item).join(",")) 
+            ].join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "PersonnelType.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Error exporting CSV:", error);
+        }
+    };
+
+    const menu = (
+        <Menu>
+            <Menu.Item>
+                <a onClick={handleExportExcel}>
+                    {isLoading ? <span className="loader"></span> : 'Export Excel'}
+                </a>
+            </Menu.Item>
+            <Menu.Item>
+                <a onClick={handleExportCSV}>
+                    {isLoading ? <span className="loader"></span> : 'Export CSV'}
+                </a>
+            </Menu.Item>
+        </Menu>
+    );
+
+    const totalRecords = debouncedSearch 
+    ? data?.count || 0
+    : data?.count || 0;
+
+    const mapPersonnelType = (type, index) => ({
+            key: index + 1,
+            id: type?.id,
+            name: type?.name,
+            description: type?.description,
+    });
+
     return (
         <div>
             {contextHolder}
@@ -277,12 +442,17 @@ const filteredData = dataSource?.filter((status) =>
             <div className="flex items-center justify-between my-4">
                 <div className="flex gap-2">
                     <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-                        <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
-                            <GoDownload /> Export
+                        <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
+                            {isLoading ? <span className="loader"></span> : <GoDownload />}
+                            {isLoading ? ' Loading...' : ' Export'}
                         </a>
                     </Dropdown>
-                    <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
-                        Print Report
+                    <button 
+                        className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                        onClick={handleExportPDF} 
+                        disabled={isLoading}
+                    >
+                        {isLoading ? loadingMessage : 'PDF Report'}
                     </button>
                 </div>
                 <div className="flex gap-2 items-center">
@@ -302,14 +472,24 @@ const filteredData = dataSource?.filter((status) =>
             </div>
             <Table
                 className="overflow-x-auto"
+                loading={isFetching || searchLoading}
                 columns={columns}
-                dataSource={filteredData}
-                scroll={{ x: 'max-content' }} 
-                pagination={{
-                    current: pagination.current,
-                    pageSize: pagination.pageSize,
-                    onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
-                }}
+                    dataSource={debouncedSearch
+                            ? (searchData?.results || []).map(mapPersonnelType)
+                                : dataSource}
+                    scroll={{ x: 'max-content' }} 
+                    pagination={{
+                    current: page,
+                    pageSize: limit,
+                    total: totalRecords,
+                    pageSizeOptions: ['10', '20', '50', '100'],
+                        showSizeChanger: true, 
+                        onChange: (newPage, newPageSize) => {
+                            setPage(newPage);
+                            setLimit(newPageSize); 
+                        },
+                    }}
+                rowKey="id"
             />
             <Modal
                 title="Personnel Type Report"
