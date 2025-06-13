@@ -149,3 +149,13 @@ a.active div {
 .custom-shape4 {
   clip-path: polygon(0 0, 84% 0, 100% 100%, 0 100%);
 }
+
+/* When capturing, ensure all content is visible */
+.embla__container {
+  display: flex !important;
+}
+
+.embla__slide {
+  flex: 0 0 100% !important;
+  min-width: 0;
+}
