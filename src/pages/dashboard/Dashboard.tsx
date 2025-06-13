@@ -64,8 +64,8 @@ const Dashboard = () => {
     const [summaryStartYear, setSummaryStartYear] = useState(currentYear.toString());
     const [summaryEndYear, setSummaryEndYear] = useState(currentYear.toString());
     const [dateField, setDateField] = useState('date_convicted');
-    const [summaryfrequency, setSummaryFrequency] = useState('daily'); 
-    
+    const [summaryfrequency, setSummaryFrequency] = useState('quarterly'); 
+
     const [visitType, setvisitType] = useState('MainGateVisit');
     const [pdlvisitType, setpdlvisitType] = useState('PDLStationVisit');
 

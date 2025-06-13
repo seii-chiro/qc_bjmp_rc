@@ -17,7 +17,6 @@ const Visitors = () => {
                     <Header title="VISITOR REGISTRATION" />
                     <div className="mt-2 ml-8">
                         <GodotLink link="visitor-registration" title="PDL Visitor" />
-                        <GodotLink link="/jvms/registration/personnel-registration" title="BJMP Personnel" />
                         <GodotLink link="service-provider" title="3rd Party Provider" />
                         <GodotLink link="non-pdl-visitor" title="Other Non-PDL Visitors" />
                     </div>
