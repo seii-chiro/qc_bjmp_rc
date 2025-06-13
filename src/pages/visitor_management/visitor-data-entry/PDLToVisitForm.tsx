@@ -103,7 +103,6 @@ const PDLToVisitForm = ({
         }
     }, [pdlToVisitID, pdls, selectedPdl]);
 
-
     const insertHelperForm = () => {
         const isEdit = editPdlToVisitIndex !== null;
 
@@ -235,9 +234,13 @@ const PDLToVisitForm = ({
                                                 }))
                                                 : []
                                     }
-                                    notFoundContent={pdlsLoading ? "Loading..." : "No data found"}
+                                    notFoundContent={
+                                        pdlsLoading && !pdls?.length
+                                            ? "Loading..."
+                                            : "No data found"
+                                    }
                                     onSearch={value => {
-                                        setPdlFirstName(value); // This will trigger your debounced search logic
+                                        setPdlFirstName(value);
                                         setPdlPage(1);
                                     }}
                                     onChange={value => setPdlToVisitID(value)}
@@ -352,7 +355,7 @@ const PDLToVisitForm = ({
                             </label>
                         </div>
                     </div>
-                    <div className='flex-1'>
+                    {/* <div className='flex-1'>
                         <div className="border border-gray-100 bg-gray-200 rounded w-full h-full">
                             {
                                 !selectedPdl ? (
@@ -371,7 +374,7 @@ const PDLToVisitForm = ({
                                 )
                             }
                         </div>
-                    </div>
+                    </div> */}
                 </div>
 
                 <div className='w-[30%] flex gap-4 ml-[70%]'>
