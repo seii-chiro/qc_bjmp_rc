@@ -316,8 +316,9 @@ const { data, isFetching } = useQuery({
         gender: visitor?.person?.gender?.gender_option ?? '',
         organization: visitor?.org ?? 'Bureau of Jail Management and Penology',
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+        created_at: visitor?.created_at,
     };
-    });
+    }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     const columns: ColumnsType<VisitorResponse> = [
         {
@@ -480,7 +481,6 @@ const { data, isFetching } = useQuery({
         genderList.length === 0 ||
         genderList.map(g => g.toLowerCase()).includes((genderValue ?? '').toLowerCase());
 
-        // const matchesGlobalGender = gender === "all" || genderValue === gender;
         const matchesGlobalType = visitorType === "all" || visitorTypeValue === visitorType;
 
         const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
@@ -750,6 +750,8 @@ const menu = (
     ? data?.count || 0
     : gender !== "all" 
     ? visitorGenderData?.count || 0 
+    : visitorType === "all"
+    ? visitorTypeData?.count || 0
     : data?.count || 0; 
 
     return (
@@ -798,8 +800,6 @@ const menu = (
                             nationality: visitor?.person?.nationality,
                             full_address: visitor?.person?.addresses[0]?.full_address ?? '',
                             address: `${visitor?.person?.addresses[0]?.barangay ?? ''} ${visitor?.person?.addresses[0]?.city_municipality ?? ''} ${visitor?.person?.addresses[0]?.province ?? ''}`,
-                            organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
-                            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
                             }))
                         : gender !== "all"
                         ? (visitorGenderData?.results || []).map((visitor, index) => ({
@@ -811,9 +811,19 @@ const menu = (
                             gender: visitor?.person?.gender?.gender_option,
                             nationality: visitor?.person?.nationality,
                             full_address: visitor?.person?.addresses[0]?.full_address ?? '',
+                            address: `${visitor?.person?.addresses[0]?.barangay ?? ''} ${visitor?.person?.addresses[0]?.city_municipality ?? ''} ${visitor?.person?.addresses[0]?.province ?? ''}`
+                            }))
+                        : visitorType !== "all"
+                        ? (visitorGenderData?.results || []).map((visitor, index) => ({
+                            ...visitor,
+                            key: index + 1,
+                            name: `${visitor?.person?.first_name ?? ''} ${visitor?.person?.middle_name ?? ''} ${visitor?.person?.last_name ?? ''}`.trim(),
+                            visitor_reg_no: visitor?.visitor_reg_no,
+                            visitor_type: visitor?.visitor_type,
+                            gender: visitor?.person?.gender?.gender_option,
+                            nationality: visitor?.person?.nationality,
+                            full_address: visitor?.person?.addresses[0]?.full_address ?? '',
                             address: `${visitor?.person?.addresses[0]?.barangay ?? ''} ${visitor?.person?.addresses[0]?.city_municipality ?? ''} ${visitor?.person?.addresses[0]?.province ?? ''}`,
-                            organization: visitor?.organization ?? 'Bureau of Jail Management and Penology',
-                            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
                             }))
                         : dataSource
                     }

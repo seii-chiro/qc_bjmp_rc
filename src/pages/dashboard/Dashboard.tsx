@@ -64,7 +64,7 @@ const Dashboard = () => {
     const [summaryStartYear, setSummaryStartYear] = useState(currentYear.toString());
     const [summaryEndYear, setSummaryEndYear] = useState(currentYear.toString());
     const [dateField, setDateField] = useState('date_convicted');
-    const [summaryfrequency, setSummaryFrequency] = useState('quarterly'); 
+    const [summaryfrequency, setSummaryFrequency] = useState('daily'); 
 
     const [visitType, setvisitType] = useState('MainGateVisit');
     const [pdlvisitType, setpdlvisitType] = useState('PDLStationVisit');
@@ -690,6 +690,7 @@ const totalVisit = isFormVisitChanged
         setFormVisitEndDate(visitendDate);
         setFormVisitStartYear(visitStartYear);
         setFormVisitEndYear(visitendYear);
+        setIsFormPDLVisitChanged(false);
 
         setFormPDLVisitType(pdlvisitType);
         setFormPDLFrequency(pdlFrequency);
@@ -697,6 +698,7 @@ const totalVisit = isFormVisitChanged
         setFormPDLEndDate(pdlEndDate);
         setFormPDLStartYear(pdlStartYear);
         setFormPDLEndYear(pdlEndYear);
+        setIsFormPDLVisitChanged(false);
 
         setFormDateField(dateField)
         setFormFrequency(summaryfrequency);
@@ -704,6 +706,7 @@ const totalVisit = isFormVisitChanged
         setFormEndDate(summaryEndDate);
         setFormStartYear(summaryStartYear);
         setFormEndYear(summaryEndYear);
+        setIsFormChanged(false)
         setVisible(false);
     };
 
@@ -715,6 +718,7 @@ const totalVisit = isFormVisitChanged
         setVisitEndDate(formVisitEndDate);
         setVisitStartYear(formVisitStartYear);
         setVisitEndYear(formVisitEndYear);
+        setIsFormVisitChanged(true);
         } else if (activeTab === 'pdlvisitorlogs') {
         setpdlvisitType(formPDLVisitType);
         setPDLFrequency(formPDLFrequency);
@@ -722,6 +726,7 @@ const totalVisit = isFormVisitChanged
         setPDLEndDate(formPDLEndDate);
         setPDLStartYear(formPDLStartYear);
         setPDLEndYear(formPDLEndYear);
+        setIsFormPDLVisitChanged(true);
         } else if (activeTab === 'summaryData') {
         setDateField(formDateField);
         setSummaryFrequency(formFrequency);
@@ -729,10 +734,8 @@ const totalVisit = isFormVisitChanged
         setSummaryEndDate(formEndDate);
         setSummaryStartYear(formStartYear);
         setSummaryEndYear(formEndYear);
-        }
-        setIsFormPDLVisitChanged(true);
-        setIsFormVisitChanged(true);
         setIsFormChanged(true);
+        }
         setVisible(false);
     };
 
@@ -815,8 +818,8 @@ const totalVisit = isFormVisitChanged
                                             <Card4
                                                 image={convicted} 
                                                 title="Convicted PDL" 
-                                                count={totalReleasedCount} 
-                                                onClick={() => pdlstatusHandleClick("Released")}
+                                                count={totalConvictedCount} 
+                                                onClick={() => pdlstatusHandleClick("Convicted")}
                                             />
                                             <Card4
                                                 image={release_pdl} 
@@ -1472,8 +1475,8 @@ const totalVisit = isFormVisitChanged
                                             </>
                                         ) : (
                                             <>
-                                            <Card2 image={pdl_enter} title="Entered" count={0} />
-                                            <Card2 image={exited} title="Exited" count={0} />
+                                            <Card3 image={pdl_enter} title="Entered" count={0} />
+                                            <Card3 image={exited} title="Exited" count={0} />
                                             </>
                                         )}
                                         </div>
@@ -1727,7 +1730,7 @@ const totalVisit = isFormVisitChanged
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                         <Pie
-                                            data={PersonnelEnteredExitData}
+                                            data={ActionTakenData}
                                             dataKey="value"
                                             nameKey="name"
                                             cx="50%"
@@ -1735,10 +1738,10 @@ const totalVisit = isFormVisitChanged
                                             innerRadius="50%"
                                             outerRadius="90%"
                                         >
-                                            {PersonnelEnteredExitData.map((entry, index) => (
+                                            {ActionTakenData.map((entry, index) => (
                                             <Cell
                                                 key={`cell-personnel-${index}`}
-                                                fill={PersonnelEnteredExitCOLORS[index % PersonnelEnteredExitCOLORS.length]}
+                                                fill={ActionTakenEnteredExitCOLORS[index % ActionTakenEnteredExitCOLORS.length]}
                                             />
                                             ))}
                                         </Pie>
