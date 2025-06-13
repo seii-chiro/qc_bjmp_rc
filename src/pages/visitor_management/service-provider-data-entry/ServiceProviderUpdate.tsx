@@ -130,7 +130,8 @@ const ServiceProviderUpdate = () => {
         remarks_many_data: [],
         group_affiliation_id: null,
         approved_at: "",
-        verified_at: ""
+        verified_at: "",
+        provided_service: null
     })
 
     const [icao, setIcao] = useState("")
