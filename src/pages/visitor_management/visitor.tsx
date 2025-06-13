@@ -296,6 +296,22 @@ const { data, isFetching } = useQuery({
     value: type.visitor_type,
     })) ?? [];
 
+    const confirmDelete = (recordId) => {
+        Modal.confirm({
+            title: 'Are you sure you want to delete this record?',
+            content: 'This action cannot be undone.',
+            okText: 'Delete',
+            okType: 'danger',
+            cancelText: 'Cancel',
+            onOk() {
+                deleteMutation.mutate(recordId);
+            },
+            onCancel() {
+            },
+            centered: true,
+        });
+    };
+
     const dataSource = (data?.results || []).map((visitor, index) => {
     const barangay = visitor?.person?.addresses[0]?.barangay || '';
     const cityMunicipality = visitor?.person?.addresses[0]?.city_municipality || '';
@@ -384,12 +400,22 @@ const { data, isFetching } = useQuery({
                     >
                         <AiOutlineEdit />
                     </Button>
-                    <Button
+                    {/* <Button
                         type="link"
                         danger
                         onClick={(e) => {
                             e.stopPropagation();
                             deleteMutation.mutate(record.id);
+                        }}
+                    >
+                        <AiOutlineDelete />
+                    </Button> */}
+                    <Button
+                        type="link"
+                        danger
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            confirmDelete(record.id);
                         }}
                     >
                         <AiOutlineDelete />
