@@ -210,6 +210,42 @@ const VisitorProfile = ({
     const [RightFingerResponse, setRightFingerResponse] = useState<CustomFingerResponse | null>(null)
     const [ThumbFingerResponse, setThumbFingerResponse] = useState<CustomFingerResponse | null>(null)
 
+    const addOrUpdateLeftFinger = (newFingerData: any, index: number) => {
+        setLeftFingerResponse(prev => {
+            const updatedFingers = prev?.CapturedFingers ? [...prev.CapturedFingers] : [];
+            updatedFingers[index] = newFingerData;
+            return {
+                ...prev,
+                CapturedFingers: updatedFingers,
+                GraphicalPlainBitmap: prev?.GraphicalPlainBitmap ?? "",
+            };
+        });
+    };
+
+    const addOrUpdateRightFinger = (newFingerData: any, index: number) => {
+        setRightFingerResponse(prev => {
+            const updatedFingers = prev?.CapturedFingers ? [...prev.CapturedFingers] : [];
+            updatedFingers[index] = newFingerData;
+            return {
+                ...prev,
+                CapturedFingers: updatedFingers,
+                GraphicalPlainBitmap: prev?.GraphicalPlainBitmap ?? "",
+            };
+        });
+    };
+
+    const addOrUpdateThumb = (newFingerData: any, index: number) => {
+        setThumbFingerResponse(prev => {
+            const updatedFingers = prev?.CapturedFingers ? [...prev.CapturedFingers] : [];
+            updatedFingers[index] = newFingerData;
+            return {
+                ...prev,
+                CapturedFingers: updatedFingers,
+                GraphicalPlainBitmap: prev?.GraphicalPlainBitmap ?? "",
+            };
+        });
+    };
+
     useEffect(() => {
         if (!isInWatchlist || !token) return;
 
@@ -366,6 +402,7 @@ const VisitorProfile = ({
                 ...prev,
                 upload_data: rightLittle
             }))
+            addOrUpdateRightFinger({ FingerBitmapStr: rightLittle }, 0)
             if (setEnrolledBiometrics) {
                 setEnrolledBiometrics(prev => ({
                     ...prev,
@@ -379,6 +416,7 @@ const VisitorProfile = ({
                 ...prev,
                 upload_data: rightRing
             }))
+            addOrUpdateRightFinger({ FingerBitmapStr: rightRing }, 1)
             if (setEnrolledBiometrics) {
                 setEnrolledBiometrics(prev => ({
                     ...prev,
@@ -392,6 +430,7 @@ const VisitorProfile = ({
                 ...prev,
                 upload_data: rightMiddle
             }))
+            addOrUpdateRightFinger({ FingerBitmapStr: rightMiddle }, 2)
             if (setEnrolledBiometrics) {
                 setEnrolledBiometrics(prev => ({
                     ...prev,
@@ -405,6 +444,7 @@ const VisitorProfile = ({
                 ...prev,
                 upload_data: rightIndex
             }))
+            addOrUpdateRightFinger({ FingerBitmapStr: rightIndex }, 3)
             if (setEnrolledBiometrics) {
                 setEnrolledBiometrics(prev => ({
                     ...prev,
@@ -418,6 +458,7 @@ const VisitorProfile = ({
                 ...prev,
                 upload_data: rightThumb
             }))
+            addOrUpdateThumb({ FingerBitmapStr: rightThumb }, 1)
             if (setEnrolledBiometrics) {
                 setEnrolledBiometrics(prev => ({
                     ...prev,
@@ -431,6 +472,7 @@ const VisitorProfile = ({
                 ...prev,
                 upload_data: leftLittle
             }))
+            addOrUpdateLeftFinger({ FingerBitmapStr: leftLittle }, 0)
             if (setEnrolledBiometrics) {
                 setEnrolledBiometrics(prev => ({
                     ...prev,
@@ -444,6 +486,7 @@ const VisitorProfile = ({
                 ...prev,
                 upload_data: leftRing
             }))
+            addOrUpdateLeftFinger({ FingerBitmapStr: leftRing }, 1)
             if (setEnrolledBiometrics) {
                 setEnrolledBiometrics(prev => ({
                     ...prev,
@@ -457,6 +500,7 @@ const VisitorProfile = ({
                 ...prev,
                 upload_data: leftMiddle
             }))
+            addOrUpdateLeftFinger({ FingerBitmapStr: leftMiddle }, 2)
             if (setEnrolledBiometrics) {
                 setEnrolledBiometrics(prev => ({
                     ...prev,
@@ -470,6 +514,7 @@ const VisitorProfile = ({
                 ...prev,
                 upload_data: leftIndex
             }))
+            addOrUpdateLeftFinger({ FingerBitmapStr: leftIndex }, 3)
             if (setEnrolledBiometrics) {
                 setEnrolledBiometrics(prev => ({
                     ...prev,
@@ -483,6 +528,7 @@ const VisitorProfile = ({
                 ...prev,
                 upload_data: leftThumb
             }))
+            addOrUpdateThumb({ FingerBitmapStr: leftIndex }, 0)
             if (setEnrolledBiometrics) {
                 setEnrolledBiometrics(prev => ({
                     ...prev,
@@ -1408,7 +1454,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LL</p>
                                             {
-                                                // fingerprintVerificationResult2 &&
+                                                fingerprintVerificationResult2 &&
                                                 LeftFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult2?.message === "Match found." ||
                                                         fingerprintVerificationResult2?.message ===
@@ -1431,7 +1477,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LR</p>
                                             {
-                                                // fingerprintVerificationResult3 &&
+                                                fingerprintVerificationResult3 &&
                                                 LeftFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult3?.message === "Match found." ||
                                                         fingerprintVerificationResult3?.message ===
@@ -1454,7 +1500,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LM</p>
                                             {
-                                                // fingerprintVerificationResult4 &&
+                                                fingerprintVerificationResult4 &&
                                                 LeftFingerResponse?.CapturedFingers?.[2]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult4?.message === "Match found." ||
                                                         fingerprintVerificationResult4?.message ===
@@ -1477,7 +1523,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LI</p>
                                             {
-                                                // fingerprintVerificationResult5 &&
+                                                fingerprintVerificationResult5 &&
                                                 LeftFingerResponse?.CapturedFingers?.[3]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult5?.message === "Match found." ||
                                                         fingerprintVerificationResult5?.message ===
@@ -1522,7 +1568,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RI</p>
                                             {
-                                                // fingerprintVerificationResult7 &&
+                                                fingerprintVerificationResult7 &&
                                                 RightFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult7?.message === "Match found." ||
                                                         fingerprintVerificationResult7?.message ===
@@ -1545,7 +1591,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RM</p>
                                             {
-                                                // fingerprintVerificationResult8 &&
+                                                fingerprintVerificationResult8 &&
                                                 RightFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult8?.message === "Match found." ||
                                                         fingerprintVerificationResult8?.message ===
@@ -1568,7 +1614,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RI</p>
                                             {
-                                                // fingerprintVerificationResult9 &&
+                                                fingerprintVerificationResult9 &&
                                                 RightFingerResponse?.CapturedFingers?.[2]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult9?.message === "Match found." ||
                                                         fingerprintVerificationResult9?.message ===
@@ -1591,7 +1637,7 @@ const VisitorProfile = ({
                                         <div className="w-32 h-32 border rounded-md relative">
                                             <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RL</p>
                                             {
-                                                // fingerprintVerificationResult10 &&
+                                                fingerprintVerificationResult10 &&
                                                 RightFingerResponse?.CapturedFingers?.[3]?.FingerBitmapStr && (
                                                     fingerprintVerificationResult10?.message === "Match found." ||
                                                         fingerprintVerificationResult10?.message ===
@@ -1637,7 +1683,7 @@ const VisitorProfile = ({
                                             <div className="w-32 h-32 border rounded-md relative">
                                                 <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">LT</p>
                                                 {
-                                                    // fingerprintVerificationResult1 &&
+                                                    fingerprintVerificationResult1 &&
                                                     ThumbFingerResponse?.CapturedFingers?.[0]?.FingerBitmapStr && (
                                                         fingerprintVerificationResult1?.message === "Match found." ||
                                                             fingerprintVerificationResult1?.message ===
@@ -1660,7 +1706,7 @@ const VisitorProfile = ({
                                             <div className="w-32 h-32 border rounded-md relative">
                                                 <p className="h-5 w-5 flex items-center justify-center text-sm bg-white absolute font-semibold">RT</p>
                                                 {
-                                                    // fingerprintVerificationResult6 &&
+                                                    fingerprintVerificationResult6 &&
                                                     ThumbFingerResponse?.CapturedFingers?.[1]?.FingerBitmapStr && (
                                                         fingerprintVerificationResult6?.message === "Match found." ||
                                                             fingerprintVerificationResult6?.message ===
