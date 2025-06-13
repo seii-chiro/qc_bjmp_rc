@@ -9,8 +9,8 @@ const Registration = () => {
                     <div className="mt-2">
                         <div className="ml-8">
                             <GodotLink link="/jvms/visitors/visitor-registration" title="PDL Visitors" />
-                            {/* <GodotLink link="/jvms/registration/personnel-registration" title="BJMP Personnel" /> */}
-                            <GodotLink link="/jvms/visitors/service-provider" title="3rd Party Providers" />
+                            <GodotLink link="/jvms/registration/personnel-registration" title="BJMP Personnel" />
+                            <GodotLink link="/jvms/service-provider/service-provider-registration" title="3rd Party Providers" />
                             <GodotLink link="/jvms/visitors/non-pdl-visitor" title="Other Non-PDL Visitors" />
                         </div>
                     </div>

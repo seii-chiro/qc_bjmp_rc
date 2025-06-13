@@ -38,6 +38,7 @@ const Visitor = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [showAll, setShowAll] = useState(false);
     const [selectEditVisitor, setEditSelectedVisitor] = useState<VisitorResponse | null>(null);
     const [genderColumnFilter, setGenderColumnFilter] = useState<string[]>([]);
     const [visitorTypeColumnFilter, setVisitorTypeColumnFilter] = useState<string[]>([]);
@@ -78,24 +79,21 @@ const Visitor = () => {
     },
     enabled: !!selectedVisitor?.id,
     });
-
-    const transformedVisitHistory = useMemo(() => {
+const transformedVisitHistory = useMemo(() => {
     if (!visitHistoryData?.results || !selectedVisitor) return [];
 
     const fullName = `${selectedVisitor.person.first_name} ${selectedVisitor.person.last_name}`;
 
     return visitHistoryData.results
         .filter((visit) => visit.person === fullName)
-        .flatMap((visit) =>
-        (visit.tracking_logs || []).map((log) => ({
-            timestamp_in: log.timestamp_in,
-            timestamp_out: log.timestamp_out,
-            isCurrent: visit.status === "In" && !log.timestamp_out,
-            duration: visit.duration,
-        }))
-        );
-    }, [visitHistoryData, selectedVisitor]);
+        .map((visit) => ({
+            timestamp_in: visit.timestamp_in,
+            timestamp_out: visit.timestamp_out || null, 
+            duration: visit.duration || 0, 
+        }));
+}, [visitHistoryData, selectedVisitor]);
 
+const rowsToDisplay = showAll ? transformedVisitHistory : transformedVisitHistory.slice(0, 3);
 
     useEffect(() => {
         if (selectedVisitor?.main_gate_visits) {
@@ -926,67 +924,77 @@ const menu = (
                                             <p className="text-[#404958] text-sm">Visitor History</p>
                                             <div className="overflow-y-auto h-full">
                                                 <table className="w-full border-collapse overflow-x-auto">
-                                                <thead>
-                                                    <tr>
-                                                    <th className="rounded-l-lg bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Date</th>
-                                                    <th className="bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Duration</th>
-                                                    <th className="bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Login</th>
-                                                    <th className="rounded-r-lg bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Logout</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {isLoadingVisitHistory ? (
-                                                    <tr>
-                                                        <td colSpan={4} className="text-center text-xs py-2">Loading...</td>
-                                                    </tr>
-                                                    ) : isError || transformedVisitHistory.length === 0 ? (
-                                                    <tr>
-                                                        <td colSpan={4} className="text-center text-xs py-2">No visit history found.</td>
-                                                    </tr>
-                                                    ) : (
-                                                    transformedVisitHistory.map((visit, index) => {
-                                                        const login = new Date(visit.timestamp_in);
-                                                        const logout = visit.timestamp_out ? new Date(visit.timestamp_out) : null;
-                                                        const durationSec = visit?.duration || 0;
-
-                                                        let durationDisplay = "...";
-                                                        if (visit.timestamp_out) {
-                                                        const minutes = Math.floor(durationSec / 60);
-                                                        const hours = Math.floor(minutes / 60);
-                                                        durationDisplay =
-                                                            durationSec < 60
-                                                            ? `${durationSec.toFixed(0)}s`
-                                                            : minutes < 60
-                                                            ? `${minutes}m`
-                                                            : `${hours}h ${minutes % 60}m`;
-                                                        }
-
-                                                        return (
-                                                        <tr key={index}>
-                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                            {dayjs(login).format("YYYY-MM-DD")}
-                                                            </td>
-                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                            {!visit.timestamp_out ? "..." : durationDisplay}
-                                                            </td>
-                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                            {login.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-                                                            </td>
-                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
-                                                            {visit.isCurrent ? (
-                                                                <span className="text-green-600 font-semibold">...</span>
-                                                            ) : logout ? (
-                                                                logout.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+                                                        <thead>
+                                                            <tr>
+                                                                <th className="rounded-l-lg bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Date</th>
+                                                                <th className="bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Duration</th>
+                                                                <th className="bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Login</th>
+                                                                <th className="rounded-r-lg bg-[#2F3237] text-white text-xs py-1 px-2 font-semibold">Logout</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {isLoadingVisitHistory ? (
+                                                                <tr>
+                                                                    <td colSpan={4} className="text-center text-xs py-2">Loading...</td>
+                                                                </tr>
+                                                            ) : isError || transformedVisitHistory.length === 0 ? (
+                                                                <tr>
+                                                                    <td colSpan={4} className="text-center text-xs py-2">No visit history found.</td>
+                                                                </tr>
                                                             ) : (
-                                                                "-"
+                                                                rowsToDisplay.map((visit, index) => {
+                                                                    const login = new Date(visit.timestamp_in);
+                                                                    const logout = visit.timestamp_out ? new Date(visit.timestamp_out) : null; // Ensure proper date conversion
+                                                                    const durationSec = visit.duration || 0;
+
+                                                                    let durationDisplay = "...";
+                                                                    if (visit.timestamp_out) {
+                                                                        const minutes = Math.floor(durationSec / 60);
+                                                                        const hours = Math.floor(minutes / 60);
+                                                                        durationDisplay =
+                                                                            durationSec < 60
+                                                                            ? `${durationSec.toFixed(0)}s`
+                                                                            : minutes < 60
+                                                                            ? `${minutes}m`
+                                                                            : `${hours}h ${minutes % 60}m`;
+                                                                    }
+
+                                                                    return (
+                                                                        <tr key={index}>
+                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                                {dayjs(login).format("YYYY-MM-DD")}
+                                                                            </td>
+                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                                {!visit.timestamp_out ? "..." : durationDisplay}
+                                                                            </td>
+                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                                {login.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                                                                            </td>
+                                                                            <td className="border-b border-[#DCDCDC] text-[9px] font-light p-1 text-center">
+                                                                                {logout ? (
+                                                                                    logout.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+                                                                                ) : (
+                                                                                    "-"
+                                                                                )}
+                                                                            </td>
+                                                                        </tr>
+                                                                    );
+                                                                })
                                                             )}
-                                                            </td>
-                                                        </tr>
-                                                        );
-                                                    })
-                                                    )}
-                                                </tbody>
-                                                </table>
+                                                            {transformedVisitHistory.length > 3 && (
+                                                                <tr>
+                                                                    <td colSpan={4} className="text-center text-xs pt-1">
+                                                                        <button 
+                                                                            className="text-blue-600 hover:underline"
+                                                                            onClick={() => setShowAll(!showAll)}
+                                                                        >
+                                                                            {showAll ? "Show Less" : "Show All"}
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            )}
+                                                        </tbody>
+                                                    </table>
                                             </div>
                                             </div>
                                     </div>
@@ -1061,13 +1069,13 @@ const menu = (
                                                                     {pdlItem?.pdl?.person?.middle_name || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem?.pdl?.cell?.cell_name || ""}
-                                                                </td>
-                                                                <td className="text-center text-[9px] font-light">
                                                                     {pdlItem?.pdl?.cell?.floor?.split("(")[1]?.replace(")", "") || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
                                                                     {pdlItem?.pdl?.cell?.floor || ""}
+                                                                </td>
+                                                                <td className="text-center text-[9px] font-light">
+                                                                    {pdlItem?.pdl?.cell?.cell_name || ""}
                                                                 </td>
                                                             </tr>
                                                         ))

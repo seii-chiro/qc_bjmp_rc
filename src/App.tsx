@@ -603,11 +603,11 @@ function App() {
                     element: <NonPdlVisitorRegistration />
                 },
                 {
-                    path: "visitors/service-provider",
+                    path: "service-provider/service-provider-registration",
                     element: <ServiceProviderRegistration />
                 },
                 {
-                    path: "visitors/service-provided",
+                    path: "service-provider/service-provided",
                     element: <ServiceProvided/>
                 },
                 {

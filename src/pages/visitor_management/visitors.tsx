@@ -4,24 +4,29 @@ const Visitors = () => {
     return (
         <div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-5 text-gray-700">
-                
                 <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
-                    <Header title="VISITOR INFORMATION" />
+                    <Header title="Visitor Information" />
                     <div className="mt-2 ml-8">
                         <GodotLink link="visitor" title="Visitors" />
                         <GodotLink link="visitor-id" title="Visitor Identification" />
                         <GodotLink link="visitor-registration" title="Visitor Registration" />
                     </div>
+                    <div className="mt-5">
+                        <Header title="Service Provider" />
+                        <div className="mt-2 ml-8">
+                            <GodotLink link="/jvms/service-provider" title="Service Provider" />
+                        </div>
+                    </div>
+                    
                 </div>
                 <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
                     <Header title="VISITOR REGISTRATION" />
                     <div className="mt-2 ml-8">
                         <GodotLink link="visitor-registration" title="PDL Visitor" />
-                        <GodotLink link="service-provider" title="3rd Party Provider" />
+                        <GodotLink link="/jvms/service-provider/service-provider-registration" title="3rd Party Provider" />
                         <GodotLink link="non-pdl-visitor" title="Other Non-PDL Visitors" />
                     </div>
                 </div>
-                
                 <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
                     <Header title="ISSUES" />
                     <div className="mt-2 ml-8">
@@ -45,7 +50,7 @@ const Visitors = () => {
                         </div>
                         <div className="ml-8">
                             <h1 className="font-semibold text-lg text-gray-700">3rd Party Provider</h1>
-                            <GodotLink link="service-provided" title="Service Provided" />
+                            <GodotLink link="/jvms/service-provider/service-provided" title="Service Provided" />
                             <div className="mt-2">
                                 <h1 className="font-semibold text-lg text-gray-700">Non-PDL Visitor</h1>
                             <GodotLink link="visitor-relationship-personnel" title="Relationship (Visitor - Personnel)" />
