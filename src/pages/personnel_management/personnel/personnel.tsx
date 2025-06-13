@@ -315,6 +315,22 @@ const Personnel = () => {
     enabled: !!token,
     });
 
+    const confirmDelete = (recordId) => {
+        Modal.confirm({
+            title: 'Are you sure you want to delete this record?',
+            content: 'This action cannot be undone.',
+            okText: 'Delete',
+            okType: 'danger',
+            cancelText: 'Cancel',
+            onOk() {
+                deleteMutation.mutate(recordId);
+            },
+            onCancel() {
+            },
+            centered: true,
+        });
+    };
+
     const dataSource = data?.results.map((personnel, index) => ({
         key: index + 1,
         id: personnel?.id,
@@ -399,10 +415,20 @@ const Personnel = () => {
                     <NavLink to={"/jvms/personnels/personnel/update"} state={{ personnel: record }} className="text-blue-500 hover:text-blue-700 flex items-center">
                         <AiOutlineEdit />
                     </NavLink>
-                    <Button
+                    {/* <Button
                         type="link"
                         danger
                         onClick={() => deleteMutation.mutate(record.id)}
+                    >
+                        <AiOutlineDelete />
+                    </Button> */}
+                    <Button
+                        type="link"
+                        danger
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            confirmDelete(record.id);
+                        }}
                     >
                         <AiOutlineDelete />
                     </Button>

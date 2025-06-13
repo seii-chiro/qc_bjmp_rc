@@ -272,6 +272,23 @@ const PDLtable = () => {
     //         address,
     //     };
     //     });
+
+    const confirmDelete = (recordId) => {
+        Modal.confirm({
+            title: 'Are you sure you want to delete this record?',
+            content: 'This action cannot be undone.',
+            okText: 'Delete',
+            okType: 'danger',
+            cancelText: 'Cancel',
+            onOk() {
+                deleteMutation.mutate(recordId);
+            },
+            onCancel() {
+            },
+            centered: true,
+        });
+    };
+
     const dataSource = (data?.results || []).map((pdl, index) => {
     const address = [
         pdl?.person?.addresses?.[0]?.barangay,
@@ -364,14 +381,24 @@ const PDLtable = () => {
             <NavLink to="update" state={{ pdl: record }} className={"flex items-center justify-center"}>
                 <AiOutlineEdit />
             </NavLink>
-            <Button
+            {/* <Button
                 type="link"
                 danger
                 onClick={() => deleteMutation.mutate(record.id)}
             >
                 <AiOutlineDelete />
+            </Button> */}
+            <Button
+                type="link"
+                danger
+                onClick={(e) => {
+                    e.stopPropagation();
+                    confirmDelete(record.id);
+                }}
+            >
+                <AiOutlineDelete />
             </Button>
-           </div>
+            </div>
         ),
     },
     ];
