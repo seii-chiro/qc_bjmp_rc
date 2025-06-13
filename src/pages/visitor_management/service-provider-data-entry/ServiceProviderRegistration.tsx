@@ -130,7 +130,8 @@ const ServiceProviderRegistration = () => {
         remarks_many_data: [],
         group_affiliation_id: null,
         approved_at: "",
-        verified_at: ""
+        verified_at: "",
+        provided_service: null
     })
 
     const [icao, setIcao] = useState("")
@@ -907,7 +908,7 @@ const ServiceProviderRegistration = () => {
                                         onChange={value => {
                                             setServiceProviderForm(prev => ({
                                                 ...prev,
-                                                service_type_id: value
+                                                provided_service: value
                                             }))
                                         }}
                                     />
