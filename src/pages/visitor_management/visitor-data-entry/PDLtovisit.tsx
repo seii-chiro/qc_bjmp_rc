@@ -454,7 +454,7 @@ const PDLtovisit = ({
                 open={pdlToVisitModalOpen}
                 onCancel={handlePdlToVisitModalCancel}
                 footer={null}
-                width="70%"
+                width="50%"
             >
                 <PDLToVisitForm
                     visitorForm={visitorForm}
