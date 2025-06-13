@@ -1066,7 +1066,7 @@ const NonPdlVisitorRegistration = () => {
                                     <Input
                                         value={personnel?.find(person => person?.id === nonPdlVisitorForm?.personnel_id)?.personnel_type}
                                         readOnly
-                                        placeholder="Personnel Name"
+                                        placeholder="Personnel Type"
                                         className='mt-2 h-10 rounded-md outline-gray-300'
                                     />
                                 </label>
