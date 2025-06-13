@@ -87,9 +87,9 @@ const transformedVisitHistory = useMemo(() => {
     return visitHistoryData.results
         .filter((visit) => visit.person === fullName)
         .map((visit) => ({
-            timestamp_in: visit.timestamp_in, // Use the outer timestamp_in
-            timestamp_out: visit.timestamp_out || null, // Use the outer timestamp_out
-            duration: visit.duration || 0, // Use visit's duration
+            timestamp_in: visit.timestamp_in,
+            timestamp_out: visit.timestamp_out || null, 
+            duration: visit.duration || 0, 
         }));
 }, [visitHistoryData, selectedVisitor]);
 

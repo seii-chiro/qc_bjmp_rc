@@ -164,6 +164,7 @@ const dataSource = data?.results.map((status, index) => ({
         id: status?.id,
         name: status?.name,
         description: status?.description,
+        updated: `${UserData?.results?.[0]?.first_name || ''} ${UserData?.results?.[0]?.last_name || ''}`
     }));
 
     const columns: ColumnsType<StatusPayload> = [
@@ -234,7 +235,7 @@ const dataSource = data?.results.map((status, index) => ({
             const headerHeight = 48;
             const footerHeight = 32;
             const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
-            const PreparedBy = `${UserData?.results?.[0]?.first_name} ${UserData?.results?.[0]?.last_name}` || ''; 
+            const PreparedBy = dataSource[0]?.updated || ''; 
 
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
