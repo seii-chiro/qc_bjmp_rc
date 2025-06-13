@@ -1069,13 +1069,13 @@ const menu = (
                                                                     {pdlItem?.pdl?.person?.middle_name || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
-                                                                    {pdlItem?.pdl?.cell?.cell_name || ""}
-                                                                </td>
-                                                                <td className="text-center text-[9px] font-light">
                                                                     {pdlItem?.pdl?.cell?.floor?.split("(")[1]?.replace(")", "") || ""}
                                                                 </td>
                                                                 <td className="text-center text-[9px] font-light">
                                                                     {pdlItem?.pdl?.cell?.floor || ""}
+                                                                </td>
+                                                                <td className="text-center text-[9px] font-light">
+                                                                    {pdlItem?.pdl?.cell?.cell_name || ""}
                                                                 </td>
                                                             </tr>
                                                         ))
