@@ -316,8 +316,9 @@ const { data, isFetching } = useQuery({
         gender: visitor?.person?.gender?.gender_option ?? '',
         organization: visitor?.org ?? 'Bureau of Jail Management and Penology',
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+        created_at: visitor?.created_at,
     };
-    });
+    }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     const columns: ColumnsType<VisitorResponse> = [
         {
