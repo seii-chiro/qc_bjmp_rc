@@ -3,6 +3,7 @@ import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery } from "@tanstack/react-query";
 import { Input, Button, Table, Menu, Dropdown, Modal } from "antd";
+import type { TableProps } from "antd";
 import { useEffect, useState } from "react";
 import { generateLogReport } from "../generateLogReport";
 import { CSVLink } from "react-csv";
@@ -14,6 +15,7 @@ const VisitLog = () => {
   const user = useUserStore(state => state.user)
   const [searchText, setSearchText] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [view, setView] = useState<"Main Gate" | "Visitor" | "PDL">(
     "Main Gate"
   );
@@ -33,6 +35,13 @@ const VisitLog = () => {
     return () => clearTimeout(timeout);
   }, [searchText]);
 
+  const handleTableChange: TableProps<any>["onChange"] = (pagination, filters, sorter) => {
+    // Get the status filter value from filters
+    const status = filters.status as string[] | undefined;
+    setStatusFilter(status && status.length > 0 ? status[0] : null);
+    // If you want to reset to page 1 on filter change, also call setPage(1) here
+  };
+
   const fetchVisitLogs = async (url: string) => {
     const res = await fetch(url, {
       headers: {
@@ -45,12 +54,13 @@ const VisitLog = () => {
   };
 
   const { data: mainGateData, isLoading: mainGateLogsLoading } = useQuery({
-    queryKey: ["main-gate", mainGatePage, limit, debouncedSearch],
+    queryKey: ["main-gate", mainGatePage, limit, debouncedSearch, statusFilter], // add statusFilter
     queryFn: async () => {
       const offset = (mainGatePage - 1) * limit;
+      const statusParam = statusFilter ? `&status_by_timeout=${encodeURIComponent(statusFilter)}` : "";
       const url = debouncedSearch
-        ? `${BASE_URL}/api/visit-logs/main-gate-visits/?search=${debouncedSearch}&limit=${limit}&offset=${offset}`
-        : `${BASE_URL}/api/visit-logs/main-gate-visits/?&limit=${limit}&offset=${offset}`;
+        ? `${BASE_URL}/api/visit-logs/main-gate-visits/?search=${debouncedSearch}&limit=${limit}&offset=${offset}${statusParam}`
+        : `${BASE_URL}/api/visit-logs/main-gate-visits/?limit=${limit}&offset=${offset}${statusParam}`;
       return fetchVisitLogs(url);
     },
     placeholderData: (prevData) => prevData,
@@ -58,12 +68,13 @@ const VisitLog = () => {
   });
 
   const { data: visitorData, isLoading: visitorLogsLoading } = useQuery({
-    queryKey: ["visitor", visitorPage, limit, debouncedSearch],
+    queryKey: ["visitor", visitorPage, limit, debouncedSearch, statusFilter],
     queryFn: async () => {
       const offset = (visitorPage - 1) * limit;
+      const statusParam = statusFilter ? `&status_by_timeout=${encodeURIComponent(statusFilter)}` : "";
       const url = debouncedSearch
-        ? `${BASE_URL}/api/visit-logs/visitor-station-visits/?search=${debouncedSearch}&limit=${limit}&offset=${offset}`
-        : `${BASE_URL}/api/visit-logs/visitor-station-visits/?&limit=${limit}&offset=${offset}`;
+        ? `${BASE_URL}/api/visit-logs/visitor-station-visits/?search=${debouncedSearch}&limit=${limit}&offset=${offset}${statusParam}`
+        : `${BASE_URL}/api/visit-logs/visitor-station-visits/?limit=${limit}&offset=${offset}${statusParam}`;
       return fetchVisitLogs(url);
     },
     placeholderData: (prevData) => prevData,
@@ -71,17 +82,19 @@ const VisitLog = () => {
   });
 
   const { data: pdlData, isLoading: pdlLogsLoading } = useQuery({
-    queryKey: ["pdl", pdlPage, limit, debouncedSearch],
+    queryKey: ["pdl", pdlPage, limit, debouncedSearch, statusFilter],
     queryFn: async () => {
       const offset = (pdlPage - 1) * limit;
+      const statusParam = statusFilter ? `&status_by_timeout=${encodeURIComponent(statusFilter)}` : "";
       const url = debouncedSearch
-        ? `${BASE_URL}/api/visit-logs/pdl-station-visits/?search=${debouncedSearch}&limit=${limit}&offset=${offset}`
-        : `${BASE_URL}/api/visit-logs/pdl-station-visits/?&limit=${limit}&offset=${offset}`;
+        ? `${BASE_URL}/api/visit-logs/pdl-station-visits/?search=${debouncedSearch}&limit=${limit}&offset=${offset}${statusParam}`
+        : `${BASE_URL}/api/visit-logs/pdl-station-visits/?limit=${limit}&offset=${offset}${statusParam}`;
       return fetchVisitLogs(url);
     },
     placeholderData: (prevData) => prevData,
     enabled: view === "PDL",
   });
+
 
   let activeData, tableIsLoading, page, setPage;
   if (view === "Main Gate") {
@@ -242,11 +255,10 @@ const VisitLog = () => {
       width: 100,
       key: "status",
       filters: [
-        { text: "IN", value: "IN" },
-        { text: "OUT", value: "OUT" },
+        { text: "IN", value: "In" },
+        { text: "OUT", value: "Out" },
       ],
-      onFilter: (value: string | number | boolean, record: any) =>
-        String(record.status).toLowerCase() === String(value).toLowerCase(),
+      filteredValue: statusFilter ? [statusFilter] : [],
     },
     {
       title: "", // No title for the status color box
@@ -464,6 +476,7 @@ const VisitLog = () => {
           <Table
             loading={tableIsLoading}
             columns={columns}
+            onChange={handleTableChange}
             dataSource={dataSource}
             scroll={{ x: 800, y: "calc(100vh - 200px)" }}
             pagination={{
