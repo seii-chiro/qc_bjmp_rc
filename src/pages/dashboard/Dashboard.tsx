@@ -57,22 +57,24 @@ const Dashboard = () => {
     const [time, setTime] = useState(new Date().toLocaleTimeString());
     const isFullscreen = handle.active;
     const [activeTab, setActiveTab] = useState('visitLogs');
-    const [frequency, setFrequency] = useState('daily'); 
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    // Summary Log States
+
+    const [summaryStartDate, setSummaryStartDate] = useState('');
+    const [summaryEndDate, setSummaryEndDate] = useState('');
+    const [summaryStartYear, setSummaryStartYear] = useState(currentYear.toString());
+    const [summaryEndYear, setSummaryEndYear] = useState(currentYear.toString());
     const [dateField, setDateField] = useState('date_convicted');
+    const [summaryfrequency, setSummaryFrequency] = useState('daily'); 
+    
     const [visitType, setvisitType] = useState('MainGateVisit');
     const [pdlvisitType, setpdlvisitType] = useState('PDLStationVisit');
-    const [startYear, setStartYear] = useState(currentYear.toString());
-    const [endYear, setEndYear] = useState(currentYear.toString());
 
-    const [formFrequency, setFormFrequency] = useState(frequency);
-    const [formVisitType, setFormVisitType] = useState('MainGateVisit');
+    const [formFrequency, setFormFrequency] = useState(summaryfrequency);
     const [formDateField, setFormDateField] = useState(dateField);
-    const [formStartDate, setFormStartDate] = useState(startDate);
-    const [formEndDate, setFormEndDate] = useState(endDate);
-    const [formStartYear, setFormStartYear] = useState(startYear);
-    const [formEndYear, setFormEndYear] = useState(endYear);
+    const [formStartDate, setFormStartDate] = useState(summaryStartDate);
+    const [formEndDate, setFormEndDate] = useState(summaryEndDate);
+    const [formStartYear, setFormStartYear] = useState(summaryStartYear);
+    const [formEndYear, setFormEndYear] = useState(summaryEndYear);
 
     //VisitLog
     const [visitFrequency, setVisitFrequency] = useState('daily');
@@ -87,17 +89,19 @@ const Dashboard = () => {
     const [formVisitStartYear, setFormVisitStartYear] = useState(visitStartYear);
     const [formVisitEndYear, setFormVisitEndYear] = useState(visitendYear);
 
-    const [formPDLFrequency, setFormPDLFrequency] = useState('daily');
-    const [formPDLStartDate, setFormPDLStartDate] = useState('');
-    const [formPDLEndDate, setFormPDLEndDate] = useState('');
-    const [formPDLStartYear, setFormPDLStartYear] = useState(currentYear.toString());
-    const [formPDLEndYear, setFormPDLEndYear] = useState(currentYear.toString());
+    const [formVisitType, setFormVisitType] = useState('MainGateVisit');
     const [formPDLVisitType, setFormPDLVisitType] = useState('PDLStationVisit');
     const [pdlFrequency, setPDLFrequency] = useState('daily');
     const [pdlStartDate, setPDLStartDate] = useState('');
     const [pdlEndDate, setPDLEndDate] = useState('');
     const [pdlStartYear, setPDLStartYear] = useState(currentYear.toString());
     const [pdlEndYear, setPDLEndYear] = useState(currentYear.toString());
+
+    const [formPDLFrequency, setFormPDLFrequency] = useState(pdlFrequency);
+    const [formPDLStartDate, setFormPDLStartDate] = useState(pdlStartDate);
+    const [formPDLEndDate, setFormPDLEndDate] = useState(pdlEndDate);
+    const [formPDLStartYear, setFormPDLStartYear] = useState(pdlStartYear);
+    const [formPDLEndYear, setFormPDLEndYear] = useState(pdlEndYear);
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
@@ -144,22 +148,22 @@ const Dashboard = () => {
         const params = new URLSearchParams();
         params.append('date_field', dateField);
 
-        if (frequency === 'quarterly') {
+        if (summaryfrequency === 'quarterly') {
             url += 'get-quarterly-pdl-summary';
-            params.append('start_year', startYear);
-            params.append('end_year', endYear);
-        } else if (frequency === 'monthly') {
+            params.append('start_year', summaryStartYear);
+            params.append('end_year', summaryEndYear);
+        } else if (summaryfrequency === 'monthly') {
             url += 'get-monthly-pdl-summary';
-            params.append('start_date', startDate);
-            params.append('end_date', endDate);
-        } else if (frequency === 'weekly') {
+            params.append('start_date', summaryStartDate);
+            params.append('end_date', summaryEndDate);
+        } else if (summaryfrequency === 'weekly') {
             url += 'get-weekly-pdl-summary';
-            params.append('start_date', startDate);
-            params.append('end_date', endDate);
-        } else if (frequency === 'daily') {
+            params.append('start_date', summaryStartDate);
+            params.append('end_date', summaryEndDate);
+        } else if (summaryfrequency === 'daily') {
             url += 'get-daily-pdl-summary';
-            params.append('start_date', startDate);
-            params.append('end_date', endDate);
+            params.append('start_date', summaryStartDate);
+            params.append('end_date', summaryEndDate);
         }
 
         const res = await fetch(`${url}?${params.toString()}`, {
@@ -174,20 +178,20 @@ const Dashboard = () => {
     };
 
     const { data: pdlData } = useQuery({
-        queryKey: ['pdl-summary', frequency, dateField, startYear, endYear, startDate, endDate],
+        queryKey: ['pdl-summary', summaryfrequency, dateField, summaryStartYear, summaryEndYear, summaryStartDate, summaryEndDate],
         queryFn: fetchPDLSummary,
         enabled: !!token,
     });
 
 
     let counts = {};
-    if (frequency === 'quarterly') {
+    if (summaryfrequency === 'quarterly') {
         counts = pdlData?.success?.quarterly_pdl_summary || {};
-    } else if (frequency === 'monthly') {
+    } else if (summaryfrequency === 'monthly') {
         counts = pdlData?.success?.monthly_pdl_summary || {};
-    } else if (frequency === 'weekly') {
+    } else if (summaryfrequency === 'weekly') {
         counts = pdlData?.success?.weekly_pdl_summary || {};
-    } else if (frequency === 'daily') {
+    } else if (summaryfrequency === 'daily') {
         counts = pdlData?.success?.daily_pdl_summary || {};
     }
 
@@ -695,11 +699,11 @@ const totalVisit = isFormVisitChanged
         setFormPDLEndYear(pdlEndYear);
 
         setFormDateField(dateField)
-        setFormFrequency(frequency);
-        setFormStartDate(startDate);
-        setFormEndDate(endDate);
-        setFormStartYear(startYear);
-        setFormEndYear(endYear);
+        setFormFrequency(summaryfrequency);
+        setFormStartDate(summaryStartDate);
+        setFormEndDate(summaryEndDate);
+        setFormStartYear(summaryStartYear);
+        setFormEndYear(summaryEndYear);
         setVisible(false);
     };
 
@@ -720,11 +724,11 @@ const totalVisit = isFormVisitChanged
         setPDLEndYear(formPDLEndYear);
         } else if (activeTab === 'summaryData') {
         setDateField(formDateField);
-        setFrequency(formFrequency);
-        setStartDate(formStartDate);
-        setEndDate(formEndDate);
-        setStartYear(formStartYear);
-        setEndYear(formEndYear);
+        setSummaryFrequency(formFrequency);
+        setSummaryStartDate(formStartDate);
+        setSummaryEndDate(formEndDate);
+        setSummaryStartYear(formStartYear);
+        setSummaryEndYear(formEndYear);
         }
         setIsFormPDLVisitChanged(true);
         setIsFormVisitChanged(true);
