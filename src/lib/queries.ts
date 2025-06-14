@@ -2668,8 +2668,10 @@ export async function getImpactLevels(
   return res.json();
 }
 
-export async function getImpacts(token: string): Promise<Impact[]> {
-  const res = await fetch(`${BASE_URL}/api/issues_v2/impact/`, {
+export async function getImpacts(
+  token: string
+): Promise<PaginatedResponse<Impact>> {
+  const res = await fetch(`${BASE_URL}/api/issues_v2/impact/?=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
