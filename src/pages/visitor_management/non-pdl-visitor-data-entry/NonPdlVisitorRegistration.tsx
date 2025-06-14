@@ -133,7 +133,7 @@ const NonPdlVisitorRegistration = () => {
         approved_by_id: null,
         verified_at: "",
         verified_by_id: null,
-        visitor_status_id: null
+        visitor_status_id: null,
     })
 
     const [icao, setIcao] = useState("")
@@ -1284,11 +1284,11 @@ const NonPdlVisitorRegistration = () => {
                                         value: user?.id,
                                         label: `${user?.first_name ?? ""} ${user?.last_name ?? ""}`,
                                     }))}
-                                    onChange={(value, label) => {
+                                    onChange={(value) => {
                                         setNonPdlVisitorForm(prev => ({
                                             ...prev,
                                             approved_by_id: value,
-                                            approved_by: label
+                                            approved_by: value
                                         }))
                                     }}
                                 />
