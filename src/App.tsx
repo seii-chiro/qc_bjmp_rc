@@ -158,6 +158,7 @@ import WatchlistThreatLevel from "./pages/threat/WatchlistThreatLevel.tsx";
 import ServiceProvided from "./pages/service-provider/service-provided/ServiceProvided.tsx";
 import VisitorRelPersonnel from "./pages/visitor_management/relationship/VisitorRelPersonnel.tsx";
 import NonPDLReasonforVisit from "./pages/visitor_management/reason-for-visit/NonPDLReasonforVisit.tsx";
+import ServiceProviderUpdate from "./pages/visitor_management/service-provider-data-entry/ServiceProviderUpdate.tsx";
 
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -607,16 +608,20 @@ function App() {
                     element: <ServiceProviderRegistration />
                 },
                 {
+                    path: "service-provider/update",
+                    element: <ServiceProviderUpdate />
+                },
+                {
                     path: "service-provider/service-provided",
-                    element: <ServiceProvided/>
+                    element: <ServiceProvided />
                 },
                 {
                     path: "visitors/visitor-relationship-personnel",
-                    element: <VisitorRelPersonnel/>
+                    element: <VisitorRelPersonnel />
                 },
                 {
                     path: "visitors/reason-for-visit",
-                    element: <NonPDLReasonforVisit/>
+                    element: <NonPDLReasonforVisit />
                 },
                 {
                     path: "personnels",
