@@ -1568,7 +1568,7 @@ const UpdatePDL = () => {
                                     className="mt-2 px-3 py-2 rounded-md outline-gray-300"
                                     type="text"
                                     name="birth-date"
-                                    placeholder="Date of Birth"
+                                    placeholder="Place of Birth"
                                     required
                                     onChange={(e) =>
                                         setPersonForm((prev) => ({
