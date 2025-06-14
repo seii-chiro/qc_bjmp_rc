@@ -13,6 +13,7 @@ import Table, { ColumnsType } from "antd/es/table";
 import { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
+import { useNavigate } from "react-router-dom";
 
 export interface ServiceProviderPayload {
     key: number;
@@ -38,6 +39,7 @@ const ServiceProvider = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const navigate = useNavigate()
 
     const showModal = () => {
         setIsModalOpen(true);
@@ -46,11 +48,18 @@ const ServiceProvider = () => {
     const handleCancel = () => {
         setIsModalOpen(false);
     };
-    
+
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
-        setPdfDataUrl(null); 
+        setPdfDataUrl(null);
     };
+
+    const handleEdit = (id: number) => {
+        if (!id) {
+            message.error("No ID found for this visitor.")
+        }
+        navigate("update", { state: id })
+    }
 
     const fetchServiceProvider = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/service-providers/service-providers/?search=${search}`, {
@@ -92,14 +101,14 @@ const ServiceProvider = () => {
             params.append("offset", String(offset));
 
             const res = await fetch(`${BASE_URL}/api/service-providers/service-providers/?${params.toString()}`, {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Token ${token}`,
-            },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Token ${token}`,
+                },
             });
 
             if (!res.ok) {
-            throw new Error("Failed to fetch Service Provider data.");
+                throw new Error("Failed to fetch Service Provider data.");
             }
 
             return res.json();
@@ -124,16 +133,16 @@ const ServiceProvider = () => {
         queryKey: ['service-provided'],
         queryFn: async () => {
             const res = await fetch(`${BASE_URL}/api/service-providers/provided-services/`, {
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Token ${token}`,
-            },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Token ${token}`,
+                },
             });
             if (!res.ok) throw new Error('Failed to fetch Service Provided');
             return res.json();
         },
         enabled: !!token,
-        });
+    });
 
     const serviceArray = ServiceProvidedData?.results || [];
 
@@ -162,7 +171,7 @@ const ServiceProvider = () => {
         const matchedPerson = personsArray.find(person => person.id === provider.person);
         const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
         const matchedService = serviceArray.find(service => service.id === provider.provided_service);
-        
+
         return {
             key: index + 1,
             id: provider?.id,
@@ -171,7 +180,7 @@ const ServiceProvider = () => {
             service_provided: matchedService?.service_provided,
             visitor_type: provider?.visitor_type,
             group_affiliation: provider?.group_affiliation,
-            person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(), 
+            person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(),
         };
     }) || [];
 
@@ -223,7 +232,7 @@ const ServiceProvider = () => {
             fixed: 'right',
             render: (_, record) => (
                 <div className="flex gap-2">
-                    <Button type="link" >{/*onClick={() => handleEdit(record)} */}
+                    <Button type="link" onClick={() => handleEdit(record?.id)}>
                         <AiOutlineEdit />
                     </Button>
                     <Button
@@ -252,18 +261,18 @@ const ServiceProvider = () => {
     const handleExportPDF = async () => {
         setIsLoading(true);
         setLoadingMessage("Generating PDF... Please wait.");
-        
+
         try {
             const doc = new jsPDF('landscape');
             const headerHeight = 48;
             const footerHeight = 32;
-            const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
-            const PreparedBy = `${UserData?.results?.[0]?.first_name || ''} ${UserData?.results?.[0]?.last_name || ''}`; 
+            const organizationName = OrganizationData?.results?.[0]?.org_name || "";
+            const PreparedBy = `${UserData?.results?.[0]?.first_name || ''} ${UserData?.results?.[0]?.last_name || ''}`;
 
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
             const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-            const maxRowsPerPage = 16; 
+            const maxRowsPerPage = 16;
             let startY = headerHeight;
 
             let allData;
@@ -272,13 +281,13 @@ const ServiceProvider = () => {
             } else {
                 allData = await fetchServiceProvider(searchText.trim());
             }
-            
+
             const allResults = allData?.results || [];
             const printSource = allResults.map((provider, index) => {
                 const matchedPerson = personsArray.find(person => person.id === provider.person);
                 const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
                 const matchedService = serviceArray.find(service => service.id === provider.provided_service);
-                
+
                 return {
                     key: index + 1,
                     id: provider?.id,
@@ -287,22 +296,22 @@ const ServiceProvider = () => {
                     service_provided: matchedService?.service_provided,
                     visitor_type: provider?.visitor_type,
                     group_affiliation: provider?.group_affiliation,
-                    person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(), 
+                    person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(),
                 };
             });
 
             const addHeader = () => {
-                const pageWidth = doc.internal.pageSize.getWidth(); 
+                const pageWidth = doc.internal.pageSize.getWidth();
                 const imageWidth = 30;
-                const imageHeight = 30; 
-                const margin = 10; 
+                const imageHeight = 30;
+                const margin = 10;
                 const imageX = pageWidth - imageWidth - margin;
                 const imageY = 12;
 
                 doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
                 doc.setTextColor(0, 102, 204);
                 doc.setFontSize(16);
-                doc.text("Service Provider Report", 10, 15); 
+                doc.text("Service Provider Report", 10, 15);
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(10);
                 doc.text(`Organization Name: ${organizationName}`, 10, 25);
@@ -312,7 +321,7 @@ const ServiceProvider = () => {
                 doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
             };
 
-            addHeader(); 
+            addHeader();
             const tableData = printSource.map((item, idx) => [
                 idx + 1,
                 item.sp_reg_no || '',
@@ -325,8 +334,8 @@ const ServiceProvider = () => {
 
             for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
                 const pageData = tableData.slice(i, i + maxRowsPerPage);
-        
-                autoTable(doc, { 
+
+                autoTable(doc, {
                     head: [['No.', 'SP Reg. No', 'Service Provider Type', 'Name', 'Visitor Type', 'Group Affiliation']],
                     body: pageData,
                     startY: startY,
@@ -336,17 +345,17 @@ const ServiceProvider = () => {
                     },
                     didDrawPage: function (data) {
                         if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                            addHeader(); 
+                            addHeader();
                         }
                     },
                 });
-        
+
                 if (i + maxRowsPerPage < tableData.length) {
                     doc.addPage();
                     startY = headerHeight;
                 }
             }
-        
+
             const pageCount = doc.internal.getNumberOfPages();
             for (let page = 1; page <= pageCount; page++) {
                 doc.setPage(page);
@@ -363,7 +372,7 @@ const ServiceProvider = () => {
                 doc.text(footerText, footerX, footerY);
                 doc.text(`${page} / ${pageCount}`, pageX, footerY);
             }
-        
+
             const pdfOutput = doc.output('datauristring');
             setPdfDataUrl(pdfOutput);
             setIsPdfModalOpen(true);
@@ -377,29 +386,29 @@ const ServiceProvider = () => {
 
     const handleExportExcel = async () => {
         let allData;
-            if (searchText.trim() === '') {
-                allData = await fetchAllServiceProvider();
-            } else {
-                allData = await fetchServiceProvider(searchText.trim());
-            }
-            
-            const allResults = allData?.results || [];
-            const printSource = allResults.map((provider, index) => {
-                const matchedPerson = personsArray.find(person => person.id === provider.person);
-                const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
-                const matchedService = serviceArray.find(service => service.id === provider.provided_service);
-                
-                return {
-                    key: index + 1,
-                    id: provider?.id,
-                    sp_reg_no: provider?.sp_reg_no,
-                    serv_prov_type: matchedSPtype?.serv_prov_type,
-                    service_provided: matchedService?.service_provided,
-                    visitor_type: provider?.visitor_type,
-                    group_affiliation: provider?.group_affiliation,
-                    person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(), 
-                };
-            });
+        if (searchText.trim() === '') {
+            allData = await fetchAllServiceProvider();
+        } else {
+            allData = await fetchServiceProvider(searchText.trim());
+        }
+
+        const allResults = allData?.results || [];
+        const printSource = allResults.map((provider, index) => {
+            const matchedPerson = personsArray.find(person => person.id === provider.person);
+            const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
+            const matchedService = serviceArray.find(service => service.id === provider.provided_service);
+
+            return {
+                key: index + 1,
+                id: provider?.id,
+                sp_reg_no: provider?.sp_reg_no,
+                serv_prov_type: matchedSPtype?.serv_prov_type,
+                service_provided: matchedService?.service_provided,
+                visitor_type: provider?.visitor_type,
+                group_affiliation: provider?.group_affiliation,
+                person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(),
+            };
+        });
 
         const exportData = printSource.map((sp, index) => {
             return {
@@ -410,7 +419,7 @@ const ServiceProvider = () => {
                 "Service Provider Type": sp?.serv_prov_type,
                 "Visitor Type": sp?.visitor_type,
                 "Group Affiliation": sp?.group_affiliation,
-                
+
             };
         });
 
@@ -420,7 +429,7 @@ const ServiceProvider = () => {
         XLSX.writeFile(wb, "ServiceProvider.xlsx");
     };
 
-        const handleExportCSV = async () => {
+    const handleExportCSV = async () => {
         try {
             let allData;
             if (searchText.trim() === '') {
@@ -428,13 +437,13 @@ const ServiceProvider = () => {
             } else {
                 allData = await fetchServiceProvider(searchText.trim());
             }
-            
+
             const allResults = allData?.results || [];
             const printSource = allResults.map((provider, index) => {
                 const matchedPerson = personsArray.find(person => person.id === provider.person);
                 const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
                 const matchedService = serviceArray.find(service => service.id === provider.provided_service);
-                
+
                 return {
                     key: index + 1,
                     id: provider?.id,
@@ -443,26 +452,26 @@ const ServiceProvider = () => {
                     service_provided: matchedService?.service_provided,
                     visitor_type: provider?.visitor_type,
                     group_affiliation: provider?.group_affiliation,
-                    person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(), 
+                    person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(),
                 };
             });
 
-        const exportData = printSource.map((sp, index) => {
-            return {
-                "No.": index + 1,
-                "SP Registration No.": sp?.sp_reg_no,
-                "Name": sp?.person,
-                "Service Provided": sp?.service_provided,
-                "Service Provider Type": sp?.serv_prov_type,
-                "Visitor Type": sp?.visitor_type,
-                "Group Affiliation": sp?.group_affiliation,
-                
-            };
-        });
+            const exportData = printSource.map((sp, index) => {
+                return {
+                    "No.": index + 1,
+                    "SP Registration No.": sp?.sp_reg_no,
+                    "Name": sp?.person,
+                    "Service Provided": sp?.service_provided,
+                    "Service Provider Type": sp?.serv_prov_type,
+                    "Visitor Type": sp?.visitor_type,
+                    "Group Affiliation": sp?.group_affiliation,
+
+                };
+            });
 
             const csvContent = [
                 Object.keys(exportData[0]).join(","),
-                ...exportData.map(item => Object.values(item).join(",")) 
+                ...exportData.map(item => Object.values(item).join(","))
             ].join("\n");
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -493,15 +502,15 @@ const ServiceProvider = () => {
         </Menu>
     );
 
-    const totalRecords = debouncedSearch 
-    ? data?.count || 0
-    : data?.count || 0;
+    const totalRecords = debouncedSearch
+        ? data?.count || 0
+        : data?.count || 0;
 
     const mapServiceProvider = ((provider, index) => {
         const matchedPerson = personsArray.find(person => person.id === provider.person);
         const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
         const matchedService = serviceArray.find(service => service.id === provider.provided_service);
-        
+
         return {
             key: index + 1,
             id: provider?.id,
@@ -510,7 +519,7 @@ const ServiceProvider = () => {
             service_provided: matchedService?.service_provided,
             visitor_type: provider?.visitor_type,
             group_affiliation: provider?.group_affiliation,
-            person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(), 
+            person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(),
         };
     });
 
@@ -526,9 +535,9 @@ const ServiceProvider = () => {
                             {isLoading ? ' Loading...' : ' Export'}
                         </a>
                     </Dropdown>
-                    <button 
-                        className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
-                        onClick={handleExportPDF} 
+                    <button
+                        className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={handleExportPDF}
                         disabled={isLoading}
                     >
                         {isLoading ? loadingMessage : 'PDF Report'}
@@ -547,21 +556,21 @@ const ServiceProvider = () => {
                 className="overflow-x-auto"
                 loading={isFetching || searchLoading}
                 columns={columns}
-                    dataSource={debouncedSearch
-                            ? (searchData?.results || []).map(mapServiceProvider)
-                                : dataSource}
-                    scroll={{ x: 'max-content' }} 
-                    pagination={{
+                dataSource={debouncedSearch
+                    ? (searchData?.results || []).map(mapServiceProvider)
+                    : dataSource}
+                scroll={{ x: 'max-content' }}
+                pagination={{
                     current: page,
                     pageSize: limit,
                     total: totalRecords,
                     pageSizeOptions: ['10', '20', '50', '100'],
-                        showSizeChanger: true, 
-                        onChange: (newPage, newPageSize) => {
-                            setPage(newPage);
-                            setLimit(newPageSize); 
-                        },
-                    }}
+                    showSizeChanger: true,
+                    onChange: (newPage, newPageSize) => {
+                        setPage(newPage);
+                        setLimit(newPageSize);
+                    },
+                }}
                 rowKey="id"
             />
             <Modal
