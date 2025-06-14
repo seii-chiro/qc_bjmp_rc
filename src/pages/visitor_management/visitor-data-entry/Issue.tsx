@@ -212,15 +212,15 @@ const Issue = () => {
                     <div>
                         <Table
                             className="border text-gray-200 rounded-md"
-                            dataSource={issueTable} // Using the state issueTable as the data source
-                            columns={columns} // Correctly typed columns
-                            rowKey="issue" // Ensure each row has a unique key (can be based on issue ID or similar)
+                            dataSource={issueTable}
+                            columns={columns}
+                            rowKey="issue"
                             scroll={{ x: 800 }}
                         />
                     </div>
                 </div>
             </div>
-            <Modal footer={null} open={openModal} onCancel={handleCloseModal} width={"40%"}>
+            <Modal footer={null} open={openModal} onCancel={handleCloseModal} width={"60%"}>
                 <IssueForm
                     issueCategories={issueCategories ?? []}
                     issueCategoriesLoading={issueCategoriesLoading}
