@@ -66,7 +66,6 @@ const patchPersonnel = async (pdl: Partial<PersonnelForm>, token: string, id: st
 
 const enrollBiometrics = async (
     enrollForm: BiometricRecordFace
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> => {
     const response = await fetch(BIOMETRIC.ENROLL, {
         method: "POST",
