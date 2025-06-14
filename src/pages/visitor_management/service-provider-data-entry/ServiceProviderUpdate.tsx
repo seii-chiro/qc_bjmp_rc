@@ -327,25 +327,6 @@ const ServiceProviderUpdate = () => {
         }
     })
 
-    const { data: serviceProviderPersonData, isLoading: serviceProviderPersonLoading } = useQuery({
-        queryKey: ['service-provider-person', serviceProviderData?.person],
-        queryFn: async () => {
-            const res = await fetch(`${BASE_URL}/api/standards/persons/${serviceProviderData?.person}/`, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Token ${token}`,
-                },
-            })
-
-            if (!res.ok) {
-                throw new Error(`Failed to fetch service provider ${serviceProviderToEdit} data.`);
-            }
-
-            return res.json();
-        },
-        enabled: !!token && !!serviceProviderData?.person
-    })
-
     //Delete Handlers
     const handleDeleteAddress = (indexToDelete: number) => {
         setPersonForm(prev => ({
@@ -851,19 +832,19 @@ const ServiceProviderUpdate = () => {
     useEffect(() => {
         setPersonForm(prev => ({
             ...prev,
-            first_name: serviceProviderPersonData?.first_name,
-            middle_name: serviceProviderPersonData?.middle_name,
-            last_name: serviceProviderPersonData?.last_name,
-            nationality_id: nationalities?.find(nationality => nationality?.nationality === serviceProviderPersonData?.nationality)?.id ?? null,
-            gender_id: serviceProviderPersonData?.gender?.id,
-            religion_id: serviceProviderPersonData?.religion?.id,
-            civil_status_id: civilStatuses?.find(status => status?.status === serviceProviderPersonData?.civil_status)?.id ?? null,
-            place_of_birth: serviceProviderPersonData?.place_of_birth,
-            date_of_birth: serviceProviderPersonData?.date_of_birth,
-            suffix: serviceProviderPersonData?.person?.suffix ?? null,
-            prefix: serviceProviderPersonData?.person?.prefix ?? null,
-            shortname: serviceProviderPersonData?.person?.shortname ?? "",
-            address_data: serviceProviderPersonData?.addresses?.map((existingAddress: { region: string; province: string; municipality: string; barangay: string; country: string; postal_code: string; is_current: boolean; }) => ({
+            first_name: serviceProviderData?.person?.first_name,
+            middle_name: serviceProviderData?.person?.middle_name,
+            last_name: serviceProviderData?.person?.last_name,
+            nationality_id: nationalities?.find(nationality => nationality?.nationality === serviceProviderData?.person?.nationality)?.id ?? null,
+            gender_id: serviceProviderData?.person?.gender?.id,
+            religion_id: serviceProviderData?.person?.religion?.id,
+            civil_status_id: civilStatuses?.find(status => status?.status === serviceProviderData?.person?.civil_status)?.id ?? null,
+            place_of_birth: serviceProviderData?.person?.place_of_birth,
+            date_of_birth: serviceProviderData?.person?.date_of_birth,
+            suffix: serviceProviderData?.person?.suffix ?? null,
+            prefix: serviceProviderData?.person?.prefix ?? null,
+            shortname: serviceProviderData?.person?.person?.shortname ?? "",
+            address_data: serviceProviderData?.person?.addresses?.map((existingAddress: { region: string; province: string; municipality: string; barangay: string; country: string; postal_code: string; is_current: boolean; }) => ({
                 ...existingAddress,
                 region_id: regions?.find(region => region?.desc === existingAddress?.region)?.id ?? null,
                 province_id: provinces?.find(province => province?.desc === existingAddress?.province)?.id ?? null,
@@ -873,14 +854,14 @@ const ServiceProviderUpdate = () => {
                 postal_code: existingAddress?.postal_code ?? null,
                 is_current: existingAddress?.is_current ?? false,
             })) ?? [],
-            contact_data: serviceProviderPersonData?.contacts ?? [],
-            media_identifier_data: serviceProviderPersonData?.media_identifiers?.map((prev: { idtype: any; }) => ({
+            contact_data: serviceProviderData?.person?.contacts ?? [],
+            media_identifier_data: serviceProviderData?.person?.media_identifiers?.map((prev: { idtype: any; }) => ({
                 ...prev,
                 id_type_id: prev?.idtype,
             })) ?? [],
         }))
     }, [
-        serviceProviderPersonData,
+        serviceProviderData?.person,
         nationalities,
         civilStatuses,
         barangays,
@@ -894,7 +875,7 @@ const ServiceProviderUpdate = () => {
         setServiceProviderForm(prev => ({
             ...prev,
             sp_reg_no: serviceProviderData?.sp_reg_no,
-            service_type_id: serviceProviderData?.provided_service,
+            service_type_id: serviceProviderData?.serv_prov_type,
             visitor_type_id: visitorTypes?.find(type => type?.serv_prov_type === serviceProviderData?.visitor_type)?.id ?? null,
             group_affiliation_id: affiliations?.find(aff => aff?.name === serviceProviderData?.group_affiliation)?.id ?? null,
             provided_service: services?.find(service => service?.service_provided === serviceProviderData?.serv_prov_type)?.id ?? null,
@@ -914,11 +895,7 @@ const ServiceProviderUpdate = () => {
         currentUser?.id
     ])
 
-    console.log("Provider Form", serviceProviderForm)
-    console.log("To Edit", serviceProviderData)
-    console.log("Person:", serviceProviderPersonData)
-
-    if (serviceProviderLoading || serviceProviderPersonLoading) {
+    if (serviceProviderLoading) {
         return <Spinner />
     }
 
