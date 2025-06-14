@@ -17,7 +17,12 @@ const Visitors = () => {
                             <GodotLink link="/jvms/service-provider" title="Service Provider" />
                         </div>
                     </div>
-                    
+                    <div className="mt-5">
+                        <Header title="Non-PDL Visitors" />
+                        <div className="mt-2 ml-8">
+                            <GodotLink link="/jvms/non-pdl-visitors" title="Non-PDL Visitors" />
+                        </div>
+                    </div>
                 </div>
                 <div className="border border-gray-200 p-5 w-full shadow-sm hover:shadow-md rounded-md">
                     <Header title="VISITOR REGISTRATION" />
@@ -51,6 +56,7 @@ const Visitors = () => {
                         <div className="ml-8">
                             <h1 className="font-semibold text-lg text-gray-700">3rd Party Provider</h1>
                             <GodotLink link="/jvms/service-provider/service-provided" title="Service Provided" />
+                            <GodotLink link="/jvms/maintenance/group-affiliation" title="Service Provider Group Affiliation" />
                             <div className="mt-2">
                                 <h1 className="font-semibold text-lg text-gray-700">Non-PDL Visitor</h1>
                             <GodotLink link="visitor-relationship-personnel" title="Relationship (Visitor - Personnel)" />

@@ -115,12 +115,12 @@ const DashboardSummary = () => {
 
     const exportToExcel = (summarydata, visitorOtherCount, personnelOtherCount) => {
         const pdlData = [
-            { "Summary of PDLs": "", "Total": "" },
-            { "Summary of PDLs": "Released PDL", "Total": summarydata?.success?.total_pdl_by_status?.Released?.Active || 0 },
-            { "Summary of PDLs": "Hospitalized PDL", "Total": summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active || 0 },
-            { "Summary of PDLs": "Convicted PDL", "Total": summarydata?.success?.total_pdl_by_status?.Convicted?.Active || 0 },
-            { "Summary of PDLs": "Committed PDL", "Total": summarydata?.success?.total_pdl_by_status?.Committed?.Active || 0 },
-            { "Summary of PDLs": "Jail Population", "Total": (
+            { "Summary of PDLs Based on Status": "", "Total": "" },
+            { "Summary of PDLs Based on Status": "Released PDL", "Total": summarydata?.success?.total_pdl_by_status?.Released?.Active || 0 },
+            { "Summary of PDLs Based on Status": "Hospitalized PDL", "Total": summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active || 0 },
+            { "Summary of PDLs Based on Status": "Convicted PDL", "Total": summarydata?.success?.total_pdl_by_status?.Convicted?.Active || 0 },
+            { "Summary of PDLs Based on Status": "Committed PDL", "Total": summarydata?.success?.total_pdl_by_status?.Committed?.Active || 0 },
+            { "Summary of PDLs Based on Status": "Jail Population", "Total": (
                 (summarydata?.success?.total_pdl_by_status?.Released?.Active || 0) +
                 (summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active || 0) +
                 (summarydata?.success?.total_pdl_by_status?.Convicted?.Active || 0) +
@@ -141,11 +141,11 @@ const DashboardSummary = () => {
         ];
 
         const summaryVisitorData = [
-            { "Summary of Visitors": "", "Total": "" },
-            { "Summary of Visitors": "Male", "Total": summarydata?.success?.visitor_based_on_gender?.Active?.Male || 0 },
-            { "Summary of Visitors": "Female", "Total": summarydata?.success?.visitor_based_on_gender?.Active?.Female || 0 },
-            { "Summary of Visitors": "Others", "Total": visitorOtherCount || 0 },
-            { "Summary of Visitors": "Total", "Total": (
+            { "Summary of Visitors Based on Gender": "", "Total": "" },
+            { "Summary of Visitors Based on Gender": "Male", "Total": summarydata?.success?.visitor_based_on_gender?.Active?.Male || 0 },
+            { "Summary of Visitors Based on Gender": "Female", "Total": summarydata?.success?.visitor_based_on_gender?.Active?.Female || 0 },
+            { "Summary of Visitors Based on Gender": "Others", "Total": visitorOtherCount || 0 },
+            { "Summary of Visitors Based on Gender": "Total", "Total": (
                 (summarydata?.success?.visitor_based_on_gender?.Active?.Male || 0) +
                 (summarydata?.success?.visitor_based_on_gender?.Active?.Female  || 0) +
                 (visitorOtherCount || 0)
@@ -153,11 +153,11 @@ const DashboardSummary = () => {
         ];
 
         const summaryPersonnelData = [
-            { "Summary of Personnels": "", "Total": "" },
-            { "Summary of Personnels": "Male", "Total": summarydata?.success?.personnel_based_on_gender?.Active?.Male || 0 },
-            { "Summary of Personnels": "Female", "Total": summarydata?.success?.personnel_based_on_gender?.Active?.Female || 0 },
-            { "Summary of Personnels": "Others", "Total": visitorOtherCount || 0 },
-            { "Summary of Personnels": "Total", "Total": (
+            { "Summary of Personnels Based on Gender": "", "Total": "" },
+            { "Summary of Personnels Based on Gender": "Male", "Total": summarydata?.success?.personnel_based_on_gender?.Active?.Male || 0 },
+            { "Summary of Personnels Based on Gender": "Female", "Total": summarydata?.success?.personnel_based_on_gender?.Active?.Female || 0 },
+            { "Summary of Personnels Based on Gender": "Others", "Total": visitorOtherCount || 0 },
+            { "Summary of Personnels Based on Gender": "Total", "Total": (
                 (summarydata?.success?.personnel_based_on_gender?.Active?.Male || 0) +
                 (summarydata?.success?.personnel_based_on_gender?.Active?.Female  || 0) +
                 (personnelOtherCount || 0)
@@ -165,11 +165,11 @@ const DashboardSummary = () => {
         ];
 
         const summaryBJMPDutyData = [
-            { "BJMP Personnel On and Off-Duty": "", "Total": "" },
-            { "BJMP Personnel On and Off-Duty": "On-Duty", "Total": summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0 },
-            { "BJMP Personnel On and Off-Duty": "Off-Duty", "Total": summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0 },
-            { "BJMP Personnel On and Off-Duty": "On-Leave", "Total": summarydata?.success.personnel_count_by_status.Active["Sick Leave"] + summarydata?.success.personnel_count_by_status.Active["Vacation Leave"] + summarydata?.success.personnel_count_by_status.Active["Maternity Leave"] + summarydata?.success.personnel_count_by_status.Active["Paternity Leave"] + summarydata?.success.personnel_count_by_status.Active["Compensatory Leave"] + summarydata?.success.personnel_count_by_status.Active["Absent Without Leave"] || 0 },
-            { "BJMP Personnel On and Off-Duty": "Total", "Total": (
+            { "BJMP Personnel On and Off-Duty Based on Status": "", "Total": "" },
+            { "BJMP Personnel On and Off-Duty Based on Status": "On-Duty", "Total": summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0 },
+            { "BJMP Personnel On and Off-Duty Based on Status": "Off-Duty", "Total": summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0 },
+            { "BJMP Personnel On and Off-Duty Based on Status": "On-Leave", "Total": summarydata?.success.personnel_count_by_status.Active["Sick Leave"] + summarydata?.success.personnel_count_by_status.Active["Vacation Leave"] + summarydata?.success.personnel_count_by_status.Active["Maternity Leave"] + summarydata?.success.personnel_count_by_status.Active["Paternity Leave"] + summarydata?.success.personnel_count_by_status.Active["Compensatory Leave"] + summarydata?.success.personnel_count_by_status.Active["Absent Without Leave"] || 0 },
+            { "BJMP Personnel On and Off-Duty Based on Status": "Total", "Total": (
                 (summarydata?.success.personnel_count_by_status.Active["Sick Leave"] || 0) +
                 (summarydata?.success.personnel_count_by_status.Active["Vacation Leave"]  || 0) +
                 (summarydata?.success.personnel_count_by_status.Active["Maternity Leave"] || 0) +
@@ -242,7 +242,7 @@ const DashboardSummary = () => {
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
         const pdlBody = [
-            [ "PDL Type", "Total"],
+            [ "PDL Type Based on Status", "Total"],
             [ "Released PDL", summarydata?.success?.total_pdl_by_status?.Released?.Active || 0],
             [ "Hospitalized PDL", summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active || 0],
             [ "Convicted PDL", summarydata?.success?.total_pdl_by_status?.Convicted?.Active || 0],
@@ -268,7 +268,7 @@ const DashboardSummary = () => {
         ];
 
         const visitorBody = [
-            ["Summary of Visitors", "Total"],
+            ["Summary of Visitors Based on Gender", "Total"],
             ["Male", summarydata?.success?.visitor_based_on_gender?.Active?.Male || 0],
             ["Female", summarydata?.success?.visitor_based_on_gender?.Active?.Female || 0],
             ["Others", visitorOtherCount || 0],
@@ -280,7 +280,7 @@ const DashboardSummary = () => {
         ];
 
         const personnelBody = [
-            ["Summary of Personnels", "Total"],
+            ["Summary of Personnels Based on Gender", "Total"],
             ["Male", summarydata?.success?.personnel_based_on_gender?.Active?.Male || 0],
             ["Female", summarydata?.success?.personnel_based_on_gender?.Active?.Female || 0],
             ["Others", personnelOtherCount || 0],
@@ -292,7 +292,7 @@ const DashboardSummary = () => {
         ];
 
         const dutyBody = [
-            ["BJMP Personnel On and Off-Duty", "Total"],
+            ["BJMP Personnel On and Off-Duty Based on Status", "Total"],
             ["On-Duty", summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0],
             ["Off-Duty", summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0],
             ["On-Leave", (
@@ -464,13 +464,13 @@ const createStyledTable = (title, body) => {
                     <div className="flex flex-col gap-5">
                         <div className="">
                             <fieldset className="border border-gray-300 rounded-md p-4 mt-2 shadow-md">
-                                <legend className='px-2 font-bold text-lg text-[#1E365D]'>Summary Count of PDLs</legend>
+                                <legend className='px-2 font-bold text-lg text-[#1E365D]'>Summary Count of PDLs Based on Status</legend>
                                 <div>
                                     <div className="overflow-hidden rounded-lg border border-gray-200 mt-2">
                                         <table className="min-w-full divide-y divide-gray-200">
                                         <thead className="bg-gray-100">
                                             <tr>
-                                            <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider border-r">Summary Count of PDLs</th>
+                                            <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider border-r">Status</th>
                                             <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                             </tr>
                                         </thead>
@@ -512,7 +512,7 @@ const createStyledTable = (title, body) => {
                                     <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-100">
                                         <tr>
-                                        <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider border-r">PDL Count Based on their Gender</th>
+                                        <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider border-r">Gender</th>
                                         <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                         </tr>
                                     </thead>
@@ -544,13 +544,13 @@ const createStyledTable = (title, body) => {
                 </div>
                 <div className="flex flex-col gap-5">
                     <fieldset className="border border-gray-300 rounded-md p-4 mt-2 shadow-md">
-                        <legend className='px-2 font-bold text-lg text-[#1E365D]'>Summary of Visitors</legend>
+                        <legend className='px-2 font-bold text-lg text-[#1E365D]'>Summary of Visitors Based on their Gender</legend>
                          <div>
                                 <div className="overflow-hidden rounded-lg border border-gray-200 mt-2">
                                     <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-100">
                                         <tr>
-                                        <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider border-r">PDL Count Based on their Gender</th>
+                                        <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider border-r">Gender</th>
                                         <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                         </tr>
                                     </thead>
@@ -579,13 +579,13 @@ const createStyledTable = (title, body) => {
                             </div>
                     </fieldset>
                     <fieldset className="border border-gray-300 rounded-md p-4 mt-2 shadow-md">
-                        <legend className='px-2 font-bold text-lg text-[#1E365D]'>Summary of Personnels</legend>
+                        <legend className='px-2 font-bold text-lg text-[#1E365D]'>Summary of Personnels Based on their Gender</legend>
                         <div>
                                 <div className="overflow-hidden rounded-lg border border-gray-200 mt-2">
                                     <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-100">
                                         <tr>
-                                        <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider border-r">PDL Count Based on their Gender</th>
+                                        <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider border-r">Gender</th>
                                         <th className="px-6 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                         </tr>
                                     </thead>

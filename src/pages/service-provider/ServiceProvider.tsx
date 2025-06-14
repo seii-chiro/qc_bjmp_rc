@@ -176,7 +176,7 @@ const ServiceProvider = () => {
             return res.json();
         },
         enabled: !!token,
-    });
+        });
     const groupAffiliationArray = groupAffiliationData?.results || [];
 
     const { data: UserData } = useQuery({

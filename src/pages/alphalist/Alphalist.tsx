@@ -1,14 +1,15 @@
-import { GoLink } from "../assets/components/link";
+import { GodotLink, Header } from "../assets/components/link";
 
 const Alphalist = () => {
     return (
-        <div className="p-5">
-            <h1 className="text-3xl font-bold text-[#1E365D] mb-5">Alpha List</h1>
-            <div className="flex flex-col gap-5">
-                <GoLink link="/jvms/personnels/personnel" title="Personnel" />
-                <GoLink link="/jvms/visitors/visitor" title="Visitor" />
-                <GoLink link="/jvms/pdls/pdl" title="PDL" />
-                <GoLink link="/jvms/service-provider" title="Service Provider" />
+        <div className="border border-gray-200 p-5 w-full md:max-w-md shadow-sm hover:shadow-md rounded-md">
+            <Header title="Alpha List" />
+            <div className="mt-2 ml-8">
+                <GodotLink link="/jvms/personnels/personnel" title="Personnel" />
+                <GodotLink link="/jvms/visitors/visitor" title="Visitor" />
+                <GodotLink link="/jvms/pdls/pdl" title="PDL" />
+                <GodotLink link="/jvms/service-provider" title="Service Provider" />
+                <GodotLink link="/jvms/non-pdl-visitors" title="Non-PDL Visitor" />
             </div>
         </div>
     );

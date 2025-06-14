@@ -454,6 +454,7 @@ const { data, isFetching } = useQuery({
             <p className="mt-1 w-full bg-[#F9F9F9] rounded-md px-2 py-[1px] text-[13px] break-words">{info || ""}</p>
         </div>
     );
+    
     const fetchAllVisitors = async () => {
         const res = await fetch(`${BASE_URL}/api/visitors/visitor/?limit=10000`, {
             headers: {
