@@ -2530,3 +2530,14 @@ export type RelationshipOfVisitorToPersonnel = {
   threats: string;
   mitigation: string;
 };
+
+export type NonPDLVisitorType = {
+  id: number;
+  created_by: string | null;
+  updated_by: string | null;
+  record_status: string;
+  created_at: string | null;
+  updated_at: string | null;
+  non_pdl_visitor_type: string;
+  description: string;
+};
