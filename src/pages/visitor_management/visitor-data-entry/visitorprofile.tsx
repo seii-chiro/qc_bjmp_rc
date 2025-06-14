@@ -1004,7 +1004,7 @@ const VisitorProfile = ({
         img3: string | null
     ) => {
         if (!img0 && !img1 && !img2 && !img3) {
-            message.warning("Fingerprint samples cannot be empty. Please try again.");
+            message.info("Fingerprint samples cannot be empty. Please try again.");
             return;
         }
 
