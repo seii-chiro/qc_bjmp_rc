@@ -777,10 +777,15 @@ const NonPdlVisitorUpdate = () => {
                 is_current: existingAddress?.is_current ?? false,
             })) ?? [],
             contact_data: nonPDLVisitorData?.person?.contacts ?? [],
+            media_identifier_data: nonPDLVisitorData?.person?.media_identifiers?.map((prev: { idtype: number; }) => ({
+                ...prev,
+                id_type_id: prev?.idtype,
+            })) ?? [],
         }))
 
         setNonPdlVisitorForm(prev => ({
             ...prev,
+            person_id: nonPDLVisitorData?.person?.id,
             reg_no: nonPDLVisitorData?.reg_no,
             non_pdl_visitor_type_id: visitorTypes?.find(type => type?.non_pdl_visitor_type === nonPDLVisitorData?.non_pdl_visitor_type)?.id ?? null,
             visitor_rel_personnel_id: relationships?.find(rel => rel?.relationship_personnel === nonPDLVisitorData?.visitor_rel_personnel)?.id ?? null,
@@ -788,7 +793,11 @@ const NonPdlVisitorUpdate = () => {
             visitor_status_id: visitorAppStatus?.find(stat => stat?.status === nonPDLVisitorData?.visitor_status)?.id ?? null,
             id_number: nonPDLVisitorData?.id_number,
             verified_by_id: nonPDLVisitorData ?? currentUser?.id ?? null,
-            
+            non_pdl_visitor_reason_id: reasons?.find(res => res?.reason_visit === nonPDLVisitorData?.non_pdl_visitor_reason)?.id ?? null,
+            remarks_data: nonPDLVisitorData?.remarks ?? [],
+            approved_at: nonPDLVisitorData?.approved_at,
+            verified_at: nonPDLVisitorData?.verified_at,
+            approved_by_id: users?.find(user => user?.id === +nonPDLVisitorData?.approved_by)?.id ?? null
         }))
     }, [
         nonPDLVisitorData,
@@ -802,7 +811,9 @@ const NonPdlVisitorUpdate = () => {
         provinces,
         regions,
         visitorAppStatus,
-        currentUser
+        currentUser,
+        reasons,
+        users
     ])
 
     useEffect(() => {
@@ -1262,6 +1273,7 @@ const NonPdlVisitorUpdate = () => {
             </form>
 
             <Identifiers
+                isEditing={!!nonPDLVisitorToEdit}
                 personForm={personForm}
                 setPersonForm={setPersonForm}
             />
@@ -1389,11 +1401,11 @@ const NonPdlVisitorUpdate = () => {
                                         value: user?.id,
                                         label: `${user?.first_name ?? ""} ${user?.last_name ?? ""}`,
                                     }))}
-                                    onChange={(value, label) => {
+                                    onChange={value => {
                                         setNonPdlVisitorForm(prev => ({
                                             ...prev,
                                             approved_by_id: value,
-                                            approved_by: label
+                                            approved_by: value
                                         }))
                                     }}
                                 />
