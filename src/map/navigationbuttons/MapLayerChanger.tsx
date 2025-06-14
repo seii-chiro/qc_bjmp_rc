@@ -21,7 +21,7 @@ const MapLayerChanger = ({ mapLayerChangeHandler, setmapLayerURL }: MapLayerChan
                 }}
                 className={clsx('p-1 rounded-lg w-28 text-sm font-bold', activeButton === "satellite" ? 'bg-white' : '')}
             >
-                Sattelite
+                Satellite
             </button>
             <button
                 onClick={() => {
