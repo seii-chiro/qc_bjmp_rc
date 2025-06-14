@@ -859,6 +859,10 @@ const ServiceProviderUpdate = () => {
                 ...prev,
                 id_type_id: prev?.idtype,
             })) ?? [],
+            media_data: serviceProviderData?.person.media?.map((media: any) => ({
+                ...media,
+                media_base64: media?.media_binary
+            })) ?? [],
         }))
     }, [
         serviceProviderData?.person,
