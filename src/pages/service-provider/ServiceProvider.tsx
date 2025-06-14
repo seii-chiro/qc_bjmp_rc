@@ -167,7 +167,7 @@ const ServiceProvider = () => {
         },
         enabled: !!token,
         });
-    const groupAffiliationArray = groupAffiliationData?.results || [];
+    // const groupAffiliationArray = groupAffiliationData?.results || [];
 
     const { data: UserData } = useQuery({
         queryKey: ['user'],

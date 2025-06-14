@@ -922,7 +922,7 @@ const SummaryCountofPersonnel = () => {
       </div>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-10'>
         <div>
-          <h1 className='px-2 font-semibold text-xl text-[#1E365D]'>Summary Count of Personnel</h1>
+          <h1 className='px-2 font-semibold text-xl text-[#1E365D]'>Summary Count of Personnel Based on their Gender</h1>
           <div className="overflow-hidden rounded-lg border border-gray-200 mt-2">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-100">

@@ -11,7 +11,7 @@ const Maintenance = () => {
                             <GodotLink link="social-media-platforms" title="Social Media Platform" />
                             <GodotLink link="ethnicities" title="Ethnicities" />
                             <GodotLink link="id-types" title="ID Types" />
-                            <GodotLink link="group-affiliation" title="Group Affiliation" />
+                            {/* <GodotLink link="group-affiliation" title="Group Affiliation" /> */}
                             <GodotLink link="" title="Backup" />
                             <GodotLink link="prefixes" title="Prefixes" />
                             <GodotLink link="suffixes" title="Suffixes" />

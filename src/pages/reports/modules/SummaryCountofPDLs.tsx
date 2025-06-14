@@ -1400,7 +1400,7 @@ const SummaryCountofPDLs = () => {
             <div className="flex flex-col md:flex-row gap-10">
                 {/* Summary Count of PDLs */}
                 <div className="w-full ">
-                    <h1 className='px-2 font-semibold text-xl text-[#1E365D]'>Summary Count of PDLs</h1>
+                    <h1 className='px-2 font-semibold text-xl text-[#1E365D]'>Summary Count of PDLs Based on their Status</h1>
                     <div className="border border-gray-100 mt-2 rounded-md">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-100">
