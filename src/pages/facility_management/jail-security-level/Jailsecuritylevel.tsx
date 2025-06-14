@@ -86,7 +86,7 @@ const JailSecurityLevel = () => {
             render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
-            title: 'Security Level Category',
+            title: 'Security Level',
             dataIndex: 'category_name',
             key: 'category_name',
             sorter: (a, b) => a.category_name.localeCompare(b.category_name),

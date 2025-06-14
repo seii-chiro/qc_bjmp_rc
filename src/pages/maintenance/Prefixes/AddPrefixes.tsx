@@ -1,6 +1,6 @@
 
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
 import { useState } from "react";
 import { BASE_URL } from "@/lib/urls";
@@ -13,6 +13,7 @@ type PrefixProps = {
 
 const AddPrefixes = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [prefixForm, setPrefixForm] = useState<PrefixProps>({
         prefix: "",
@@ -53,7 +54,7 @@ const AddPrefixes = ({ onClose }: { onClose: () => void }) => {
         mutationKey: ['prefix'],
         mutationFn: addPrefix,
         onSuccess: (data) => {
-            console.log(data);
+            queryClient.invalidateQueries({ queryKey: ["prefixes"] });
             messageApi.success("Added successfully");
             onClose();
         },

@@ -1,12 +1,13 @@
 import { updateInterest } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, message } from "antd";
 import { useEffect, useState } from "react";
 
 const EditInterest = ({ interest, onClose }: { interest: any; onClose: () => void }) => {
     const token = useTokenStore().token;
     const [isLoading, setIsLoading] = useState(false);
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [form] = Form.useForm();
 
@@ -14,6 +15,7 @@ const EditInterest = ({ interest, onClose }: { interest: any; onClose: () => voi
         mutationFn: (updatedData: any) =>
             updateInterest(token ?? "", interest.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["interest"] });
             setIsLoading(true); 
             messageApi.success("Interest updated successfully");
             onClose();

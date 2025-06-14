@@ -73,9 +73,7 @@ const EducationalAttainment = () => {
             id: educational_attainments?.id,
             name: educational_attainments?.name ?? 'N/A',
             description: educational_attainments?.description ?? 'N/A',
-            updated_at: educational_attainments?.updated_at
-        ? moment(educational_attainments.updated_at).format("YYYY-MM-DD hh:mm A")
-        : 'N/A',
+            updated_at: educational_attainments?.updated_at,
             updated: educational_attainments?.updated_by ?? 'N/A',
             organization: educational_attainments?.organization ?? 'Bureau of Jail Management and Penology',
             updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
@@ -111,13 +109,12 @@ const EducationalAttainment = () => {
             title: "Updated At",
             dataIndex: "updated_at",
             key: "updated_at",
-            sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+            render: (value) => value ? moment(value).format("YYYY-MM-DD hh:mm:ss A") : "",
         },
         {
             title: 'Updated By',
-            dataIndex: 'updated_by',
-            key: 'updated_by',
-            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+            dataIndex: 'updated',
+            key: 'updated',
         },
         {
             title: "Actions",

@@ -107,11 +107,11 @@ const Ethnicity = () => {
 
   const dataSource = data?.results?.map((ethnicity, index) => ({
     key: index + 1,
-    id: ethnicity?.id ?? 'N/A',
-    name: ethnicity?.name ?? 'N/A',
-    description: ethnicity?.description ?? 'N/A',
-    updated_by: ethnicity?.updated_by ?? 'N/A',
-    updated_at: moment(ethnicity?.updated_at).format('YYYY-MM-DD h:mm A') ?? 'N/A', 
+    id: ethnicity?.id ?? '',
+    name: ethnicity?.name ?? '',
+    description: ethnicity?.description ?? '',
+    updated_by: ethnicity?.updated_by ?? '',
+    updated_at: ethnicity?.updated_at ?? '', 
     organization: ethnicity?.organization ?? 'Bureau of Jail Management and Penology',
     updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
   })) || [];
@@ -145,12 +145,14 @@ const Ethnicity = () => {
       dataIndex: "updated_at",
       key: "updated_at",
       sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+      render: (value) => value ? moment(value).format("YYYY-MM-DD hh:mm:ss A") : "",
     },
     {
         title: 'Updated By',
         dataIndex: 'updated_by',
         key: 'updated_by',
         sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+        
     },
     {
       title: "Actions",

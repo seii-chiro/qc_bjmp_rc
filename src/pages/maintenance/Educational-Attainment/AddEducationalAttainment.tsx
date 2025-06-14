@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
 import { useState } from "react";
 import { BASE_URL } from "@/lib/urls";
@@ -12,6 +12,7 @@ type EducationalAttainmentProps = {
 const AddEducationalAttainment = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [educationalAttainmentForm, setEducationalAttainmentForm] = useState<EducationalAttainmentProps>({
         name: '',
         description: '',
@@ -50,7 +51,7 @@ const AddEducationalAttainment = ({ onClose }: { onClose: () => void }) => {
         mutationKey: ['educational-attainment'],
         mutationFn: AddEducationalAttainment,
         onSuccess: (data) => {
-            console.log(data);
+            queryClient.invalidateQueries({ queryKey: ["educational-attainment"] });
             messageApi.success("Added successfully");
             onClose();
         },

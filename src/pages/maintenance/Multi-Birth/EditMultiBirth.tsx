@@ -1,12 +1,13 @@
 import { updateMultiBirth } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, message } from "antd";
 import { useEffect, useState } from "react";
 
 const EditMultiBirth = ({ multibirth, onClose }: { multibirth: any; onClose: () => void }) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -14,6 +15,7 @@ const EditMultiBirth = ({ multibirth, onClose }: { multibirth: any; onClose: () 
         mutationFn: (updatedData: any) =>
             updateMultiBirth(token ?? "", multibirth.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["sibling-group"] });
             setIsLoading(false);
             messageApi.success("Multi Birth Classification updated successfully");
             setTimeout(() => {

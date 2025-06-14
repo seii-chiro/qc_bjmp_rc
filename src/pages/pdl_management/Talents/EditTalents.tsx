@@ -15,7 +15,7 @@ const EditTalents = ({ talents, onClose }: { talents: any; onClose: () => void }
         mutationFn: (updatedData: any) =>
             updateTalents(token ?? "", talents.id, updatedData),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['talent'] });
+            queryClient.invalidateQueries({ queryKey: ['talents'] });
             setIsLoading(true); 
             messageApi.success("Talents updated successfully");
             onClose();

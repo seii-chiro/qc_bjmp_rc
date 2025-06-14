@@ -55,7 +55,7 @@ const EditJailCategories = ({ category, onClose }: { category: any; onClose: () 
             >
                 <Form.Item
                     label="Jail Category Name"
-                    name="category"
+                    name="category_name"
                 >
                     <Input />
                 </Form.Item>

@@ -72,9 +72,7 @@ const Occupation = () => {
             name: occupation?.name ?? 'N/A',
             description: occupation?.description ?? 'N/A',
             remarks: occupation?.remarks ?? 'N/A',
-            updated_at: occupation?.updated_at
-        ? moment(occupation.updated_at).format("YYYY-MM-DD hh:mm A")
-        : 'N/A',
+            updated_at: occupation?.updated_at ?? '',
         updated: occupation?.updated_by,
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
             organization: occupation?.organization ?? 'Bureau of Jail Management and Penology',
@@ -98,78 +96,30 @@ const Occupation = () => {
             dataIndex: 'name',
             key: 'name',
             sorter: (a, b) => a.name.localeCompare(b.name),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.name))
-            //     ).map(name => ({
-            //         text: name,
-            //         value: name,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.description))
-            //     ).map(description => ({
-            //         text: description,
-            //         value: description,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.description === value,
         },
         {
             title: 'Remarks',
             dataIndex: 'remarks',
             key: 'remarks',
             sorter: (a, b) => a.remarks.localeCompare(b.remarks),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.remarks))
-            //     ).map(remarks => ({
-            //         text: remarks,
-            //         value: remarks,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.remarks === value,
         },
         {
             title: "Updated At",
             dataIndex: "updated_at",
             key: "updated_at",
-            render: (value) =>
-                value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
-            sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => moment(item.updated_at).format("MMMM D, YYYY h:mm A")))
-            //     ).map(dateTime => ({
-            //         text: dateTime,
-            //         value: dateTime,
-            //     }))
-            // ],
-            // onFilter: (value, record) =>
-            //     moment(record.updated_at).format("MMMM D, YYYY h:mm A") === value,
+            render: (value) => value ? moment(value).format("YYYY-MM-DD hh:mm:ss A") : "",
         },
         {
             title: 'Updated By',
-            dataIndex: 'updated_by',
-            key: 'updated_by',
-            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.updated_by))
-            //     ).map(name => ({
-            //         text: name,
-            //         value: name,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.updated_by === value,
+            dataIndex: 'updated',
+            key: 'updated',
+            sorter: (a, b) => a.updated.localeCompare(b.updated),
         },
         {
             title: "Actions",
@@ -216,7 +166,7 @@ const Occupation = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 26; 
+        const maxRowsPerPage = 24; 
     
         let startY = headerHeight;
     

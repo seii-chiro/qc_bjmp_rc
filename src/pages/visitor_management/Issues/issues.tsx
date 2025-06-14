@@ -382,7 +382,7 @@ const Issues = () => {
         description: issues?.status?.description ?? '',
         organization: issues?.organization ?? 'Bureau of Jail Management and Penology',
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-    })) || [];
+    })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));;
 
     const issueTypeFilters = TypeData?.results?.map(type => ({
     text: type.name,

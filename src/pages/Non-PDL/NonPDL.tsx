@@ -304,17 +304,17 @@ const NonPDL = () => {
     })) ?? [];
 
     const dataSource = data?.results?.map((non_pdl_visitor, index) => ({
-        key: index + 1,
-        id: non_pdl_visitor?.id,
-        reg_no: non_pdl_visitor?.reg_no,
-        person: non_pdl_visitor?.person,
-        personnel: non_pdl_visitor?.personnel,
-        non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
-        non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
-        visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
-        visitor_status: non_pdl_visitor?.visitor_status,
-        created_at: non_pdl_visitor?.created_at,
-    })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));;
+            key: index + 1,
+            id: non_pdl_visitor?.id,
+            reg_no: non_pdl_visitor?.reg_no,
+            person: non_pdl_visitor?.person,
+            personnel: `${non_pdl_visitor?.personnel.person?.first_name ?? ''} ${non_pdl_visitor?.personnel.person?.middle_name ? non_pdl_visitor?.personnel.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+            non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
+            non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
+            visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
+            visitor_status: non_pdl_visitor?.visitor_status,
+            created_at: non_pdl_visitor?.created_at,
+    })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));;    
 
     const columns: ColumnsType<NonPDLVisitorPayload> = [
         {
@@ -448,18 +448,17 @@ const NonPDL = () => {
             });
 
             const printSource = filteredResults.map((non_pdl_visitor, index) => ({
-                key: index + 1,
-                id: non_pdl_visitor?.id,
-                reg_no: non_pdl_visitor?.reg_no,
-                person: non_pdl_visitor?.person,
-                personnel: non_pdl_visitor?.personnel,
-                non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
-                non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
-                visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
-                visitor_status: non_pdl_visitor?.visitor_status,
-                id_number: non_pdl_visitor?.id_number,
-                reason_notes: non_pdl_visitor?.reason_notes,
-            }));
+            key: index + 1,
+            id: non_pdl_visitor?.id,
+            reg_no: non_pdl_visitor?.reg_no,
+            person: non_pdl_visitor?.person,
+            personnel: `${non_pdl_visitor?.personnel.person?.first_name ?? ''} ${non_pdl_visitor?.personnel.person?.middle_name ? non_pdl_visitor?.personnel.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+            non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
+            non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
+            visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
+            visitor_status: non_pdl_visitor?.visitor_status,
+            created_at: non_pdl_visitor?.created_at,
+    }));
 
             const addHeader = () => {
                 const pageWidth = doc.internal.pageSize.getWidth();
@@ -573,14 +572,15 @@ const NonPDL = () => {
             id: non_pdl_visitor?.id,
             reg_no: non_pdl_visitor?.reg_no,
             person: non_pdl_visitor?.person,
-            personnel: non_pdl_visitor?.personnel,
+            personnel: `${non_pdl_visitor?.personnel.person?.first_name ?? ''} ${non_pdl_visitor?.personnel.person?.middle_name ? non_pdl_visitor?.personnel.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
             non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
             non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
             visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
             visitor_status: non_pdl_visitor?.visitor_status,
+            created_at: non_pdl_visitor?.created_at,
             id_number: non_pdl_visitor?.id_number,
             reason_notes: non_pdl_visitor?.reason_notes,
-        }));
+    }));
 
         const exportData = printSource.map((sp, index) => {
             return {
@@ -627,18 +627,19 @@ const NonPDL = () => {
             });
 
             const printSource = filteredResults.map((non_pdl_visitor, index) => ({
-                key: index + 1,
-                id: non_pdl_visitor?.id,
-                reg_no: non_pdl_visitor?.reg_no,
-                person: non_pdl_visitor?.person,
-                personnel: non_pdl_visitor?.personnel,
-                non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
-                non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
-                visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
-                visitor_status: non_pdl_visitor?.visitor_status,
-                id_number: non_pdl_visitor?.id_number,
-                reason_notes: non_pdl_visitor?.reason_notes,
-            }));
+            key: index + 1,
+            id: non_pdl_visitor?.id,
+            reg_no: non_pdl_visitor?.reg_no,
+            person: non_pdl_visitor?.person,
+            personnel: `${non_pdl_visitor?.personnel.person?.first_name ?? ''} ${non_pdl_visitor?.personnel.person?.middle_name ? non_pdl_visitor?.personnel.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+            non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
+            non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
+            visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
+            visitor_status: non_pdl_visitor?.visitor_status,
+            created_at: non_pdl_visitor?.created_at,
+            id_number: non_pdl_visitor?.id_number,
+            reason_notes: non_pdl_visitor?.reason_notes,
+    }));
 
             const exportData = printSource.map((sp, index) => {
                 return {
@@ -705,17 +706,18 @@ const NonPDL = () => {
                     : data?.count || 0;
 
     const mapNonPDLVisitor = (non_pdl_visitor, index) => ({
-        key: index + 1,
-        id: non_pdl_visitor?.id,
-        reg_no: non_pdl_visitor?.reg_no,
-        person: non_pdl_visitor?.person,
-        personnel: non_pdl_visitor?.personnel,
-        non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
-        non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
-        visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
-        visitor_status: non_pdl_visitor?.visitor_status,
-        id_number: non_pdl_visitor?.id_number,
-        reason_notes: non_pdl_visitor?.reason_notes,
+            key: index + 1,
+            id: non_pdl_visitor?.id,
+            reg_no: non_pdl_visitor?.reg_no,
+            person: non_pdl_visitor?.person,
+            personnel: `${non_pdl_visitor?.personnel.person?.first_name ?? ''} ${non_pdl_visitor?.personnel.person?.middle_name ? non_pdl_visitor?.personnel.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+            non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
+            non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
+            visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
+            visitor_status: non_pdl_visitor?.visitor_status,
+            created_at: non_pdl_visitor?.created_at,
+            id_number: non_pdl_visitor?.id_number,
+            reason_notes: non_pdl_visitor?.reason_notes,
     });
 
     return (

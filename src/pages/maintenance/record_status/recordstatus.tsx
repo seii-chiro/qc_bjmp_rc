@@ -65,6 +65,7 @@ const RecordStatus = () => {
 
     const dataSource = data?.results?.map((recordstatus, index) => (
         {
+            key: index + 1,
             id: recordstatus?.id,
             status: recordstatus?.status ?? 'N/A',
             description: recordstatus?.description ?? 'N/A',

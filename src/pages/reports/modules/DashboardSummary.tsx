@@ -464,7 +464,7 @@ const createStyledTable = (title, body) => {
                     <div className="flex flex-col gap-5">
                         <div className="">
                             <fieldset className="border border-gray-300 rounded-md p-4 mt-2 shadow-md">
-                                <legend className='px-2 font-bold text-lg text-[#1E365D]'>Summary Count of PDLs Based on Status</legend>
+                                <legend className='px-2 font-bold text-lg text-[#1E365D]'>Summary Count of PDLs Based on their Status</legend>
                                 <div>
                                     <div className="overflow-hidden rounded-lg border border-gray-200 mt-2">
                                         <table className="min-w-full divide-y divide-gray-200">

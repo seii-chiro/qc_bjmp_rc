@@ -92,15 +92,6 @@ const DeviceType = () => {
             dataIndex: 'device_type',
             key: 'device_type',
             sorter: (a, b) => a.device_type.localeCompare(b.device_type),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.device_type))
-                ).map(device_type => ({
-                    text: device_type,
-                    value: device_type,
-                }))
-            ],
-            onFilter: (value, record) => record.device_type === value,
         },
         
         {
@@ -120,15 +111,15 @@ const DeviceType = () => {
             dataIndex: 'device_usage',
             key: 'device_usage',
             sorter: (a, b) => a.device_usage.localeCompare(b.device_usage),
-            filters: [
-                { text: 'Enrollment & Registration Devices', value: 'Enrollment & Registration Devices' },
-                { text: 'Entry/Exit Management Devices', value: 'Entry/Exit Management Devices' },
-                { text: 'Monitoring & Surveillance Devices', value: 'Monitoring & Surveillance Devices' },
-                { text: 'Geospatial and Location Tracking Devices', value: 'Geospatial and Location Tracking Devices'},
-                { text: 'IT & Backend Infrastructure', value: 'IT & Backend Infrastructure'},
-                { text: 'Optional Accessories', value: 'Optional Accessories'},
-            ],
-            onFilter: (value, record) => record.device_usage === value,
+            // filters: [
+            //     { text: 'Enrollment & Registration Devices', value: 'Enrollment & Registration Devices' },
+            //     { text: 'Entry/Exit Management Devices', value: 'Entry/Exit Management Devices' },
+            //     { text: 'Monitoring & Surveillance Devices', value: 'Monitoring & Surveillance Devices' },
+            //     { text: 'Geospatial and Location Tracking Devices', value: 'Geospatial and Location Tracking Devices'},
+            //     { text: 'IT & Backend Infrastructure', value: 'IT & Backend Infrastructure'},
+            //     { text: 'Optional Accessories', value: 'Optional Accessories'},
+            // ],
+            // onFilter: (value, record) => record.device_usage === value,
         },
         {
             title: "Actions",

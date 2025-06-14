@@ -93,15 +93,6 @@ const DeviceSetting = () => {
             dataIndex: 'settingKey',
             key: 'settingKey',
             sorter: (a, b) => a.settingKey.localeCompare(b.settingKey),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.settingKey))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.settingKey === value,
         },
         {
             title: 'Value',

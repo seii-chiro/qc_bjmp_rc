@@ -51,7 +51,7 @@ const Suffixes = () => {
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteSuffixes(token ?? "", id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["suffix"] });
+            queryClient.invalidateQueries({ queryKey: ["suffixes"] });
             messageApi.success("Suffix deleted successfully");
         },
         onError: (error: any) => {
@@ -71,14 +71,12 @@ const Suffixes = () => {
         const dataSource = data?.results?.map((suffixes, index) => (
             {
                 key: index + 1,
-                id: suffixes?.id ?? 'N/A',
-                suffix: suffixes?.suffix ?? 'N/A',
-                description: suffixes?.description ?? 'N/A',
-                full_title: suffixes?.full_title ?? 'N/A',
-                updated_at: suffixes?.updated_at
-            ? moment(suffixes.updated_at).format("YYYY-MM-DD hh:mm A")
-            : 'N/A',
-                updated: suffixes?.updated_by ?? 'N/A',
+                id: suffixes?.id ?? '',
+                suffix: suffixes?.suffix ?? '',
+                description: suffixes?.description ?? '',
+                full_title: suffixes?.full_title ?? '',
+                updated_at: suffixes?.updated_at,
+                updated: suffixes?.updated_by ?? '',
                 organization: suffixes?.organization ?? 'Bureau of Jail Management and Penology',
                 updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
             }
@@ -117,15 +115,12 @@ const Suffixes = () => {
                 title: "Updated At",
                 dataIndex: "updated_at",
                 key: "updated_at",
-                render: (value) =>
-                    value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
-                sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+                render: (value) => value ? moment(value).format("YYYY-MM-DD hh:mm:ss A") : "",
             },
             {
                 title: 'Updated By',
-                dataIndex: 'updated_by',
-                key: 'updated_by',
-                sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+                dataIndex: 'updated',
+                key: 'updated',
             },
         {
             title: "Actions",

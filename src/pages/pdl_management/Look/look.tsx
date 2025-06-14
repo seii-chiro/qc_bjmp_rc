@@ -95,65 +95,23 @@ const Looks = () => {
             dataIndex: 'name',
             key: 'name',
             sorter: (a, b) => a.name.localeCompare(b.name),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.name))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.description))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.description === value,
         },
         {
         title: "Updated At",
         dataIndex: "updated_at",
         key: "updated_at",
         render: (text) => moment(text).format("YYYY-MM-DD HH:mm:ss A"),
-        sorter: (a, b) =>
-            moment(a.updated_at).valueOf() - moment(b.updated_at).valueOf(),
-        filters: [
-            ...Array.from(
-            new Set(filteredData.map(item =>
-                moment(item.updated_at).format("YYYY-MM-DD")
-            ))
-            ).map(date => ({
-            text: date,
-            value: date,
-            }))
-        ],
-        onFilter: (value, record) =>
-            moment(record.updated_at).format("YYYY-MM-DD") === value,
         },
         {
             title: 'Updated By',
             dataIndex: 'updated_by',
             key: 'updated_by',
-            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.updated_by))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.updated_by === value,
         },
         {
         title: "Actions",

@@ -100,15 +100,6 @@ const Device = () => {
             dataIndex: 'device_type',
             key: 'device_type',
             sorter: (a, b) => a.device_type.localeCompare(b.device_type),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.device_type))
-                ).map(device_type => ({
-                    text: device_type,
-                    value: device_type,
-                }))
-            ],
-            onFilter: (value, record) => record.device_type === value,
         },
         
         {

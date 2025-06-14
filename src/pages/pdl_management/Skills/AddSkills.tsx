@@ -44,7 +44,7 @@ const AddSkills = ({ onClose }: { onClose: () => void }) => {
         mutationKey: ['skills'],
         mutationFn: addSkills,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['skill'] });
+            queryClient.invalidateQueries({ queryKey: ['skills'] });
             messageApi.success("Added successfully");
             onClose(); 
         },

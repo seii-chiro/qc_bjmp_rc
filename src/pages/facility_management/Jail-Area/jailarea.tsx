@@ -67,7 +67,7 @@ const JailArea = () => {
 
     const dataSource = data?.results?.map((jailarea, index) => (
         {
-            key: jailarea?.id,
+            key: index + 1,
             id: jailarea?.id,
             building: jailarea?.building ?? 'N/A',
             jail: jailarea?.jail ?? 'N/A',
@@ -95,30 +95,12 @@ const JailArea = () => {
             dataIndex: 'jail',
             key: 'jail',
             sorter: (a, b) => a.jail.localeCompare(b.jail),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.jail))
-                ).map(jail => ({
-                    text: jail,
-                    value: jail,
-                }))
-            ],
-            onFilter: (value, record) => record.jail === value,
         },
         {
             title: 'Level',
             dataIndex: 'building',
             key: 'building',
             sorter: (a, b) => a.building.localeCompare(b.building),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.building))
-                ).map(building => ({
-                    text: building,
-                    value: building,
-                }))
-            ],
-            onFilter: (value, record) => record.building === value,
         },
         
         {
@@ -126,45 +108,18 @@ const JailArea = () => {
             dataIndex: 'floor',
             key: 'floor',
             sorter: (a, b) => a.floor.localeCompare(b.floor),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.floor))
-                ).map(floor => ({
-                    text: floor,
-                    value: floor,
-                }))
-            ],
-            onFilter: (value, record) => record.floor === value,
         },
         {
             title: 'Area Name',
             dataIndex: 'area_name',
             key: 'area_name',
             sorter: (a, b) => a.area_name.localeCompare(b.area_name),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.area_name))
-                ).map(area_name => ({
-                    text: area_name,
-                    value: area_name,
-                }))
-            ],
-            onFilter: (value, record) => record.area_name === value,
         },
         {
             title: 'Annex Status',
             dataIndex: 'floor_status',
             key: 'floor_status',
             sorter: (a, b) => a.floor_status.localeCompare(b.floor_status),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.floor_status))
-                ).map(floor_status => ({
-                    text: floor_status,
-                    value: floor_status,
-                }))
-            ],
-            onFilter: (value, record) => record.floor_status === value,
         },
         {
             title: "Actions",

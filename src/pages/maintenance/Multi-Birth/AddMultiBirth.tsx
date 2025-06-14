@@ -1,7 +1,7 @@
 
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {  message } from "antd";
 import { useState } from "react";
 
@@ -13,6 +13,7 @@ type AddMultiBirthProps = {
 }
 const AddMultiBirth = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [multiBirthForm, setMultiBirthForm] =
     useState<AddMultiBirthProps>({
@@ -50,10 +51,10 @@ const AddMultiBirth = ({ onClose }: { onClose: () => void }) => {
     };
 
     const multibirthMutation = useMutation({
-        mutationKey: ["multibirth"],
+        mutationKey: ["sibling-group"],
         mutationFn: AddMultiBirth,
         onSuccess: (data) => {
-            console.log(data);
+            queryClient.invalidateQueries({ queryKey: ["sibling-group"] });
             messageApi.success("Added successfully");
             onClose();
         },

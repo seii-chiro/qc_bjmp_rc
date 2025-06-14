@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation} from "@tanstack/react-query";
+import { useMutation, useQueryClient} from "@tanstack/react-query";
 import { Button, Form, Input, message } from "antd";
 import { useEffect, useState } from "react";
 import { BASE_URL } from "@/lib/urls";
@@ -12,6 +12,7 @@ type SuffixesProps = {
 const EditSuffix = ({ suffix, onClose }: { suffix: any; onClose: () => void;}) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
+        const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -57,6 +58,7 @@ const EditSuffix = ({ suffix, onClose }: { suffix: any; onClose: () => void;}) =
         mutationFn: (updatedData: any) =>
         updateSuffix(token ?? "", suffix.id, updatedData),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["suffixes"] });
         messageApi.success("Suffix updated successfully");
         setIsLoading(false);
         onClose();

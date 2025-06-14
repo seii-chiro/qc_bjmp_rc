@@ -10,7 +10,7 @@ const PDL = () => {
                     <GodotLink link="" title="PDL Profile" />
                     <GodotLink link="/jvms/registration/pdl-registration" title="PDL Registration" />
                     <GodotLink link="" title="Authorized Visitor" />
-                    <GodotLink link="gang-affiliation" title="Gang Affiliations" />
+
                 </div>
             </div>
             <div className="border text-gray-700 border-gray-200 p-5 w-96 shadow-sm hover:shadow-md rounded-md h-fit">
@@ -33,6 +33,7 @@ const PDL = () => {
                     <GodotLink link="/jvms/database/interest" title="Interests" />
                     <GodotLink link="/jvms/database/looks" title="Looks" />
                     <GodotLink link="relationship" title="Relationships" />
+                    <GodotLink link="gang-affiliation" title="Gang Affiliations" />
                 </div>
             </div>
         </div>

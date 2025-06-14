@@ -73,12 +73,8 @@ const Prefixes = () => {
             prefix: prefixes?.prefix ?? 'N/A',
             description: prefixes?.description ?? 'N/A',
             full_title: prefixes?.full_title ?? 'N/A',
-            updated_at: prefixes?.updated_at
-        ? moment(prefixes.updated_at).format("YYYY-MM-DD hh:mm A")
-        : 'N/A',
+            updated_at: prefixes?.updated_at ?? '',
             updated: prefixes?.updated_by ?? 'N/A',
-            organization: prefixes?.organization ?? 'Bureau of Jail Management and Penology',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -117,15 +113,12 @@ const Prefixes = () => {
             title: "Updated At",
             dataIndex: "updated_at",
             key: "updated_at",
-            render: (value) =>
-                value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
-            sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+            render: (value) => value ? moment(value).format("YYYY-MM-DD hh:mm:ss A") : "",
         },
         {
             title: 'Updated By',
-            dataIndex: 'updated_by',
-            key: 'updated_by',
-            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+            dataIndex: 'updated',
+            key: 'updated',
         },
         {
         title: "Actions",
@@ -166,7 +159,7 @@ const Prefixes = () => {
         const headerHeight = 48;
         const footerHeight = 32;
         const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+        const PreparedBy = UserData ? `${UserData?.first_name || ''} ${UserData?.last_name || ''}` : ''; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
