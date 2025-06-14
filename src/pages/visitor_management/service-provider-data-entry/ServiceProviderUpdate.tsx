@@ -439,7 +439,7 @@ const ServiceProviderUpdate = () => {
                 staleTime: 10 * 60 * 1000
             },
             {
-                queryKey: ['service-provided'],
+                queryKey: ['service-provided', 'update'],
                 queryFn: () => getProvidedServices(token ?? ""),
                 staleTime: 10 * 60 * 1000
             },
@@ -546,7 +546,7 @@ const ServiceProviderUpdate = () => {
 
     const patchPersonMutation = useMutation({
         mutationKey: ['patch-person-service-provider'],
-        mutationFn: () => patchPerson(personForm, token ?? "", serviceProviderData?.person),
+        mutationFn: () => patchPerson(personForm, token ?? "", serviceProviderData?.person?.id),
         onSuccess: async () => {
             message?.success("Successfully Updated Person");
         },
@@ -556,7 +556,7 @@ const ServiceProviderUpdate = () => {
     });
 
     const handleUpdate = async () => {
-        if (!serviceProviderData?.person) {
+        if (!serviceProviderData?.person?.id) {
             message.error("Person ID is not available.");
             return;
         }
@@ -591,7 +591,7 @@ const ServiceProviderUpdate = () => {
                         message.info(`${label} is already enrolled. Skipping...`);
                         return [];
                     }
-                    return [mutation.mutateAsync(serviceProviderData.person.id)];
+                    return [mutation.mutateAsync(serviceProviderData?.person?.id)];
                 }
                 return [];
             });
@@ -875,13 +875,13 @@ const ServiceProviderUpdate = () => {
         setServiceProviderForm(prev => ({
             ...prev,
             sp_reg_no: serviceProviderData?.sp_reg_no,
-            service_type_id: serviceProviderData?.serv_prov_type,
+            service_type_id: serviceProviderData?.serv_prov_type ?? null,
             visitor_type_id: visitorTypes?.find(type => type?.serv_prov_type === serviceProviderData?.visitor_type)?.id ?? null,
             group_affiliation_id: affiliations?.find(aff => aff?.name === serviceProviderData?.group_affiliation)?.id ?? null,
-            provided_service: services?.find(service => service?.service_provided === serviceProviderData?.serv_prov_type)?.id ?? null,
+            provided_service: serviceProviderData?.provided_service ?? null,
             visitor_status: serviceProviderData?.visitor_status,
             id_number: serviceProviderData?.id_number,
-            person: serviceProviderData?.person,
+            person: serviceProviderData?.person?.id,
             verified_by_id: serviceProviderData?.verified_by ?? currentUser?.id ?? null,
             verified_at: serviceProviderData?.verified_at?.split("T")?.[0],
             approved_by_id: serviceProviderData?.approved_by ?? null,
@@ -898,6 +898,8 @@ const ServiceProviderUpdate = () => {
     if (serviceProviderLoading) {
         return <Spinner />
     }
+
+    console.log(serviceProviderForm)
 
     return (
         <div className='bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5'>
@@ -994,7 +996,7 @@ const ServiceProviderUpdate = () => {
                                 <div className='flex flex-col mt-2 flex-1'>
                                     <div className='flex gap-1 font-semibold'>Service Provided<span className="text-red-600">*</span></div>
                                     <Select
-                                        value={serviceProviderForm?.service_type_id}
+                                        value={serviceProviderForm?.provided_service}
                                         className='mt-2 h-10 rounded-md outline-gray-300'
                                         placeholder="Service Provided"
                                         optionFilterProp="label"
@@ -1011,7 +1013,7 @@ const ServiceProviderUpdate = () => {
                                         onChange={value => {
                                             setServiceProviderForm(prev => ({
                                                 ...prev,
-                                                service_type_id: value
+                                                provided_service: value
                                             }))
                                         }}
                                     />
