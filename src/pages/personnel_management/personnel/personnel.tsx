@@ -251,7 +251,6 @@ const Personnel = () => {
         enabled: !!token,
     });
 
-    
     useEffect(() => {
     if (genderList.length > 0 && JSON.stringify(genderFilter) !== JSON.stringify(genderList)) {
         setGenderFilter(genderList);
@@ -344,7 +343,8 @@ const Personnel = () => {
         date_joined: personnel?.date_joined ?? '',
         record_status: personnel?.record_status ?? '',
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-    }));
+        created_at: personnel?.created_at,
+    })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));;
 
     const genderFilters = genderData?.results?.map(gender => ({
     text: gender.gender_option,
@@ -505,8 +505,7 @@ const handleExportPDF = async () => {
         date_joined: personnel?.date_joined ?? '',
         record_status: personnel?.record_status ?? '',
         updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-        created_at: personnel?.created_at,
-    })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }))
 
     const organizationName = printSource[0]?.organization || "Bureau of Jail Management and Penology";
     const PreparedBy = printSource[0]?.updated_by || "";

@@ -249,30 +249,7 @@ const PDLtable = () => {
     text: visitation.name,
     value: visitation.name,
     })) ?? [];
-        
-    // const dataSource = (data?.results || []).map((pdl, index) => {
-    //     const address = [
-    //         pdl?.person?.addresses?.[0]?.barangay,
-    //         pdl?.person?.addresses?.[0]?.city_municipality,
-    //         pdl?.person?.addresses?.[0]?.province,
-    //     ]
-    //         .filter(Boolean)
-    //         .join(", ");
-
-    //     return {
-    //         ...pdl,
-    //         key: index + 1,
-    //         id: pdl?.id,
-    //         name: `${pdl?.person?.first_name ?? ""} ${pdl?.person?.middle_name ?? ""} ${pdl?.person?.last_name ?? ""}`.trim(),
-    //         gender: pdl?.person?.gender?.gender_option?.trim() ?? "",
-    //         status: pdl?.status ?? "",
-    //         cell_name: pdl?.cell?.cell_name,
-    //         floor: pdl?.cell?.floor,
-    //         visitation_status: pdl?.visitation_status,
-    //         address,
-    //     };
-    //     });
-
+    
     const confirmDelete = (recordId) => {
         Modal.confirm({
             title: 'Are you sure you want to delete this record?',

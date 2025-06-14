@@ -1,4 +1,4 @@
-import { getProvidedServices, getServiceProviderTypes } from "@/lib/additionalQueries";
+import { getServiceProviderTypes } from "@/lib/additionalQueries";
 import { getOrganization, getPerson, getUser, PaginatedResponse } from "@/lib/queries";
 import { deleteServiceProvider } from "@/lib/query";
 import { BASE_URL } from "@/lib/urls";
@@ -13,6 +13,7 @@ import Table, { ColumnsType } from "antd/es/table";
 import { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
+import { useSearchParams } from "react-router-dom";
 
 export interface ServiceProviderPayload {
     key: number;
@@ -34,18 +35,21 @@ const ServiceProvider = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    // const [isModalOpen, setIsModalOpen] = useState(false);
+    // const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [serviceProvidedFilter, setServiceProvidedFilter]= useState<string[]>([]);
+    const [serviceProviderTypeFilter, setServiceProviderTypeFilter]= useState<string[]>([]);
+    const [groupAffiliationFilter, setGroupAffiliationFilter]= useState<string[]>([]);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
 
-    const showModal = () => {
-        setIsModalOpen(true);
-    };
+    // const showModal = () => {
+    //     setIsModalOpen(true);
+    // };
 
-    const handleCancel = () => {
-        setIsModalOpen(false);
-    };
+    // const handleCancel = () => {
+    //     setIsModalOpen(false);
+    // };
     
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
@@ -82,6 +86,9 @@ const ServiceProvider = () => {
             "service-provider-table",
             page,
             limit,
+            serviceProvidedFilter,
+            serviceProviderTypeFilter,
+            groupAffiliationFilter
         ],
         queryFn: async (): Promise<PaginatedResponse<ServiceProviderPayload>> => {
             const offset = (page - 1) * limit;
@@ -91,6 +98,16 @@ const ServiceProvider = () => {
             params.append("limit", String(limit));
             params.append("offset", String(offset));
 
+            if (serviceProvidedFilter.length > 0) {
+                params.append("service-provided", serviceProvidedFilter.join(","));
+            }
+            if (serviceProviderTypeFilter.length > 0) {
+                params.append("serv-prov-type", serviceProviderTypeFilter.join(","));
+            }
+
+            if (groupAffiliationFilter.length > 0) {
+                params.append("group-affiliation", groupAffiliationFilter.join(","));
+            }
             const res = await fetch(`${BASE_URL}/api/service-providers/service-providers/?${params.toString()}`, {
             headers: {
                 "Content-Type": "application/json",
@@ -134,8 +151,23 @@ const ServiceProvider = () => {
         },
         enabled: !!token,
         });
-
     const serviceArray = ServiceProvidedData?.results || [];
+
+    const { data: groupAffiliationData } = useQuery({
+        queryKey: ['group-affiliation'],
+        queryFn: async () => {
+            const res = await fetch(`${BASE_URL}/api/service-providers/service-provider-group-affiliations/`, {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Token ${token}`,
+            },
+            });
+            if (!res.ok) throw new Error('Failed to fetch Service Provider Group Affiliation');
+            return res.json();
+        },
+        enabled: !!token,
+        });
+    const groupAffiliationArray = groupAffiliationData?.results || [];
 
     const { data: UserData } = useQuery({
         queryKey: ['user'],
@@ -158,6 +190,131 @@ const ServiceProvider = () => {
         },
     });
 
+    const confirmDelete = (recordId) => {
+        Modal.confirm({
+            title: 'Are you sure you want to delete this record?',
+            content: 'This action cannot be undone.',
+            okText: 'Delete',
+            okType: 'danger',
+            cancelText: 'Cancel',
+            onOk() {
+                deleteMutation.mutate(recordId);
+            },
+            onCancel() {
+            },
+            centered: true,
+        });
+    };
+    const [searchParams] = useSearchParams();
+    const serviceProvided = searchParams.get("service-provided") || "all";
+    const serviceProvidedList = serviceProvided !== "all" ? serviceProvided.split(",").map(decodeURIComponent) : [];
+    const servProvType = searchParams.get("serv-prov-type") || "all";
+    const servProvTypeList = servProvType !== "all" ? servProvType.split(",").map(decodeURIComponent) : [];
+    const groupAffiliation = searchParams.get("group-affiliation") || "all";
+    const groupAffiliationList = groupAffiliation !== "all" ? groupAffiliation.split(",").map(decodeURIComponent) : [];
+
+
+    const { data: serviceProvidedData, isLoading: ServiceProviderByServiceLoading } = useQuery({
+            queryKey: ['service-provider', 'service-provider-table', page, serviceProvidedList],
+            queryFn: async (): Promise<PaginatedResponse<ServiceProviderPayload>> => {
+                const offset = (page - 1) * limit;
+                const res = await fetch(
+                    `${BASE_URL}/api/service-providers/service-providers/?provided_service=${encodeURIComponent (serviceProvidedList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Token ${token}`,
+                        },
+                    }
+                );
+        
+                if (!res.ok) {
+                    throw new Error('Failed to fetch Service Provided data.');
+                }
+        
+                return res.json();
+            },
+            enabled: !!token,
+        });
+
+    const { data: servProvTypeData, isLoading: ServiceProviderByTypeLoading } = useQuery({
+            queryKey: ['serv-prov-type', 'serv-prov-type-table', page, serviceProvidedList],
+            queryFn: async (): Promise<PaginatedResponse<ServiceProviderPayload>> => {
+                const offset = (page - 1) * limit;
+                const res = await fetch(
+                    `${BASE_URL}/api/service-providers/service-providers/?serv_prov_type=${encodeURIComponent (serviceProvidedList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Token ${token}`,
+                        },
+                    }
+                );
+        
+                if (!res.ok) {
+                    throw new Error('Failed to fetch Service Provider Type data.');
+                }
+        
+                return res.json();
+            },
+            enabled: !!token,
+        });
+
+    const { data: GroupAffiliationData, isLoading: ServiceProviderByGroupLoading } = useQuery({
+            queryKey: ['group-affiliation', 'group-affiliation-table', page, groupAffiliationList],
+            queryFn: async (): Promise<PaginatedResponse<ServiceProviderPayload>> => {
+                const offset = (page - 1) * limit;
+                const res = await fetch(
+                    `${BASE_URL}/api/service-providers/service-providers/?group_affiliation=${encodeURIComponent (groupAffiliationList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Token ${token}`,
+                        },
+                    }
+                );
+        
+                if (!res.ok) {
+                    throw new Error('Failed to fetch Service Provider Group Affiliation data.');
+                }
+        
+                return res.json();
+            },
+            enabled: !!token,
+        });
+    useEffect(() => {
+    if (serviceProvidedList.length > 0 && JSON.stringify(serviceProvidedFilter) !== JSON.stringify(serviceProvidedList)) {
+        setServiceProvidedFilter(serviceProvidedList);
+    }
+    }, [serviceProvidedList, serviceProvidedFilter]);
+
+    useEffect(() => {
+    if (servProvTypeList.length > 0 && JSON.stringify(serviceProviderTypeFilter) !== JSON.stringify(servProvTypeList)) {
+        setServiceProviderTypeFilter(servProvTypeList);
+    }
+    }, [servProvTypeList, serviceProviderTypeFilter]);
+
+    useEffect(() => {
+    if (groupAffiliationList.length > 0 && JSON.stringify(groupAffiliationFilter) !== JSON.stringify(groupAffiliationList)) {
+        setGroupAffiliationFilter(groupAffiliationList);
+    }
+    }, [groupAffiliationList, groupAffiliationFilter]);
+    
+    const serviceProvidedFilters = ServiceProvidedData?.results?.map(service => ({
+    text: service.service_provided,
+    value: service.service_provided,
+    })) ?? [];
+
+    const serviceProviderTypeFilters = SPTypeData?.results?.map(service => ({
+    text: service.serv_prov_type,
+    value: service.serv_prov_type,
+    })) ?? [];
+
+    const groupAffiliationFilters = groupAffiliationData?.results?.map(group => ({
+    text: group.name,
+    value: group.name,
+    })) ?? [];
+
     const dataSource = data?.results?.map((provider, index) => {
         const matchedPerson = personsArray.find(person => person.id === provider.person);
         const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
@@ -168,7 +325,7 @@ const ServiceProvider = () => {
             id: provider?.id,
             sp_reg_no: provider?.sp_reg_no,
             serv_prov_type: matchedSPtype?.serv_prov_type,
-            service_provided: matchedService?.service_provided,
+            provided_service: matchedService?.service_provided,
             visitor_type: provider?.visitor_type,
             group_affiliation: provider?.group_affiliation,
             person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(), 
@@ -182,40 +339,51 @@ const ServiceProvider = () => {
             render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
         },
         {
-            title: 'Provided Service',
-            dataIndex: 'service_provided',
-            key: 'service_provided',
-            sorter: (a, b) => a.service_provided.localeCompare(b.service_provided),
-        },
-        {
-            title: 'SP No.',
+            title: 'Service Provider No.',
             dataIndex: 'sp_reg_no',
             key: 'sp_reg_no',
             sorter: (a, b) => a.sp_reg_no.localeCompare(b.sp_reg_no),
         },
         {
-            title: 'SP Type',
-            dataIndex: 'serv_prov_type',
-            key: 'serv_prov_type',
-            sorter: (a, b) => a.serv_prov_type.localeCompare(b.serv_prov_type),
-        },
-        {
-            title: 'Person',
+            title: 'Name',
             dataIndex: 'person',
             key: 'person',
             sorter: (a, b) => a.person.localeCompare(b.person),
         },
         {
-            title: 'Visitor Type',
-            dataIndex: 'visitor_type',
-            key: 'visitor_type',
-            sorter: (a, b) => a.visitor_type.localeCompare(b.visitor_type),
+            title: 'Service Provided',
+            dataIndex: 'provided_service',
+            key: 'provided_service',
+            sorter: (a, b) => {
+                const serviceA = a.provided_service || '';
+                const serviceB = b.provided_service || '';
+                return serviceA.localeCompare(serviceB);
+            },
+            filters: serviceProvidedFilters,
+            filteredValue: serviceProvidedFilter,
+            onFilter: (value, record) => record.provided_service === value
+        },
+        {
+            title: 'Service Provider Type',
+            dataIndex: 'serv_prov_type',
+            key: 'serv_prov_type',
+            sorter: (a, b) => {
+                const typeA = a.serv_prov_type || '';
+                const typeB = b.serv_prov_type || '';
+                return typeA.localeCompare(typeB);
+            },
+            filters: serviceProviderTypeFilters,
+            filteredValue: serviceProviderTypeFilter,
+            onFilter: (value, record) => record.serv_prov_type === value
         },
         {
             title: 'Group Affiliation',
             dataIndex: 'group_affiliation',
             key: 'group_affiliation',
             sorter: (a, b) => a.group_affiliation.localeCompare(b.group_affiliation),
+            filters: groupAffiliationFilters,
+            filteredValue: groupAffiliationFilter,
+            onFilter: (value, record) => record.group_affiliation === value
         },
         {
             title: "Action",
@@ -229,7 +397,10 @@ const ServiceProvider = () => {
                     <Button
                         type="link"
                         danger
-                        onClick={() => deleteMutation.mutate(record.id)}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            confirmDelete(record.id);
+                        }}
                     >
                         <AiOutlineDelete />
                     </Button>
@@ -239,7 +410,7 @@ const ServiceProvider = () => {
     ]
 
     const fetchAllServiceProvider = async () => {
-        const res = await fetch(`${BASE_URL}/api/service-providers/service-providers/?limit=1000`, {
+        const res = await fetch(`${BASE_URL}/api/service-providers/service-providers/?limit=10000`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
@@ -274,20 +445,33 @@ const ServiceProvider = () => {
             }
             
             const allResults = allData?.results || [];
-            const printSource = allResults.map((provider, index) => {
+            const filteredResults = allResults.filter(provider => {
+                const serviceProvidedValue = serviceArray.find(service => service.id === provider.provided_service)?.service_provided; 
+                const servProvTypeValue = sptypeArray.find(type => type.id === provider.serv_prov_type)?.serv_prov_type; 
+                const groupAffiliationValue = provider?.group_affiliation ?? '';
+
+                const matchesColumnServiceProvided = serviceProvidedFilter.length === 0 || serviceProvidedFilter.includes(serviceProvidedValue);
+
+                const matchesColumnServiceProviderType = serviceProviderTypeFilter.length === 0 || serviceProviderTypeFilter.includes(servProvTypeValue);
+
+                const matchesColumnGroupAffiliation = groupAffiliationFilter.length === 0 || groupAffiliationFilter.includes(groupAffiliationValue);
+
+                return matchesColumnServiceProvided && matchesColumnServiceProviderType && matchesColumnGroupAffiliation;
+            });
+
+            const printSource = filteredResults.map((provider, index) => {
                 const matchedPerson = personsArray.find(person => person.id === provider.person);
                 const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
                 const matchedService = serviceArray.find(service => service.id === provider.provided_service);
-                
+
                 return {
                     key: index + 1,
                     id: provider?.id,
                     sp_reg_no: provider?.sp_reg_no,
-                    serv_prov_type: matchedSPtype?.serv_prov_type,
-                    service_provided: matchedService?.service_provided,
-                    visitor_type: provider?.visitor_type,
-                    group_affiliation: provider?.group_affiliation,
-                    person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(), 
+                    serv_prov_type: matchedSPtype?.serv_prov_type || '',
+                    provided_service: matchedService?.service_provided || '',
+                    group_affiliation: provider?.group_affiliation || '',
+                    person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(),
                 };
             });
 
@@ -317,9 +501,8 @@ const ServiceProvider = () => {
                 idx + 1,
                 item.sp_reg_no || '',
                 item.person || '',
+                item.provided_service || '',
                 item.serv_prov_type || '',
-                item.service_provided || '',
-                item.visitor_type || '',
                 item.group_affiliation || '',
             ]);
 
@@ -327,7 +510,7 @@ const ServiceProvider = () => {
                 const pageData = tableData.slice(i, i + maxRowsPerPage);
         
                 autoTable(doc, { 
-                    head: [['No.', 'SP Reg. No', 'Service Provider Type', 'Name', 'Visitor Type', 'Group Affiliation']],
+                    head: [['No.', 'SP Reg. No','Name','Service Provided', 'Service Provider Type', 'Group Affiliation']],
                     body: pageData,
                     startY: startY,
                     margin: { top: 0, left: 10, right: 10 },
@@ -376,7 +559,7 @@ const ServiceProvider = () => {
     };
 
     const handleExportExcel = async () => {
-        let allData;
+            let allData;
             if (searchText.trim() === '') {
                 allData = await fetchAllServiceProvider();
             } else {
@@ -384,20 +567,33 @@ const ServiceProvider = () => {
             }
             
             const allResults = allData?.results || [];
-            const printSource = allResults.map((provider, index) => {
+            const filteredResults = allResults.filter(provider => {
+                const serviceProvidedValue = serviceArray.find(service => service.id === provider.provided_service)?.service_provided; 
+                const servProvTypeValue = sptypeArray.find(type => type.id === provider.serv_prov_type)?.serv_prov_type; 
+                const groupAffiliationValue = provider?.group_affiliation ?? '';
+
+                const matchesColumnServiceProvided = serviceProvidedFilter.length === 0 || serviceProvidedFilter.includes(serviceProvidedValue);
+
+                const matchesColumnServiceProviderType = serviceProviderTypeFilter.length === 0 || serviceProviderTypeFilter.includes(servProvTypeValue);
+
+                const matchesColumnGroupAffiliation = groupAffiliationFilter.length === 0 || groupAffiliationFilter.includes(groupAffiliationValue);
+
+                return matchesColumnServiceProvided && matchesColumnServiceProviderType && matchesColumnGroupAffiliation;
+            });
+
+            const printSource = filteredResults.map((provider, index) => {
                 const matchedPerson = personsArray.find(person => person.id === provider.person);
                 const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
                 const matchedService = serviceArray.find(service => service.id === provider.provided_service);
-                
+
                 return {
                     key: index + 1,
                     id: provider?.id,
                     sp_reg_no: provider?.sp_reg_no,
-                    serv_prov_type: matchedSPtype?.serv_prov_type,
-                    service_provided: matchedService?.service_provided,
-                    visitor_type: provider?.visitor_type,
-                    group_affiliation: provider?.group_affiliation,
-                    person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(), 
+                    serv_prov_type: matchedSPtype?.serv_prov_type || '',
+                    provided_service: matchedService?.service_provided || '',
+                    group_affiliation: provider?.group_affiliation || '',
+                    person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(),
                 };
             });
 
@@ -408,9 +604,7 @@ const ServiceProvider = () => {
                 "Name": sp?.person,
                 "Service Provided": sp?.service_provided,
                 "Service Provider Type": sp?.serv_prov_type,
-                "Visitor Type": sp?.visitor_type,
                 "Group Affiliation": sp?.group_affiliation,
-                
             };
         });
 
@@ -430,20 +624,33 @@ const ServiceProvider = () => {
             }
             
             const allResults = allData?.results || [];
-            const printSource = allResults.map((provider, index) => {
+            const filteredResults = allResults.filter(provider => {
+                const serviceProvidedValue = serviceArray.find(service => service.id === provider.provided_service)?.service_provided; 
+                const servProvTypeValue = sptypeArray.find(type => type.id === provider.serv_prov_type)?.serv_prov_type; 
+                const groupAffiliationValue = provider?.group_affiliation ?? '';
+
+                const matchesColumnServiceProvided = serviceProvidedFilter.length === 0 || serviceProvidedFilter.includes(serviceProvidedValue);
+
+                const matchesColumnServiceProviderType = serviceProviderTypeFilter.length === 0 || serviceProviderTypeFilter.includes(servProvTypeValue);
+
+                const matchesColumnGroupAffiliation = groupAffiliationFilter.length === 0 || groupAffiliationFilter.includes(groupAffiliationValue);
+
+                return matchesColumnServiceProvided && matchesColumnServiceProviderType && matchesColumnGroupAffiliation;
+            });
+
+            const printSource = filteredResults.map((provider, index) => {
                 const matchedPerson = personsArray.find(person => person.id === provider.person);
                 const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
                 const matchedService = serviceArray.find(service => service.id === provider.provided_service);
-                
+
                 return {
                     key: index + 1,
                     id: provider?.id,
                     sp_reg_no: provider?.sp_reg_no,
-                    serv_prov_type: matchedSPtype?.serv_prov_type,
-                    service_provided: matchedService?.service_provided,
-                    visitor_type: provider?.visitor_type,
-                    group_affiliation: provider?.group_affiliation,
-                    person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(), 
+                    serv_prov_type: matchedSPtype?.serv_prov_type || '',
+                    provided_service: matchedService?.service_provided || '',
+                    group_affiliation: provider?.group_affiliation || '',
+                    person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(),
                 };
             });
 
@@ -495,24 +702,29 @@ const ServiceProvider = () => {
 
     const totalRecords = debouncedSearch 
     ? data?.count || 0
+    : serviceProvided !== "all" 
+    ? serviceProvidedData?.count || 0 
+    : servProvType !== "all" 
+    ? servProvTypeData?.count || 0 
+    : groupAffiliation !== "all" 
+    ? GroupAffiliationData?.count || 0 
     : data?.count || 0;
 
     const mapServiceProvider = ((provider, index) => {
-        const matchedPerson = personsArray.find(person => person.id === provider.person);
-        const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
-        const matchedService = serviceArray.find(service => service.id === provider.provided_service);
-        
-        return {
-            key: index + 1,
-            id: provider?.id,
-            sp_reg_no: provider?.sp_reg_no,
-            serv_prov_type: matchedSPtype?.serv_prov_type,
-            service_provided: matchedService?.service_provided,
-            visitor_type: provider?.visitor_type,
-            group_affiliation: provider?.group_affiliation,
-            person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(), 
-        };
-    });
+                const matchedPerson = personsArray.find(person => person.id === provider.person);
+                const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
+                const matchedService = serviceArray.find(service => service.id === provider.provided_service);
+
+                return {
+                    key: index + 1,
+                    id: provider?.id,
+                    sp_reg_no: provider?.sp_reg_no,
+                    serv_prov_type: matchedSPtype?.serv_prov_type || '',
+                    provided_service: matchedService?.service_provided || '',
+                    group_affiliation: provider?.group_affiliation || '',
+                    person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(),
+                };
+            });
 
     return (
         <div>
@@ -545,10 +757,16 @@ const ServiceProvider = () => {
             </div>
             <Table
                 className="overflow-x-auto"
-                loading={isFetching || searchLoading}
+                loading={isFetching || searchLoading || ServiceProviderByServiceLoading || ServiceProviderByTypeLoading || ServiceProviderByGroupLoading}
                 columns={columns}
                     dataSource={debouncedSearch
                             ? (searchData?.results || []).map(mapServiceProvider)
+                            : serviceProvided !== "all"
+                            ? (serviceProvidedData?.results || []).map(mapServiceProvider)
+                            : servProvType !== "all"
+                            ? (servProvTypeData?.results || []).map(mapServiceProvider)
+                            : groupAffiliation !== "all"
+                            ? (groupAffiliationData?.results || []).map(mapServiceProvider)
                                 : dataSource}
                     scroll={{ x: 'max-content' }} 
                     pagination={{
@@ -561,6 +779,11 @@ const ServiceProvider = () => {
                             setPage(newPage);
                             setLimit(newPageSize); 
                         },
+                    }}
+                    onChange={(pagination, filters, sorter) => {
+                        setServiceProvidedFilter(filters.provided_service as string[] || []);
+                        setServiceProviderTypeFilter(filters.serv_prov_type as string[] || []);
+                        setGroupAffiliationFilter(filters.group_affiliation as string[] || []);
                     }}
                 rowKey="id"
             />
