@@ -70,7 +70,6 @@ const SocialMedia = () => {
             platform_name: socialmedia?.platform_name ?? 'N/A',
             description: socialmedia?.description ?? 'N/A',
             organization: socialmedia?.organization ?? 'Bureau of Jail Management and Penology',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -91,30 +90,12 @@ const SocialMedia = () => {
             dataIndex: 'platform_name',
             key: 'platform_name',
             sorter: (a, b) => a.platform_name.localeCompare(b.platform_name),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.platform_name))
-            //     ).map(platform_name => ({
-            //         text: platform_name,
-            //         value: platform_name,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.platform_name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.description))
-            //     ).map(description => ({
-            //         text: description,
-            //         value: description,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",
@@ -154,7 +135,7 @@ const SocialMedia = () => {
             const headerHeight = 48;
             const footerHeight = 32;
             const organizationName = dataSource[0]?.organization || ""; 
-            const PreparedBy = dataSource[0]?.updated_by || ''; 
+            const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}` || ''; 
         
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];

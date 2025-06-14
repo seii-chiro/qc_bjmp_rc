@@ -10,7 +10,7 @@ import * as XLSX from "xlsx";
 import { Button, Dropdown, Input, Menu, message, Modal } from "antd";
 import Table, { ColumnsType } from "antd/es/table";
 import { useEffect, useState } from "react";
-import { AiOutlineDelete } from "react-icons/ai";
+import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import { useSearchParams } from "react-router-dom";
 
@@ -303,7 +303,7 @@ const NonPDL = () => {
             id: non_pdl_visitor?.id,
             reg_no: non_pdl_visitor?.reg_no,
             person: non_pdl_visitor?.person,
-            personnel: non_pdl_visitor?.personnel,
+            personnel: `${non_pdl_visitor?.personnel.person?.first_name ?? ''} ${non_pdl_visitor?.personnel.person?.middle_name ? non_pdl_visitor?.personnel.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
             non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
             non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
             visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
@@ -376,6 +376,11 @@ const NonPDL = () => {
                 <div className="flex gap-2">
                     <Button
                         type="link"
+                    >
+                        <AiOutlineEdit />
+                    </Button>
+                    <Button
+                        type="link"
                         danger
                         onClick={() => deleteMutation.mutate(record.id)}
                     >
@@ -441,14 +446,13 @@ const NonPDL = () => {
             id: non_pdl_visitor?.id,
             reg_no: non_pdl_visitor?.reg_no,
             person: non_pdl_visitor?.person,
-            personnel: non_pdl_visitor?.personnel,
+            personnel: `${non_pdl_visitor?.personnel.person?.first_name ?? ''} ${non_pdl_visitor?.personnel.person?.middle_name ? non_pdl_visitor?.personnel.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
             non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
             non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
             visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
             visitor_status: non_pdl_visitor?.visitor_status,
-            id_number: non_pdl_visitor?.id_number,
-            reason_notes: non_pdl_visitor?.reason_notes,
-        }));
+            created_at: non_pdl_visitor?.created_at,
+    }));
 
             const addHeader = () => {
                 const pageWidth = doc.internal.pageSize.getWidth(); 
@@ -562,14 +566,15 @@ const NonPDL = () => {
             id: non_pdl_visitor?.id,
             reg_no: non_pdl_visitor?.reg_no,
             person: non_pdl_visitor?.person,
-            personnel: non_pdl_visitor?.personnel,
+            personnel: `${non_pdl_visitor?.personnel.person?.first_name ?? ''} ${non_pdl_visitor?.personnel.person?.middle_name ? non_pdl_visitor?.personnel.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
             non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
             non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
             visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
             visitor_status: non_pdl_visitor?.visitor_status,
+            created_at: non_pdl_visitor?.created_at,
             id_number: non_pdl_visitor?.id_number,
             reason_notes: non_pdl_visitor?.reason_notes,
-        }));
+    }));
 
         const exportData = printSource.map((sp, index) => {
             return {
@@ -620,14 +625,15 @@ const NonPDL = () => {
             id: non_pdl_visitor?.id,
             reg_no: non_pdl_visitor?.reg_no,
             person: non_pdl_visitor?.person,
-            personnel: non_pdl_visitor?.personnel,
+            personnel: `${non_pdl_visitor?.personnel.person?.first_name ?? ''} ${non_pdl_visitor?.personnel.person?.middle_name ? non_pdl_visitor?.personnel.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
             non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
             non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
             visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
             visitor_status: non_pdl_visitor?.visitor_status,
+            created_at: non_pdl_visitor?.created_at,
             id_number: non_pdl_visitor?.id_number,
             reason_notes: non_pdl_visitor?.reason_notes,
-        }));
+    }));
 
         const exportData = printSource.map((sp, index) => {
             return {
@@ -698,11 +704,12 @@ const NonPDL = () => {
             id: non_pdl_visitor?.id,
             reg_no: non_pdl_visitor?.reg_no,
             person: non_pdl_visitor?.person,
-            personnel: non_pdl_visitor?.personnel,
+            personnel: `${non_pdl_visitor?.personnel.person?.first_name ?? ''} ${non_pdl_visitor?.personnel.person?.middle_name ? non_pdl_visitor?.personnel.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
             non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
             non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
             visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
             visitor_status: non_pdl_visitor?.visitor_status,
+            created_at: non_pdl_visitor?.created_at,
             id_number: non_pdl_visitor?.id_number,
             reason_notes: non_pdl_visitor?.reason_notes,
     });

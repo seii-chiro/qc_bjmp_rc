@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { INTEREST } from "@/lib/urls";
@@ -12,6 +12,7 @@ type AddInterestProps = {
 const AddInterest = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [interestForm, setInterestForm] = useState<AddInterestProps>({
         name: '',
         description: '',
@@ -43,7 +44,7 @@ const AddInterest = ({ onClose }: { onClose: () => void }) => {
         mutationKey: ['interest'],
         mutationFn: addInterest,
         onSuccess: (data) => {
-            console.log(data);
+            queryClient.invalidateQueries({ queryKey: ["interest"] });
             messageApi.success("Added successfully");
             onClose(); 
         },

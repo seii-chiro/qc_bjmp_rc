@@ -988,7 +988,7 @@ const SummaryCount = () => {
                     <div className="flex col-span-1 flex-col gap-5">
                         {selectedGroup === 'All' || selectedGroup === 'Visitor Type' ? (
                         <div>
-                            <h1 className='px-2 font-semibold text-lg text-[#1E365D]'>Visitor Type</h1>
+                            <h1 className='px-2 font-semibold text-lg text-[#1E365D]'>Visitor Count Based on their Visitor Type</h1>
                             <div className="overflow-hidden rounded-lg border border-gray-200 mt-2">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-100">
@@ -1045,7 +1045,7 @@ const SummaryCount = () => {
                         ) : null}
                         {selectedGroup === 'All' || selectedGroup === 'Gender' ? (
                         <div>
-                            <h1 className='px-2 font-semibold text-lg text-[#1E365D]'> Gender</h1>
+                            <h1 className='px-2 font-semibold text-lg text-[#1E365D]'>Visitor Count Based on their Gender</h1>
                             <div className="overflow-hidden rounded-lg border border-gray-200 mt-2">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-100">

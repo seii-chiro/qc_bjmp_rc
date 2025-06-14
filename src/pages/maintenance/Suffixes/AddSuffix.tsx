@@ -1,6 +1,6 @@
 
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
 import { useState } from "react";
 import { BASE_URL } from "@/lib/urls";
@@ -13,6 +13,7 @@ type SuffixProps = {
 
 const AddSuffix = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [suffixForm, setSuffixForm] = useState<SuffixProps>({
         suffix: '',
@@ -51,7 +52,7 @@ const AddSuffix = ({ onClose }: { onClose: () => void }) => {
         mutationKey: ['suffix'],
         mutationFn: addSuffix,
         onSuccess: (data) => {
-            console.log(data);
+            queryClient.invalidateQueries({ queryKey: ["suffixes"] });
             messageApi.success("Added successfully");
             onClose();
         },

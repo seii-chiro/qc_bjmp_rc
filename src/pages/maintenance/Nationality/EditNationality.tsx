@@ -1,6 +1,6 @@
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { message, Form, Input, Button } from "antd";
 import { useEffect, useState } from "react";
 
@@ -12,6 +12,7 @@ type NationalityProps = {
 
 const EditNationality = ({ nationality, onClose }: { nationality: any; onClose: () => void }) => {
   const token = useTokenStore().token;
+      const queryClient = useQueryClient();
   const [messageApi, contextHolder] = message.useMessage();
   const [isLoading, setIsLoading] = useState(false);
   const [form] = Form.useForm();
@@ -58,6 +59,7 @@ const EditNationality = ({ nationality, onClose }: { nationality: any; onClose: 
   const updateMutation = useMutation({
     mutationFn: (updatedData: NationalityProps) => updateNationality(token ?? "", nationality.id, updatedData),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["nationality"] });
       messageApi.success("Nationality updated successfully");
       setIsLoading(false);
       setTimeout(() => {

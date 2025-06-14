@@ -51,7 +51,7 @@ const Skills = () => {
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteSKILLS(token ?? "", id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["skill"] });
+            queryClient.invalidateQueries({ queryKey: ["skills"] });
             messageApi.success("Skill deleted successfully");
         },
         onError: (error: any) => {
@@ -86,30 +86,12 @@ const Skills = () => {
             dataIndex: 'name',
             key: 'name',
             sorter: (a, b) => a.name.localeCompare(b.name),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.name))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.description))
-                ).map(description => ({
-                    text: description,
-                    value: description,
-                }))
-            ],
-            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",

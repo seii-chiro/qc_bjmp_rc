@@ -12,13 +12,11 @@ const Visitors = () => {
                         <GodotLink link="visitor-registration" title="Visitor Registration" />
                     </div>
                     <div className="mt-5">
-                        <Header title="Service Provider" />
                         <div className="mt-2 ml-8">
                             <GodotLink link="/jvms/service-provider" title="Service Provider" />
                         </div>
                     </div>
                     <div className="mt-5">
-                        <Header title="Non-PDL Visitors" />
                         <div className="mt-2 ml-8">
                             <GodotLink link="/jvms/non-pdl-visitors" title="Non-PDL Visitors" />
                         </div>

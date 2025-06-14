@@ -68,11 +68,6 @@ const JailCategory = () => {
         },
         behavior: keepPreviousData(),
     });
-    
-    const handleTableChange = (pagination) => {
-        setPagination(pagination);
-        setPage(pagination.current);
-    };
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -109,8 +104,8 @@ const JailCategory = () => {
       setIsModalOpen(false);
     };
 
-    const dataSource = data?.results?.map((category) => ({
-        key: category?.id,
+    const dataSource = data?.results?.map((category, index) => ({
+        key: index + 1,
         id: category.id,
         description: category?.description ?? "N/A",
         category_name: category?.category_name ?? "N/A",
@@ -126,8 +121,8 @@ const JailCategory = () => {
 
     const columns: ColumnsType<JailCategoryReport> = [
         {
-            title: "No.",
-            render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+            title: 'No.',
+            render: (_, __, index) => index + 1,
         },
         {
             title: "Jail Category",
@@ -217,7 +212,7 @@ const JailCategory = () => {
     const isSearching = searchText.trim().length > 0;
     const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
             idx + 1,
-            item.category,
+            item.category_name,
             item.description,
         ]);
     

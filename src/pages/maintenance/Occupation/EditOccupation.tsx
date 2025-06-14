@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, message } from "antd";
 import { useEffect, useState } from "react";
 import { BASE_URL } from "@/lib/urls";
@@ -13,6 +13,7 @@ type OccupationProps = {
     const EditOccupation = ({occupation, onClose }: { occupation: any; onClose:() => void;}) => {
     const token = useTokenStore().token;
     const [form] = Form.useForm();
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -57,6 +58,7 @@ type OccupationProps = {
         mutationFn: (updatedData: any) =>
         updateOccupation(token ?? "", occupation.id, updatedData),
         onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["occupation"] });
         messageApi.success("Occupation updated successfully");
         setIsLoading(false);
         onClose();

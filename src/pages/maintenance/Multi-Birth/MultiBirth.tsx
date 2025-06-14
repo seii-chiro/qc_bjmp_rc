@@ -48,7 +48,7 @@ const MultiBirth = () => {
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteMultiBirthType(token ?? "", id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["multibirth"] });
+            queryClient.invalidateQueries({ queryKey: ["sibling-group"] });
             messageApi.success("Multi Birth deleted successfully");
         },
         onError: (error: any) => {

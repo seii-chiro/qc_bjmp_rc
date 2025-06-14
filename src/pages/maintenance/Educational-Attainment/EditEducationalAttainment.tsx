@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation} from "@tanstack/react-query";
+import { useMutation, useQueryClient} from "@tanstack/react-query";
 import { Button, Form, Input, message} from "antd";
 import { useEffect, useState } from "react";
 import { BASE_URL } from "@/lib/urls";
@@ -18,6 +18,7 @@ const EditEducationalAttainment = ({
 }) => {
   const token = useTokenStore().token;
   const [form] = Form.useForm();
+  const queryClient = useQueryClient();
   const [messageApi, contextHolder] = message.useMessage();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -69,6 +70,7 @@ const EditEducationalAttainment = ({
     mutationFn: (updatedData: any) =>
       updateEducationalAttainment(token ?? "", educational_attainments.id, updatedData),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["educational-attainment"] });
       messageApi.success("Educational Attainment updated successfully");
       setIsLoading(false);
       onClose();
