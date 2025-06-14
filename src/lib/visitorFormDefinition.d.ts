@@ -332,6 +332,7 @@ export type NonPdlVisitorForm = {
 };
 
 export type ServiceProviderForm = {
+  provided_service: number | null;
   record_status_id: number | null;
   visitor_type_id: number | null;
   service_type_id: number | null;

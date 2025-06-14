@@ -112,29 +112,109 @@ const VisitorProfileSlider = () => {
 
     const downloadAsImage = async () => {
         if (!contentRef.current) return
-        const canvas = await html2canvas(contentRef.current, { scale: 2 })
-        const link = document.createElement("a")
-        link.download = "identification.png"
-        link.href = canvas.toDataURL("image/png")
-        link.click()
+
+        const element = contentRef.current as HTMLElement
+
+        // Wait for any pending renders/animations
+        await new Promise(resolve => setTimeout(resolve, 100))
+
+        try {
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                width: element.scrollWidth,
+                height: element.scrollHeight,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight,
+                onclone: (clonedDoc) => {
+                    // Ensure the cloned element has the same dimensions
+                    const clonedElement = clonedDoc.querySelector('#visitor-profile-export')
+                    if (clonedElement) {
+                        (clonedElement as HTMLElement).style.width = element.scrollWidth + 'px';
+                        (clonedElement as HTMLElement).style.height = element.scrollHeight + 'px';
+                    }
+                }
+            })
+
+            const link = document.createElement("a")
+            link.download = `visitor-identification-${new Date().toISOString().split('T')[0]}.png`
+            link.href = canvas.toDataURL("image/png", 1.0)
+            link.click()
+        } catch (error) {
+            console.error('Error generating image:', error)
+            alert('Error generating image. Please try again.')
+        }
     }
 
     const downloadAsPDF = async () => {
         if (!contentRef.current) return
-        const canvas = await html2canvas(contentRef.current, { scale: 2 })
-        const imgData = canvas.toDataURL("image/png")
 
-        const pdf = new jsPDF({
-            orientation: "landscape",
-            unit: "mm",
-            format: "a4"
-        })
+        const element = contentRef.current as HTMLElement
 
-        const pdfWidth = pdf.internal.pageSize.getWidth()
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+        // Wait for any pending renders/animations
+        await new Promise(resolve => setTimeout(resolve, 100))
 
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight)
-        pdf.save("identification_landscape.pdf")
+        try {
+            // Get the natural dimensions of the content
+            const contentWidth = element.scrollWidth
+            const contentHeight = element.scrollHeight
+
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                width: contentWidth,
+                height: contentHeight,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: contentWidth,
+                windowHeight: contentHeight,
+                onclone: (clonedDoc) => {
+                    // Ensure the cloned element has the same dimensions
+                    const clonedElement = clonedDoc.querySelector('#visitor-profile-export')
+                    if (clonedElement) {
+                        (clonedElement as HTMLElement).style.width = contentWidth + 'px';
+                        (clonedElement as HTMLElement).style.height = contentHeight + 'px';
+                    }
+                }
+            })
+
+            const imgData = canvas.toDataURL("image/png", 1.0)
+
+            // Calculate PDF dimensions - use A4 as base and scale appropriately
+            const imgWidth = canvas.width / 2  // Divide by 2 because we used scale: 2
+            const imgHeight = canvas.height / 2
+
+            // Convert pixels to mm (assuming 96 DPI)
+            const mmWidth = (imgWidth * 25.4) / 96
+            const mmHeight = (imgHeight * 25.4) / 96
+
+            // Determine orientation based on aspect ratio
+            const isLandscape = mmWidth > mmHeight
+
+            // Create PDF with custom dimensions
+            const pdf = new jsPDF({
+                orientation: isLandscape ? "landscape" : "portrait",
+                unit: "mm",
+                format: [mmWidth, mmHeight],
+            })
+
+            // Add image to PDF - fill entire page
+            pdf.addImage(imgData, "PNG", 0, 0, mmWidth, mmHeight, '', 'FAST')
+
+            // Save with timestamp
+            const timestamp = new Date().toISOString().split('T')[0]
+            pdf.save(`visitor-identification-${timestamp}.pdf`)
+
+        } catch (error) {
+            console.error('Error generating PDF:', error)
+            alert('Error generating PDF. Please try again.')
+        }
     }
 
     const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
@@ -213,7 +293,9 @@ const VisitorProfileSlider = () => {
     return (
         <>
             <FullScreen handle={handle}>
-                <div className={clsx('w-full relative flex justify-center items-center overflow-x-hidden', handle?.active ? 'h-full' : 'h-[85vh]')}>
+                <div
+                    id='visitor-profile-export'
+                    className={clsx('w-full relative flex justify-center items-center overflow-x-hidden', handle?.active ? 'h-full' : 'h-[85vh]')}>
                     {/* Slide number overlay */}
                     {(filteredLogs?.length > 0 || lastRefreshed) && (
                         <div className="w-[95%] absolute top-4 flex justify-between gap-2 z-10">
@@ -233,7 +315,11 @@ const VisitorProfileSlider = () => {
                         <div className="flex h-full">
                             {filteredLogs?.length > 0 ? (
                                 filteredLogs?.map((log: any, idx: number) => (
-                                    <div key={log.id || idx} className="flex-[0_0_100%]" ref={idx === 0 ? contentRef : undefined}>
+                                    <div
+                                        key={log.id || idx}
+                                        className="flex-[0_0_100%]"
+                                        ref={idx === selectedIndex ? contentRef : undefined}
+                                    >
                                         <VisitorProfileId visitor_log={log} visitHistory={main_gate_logs_raw?.results} />
                                     </div>
                                 ))

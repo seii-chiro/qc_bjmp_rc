@@ -80,7 +80,7 @@ const enrollBiometrics = async (
 };
 
 
-const ServiceProviderRegistration = () => {
+const ServiceProviderUpdate = () => {
     const token = useTokenStore()?.token
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -908,7 +908,7 @@ const ServiceProviderRegistration = () => {
                                         onChange={value => {
                                             setServiceProviderForm(prev => ({
                                                 ...prev,
-                                                provided_service: value
+                                                service_type_id: value
                                             }))
                                         }}
                                     />
@@ -1316,4 +1316,4 @@ const ServiceProviderRegistration = () => {
     );
 };
 
-export default ServiceProviderRegistration;
+export default ServiceProviderUpdate;
