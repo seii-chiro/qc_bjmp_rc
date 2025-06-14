@@ -1415,7 +1415,7 @@ const VisitorRegistration = () => {
                                 />
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
-                                <div className='flex gap-1'>Approved By</div>
+                                <div className='flex gap-1'>Approved By <span className='text-red-600'>*</span></div>
                                 <Select
                                     value={visitorForm?.approved_by_id ?? null}
                                     loading={userLoading}
