@@ -131,7 +131,7 @@ const ServiceProviderRegistration = () => {
         group_affiliation_id: null,
         approved_at: "",
         verified_at: "",
-        provided_service: null
+        provided_service: null,
     })
 
     const [icao, setIcao] = useState("")
