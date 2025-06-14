@@ -797,10 +797,6 @@ const ServiceProviderRegistration = () => {
 
     const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
 
-
-    // console.log(serviceProviderForm)
-    // console.log("Person Form: ", personForm)
-
     return (
         <div className='bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5'>
             <h2 className='font-extrabold text-2xl'>Service Provider Registration</h2>
