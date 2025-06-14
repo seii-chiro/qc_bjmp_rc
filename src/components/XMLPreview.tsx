@@ -25,7 +25,10 @@ const XMLPreview = ({ chosenXML, token }: Props) => {
 
     const downloadXMLPage = async () => {
         try {
-            const response = await fetch(`${BASE_URL}${chosenXML}`, { headers: { Authorization: `Token ${token}` } });
+            const response = await fetch(`${BASE_URL}/${chosenXML}`, { headers: { Authorization: `Token ${token}` } });
+            if (!response.ok) {
+                throw new Error(`Server responded with status ${response.status}`);
+            }
             let xmlText = await response.text();
 
             // Clean up malformed XML before saving
@@ -40,8 +43,9 @@ const XMLPreview = ({ chosenXML, token }: Props) => {
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
-        } catch {
-            alert("Failed to download XML.");
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+            alert("Failed to download XML. " + (err?.message || ""));
         }
     };
 

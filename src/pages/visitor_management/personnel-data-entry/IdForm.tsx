@@ -31,6 +31,7 @@ const IdForm = ({ setPersonForm, idTypes, handleIdsModalCancel, editRequirement,
             record_status_id: 1,
         },
         status: "Under Review",
+        direct_image: "",
     });
 
     const handlePreview = async (file: UploadFile) => {
@@ -66,6 +67,7 @@ const IdForm = ({ setPersonForm, idTypes, handleIdsModalCancel, editRequirement,
                             ...prev.media_data,
                             media_base64: base64String,
                         },
+                        direct_image: base64String
                     }));
                 }
                 return file;
@@ -113,12 +115,17 @@ const IdForm = ({ setPersonForm, idTypes, handleIdsModalCancel, editRequirement,
         }
 
         setPersonForm((prev) => {
-            const updatedIdentifiers = [...(prev.media_identifier_data || [])];
+            // Filter out any empty objects
+            const filtered = (prev.media_identifier_data || []).filter(
+                id => id && Object.keys(id).length > 0
+            );
 
+            let updatedIdentifiers;
             if (typeof idIndexToEdit === 'number') {
+                updatedIdentifiers = [...filtered];
                 updatedIdentifiers[idIndexToEdit] = idForm;
             } else {
-                updatedIdentifiers.push(idForm);
+                updatedIdentifiers = [...filtered, idForm];
             }
 
             return {
@@ -150,6 +157,7 @@ const IdForm = ({ setPersonForm, idTypes, handleIdsModalCancel, editRequirement,
                 record_status_id: 1,
             },
             status: "Under Review",
+            direct_image: ""
         });
 
         setFileList([]);
@@ -173,6 +181,7 @@ const IdForm = ({ setPersonForm, idTypes, handleIdsModalCancel, editRequirement,
                 record_status_id: 1,
             },
             status: "Under Review",
+            direct_image: ""
         });
         setFileList([]);
         handleIdsModalCancel();

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { DatePicker, Input, message, Modal, Select, Table, Tooltip } from "antd";
 import { Plus } from "lucide-react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
@@ -5,7 +6,7 @@ import AddAddress from "../visitor-data-entry/AddAddress";
 import { useEffect, useState } from "react";
 import VisitorProfile from "../visitor-data-entry/visitorprofile";
 import Issue from "../visitor-data-entry/Issue";
-import { useMutation, useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
 import {
     getCivilStatus, getCountries, getCurrentUser, getGenders, getJail_Barangay,
     getJail_Municipality, getJail_Province, getJailRegion, getNationalities,
@@ -22,29 +23,32 @@ import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
 import Identifiers from "../personnel-data-entry/Identifiers";
 import { getGroupAffiliations, getProvidedServices, getServiceProviderTypes } from "@/lib/additionalQueries";
 import { sanitizeRFID } from "@/functions/sanitizeRFIDInput";
+import { useLocation } from "react-router-dom";
+import Spinner from "@/components/loaders/Spinner";
+import { EnrolledBiometrics } from "../edit-visitor/EditVisitor";
+import dayjs from "dayjs"
 
-const addPerson = async (payload: PersonForm, token: string) => {
-
-    const res = await fetch(PERSON.postPERSON, {
-        method: "POST",
+const patchPerson = async (payload: PersonForm, token: string, id: string) => {
+    const res = await fetch(`${PERSON.postPERSON}${id}/`, {
+        method: "PATCH",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Token ${token}`,
         },
-        body: JSON.stringify(payload)
-    })
+        body: JSON.stringify(payload),
+    });
 
     if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.email[0] || 'Error registering person');
+        throw new Error(errorData?.email?.[0] || 'Error updating person');
     }
 
-    return res.json()
-}
+    return res.json();
+};
 
-const registerServiceProvider = async (visitor: ServiceProviderForm, token: string) => {
-    const res = await fetch(`${BASE_URL}/api/service-providers/service-providers/`, {
-        method: "POST",
+const patchServiceProvider = async (visitor: ServiceProviderForm, token: string, id: number,) => {
+    const res = await fetch(`${BASE_URL}/api/service-providers/service-providers/${id}/`, {
+        method: "PATCH",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Token ${token}`,
@@ -82,6 +86,9 @@ const enrollBiometrics = async (
 
 const ServiceProviderUpdate = () => {
     const token = useTokenStore()?.token
+    const location = useLocation()
+    const serviceProviderToEdit = location?.state || null
+
     const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
@@ -131,7 +138,23 @@ const ServiceProviderUpdate = () => {
         group_affiliation_id: null,
         approved_at: "",
         verified_at: "",
-        provided_service: null
+        provided_service: null,
+    })
+
+    const [enrolledBiometrics, setEnrolledBiometrics] = useState<EnrolledBiometrics>({
+        rightIrisIsEnrolled: false,
+        leftIrisIsEnrolled: false,
+        rightLittleIsEnrolled: false,
+        rightRingIsEnrolled: false,
+        rightMiddleIsEnrolled: false,
+        rightIndexIsEnrolled: false,
+        rightThumbIsEnrolled: false,
+        leftLittleIsEnrolled: false,
+        leftRingIsEnrolled: false,
+        leftMiddleIsEnrolled: false,
+        leftIndexIsEnrolled: false,
+        leftThumbIsEnrolled: false,
+        faceIsEnrolled: false,
     })
 
     const [icao, setIcao] = useState("")
@@ -285,6 +308,24 @@ const ServiceProviderUpdate = () => {
         setEditContactIndex(index);
         setIsContactModalOpen(true);
     };
+
+    const { data: serviceProviderData, isLoading: serviceProviderLoading } = useQuery({
+        queryKey: ['service-provider', serviceProviderToEdit],
+        queryFn: async () => {
+            const res = await fetch(`${BASE_URL}/api/service-providers/service-providers/${serviceProviderToEdit}/`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Token ${token}`,
+                },
+            })
+
+            if (!res.ok) {
+                throw new Error(`Failed to fetch service provider ${serviceProviderToEdit} data.`);
+            }
+
+            return res.json();
+        }
+    })
 
     //Delete Handlers
     const handleDeleteAddress = (indexToDelete: number) => {
@@ -496,82 +537,73 @@ const ServiceProviderUpdate = () => {
         onError: () => message.error("Failed to Enroll Right Thumb Finger")
     })
 
-    const addVisitorMutation = useMutation({
-        mutationKey: ['add-visitor-service-provider'],
-        mutationFn: (id: number) => registerServiceProvider({ ...serviceProviderForm, person: id }, token ?? ""),
+    const patchVisitorMutation = useMutation({
+        mutationKey: ['patch-visitor-service-provider'],
+        mutationFn: () => patchServiceProvider(serviceProviderForm, token ?? "", serviceProviderToEdit),
         onSuccess: () => message.success('Successfully registered service provider.'),
         onError: (err) => message.error(err.message)
     })
 
-
-    const addPersonMutation = useMutation({
-        mutationKey: ['add-person-visitor-service-provider'],
-        mutationFn: async () => {
-            if (!personForm.first_name ||
-                !personForm.last_name ||
-                !personForm.gender_id ||
-                !personForm.date_of_birth ||
-                !personForm.place_of_birth ||
-                !personForm.civil_status_id
-            ) {
-                throw new Error("Please fill out all required fields");
-            }
-
-            return await addPerson(personForm, token ?? "");
-        },
-        onSuccess: async (data) => {
-            const id = data?.id;
-
-            try {
-                // First, run visitor mutation
-                await addVisitorMutation.mutateAsync(id);
-
-                // Get visitor QR from returned ID
-                // const qrRes = await fetch(`${BASE_URL}/api/service-providers/service-providers/${visitorRes.id}/`, {
-                //     headers: {
-                //         Authorization: `Token ${token}`,
-                //     },
-                // });
-
-                // if (!qrRes.ok) {
-                //     throw new Error("Failed to fetch QR code");
-                // }
-
-                // const qrData = await qrRes.json();
-                // const base64Image = qrData?.encrypted_id_number_qr;
-
-                // Create a download link
-                // if (base64Image) {
-                //     downloadBase64Image(base64Image, `visitor-${visitorRes.id_number}-qr.png`);
-                // }
-
-                // Run biometric mutations
-                await Promise.all([
-                    ...(enrollFormFace?.upload_data ? [enrollFaceMutation.mutateAsync(id)] : []),
-                    ...(enrollFormLeftIris?.upload_data ? [enrollLeftMutation.mutateAsync(id)] : []),
-                    ...(enrollFormRightIris?.upload_data ? [enrollRightMutation.mutateAsync(id)] : []),
-                    ...(enrollLeftLittleFinger?.upload_data ? [enrollLeftLittleMutation.mutateAsync(id)] : []),
-                    ...(enrollLeftRingFinger?.upload_data ? [enrollLeftRingMutation.mutateAsync(id)] : []),
-                    ...(enrollLeftMiddleFinger?.upload_data ? [enrollLeftMiddleMutation.mutateAsync(id)] : []),
-                    ...(enrollLeftIndexFinger?.upload_data ? [enrollLeftIndexMutation.mutateAsync(id)] : []),
-                    ...(enrollLeftThumbFinger?.upload_data ? [enrollLeftThumbMutation.mutateAsync(id)] : []),
-                    ...(enrollRightLittleFinger?.upload_data ? [enrollRightLittleMutation.mutateAsync(id)] : []),
-                    ...(enrollRightRingFinger?.upload_data ? [enrollRightRingMutation.mutateAsync(id)] : []),
-                    ...(enrollRightMiddleFinger?.upload_data ? [enrollRightMiddleMutation.mutateAsync(id)] : []),
-                    ...(enrollRightIndexFinger?.upload_data ? [enrollRightIndexMutation.mutateAsync(id)] : []),
-                    ...(enrollRightThumbFinger?.upload_data ? [enrollRightThumbMutation.mutateAsync(id)] : []),
-                ]);
-
-                message?.success("Successfully Registered Person");
-            } catch (err) {
-                console.error("Enrollment error:", err);
-                message?.error("Some enrollment steps failed");
-            }
+    const patchPersonMutation = useMutation({
+        mutationKey: ['patch-person-service-provider'],
+        mutationFn: () => patchPerson(personForm, token ?? "", serviceProviderData?.person),
+        onSuccess: async () => {
+            message?.success("Successfully Updated Person");
         },
         onError: (err) => {
             message?.error(err.message || "Something went wrong!");
         },
     });
+
+    const handleUpdate = async () => {
+        if (!serviceProviderData?.person) {
+            message.error("Person ID is not available.");
+            return;
+        }
+
+        try {
+            // Patch basic info first
+            await Promise.all([
+                patchVisitorMutation.mutateAsync(),
+                patchPersonMutation.mutateAsync(),
+            ]);
+
+            // Config-driven biometric checks
+            const biometricConfigs = [
+                { form: enrollFormFace, enrolledKey: "faceIsEnrolled", mutation: enrollFaceMutation, label: "Face" },
+                { form: enrollFormLeftIris, enrolledKey: "leftIrisIsEnrolled", mutation: enrollLeftMutation, label: "Left Iris" },
+                { form: enrollFormRightIris, enrolledKey: "rightIrisIsEnrolled", mutation: enrollRightMutation, label: "Right Iris" },
+                { form: enrollLeftLittleFinger, enrolledKey: "leftLittleIsEnrolled", mutation: enrollLeftLittleMutation, label: "Left Little Finger" },
+                { form: enrollLeftRingFinger, enrolledKey: "leftRingIsEnrolled", mutation: enrollLeftRingMutation, label: "Left Ring Finger" },
+                { form: enrollLeftMiddleFinger, enrolledKey: "leftMiddleIsEnrolled", mutation: enrollLeftMiddleMutation, label: "Left Middle Finger" },
+                { form: enrollLeftIndexFinger, enrolledKey: "leftIndexIsEnrolled", mutation: enrollLeftIndexMutation, label: "Left Index Finger" },
+                { form: enrollLeftThumbFinger, enrolledKey: "leftThumbIsEnrolled", mutation: enrollLeftThumbMutation, label: "Left Thumb Finger" },
+                { form: enrollRightLittleFinger, enrolledKey: "rightLittleIsEnrolled", mutation: enrollRightLittleMutation, label: "Right Little Finger" },
+                { form: enrollRightRingFinger, enrolledKey: "rightRingIsEnrolled", mutation: enrollRightRingMutation, label: "Right Ring Finger" },
+                { form: enrollRightMiddleFinger, enrolledKey: "rightMiddleIsEnrolled", mutation: enrollRightMiddleMutation, label: "Right Middle Finger" },
+                { form: enrollRightIndexFinger, enrolledKey: "rightIndexIsEnrolled", mutation: enrollRightIndexMutation, label: "Right Index Finger" },
+                { form: enrollRightThumbFinger, enrolledKey: "rightThumbIsEnrolled", mutation: enrollRightThumbMutation, label: "Right Thumb Finger" },
+            ];
+
+            const enrollmentTasks = biometricConfigs.flatMap(({ form, enrolledKey, mutation, label }) => {
+                if (form?.upload_data) {
+                    if ((enrolledBiometrics as any)[enrolledKey]) {
+                        message.info(`${label} is already enrolled. Skipping...`);
+                        return [];
+                    }
+                    return [mutation.mutateAsync(serviceProviderData.person.id)];
+                }
+                return [];
+            });
+
+            await Promise.all(enrollmentTasks);
+
+            message.success("Successfully updated visitor information.");
+        } catch (err) {
+            console.error("Enrollment error:", err);
+            message.error("Some enrollment steps failed.");
+        }
+    };
 
     const affiliations = dropdownOptions?.[0]?.data?.results;
     const affiliationsLoading = dropdownOptions?.[0]?.isLoading;
@@ -797,9 +829,75 @@ const ServiceProviderUpdate = () => {
 
     const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
 
+    useEffect(() => {
+        setPersonForm(prev => ({
+            ...prev,
+            first_name: serviceProviderData?.person?.first_name,
+            middle_name: serviceProviderData?.person?.middle_name,
+            last_name: serviceProviderData?.person?.last_name,
+            nationality_id: nationalities?.find(nationality => nationality?.nationality === serviceProviderData?.person?.nationality)?.id ?? null,
+            gender_id: serviceProviderData?.person?.gender?.id,
+            religion_id: serviceProviderData?.person?.religion?.id,
+            civil_status_id: civilStatuses?.find(status => status?.status === serviceProviderData?.person?.civil_status)?.id ?? null,
+            place_of_birth: serviceProviderData?.person?.place_of_birth,
+            date_of_birth: serviceProviderData?.person?.date_of_birth,
+            suffix: serviceProviderData?.person?.suffix ?? null,
+            prefix: serviceProviderData?.person?.prefix ?? null,
+            shortname: serviceProviderData?.person?.person?.shortname ?? "",
+            address_data: serviceProviderData?.person?.addresses?.map((existingAddress: { region: string; province: string; municipality: string; barangay: string; country: string; postal_code: string; is_current: boolean; }) => ({
+                ...existingAddress,
+                region_id: regions?.find(region => region?.desc === existingAddress?.region)?.id ?? null,
+                province_id: provinces?.find(province => province?.desc === existingAddress?.province)?.id ?? null,
+                municipality_id: municipalities?.find(municipality => municipality?.desc === existingAddress?.municipality)?.id ?? null,
+                barangay_id: barangays?.find(brgy => brgy?.desc === existingAddress?.barangay)?.id ?? null,
+                country_id: countries?.find(country => country?.country === existingAddress?.country)?.id ?? null,
+                postal_code: existingAddress?.postal_code ?? null,
+                is_current: existingAddress?.is_current ?? false,
+            })) ?? [],
+            contact_data: serviceProviderData?.person?.contacts ?? [],
+            media_identifier_data: serviceProviderData?.person?.media_identifiers?.map((prev: { idtype: any; }) => ({
+                ...prev,
+                id_type_id: prev?.idtype,
+            })) ?? [],
+        }))
+    }, [
+        serviceProviderData?.person,
+        nationalities,
+        civilStatuses,
+        barangays,
+        countries,
+        municipalities,
+        regions,
+        provinces,
+    ])
 
-    // console.log(serviceProviderForm)
-    // console.log("Person Form: ", personForm)
+    useEffect(() => {
+        setServiceProviderForm(prev => ({
+            ...prev,
+            sp_reg_no: serviceProviderData?.sp_reg_no,
+            service_type_id: serviceProviderData?.serv_prov_type,
+            visitor_type_id: visitorTypes?.find(type => type?.serv_prov_type === serviceProviderData?.visitor_type)?.id ?? null,
+            group_affiliation_id: affiliations?.find(aff => aff?.name === serviceProviderData?.group_affiliation)?.id ?? null,
+            provided_service: services?.find(service => service?.service_provided === serviceProviderData?.serv_prov_type)?.id ?? null,
+            visitor_status: serviceProviderData?.visitor_status,
+            id_number: serviceProviderData?.id_number,
+            person: serviceProviderData?.person,
+            verified_by_id: serviceProviderData?.verified_by ?? currentUser?.id ?? null,
+            verified_at: serviceProviderData?.verified_at?.split("T")?.[0],
+            approved_by_id: serviceProviderData?.approved_by ?? null,
+            approved_at: serviceProviderData?.approved_at?.split("T")?.[0],
+        }))
+    }, [
+        serviceProviderData,
+        visitorTypes,
+        affiliations,
+        services,
+        currentUser?.id
+    ])
+
+    if (serviceProviderLoading) {
+        return <Spinner />
+    }
 
     return (
         <div className='bg-white rounded-md shadow border border-gray-200 py-5 px-7 w-full mb-5'>
@@ -811,6 +909,7 @@ const ServiceProviderUpdate = () => {
                         <div className='flex flex-col mt-2 max-w-60 flex-1'>
                             <div className='flex gap-1 font-semibold'>Visitor Type<p className='text-red-600'>*</p></div>
                             <Select
+                                value={serviceProviderForm?.visitor_type_id}
                                 loading={visitorTypesLoading}
                                 className='mt-2 h-10 rounded-md outline-gray-300'
                                 placeholder="Visitor Type"
@@ -835,6 +934,7 @@ const ServiceProviderUpdate = () => {
                                 <div className='flex flex-col mt-2 flex-1'>
                                     <div className='flex gap-1 font-semibold'>Registration No.<span className='text-red-600'>*</span></div>
                                     <Input
+                                        value={serviceProviderForm?.sp_reg_no}
                                         readOnly
                                         className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                         placeholder="YYYY-MM-DD-XXXXXX"
@@ -843,6 +943,7 @@ const ServiceProviderUpdate = () => {
                                 <div className='flex flex-col mt-2 flex-1'>
                                     <div className='flex gap-1 font-semibold'>Group Affiliation<p className='text-red-600'>*</p></div>
                                     <Select
+                                        value={serviceProviderForm?.group_affiliation_id}
                                         loading={affiliationsLoading}
                                         className='mt-2 h-10 rounded-md outline-gray-300'
                                         placeholder="Group Affiliation"
@@ -864,6 +965,7 @@ const ServiceProviderUpdate = () => {
                                 <div className='flex flex-col mt-2 flex-1'>
                                     <div className='flex gap-1 font-semibold'>Nationality <span className="text-red-600">*</span></div>
                                     <Select
+                                        value={personForm?.nationality_id}
                                         loading={suffixesLoading}
                                         showSearch
                                         optionFilterProp="label"
@@ -892,6 +994,7 @@ const ServiceProviderUpdate = () => {
                                 <div className='flex flex-col mt-2 flex-1'>
                                     <div className='flex gap-1 font-semibold'>Service Provided<span className="text-red-600">*</span></div>
                                     <Select
+                                        value={serviceProviderForm?.service_type_id}
                                         className='mt-2 h-10 rounded-md outline-gray-300'
                                         placeholder="Service Provided"
                                         optionFilterProp="label"
@@ -920,6 +1023,7 @@ const ServiceProviderUpdate = () => {
                             <div className='flex flex-col mt-2 flex-1'>
                                 <div className='flex gap-1 font-semibold'>Prefix<span className="text-red-600">*</span></div>
                                 <Select
+                                    value={personForm?.prefix}
                                     loading={prefixesLoading}
                                     showSearch
                                     optionFilterProp="label"
@@ -941,6 +1045,7 @@ const ServiceProviderUpdate = () => {
                             <div className='flex flex-col mt-2 flex-[3]'>
                                 <div className='flex gap-1 font-semibold'>Last Name<p className='text-red-600'>*</p></div>
                                 <Input
+                                    value={personForm?.last_name}
                                     className='mt-2 px-3 py-2 rounded-md'
                                     type="text" name="lname"
                                     placeholder="Last Name"
@@ -951,6 +1056,7 @@ const ServiceProviderUpdate = () => {
                             <div className='flex flex-col mt-2 flex-[3]'>
                                 <div className='flex gap-1 font-semibold'>First Name<p className='text-red-600'>*</p></div>
                                 <Input
+                                    value={personForm?.first_name}
                                     className='mt-2 px-3 py-2 rounded-md outline-gray-300'
                                     type="text"
                                     name="fname"
@@ -962,6 +1068,7 @@ const ServiceProviderUpdate = () => {
                             <div className='flex flex-col mt-2 flex-[3]'>
                                 <div className='flex gap-1 font-semibold'>Middle Name</div>
                                 <Input
+                                    value={personForm?.middle_name}
                                     className='mt-2 px-3 py-2 rounded-md outline-gray-300'
                                     type="text"
                                     name="middle-name"
@@ -973,6 +1080,7 @@ const ServiceProviderUpdate = () => {
                             <div className='flex flex-col mt-2 flex-1'>
                                 <div className='flex gap-1 font-semibold'>Suffix</div>
                                 <Select
+                                    value={personForm?.suffix}
                                     loading={suffixesLoading}
                                     showSearch
                                     optionFilterProp="label"
@@ -994,6 +1102,7 @@ const ServiceProviderUpdate = () => {
                             <div className='flex flex-col mt-2 flex-[3]'>
                                 <div className='flex gap-1 font-semibold'>Gender<p className='text-red-600'>*</p></div>
                                 <Select
+                                    value={personForm?.gender_id}
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={genders?.map(gender => ({
                                         value: gender?.id,
@@ -1027,12 +1136,13 @@ const ServiceProviderUpdate = () => {
                             <div className='flex flex-col mt-2 flex-[2]'>
                                 <div className='flex gap-1 font-semibold'>Date of Birth<p className='text-red-600'>*</p></div>
                                 <DatePicker
+                                    value={dayjs(personForm?.date_of_birth)}
                                     placeholder="YYYY-MM-DD"
                                     className="mt-2 h-10 rounded-md outline-gray-300"
                                     onChange={(date) =>
                                         setPersonForm((prev) => ({
                                             ...prev,
-                                            date_of_birth: date?.format("YYYY-MM-DD") ?? "",
+                                            date_of_birth: date ? date?.format("YYYY-MM-DD") : "",
                                         }))
                                     }
                                 />
@@ -1050,6 +1160,7 @@ const ServiceProviderUpdate = () => {
                             <div className='flex flex-col mt-2 flex-[3]'>
                                 <div className='flex gap-1 font-semibold'>Place of Birth<p className='text-red-600'>*</p></div>
                                 <Input
+                                    value={personForm?.place_of_birth}
                                     className='mt-2 px-3 py-2 rounded-md outline-gray-300'
                                     type="text" name="birth-date"
                                     placeholder="Date of Birth"
@@ -1060,6 +1171,7 @@ const ServiceProviderUpdate = () => {
                             <div className='flex flex-col mt-2 flex-[1]'>
                                 <div className='flex gap-1 font-semibold'>Civil Status<p className='text-red-600'>*</p></div>
                                 <Select
+                                    value={personForm?.civil_status_id}
                                     showSearch
                                     optionFilterProp="label"
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
@@ -1080,6 +1192,7 @@ const ServiceProviderUpdate = () => {
                             <div className='flex flex-col mt-2 flex-[2]'>
                                 <div className='flex gap-1 font-semibold'>Religion<span className="text-red-600">*</span></div>
                                 <Select
+                                    value={personForm?.religion_id}
                                     loading={religionsLoading}
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={religions?.map(religion => ({
@@ -1139,6 +1252,8 @@ const ServiceProviderUpdate = () => {
 
             {/**Biometrics */}
             <VisitorProfile
+                setEnrolledBiometrics={setEnrolledBiometrics}
+                visitorToEdit={serviceProviderData}
                 inputGender={chosenGender}
                 icao={icao}
                 setIcao={setIcao}
@@ -1161,6 +1276,7 @@ const ServiceProviderUpdate = () => {
             />
 
             <Identifiers
+                isEditing={!!serviceProviderToEdit}
                 personForm={personForm}
                 setPersonForm={setPersonForm}
             />
@@ -1220,6 +1336,7 @@ const ServiceProviderUpdate = () => {
                                 <div className='flex gap-1'>Visitor Registration Status<p className='text-red-600'>*</p>
                                 </div>
                                 <Select
+                                    value={serviceProviderForm?.visitor_status}
                                     loading={visitorAppStatusLoading}
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={visitorAppStatus?.map((status) => ({
@@ -1239,7 +1356,7 @@ const ServiceProviderUpdate = () => {
                                 <div className='flex gap-1'>Verified By</div>
                                 <Input
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
-                                    value={currentUser?.first_name + " " + currentUser?.last_name}
+                                    value={users?.find(user => user?.id === serviceProviderForm?.verified_by_id)?.email ?? currentUser?.first_name + " " + currentUser?.last_name}
                                     readOnly
                                 />
                             </div>
@@ -1255,6 +1372,7 @@ const ServiceProviderUpdate = () => {
                             <div className='flex flex-col mt-2 w-full'>
                                 <div className='flex gap-1'>Approved By</div>
                                 <Select
+                                    value={serviceProviderForm?.approved_by_id}
                                     loading={userLoading}
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={users?.map((user) => ({
@@ -1264,7 +1382,7 @@ const ServiceProviderUpdate = () => {
                                     onChange={value => {
                                         setServiceProviderForm(prev => ({
                                             ...prev,
-                                            approved_by_id: value
+                                            approved_by_id: value,
                                         }))
                                     }}
                                 />
@@ -1301,9 +1419,7 @@ const ServiceProviderUpdate = () => {
                                 <button
                                     type="button"
                                     className="bg-blue-500 text-white rounded-md py-2 px-6 flex-1"
-                                    onClick={() => {
-                                        addPersonMutation.mutate()
-                                    }}
+                                    onClick={handleUpdate}
                                 >
                                     Save
                                 </button>

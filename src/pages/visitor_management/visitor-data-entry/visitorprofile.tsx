@@ -967,7 +967,7 @@ const VisitorProfile = ({
 
     const handleThumbFingers = (img0: string | null, img1: string | null) => {
         if (!img0 && !img1) {
-            message.warning("Fingerprint samples cannot be null.");
+            message.info("Fingerprint samples cannot be empty. Please try again.");
             return;
         }
 
@@ -987,7 +987,7 @@ const VisitorProfile = ({
         img3: string | null
     ) => {
         if (!img0 && !img1 && !img2 && !img3) {
-            message.warning("Fingerprint samples cannot be null.");
+            message.info("Fingerprint samples cannot be empty. Please try again.");
             return;
         }
 
@@ -1004,7 +1004,7 @@ const VisitorProfile = ({
         img3: string | null
     ) => {
         if (!img0 && !img1 && !img2 && !img3) {
-            message.warning("Fingerprint samples cannot be null.");
+            message.info("Fingerprint samples cannot be empty. Please try again.");
             return;
         }
 

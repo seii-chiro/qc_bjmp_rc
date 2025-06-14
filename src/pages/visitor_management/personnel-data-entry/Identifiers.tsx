@@ -11,11 +11,12 @@ import { AiOutlineDelete, AiOutlineEdit, AiOutlineFullscreen } from 'react-icons
 import { ColumnsType } from 'antd/es/table';
 
 type Props = {
+    isEditing?: boolean;
     personForm: PersonForm
     setPersonForm: React.Dispatch<SetStateAction<PersonForm>>
 }
 
-const Identifiers = ({ personForm, setPersonForm }: Props) => {
+const Identifiers = ({ personForm, setPersonForm, isEditing }: Props) => {
     const token = useTokenStore()?.token
 
     const idFullscreenHandle = useFullScreenHandle()
@@ -42,15 +43,24 @@ const Identifiers = ({ personForm, setPersonForm }: Props) => {
     };
 
     const IdentifierDataSource = personForm?.media_identifier_data?.map((identififier, index) => {
+        function deleteMediaIdentifierByIndex(index: number): void {
+            setPersonForm(prevForm => ({
+                ...prevForm,
+                media_identifier_data: prevForm.media_identifier_data
+                    ? prevForm.media_identifier_data.filter((_, i) => i !== index)
+                    : []
+            }));
+        }
+
         return ({
             key: index,
-            requirement: idTypes?.find(id => id?.id === identififier?.id_type_id)?.id_type,
+            requirement: idTypes?.results?.find(id => id?.id === identififier?.id_type_id)?.id_type,
             description: identififier?.media_data?.media_description,
             image: (
-                identififier?.media_data?.media_base64 ? (
+                identififier?.media_data?.media_base64 || identififier?.direct_image ? (
                     <FullScreen handle={idFullscreenHandle} className="flex items-center justify-center">
                         <img
-                            src={`data:image/bmp;base64,${identififier?.media_data?.media_base64}`}
+                            src={`data:image/bmp;base64,${identififier?.media_data?.media_base64 || identififier?.direct_image}`}
                             alt="Identifier"
                             style={{
                                 width: idFullscreenHandle?.active ? '50%' : '50px',
@@ -136,6 +146,13 @@ const Identifiers = ({ personForm, setPersonForm }: Props) => {
             },
         ];
 
+    const filteredColumns = isEditing
+        ? identifierColumn.filter(
+            (col) =>
+                'dataIndex' in col && col.dataIndex !== 'description'
+                || !('dataIndex' in col)
+        )
+        : identifierColumn;
 
     return (
         <div className='w-full'>
@@ -145,6 +162,7 @@ const Identifiers = ({ personForm, setPersonForm }: Props) => {
                 title="Add an ID"
                 open={idsModalOpen}
                 onCancel={handleIdsModalCancel}
+                onClose={handleIdsModalCancel}
                 footer={null}
                 width="50%"
             >
@@ -152,7 +170,7 @@ const Identifiers = ({ personForm, setPersonForm }: Props) => {
                     editRequirement={personForm?.media_identifier_data?.[idIndexToEdit ?? -1] ?? null}
                     idIndexToEdit={idIndexToEdit}
                     setPersonForm={setPersonForm}
-                    idTypes={idTypes || []}
+                    idTypes={idTypes?.results || []}
                     handleIdsModalCancel={handleIdsModalCancel}
                 />
             </Modal>
@@ -172,7 +190,7 @@ const Identifiers = ({ personForm, setPersonForm }: Props) => {
                 <Table
                     className="border text-gray-200 rounded-md"
                     dataSource={IdentifierDataSource}
-                    columns={identifierColumn}
+                    columns={filteredColumns}
                     scroll={{ x: 800 }}
                 />
             </div>
