@@ -72,11 +72,6 @@ const OTP = () => {
             title: 'User',
             dataIndex: 'user',
             key: 'user',
-            filters: [
-                // Assuming users are unique in the data
-                ...Array.from(new Set(dataSource.map(otp => ({ text: otp.user, value: otp.user }))),
-                )],
-            onFilter: (value, record) => record.user?.includes(value), // Filtering
         },
         {
             title: "Action",

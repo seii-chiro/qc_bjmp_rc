@@ -962,9 +962,10 @@ export interface GlobalSettingsResponse {
   record_status: string;
 }
 
-export interface GroupRole {
+export type GroupRole = {
   id: number;
   name: string;
+  permissions: string[];
 }
 
 export interface PersonnelDesignationPayload {

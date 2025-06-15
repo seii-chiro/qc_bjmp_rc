@@ -10,7 +10,7 @@ import {
   Offense,
   PDLtoVisit,
   Precinct,
-  User,
+  UserAccounts,
   VisitorRecord,
 } from "./definitions";
 import {
@@ -39,6 +39,7 @@ import { PDLs } from "./pdl-definitions";
 import { PaginatedResponse } from "./queries";
 import { BASE_URL, BASE_URL_BIOMETRIC } from "./urls";
 import { IncidentFormCategory } from "@/pages/Incidents/incident-category/AddIncidentCategory";
+import { Permission } from "./spdefinitions";
 
 export const deletePDL = async (token: string, id: number) => {
   const response = await fetch(`${BASE_URL}/api/pdls/pdl/${id}/`, {
@@ -472,9 +473,10 @@ export async function getVisitor(token: string): Promise<VisitorRecord[]> {
 
 export const patchUsers = async (
   token: string,
-  data: Partial<User>
-): Promise<User> => {
-  const url = `${BASE_URL}/api/user/me/`;
+  id: number,
+  data: Partial<UserAccounts>
+): Promise<UserAccounts> => {
+  const url = `${BASE_URL}/api/user/users/${id}/`;
   const res = await fetch(url, {
     method: "PATCH",
     headers: {
@@ -483,11 +485,11 @@ export const patchUsers = async (
     },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Failed to update User");
+  if (!res.ok) throw new Error("Failed to update Users");
   return res.json();
 };
 
-export async function getRole(token: string): Promise<Role[]> {
+export async function getRole(token: string): Promise<GroupRole[]> {
   const res = await fetch(`${BASE_URL}/api/standards/groups/`, {
     headers: {
       "Content-Type": "application/json",
@@ -500,16 +502,20 @@ export async function getRole(token: string): Promise<Role[]> {
   return res.json();
 }
 
-export async function getPermission(token: string): Promise<Role[]> {
-  const res = await fetch(`${BASE_URL}/api/standards/permissions/`, {
+export async function getPermission(
+  token: string
+): Promise<PaginatedResponse<Permission>> {
+  const res = await fetch(`${BASE_URL}/api/standards/permissions/?limit=10000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
     },
   });
+
   if (!res.ok) {
     throw new Error("Failed to fetch Permission data.");
   }
+
   return res.json();
 }
 
@@ -1013,7 +1019,7 @@ export const patchSettings = async (
 export async function getIssueCategory(
   token: string
 ): Promise<IssueCategory[]> {
-  const res = await fetch(`${BASE_URL}/api/issues/issue-categories/`, {
+  const res = await fetch(`${BASE_URL}/api/issues_v2/issue-categories/`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -1026,7 +1032,7 @@ export async function getIssueCategory(
 }
 
 export async function getGroup_Role(token: string): Promise<GroupRole> {
-  const res = await fetch(`${BASE_URL}/api/standards/groups/`, {
+  const res = await fetch(`${BASE_URL}/api/standards/groups/?limit=10000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -1201,6 +1207,22 @@ export const deleteReasonforVisit = async (token: string, id: number) => {
 
   if (!response.ok) {
     throw new Error("Failed to delete Reason for Visit");
+  }
+
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
+};
+
+export const deleteUsers = async (token: string, id: number) => {
+  const response = await fetch(`${BASE_URL}/api/user/users/${id}/`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete Users");
   }
 
   const text = await response.text();

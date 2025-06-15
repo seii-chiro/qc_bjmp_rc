@@ -1,7 +1,6 @@
-import { deleteIssues, getImpactLevels, getImpacts, getIssueCategories, getIssueCategory, getIssueStatuses, getReportingCategory, getRiskLevels, getSeverityLevel, getUser, PaginatedResponse, patchIssues } from "@/lib/queries";
+import { deleteIssues, getImpactLevels, getImpacts, getIssueCategories, getIssueStatuses, getIssueTypes, getReportingCategory, getRiskLevels, getSeverityLevel, getUser, PaginatedResponse, patchIssues } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { keepPreviousData, useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -12,34 +11,26 @@ import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload } from "react-icons/go";
 import bjmp from '../../../assets/Logo/QCJMD.png'
 import moment from "moment";
-import { Issue } from "@/lib/definitions";
 import { BASE_URL } from "@/lib/urls";
 import { useSearchParams } from "react-router-dom";
+import { IssueCategory, IssueType, Status } from "@/lib/spdefinitions";
 
-export type IssuesProps = {
-    created_at: any;
-    id: number | null;
-    module: string;
-    sub_module: string;
-    reporting_category: string;
-    issue_category: string;
-    issue_severity_level: string;
-    risk_level: string;
-    impact_level: string;
-    impact: string;
-    issue_status: string;
+type IssuesMainPayload =  {
+    id: number;
+    created_by: string;
+    updated_by: string;
+    issue_type: IssueType;
+    issue_category: IssueCategory;
+    status: Status;
     record_status: string;
-    updated_at: string;
-    module_affected: string;
-    description: string;
-    root_cause: string;
-    date_reported: string; 
-    reported_by: string;
-    resolution: string;
-    resolution_date: string; 
-    notes: string;
-    updated_by: number | null;
-};
+    created_at: string; 
+    updated_at: string; 
+    remarks: string;
+    issue_type_id: number,
+    issue_category_id: number,
+    status_id: number,
+    record_status_id: number,
+}
 
 const Issues = () => {
     const [searchText, setSearchText] = useState("");
@@ -53,31 +44,7 @@ const Issues = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [issues, setIssues] = useState<IssuesProps>(
-        {id: null,
-        module: '',
-        sub_module: '',
-        reporting_category: '',
-        issue_category: '',
-        issue_severity_level: '',
-        risk_level: '',
-        impact_level: '',
-        impact: '',
-        issue_status: '',
-        record_status: '',
-        updated_at: '',
-        module_affected: '',
-        description: '',
-        root_cause: '',
-        date_reported: '', 
-        reported_by: '',
-        resolution: '',
-        resolution_date: '', 
-        notes: '',
-        updated_by: null,
-        created_at: null,
-    }
-    );
+    const [issues, setIssues] = useState<IssuesMainPayload[]>([]);
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
@@ -119,7 +86,7 @@ const Issues = () => {
             issueCategoryFilter,
             issueStatusFilter
         ],
-        queryFn: async (): Promise<PaginatedResponse<Issue>> => {
+        queryFn: async (): Promise<PaginatedResponse<IssuesMainPayload>> => {
             const offset = (page - 1) * limit;
             const params = new URLSearchParams();
 
@@ -147,7 +114,7 @@ const Issues = () => {
             });
 
             if (!res.ok) {
-            throw new Error("Failed to fetch Personnel data.");
+            throw new Error("Failed to fetch Issues data.");
             }
 
             return res.json();
@@ -177,7 +144,7 @@ const Issues = () => {
     });
 
     const { mutate: editIssues, isLoading: isUpdating } = useMutation({
-        mutationFn: (updated: IssuesProps) =>
+        mutationFn: (updated: IssuesMainPayload) =>
         patchIssues(token ?? "", updated.id, updated),
         onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["issues"] });
@@ -192,16 +159,8 @@ const Issues = () => {
     const results = useQueries({
         queries: [
             {
-                queryKey: ["reporting-category"],
-                queryFn: () => getReportingCategory(token ?? ""),
-            },
-            {
                 queryKey: ["issue-category"],
                 queryFn: () => getIssueCategories(token ?? ""),
-            },
-            {
-                queryKey: ["issue-severity-level"],
-                queryFn: () => getSeverityLevel(token ?? ""),
             },
             {
                 queryKey: ["risk-level"],
@@ -219,18 +178,21 @@ const Issues = () => {
                 queryKey: ["issue-status"],
                 queryFn: () => getIssueStatuses(token ?? ""),
             },
+            {
+                queryKey: ["issue-type"],
+                queryFn: () => getIssueTypes(token ?? ""),
+            },
         ],
     });
         
-    const ReportingCategoryData = results[0].data;
-    const IssueCategoryData = results[1].data;
-    const SeverityLevelData = results[2].data;
-    const RiskLevelData = results[3].data;
-    const ImpactLevelData = results[4].data;
-    const ImpactData = results[5].data;
-    const IssueStatusData = results[6].data;
+    const IssueCategoryData = results[0].data;
+    const RiskLevelData = results[1].data;
+    const ImpactLevelData = results[2].data;
+    const ImpactData = results[3].data;
+    const IssueStatusData = results[4].data;
+    const IssueTypesData = results[5].data;
 
-    const handleEdit = (record: IssuesProps) => {
+    const handleEdit = (record: IssuesMainPayload) => {
         setIssues(record);
         form.setFieldsValue(record);
         setIsEditModalOpen(true);
@@ -238,7 +200,7 @@ const Issues = () => {
 
     const handleUpdate = (values: any) => {
         if (issues && issues.id) {
-        const updatedIssues: IssuesProps = {
+        const updatedIssues: IssuesMainPayload = {
             ...issues,
             ...values,
         };
@@ -248,52 +210,45 @@ const Issues = () => {
         }
     };
 
-    const onReportingCategoryChange = (value: string) => {
+    const onIssueTypesChange = (value: number) => {
         setIssues(prevForm => ({
             ...prevForm,
-            reporting_category: value,
+            issue_type_id: value,
         }));
     }; 
 
-    const onIssueCateogryChange = (value: string) => {
+    const onIssueCateogryChange = (value: number) => {
         setIssues(prevForm => ({
             ...prevForm,
-            issue_category: value,
+            issue_category_id: value,
         }));
     }; 
 
-    const onSeverityLevelChange = (value: string) => {
+    const onRiskLevelChange = (value: number) => {
         setIssues(prevForm => ({
             ...prevForm,
-            issue_severity_level: value,
+            risk_level_id: value,
         }));
     }; 
 
-    const onRiskLevelChange = (value: string) => {
+    const onImpactLevelChange = (value: number) => {
         setIssues(prevForm => ({
             ...prevForm,
-            risk_level: value,
+            impact_level_id: value,
         }));
     }; 
 
-    const onImpactLevelChange = (value: string) => {
+    const onImpactChange = (values: number[]) => {
         setIssues(prevForm => ({
             ...prevForm,
-            impact_level: value,
-        }));
-    }; 
-
-    const onImpactChange = (value: string) => {
-        setIssues(prevForm => ({
-            ...prevForm,
-            impact: value,
+            impact_id: values,
         }));
     }; 
 
     const onIssueStatusChange = (value: string) => {
         setIssues(prevForm => ({
             ...prevForm,
-            issue_status: value,
+            status_id: value,
         }));
     };
 
@@ -370,9 +325,22 @@ const Issues = () => {
     },
     enabled: !!token,
     });
-
-    const dataSource = data?.results?.map((issues, index) => ({
-        key: index + 1,
+    const confirmDelete = (recordId) => {
+        Modal.confirm({
+            title: 'Are you sure you want to delete this record?',
+            content: 'This action cannot be undone.',
+            okText: 'Delete',
+            okType: 'danger',
+            cancelText: 'Cancel',
+            onOk() {
+                deleteMutation.mutate(recordId);
+            },
+            onCancel() {
+            },
+            centered: true,
+        });
+    };
+    const dataSource = data?.results?.map((issues) => ({
         id: issues?.id ?? '',
         created_at: issues?.created_at ?? '',
         issue_type: issues?.issue_type?.name ?? '',
@@ -380,8 +348,10 @@ const Issues = () => {
         categorization_rule: issues?.issue_category?.categorization_rule ?? '',
         status: issues?.status?.name ?? '',
         description: issues?.status?.description ?? '',
+        impacts: issues?.issue_type?.risk?.impacts.map(impact => impact.name).join(", "),
+        risk_level: issues?.issue_type?.risk?.risk_level,
+        impact_level: issues?.issue_type?.risk?.impacts[0]?.impact_level,
         organization: issues?.organization ?? 'Bureau of Jail Management and Penology',
-        updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));;
 
     const issueTypeFilters = TypeData?.results?.map(type => ({
@@ -399,7 +369,7 @@ const Issues = () => {
     value: status.name,
     })) ?? [];
 
-    const columns: ColumnsType<IssuesProps> = [
+    const columns: ColumnsType<IssuesMainPayload> = [
         {
             title: 'No.',
             key: 'no',
@@ -464,8 +434,11 @@ const Issues = () => {
                     <Button
                         type="link"
                         danger
-                        onClick={() => deleteMutation.mutate(record.id)}
-                        >
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            confirmDelete(record.id);
+                        }}
+                    >
                         <AiOutlineDelete />
                     </Button>
                 </div>
@@ -492,12 +465,12 @@ const handleExportPDF = async () => {
     const headerHeight = 48;
     const footerHeight = 32;
     const organizationName = dataSource[0]?.organization || ""; 
-    const PreparedBy = dataSource[0]?.updated_by || ''; 
+    const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}` || ''; 
 
     const today = new Date();
     const formattedDate = today.toISOString().split('T')[0];
     const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-    const maxRowsPerPage = 10; 
+    const maxRowsPerPage = 15; 
     let startY = headerHeight;
 
     try {
@@ -532,15 +505,18 @@ const handleExportPDF = async () => {
         });
 
         const printSource = filteredResults.map((issues, index) => ({
-            key: index + 1,
-            id: issues?.id ?? '',
-            created_at: issues?.created_at ?? '',
-            issue_type: issues?.issue_type?.name ?? '',
-            issue_category: issues?.issue_category?.name ?? '',
-            categorization_rule: issues?.issue_category?.categorization_rule ?? '',
-            status: issues?.status?.name ?? '',
-            description: issues?.status?.description ?? '',
-        }));
+        key: index + 1,
+        id: issues?.id ?? '',
+        created_at: issues?.created_at ?? '',
+        issue_type: issues?.issue_type?.name ?? '',
+        issue_category: issues?.issue_category?.name ?? '',
+        categorization_rule: issues?.issue_category?.categorization_rule ?? '',
+        status: issues?.status?.name ?? '',
+        description: issues?.status?.description ?? '',
+        impacts: issues?.issue_type?.risk?.impacts.map(impact => impact.name).join(", "),
+        risk_level: issues?.issue_type?.risk?.risk_level,
+        impact_level: issues?.issue_type?.risk?.impacts[0]?.impact_level,
+    }));
 
         const addHeader = () => {
             const pageWidth = doc.internal.pageSize.getWidth(); 
@@ -568,15 +544,15 @@ const handleExportPDF = async () => {
             idx + 1,
             item.issue_type || '',
             item.issue_category || '',
-            item.categorization_rule || '',
             item.status || '',
+            item.description || ''
         ]);
 
         for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
 
             autoTable(doc, { 
-                head: [['No.', 'Issue Type', 'Issue Category', 'Categorization Rule', 'Status']],
+                head: [['No.', 'Issue Type', 'Issue Category','Status', 'Status Description']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
@@ -641,12 +617,15 @@ const handleClosePdfModal = () => {
     const printSource = allResults.map((issues, index) => ({
         key: index + 1,
         id: issues?.id ?? '',
-        created_at: issues?.created_at ?? '',
+        created_at: issues?.created_at ? moment(issues.created_at).format('YYYY-MM-DD HH:mm:ss') : '',
         issue_type: issues?.issue_type?.name ?? '',
         issue_category: issues?.issue_category?.name ?? '',
         categorization_rule: issues?.issue_category?.categorization_rule ?? '',
         status: issues?.status?.name ?? '',
         description: issues?.status?.description ?? '',
+        impacts: issues?.issue_type?.risk?.impacts.map(impact => impact.name).join(", "),
+        risk_level: issues?.issue_type?.risk?.risk_level,
+        impact_level: issues?.issue_type?.risk?.impacts[0]?.impact_level,
     }));
 
         const filteredResults = printSource.filter(issues => {
@@ -671,17 +650,21 @@ const handleClosePdfModal = () => {
         );
         });
 
-        const exportData = filteredResults.map((issues, index) => {
-            return {
-                "No.": index + 1,
-                "Timestamp": issues?.created_at,
-                "Issue Type": issues?.issue_type,
-                "Issue Category": issues?.issue_category,
-                "Categorization Rule": issues?.categorization_rule,
-                "Status": issues?.status,
-                "Description": issues?.description,
-            };
-        });
+        const exportData = printSource.map((issues, index) => {
+                return {
+                    "No.": index + 1,
+                    "Timestamps": issues?.created_at,
+                    "Issue Type": issues?.issue_type,
+                    "Issue Category": issues?.issue_category,
+                    "Categorization Rule": issues?.categorization_rule,
+                    "Status": issues?.status,
+                    "Description": issues?.description,
+                    "Impacts": issues?.impacts,
+                    "Risk Level": issues?.risk_level,
+                    "Impact Level": issues?.impact_level
+                };
+            });
+
 
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
@@ -724,12 +707,15 @@ const handleClosePdfModal = () => {
             const printSource = filteredResults.map((issues, index) => ({
                 key: index + 1,
                 id: issues?.id ?? '',
-                created_at: issues?.created_at ?? '',
+                created_at: issues?.created_at ? moment(issues.created_at).format('YYYY-MM-DD HH:mm:ss') : '',
                 issue_type: issues?.issue_type?.name ?? '',
                 issue_category: issues?.issue_category?.name ?? '',
                 categorization_rule: issues?.issue_category?.categorization_rule ?? '',
                 status: issues?.status?.name ?? '',
                 description: issues?.status?.description ?? '',
+                impacts: issues?.issue_type?.risk?.impacts.map(impact => impact.name).join(", "),
+                risk_level: issues?.issue_type?.risk?.risk_level,
+                impact_level: issues?.issue_type?.risk?.impacts[0]?.impact_level,
             }));
 
             const exportData = printSource.map((issues, index) => {
@@ -741,6 +727,9 @@ const handleClosePdfModal = () => {
                     "Categorization Rule": issues?.categorization_rule,
                     "Status": issues?.status,
                     "Description": issues?.description,
+                    "Impacts": issues?.impacts,
+                    "Risk Level": issues?.risk_level,
+                    "Impact Level": issues?.impact_level
                 };
             });
 
@@ -790,6 +779,9 @@ const handleClosePdfModal = () => {
         categorization_rule: issues?.issue_category?.categorization_rule ?? '',
         status: issues?.status?.name ?? '',
         description: issues?.status?.description ?? '',
+        impacts: issues?.issue_type?.risk?.impacts.map(impact => impact.name).join(", "),
+        risk_level: issues?.issue_type?.risk?.risk_level,
+        impact_level: issues?.issue_type?.risk?.impacts[0]?.impact_level,
     });
 
     return (
@@ -867,34 +859,10 @@ const handleClosePdfModal = () => {
                 onCancel={() => setIsEditModalOpen(false)}
                 onOk={() => form.submit()}
                 confirmLoading={isUpdating}
-                width="60%"
+                width="50%"
             >
                 <Form form={form} layout="vertical" className="grid grid-cols-1 md:grid-cols-2 md:space-x-2" onFinish={handleUpdate}>
-                <Form.Item
-                    name="description"
-                    label="Description"
-                    rules={[{ required: true, message: "Please input a description" }]}
-                >
-                    <Input className="h-[3rem] w-full"/>
-                </Form.Item>
-                <Form.Item
-                    name="reporting_category"
-                    label="Reporting Category"
-                >
-                    <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Reporting Category"
-                        optionFilterProp="label"
-                        onChange={onReportingCategoryChange}
-                        options={ReportingCategoryData?.results?.map(reporting_cateogry => (
-                            {
-                                value: reporting_cateogry.id,
-                                label: reporting_cateogry?.name
-                            }
-                        ))}
-                    />
-                </Form.Item>
+
                 <Form.Item
                     name="issue_category"
                     label="Issue Category"
@@ -911,24 +879,22 @@ const handleClosePdfModal = () => {
                         }))}
                     />
                 </Form.Item>
-
                 <Form.Item
-                    name="issue_severity_level"
-                    label="Severity Level"
+                    name="issue_type"
+                    label="Issue Type"
                 >
                     <Select
                         className="h-[3rem] w-full"
                         showSearch
-                        placeholder="Severity Level"
+                        placeholder="Issue Type"
                         optionFilterProp="label"
-                        onChange={onSeverityLevelChange}
-                        options={SeverityLevelData?.results?.map(level => ({
-                            value: level.id,
-                            label: level?.name,
+                        onChange={onIssueTypesChange}
+                        options={IssueTypesData?.results?.map(issue_type => ({
+                            value: issue_type.id,
+                            label: issue_type?.name,
                         }))}
                     />
                 </Form.Item>
-
                 <Form.Item
                     name="risk_level"
                     label="Risk Level"
@@ -941,7 +907,7 @@ const handleClosePdfModal = () => {
                         onChange={onRiskLevelChange}
                         options={RiskLevelData?.results?.map(risk => ({
                             value: risk.id,
-                            label: risk?.name,
+                            label: risk?.risk_severity,
                         }))}
                     />
                 </Form.Item>
@@ -958,17 +924,18 @@ const handleClosePdfModal = () => {
                         onChange={onImpactLevelChange}
                         options={ImpactLevelData?.results?.map(impact => ({
                             value: impact.id,
-                            label: impact?.name,
+                            label: impact?.impact_level,
                         }))}
                     />
                 </Form.Item>
 
                 <Form.Item
-                    name="impact"
-                    label="Impact"
+                    name="impacts"
+                    label="Impacts"
                 >
                     <Select
-                        className="h-[3rem] w-full"
+                        className="p-1 w-full"
+                        mode="multiple"
                         showSearch
                         placeholder="Impact"
                         optionFilterProp="label"
@@ -979,9 +946,8 @@ const handleClosePdfModal = () => {
                         }))}
                     />
                 </Form.Item>
-
                 <Form.Item
-                    name="issue_status"
+                    name="status"
                     label="Issue Status"
                 >
                     <Select
@@ -996,42 +962,20 @@ const handleClosePdfModal = () => {
                         }))}
                     />
                 </Form.Item>
-
+                <Form.Item
+                    name="categorization_rule"
+                    label="Categorization Rule"
+                >
+                    <Input className="h-[3rem] w-full"/>
+                </Form.Item>
                 <Form.Item
                     name="notes"
                     label="Notes"
                 >
                     <Input className="h-[3rem] w-full"/>
                 </Form.Item>
-                <Form.Item
-                    name="issue_status"
-                    label="Issues Status"
-                >
-                    <Select
-                        className="h-[3rem] w-full"
-                        showSearch
-                        placeholder="Issues Status"
-                        optionFilterProp="label"
-                        onChange={onIssueStatusChange}
-                        options={IssueStatusData?.results?.map(issue_status => (
-                            {
-                                value: issue_status.id,
-                                label: issue_status?.name
-                            }
-                        ))}
-                    />
-                </Form.Item>
+
                 </Form>
-            </Modal>
-            <Modal
-                className="overflow-y-auto rounded-lg scrollbar-hide"
-                title="Add Issues"
-                open={isModalOpen}
-                onCancel={handleCancel}
-                footer={null}
-                width="30%"
-                style={{ maxHeight: "80vh", overflowY: "auto" }} 
-                >
             </Modal>
         </div>
     )

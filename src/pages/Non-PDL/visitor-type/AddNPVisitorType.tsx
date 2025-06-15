@@ -1,34 +1,34 @@
-import { BASE_URL } from "@/lib/urls";
+import { BASE_URL} from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { message} from "antd";
+import { message } from "antd";
 import { useState } from "react";
 
-type AddIssueCategory = {
-    name: string;
-    description: string;
+type AddNonPDLVisitorTypePayload = {
+    non_pdl_visitor_type: string,
+    description: string
 }
 
-const AddIssueCategory = ({ onClose }: { onClose: () => void }) => {
+const AddNPVisitorType: React.FC<AddNonPDLVisitorTypePayload> = ({ onClose }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
     const queryClient = useQueryClient();
-    const [selectIssueCategory, setSelectIssueCategory] = useState<AddIssueCategory>({
-        name: '',
-        description: '',
+    const [selectNPVisitorType, setSelectNPVisitorType] = useState<AddNonPDLVisitorTypePayload>({
+        non_pdl_visitor_type: '',
+        description: ''
     });
 
-    async function AddIssueCategory(issue_category: AddIssueCategory) {
-        const res = await fetch(`${BASE_URL}/api/issues_v2/issue-categories/`, {
+    async function AddNonPDLVisitorType(pdl_status: AddNonPDLVisitorTypePayload) {
+        const res = await fetch(`${BASE_URL}/api/non-pdl-visitor/non-pdl-visitor-types/`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Token ${token}`,
             },
-            body: JSON.stringify(issue_category),
+            body: JSON.stringify(pdl_status),
         });
         if (!res.ok) {
-            let errorMessage = "Error Adding Issue Category";
+            let errorMessage = "Error Adding Non PDL Visitor Type";
             try {
                 const errorData = await res.json();
                 errorMessage =
@@ -43,11 +43,11 @@ const AddIssueCategory = ({ onClose }: { onClose: () => void }) => {
         return res.json();
     }
 
-    const issueCategoryMutation = useMutation({
-        mutationKey: ['category'],
-        mutationFn: AddIssueCategory,
+    const NPVisitorTypeMutation = useMutation({
+        mutationKey: ['visitor-type'],
+        mutationFn: AddNonPDLVisitorType,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['category'] });
+            queryClient.invalidateQueries({ queryKey: ['visitor-type'] });
             messageApi.success("Added successfully");
             onClose();
         },
@@ -57,33 +57,29 @@ const AddIssueCategory = ({ onClose }: { onClose: () => void }) => {
         },
     });
 
-    const handleIssueCategorySubmit = (e: React.FormEvent) => {
+    const handleNPVisitorTypeSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        issueCategoryMutation.mutate(selectIssueCategory);
+        NPVisitorTypeMutation.mutate(selectNPVisitorType);
     };
 
     const handleInputChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
         ) => {
-            const { name, value } = e.target;
-            setSelectIssueCategory(prevForm => ({
-            ...prevForm,
-            [name]: value,
-            }));
-        };
+        const { name, value } = e.target;
+        setSelectNPVisitorType(prevForm => ({
+        ...prevForm,
+        [name]: value,
+        }));
+    };
 
     return (
         <div>
-        {contextHolder}
-            <form onSubmit={handleIssueCategorySubmit}>
+            {contextHolder}
+            <form onSubmit={handleNPVisitorTypeSubmit}>
                 <div className="grid grid-cols-1 w-full gap-3">
                     <div>
-                        <p className="text-gray-500 font-bold">Issue Category:</p>
-                        <input type="text" name="name" id="name" onChange={handleInputChange} placeholder="Issue Category" className="h-12 border w-full border-gray-300 rounded-lg px-2" />
-                    </div>
-                    <div>
-                        <p className="text-gray-500 font-bold">Categorization Rule:</p>
-                        <input type="text" name="categorization_rule" id="categorization_rule" onChange={handleInputChange} placeholder="Categorization Rule" className="h-12 border w-full border-gray-300 rounded-lg px-2" />
+                        <p className="text-gray-500 font-bold">Non-PDL Visitor Type:</p>
+                        <input type="text" name="non_pdl_visitor_type" id="non_pdl_visitor_type" onChange={handleInputChange} placeholder="Non-PDL Visitor Type" className="h-12 border border-gray-300 rounded-lg px-2 w-full" />
                     </div>
                     <div>
                         <p className="text-gray-500 font-bold">Description:</p>
@@ -100,4 +96,4 @@ const AddIssueCategory = ({ onClose }: { onClose: () => void }) => {
     )
 }
 
-export default AddIssueCategory
+export default AddNPVisitorType

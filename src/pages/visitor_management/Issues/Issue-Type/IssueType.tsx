@@ -24,7 +24,8 @@ type IssueTypes = {
     id: number;
     updated_by: string;
     issue_category: IssueCategory;
-    updated_at: string; 
+    updated_at: string;
+    categorization_rule: string; 
     risk: string;
     name: string;
     description: string;
@@ -129,6 +130,7 @@ const IssueType = () => {
             updated_at: issue_type?.updated_at ?? '',
             updated_by: issue_type?.updated_by ?? '',
             issue_category: issue_type?.issue_category?.name ?? '',
+            categorization_rule: issue_type?.issue_category?.categorization_rule ?? '',
             issue_category_description: issue_type?.issue_category?.description ?? '',
             organization: issue_type?.organization ?? 'Bureau of Jail Management and Penology',
             updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
@@ -178,6 +180,12 @@ const IssueType = () => {
             dataIndex: 'issue_category_description',
             key: 'issue_category_description',
             sorter: (a, b) => a.issue_category_description.localeCompare(b.issue_category_description),
+        },
+        {
+            title: 'Issue Category',
+            dataIndex: 'categorization_rule',
+            key: 'categorization_rule',
+            sorter: (a, b) => a.categorization_rule.localeCompare(b.categorization_rule),
         },
         // {
         //     title: 'Risk',
@@ -432,8 +440,8 @@ const isSearching = searchText.trim().length > 0;
                     <Input />
                 </Form.Item>
                 <Form.Item
-                    name="description"
-                    label="Description"
+                    name="issue_category_description"
+                    label="Issue Category Description"
                     rules={[{ required: true, message: "Please input a description" }]}
                 >
                     <Input.TextArea rows={3} />

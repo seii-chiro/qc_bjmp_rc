@@ -159,6 +159,7 @@ import ServiceProvided from "./pages/service-provider/service-provided/ServicePr
 import VisitorRelPersonnel from "./pages/visitor_management/relationship/VisitorRelPersonnel.tsx";
 import NonPDLReasonforVisit from "./pages/visitor_management/reason-for-visit/NonPDLReasonforVisit.tsx";
 import ServiceProviderUpdate from "./pages/visitor_management/service-provider-data-entry/ServiceProviderUpdate.tsx";
+import NPVisitorType from "./pages/Non-PDL/visitor-type/NPVisitorType.tsx";
 
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -616,11 +617,11 @@ function App() {
                     element: <ServiceProvided />
                 },
                 {
-                    path: "visitors/visitor-relationship-personnel",
+                    path: "non-pdl-visitors/visitor-relationship-personnel",
                     element: <VisitorRelPersonnel />
                 },
                 {
-                    path: "visitors/reason-for-visit",
+                    path: "non-pdl-visitors/reason-for-visit",
                     element: <NonPDLReasonforVisit />
                 },
                 {
@@ -738,6 +739,10 @@ function App() {
                 {
                     path: "non-pdl-visitors",
                     element: <NonPDL />
+                },
+                {
+                    path: "non-pdl-visitors/non-pdl-visitor-type",
+                    element: <NPVisitorType />
                 },
                 {
                     path: "service-provider",

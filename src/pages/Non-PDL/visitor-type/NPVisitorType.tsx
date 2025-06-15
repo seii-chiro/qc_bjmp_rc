@@ -1,111 +1,37 @@
-import { deleteIssue_Category, getOrganization, getUser, PaginatedResponse, patchIssue_Category } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Dropdown, Form, Input, Menu, message, Modal } from "antd";
+import { Button, Dropdown, Form, Input, Menu, message, Modal, Select } from "antd";
 import Table, { ColumnsType } from "antd/es/table";
-import moment from "moment";
-import { CSVLink } from "react-csv";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload, GoPlus } from "react-icons/go";
-import AddIssueCategory from "./AddIssueCategory";
-import bjmp from '../../../../assets/Logo/QCJMD.png'
-import { getIssueCategory } from "@/lib/query";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { getOrganization, getUser } from "@/lib/queries";
+import bjmp from '../../../assets/Logo/QCJMD.png'
 import { BASE_URL } from "@/lib/urls";
+import { PaginatedResponse } from "@/lib/queries";
+import { NonPDLVisitorType } from "@/lib/spdefinitions";
+import { deleteNonPDLVisitorType, patchNonPDLVisitorType } from "@/lib/SPQuery";
+import AddNPVisitorType from "./AddNPVisitorType";
 
-type IssueCategory = {
-    id: number;
-    updated_by: string;
-    updated_at: string; 
-    name: string;
-    description: string;
-    categorization_rule: string;
-};
-
-const IssueCategory = () => {
+const NPVisitorType = () => {
     const [searchText, setSearchText] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState("");
-    const [form] = Form.useForm();
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const token = useTokenStore().token;
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [form] = Form.useForm();
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
-    const [selectIssueCategory, setSelctedIssueCategory] = useState<IssueCategory | null>(null);
+    const [nonPDLVisitorType, setNonPDLVisitorType] = useState<NonPDLVisitorType | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-
-    const fetchIssueCategory = async (search: string) => {
-        const res = await fetch(`${BASE_URL}/api/issues_v2/issue-categories/?search=${search}`, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
-
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-    };
-    useEffect(() => {
-        const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
-        return () => clearTimeout(timeout);
-    }, [searchText]);
-
-    const { data: searchData, isLoading: searchLoading } = useQuery({
-        queryKey: ["category", debouncedSearch],
-        queryFn: () => fetchIssueCategory(debouncedSearch),
-        behavior: keepPreviousData(),
-        enabled: debouncedSearch.length > 0,
-    });
-
-    const { data, isFetching } = useQuery({
-        queryKey: [
-            "category",
-            "category-table",
-            page,
-            limit,
-        ],
-        queryFn: async (): Promise<PaginatedResponse<IssueCategory>> => {
-            const offset = (page - 1) * limit;
-            const params = new URLSearchParams();
-
-            params.append("page", String(page));
-            params.append("limit", String(limit));
-            params.append("offset", String(offset));
-
-            const res = await fetch(`${BASE_URL}/api/issues_v2/issue-categories/?${params.toString()}`, {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Token ${token}`,
-            },
-            });
-
-            if (!res.ok) {
-            throw new Error("Failed to fetch Issue Category data.");
-            }
-
-            return res.json();
-        },
-        enabled: !!token,
-        keepPreviousData: true,
-    });
-
-    const { data: OrganizationData } = useQuery({
-        queryKey: ['organization'],
-        queryFn: () => getOrganization(token ?? "")
-    })
-
-    const { data: UserData } = useQuery({
-        queryKey: ['user'],
-        queryFn: () => getUser(token ?? "")
-    })
 
     const showModal = () => {
         setIsModalOpen(true);
@@ -114,79 +40,136 @@ const IssueCategory = () => {
     const handleCancel = () => {
         setIsModalOpen(false);
     };
+    
+    const handleClosePdfModal = () => {
+        setIsPdfModalOpen(false);
+        setPdfDataUrl(null); 
+    };
+
+    const fetchNonPDLVisitorType = async (search: string) => {
+        const res = await fetch(`${BASE_URL}/api/non-pdl-visitor/non-pdl-visitor-types/?search=${search}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
+
+    useEffect(() => {
+        const timeout = setTimeout(() => setDebouncedSearch(searchText), 300);
+        return () => clearTimeout(timeout);
+    }, [searchText]);
+
+    const { data: searchData, isLoading: searchLoading } = useQuery({
+        queryKey: ["visitor-type", debouncedSearch],
+        queryFn: () => fetchNonPDLVisitorType(debouncedSearch),
+        behavior: keepPreviousData(),
+        enabled: debouncedSearch.length > 0,
+    });
+
+    const { data, isFetching } = useQuery({
+        queryKey: [
+            "visitor-type",
+            "visitor-type-table",
+            page,
+            limit,
+        ],
+        queryFn: async (): Promise<PaginatedResponse<NonPDLVisitorType>> => {
+            const offset = (page - 1) * limit;
+            const params = new URLSearchParams();
+
+            params.append("page", String(page));
+            params.append("limit", String(limit));
+            params.append("offset", String(offset));
+
+            const res = await fetch(`${BASE_URL}/api/non-pdl-visitor/non-pdl-visitor-types/?${params.toString()}`, {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Token ${token}`,
+            },
+            });
+
+            if (!res.ok) {
+            throw new Error("Failed to fetch Non-PDL Visitor Type data.");
+            }
+
+            return res.json();
+        },
+        enabled: !!token,
+        keepPreviousData: true,
+    });
+
+    const { data: UserData } = useQuery({
+        queryKey: ['user'],
+        queryFn: () => getUser(token ?? "")
+    })
+
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
 
     const deleteMutation = useMutation({
-        mutationFn: (id: number) => deleteIssue_Category(token ?? "", id),
+        mutationFn: (id: number) => deleteNonPDLVisitorType(token ?? "", id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["category"] });
-            messageApi.success("Issue Category deleted successfully");
+            queryClient.invalidateQueries({ queryKey: ["visitor-type"] });
+            messageApi.success("Non-PDL Visitor Type deleted successfully");
         },
         onError: (error: any) => {
-            messageApi.error(error.message || "Failed to delete Issue Category");
+            messageApi.error(error.message || "Failed to delete Non-PDL Visitor Type");
         },
     });
 
-const { mutate: editIssueCategory, isLoading: isUpdating } = useMutation({
-    mutationFn: (updated: IssueCategory) =>
-    patchIssue_Category(token ?? "", updated.id, updated),
-    onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ["category"] });
-    messageApi.success("Issue Category updated successfully");
-    setIsEditModalOpen(false);
-    },
-    onError: () => {
-    messageApi.error("Failed to update Issue Category");
-    },
-});
-
-const handleEdit = (record: IssueCategory) => {
-    setSelctedIssueCategory(record);
-    form.setFieldsValue(record);
-    setIsEditModalOpen(true);
-};
-
-const handleUpdate = (values: any) => {
-    if (selectIssueCategory && selectIssueCategory.id) {
-    const updatedRisk: IssueCategory = {
-        ...selectIssueCategory,
-        ...values,
+    const { mutate: editNonPDLVisitorType, isLoading: isUpdating } = useMutation({
+        mutationFn: (updated: NonPDLVisitorType) =>
+            patchNonPDLVisitorType(token ?? "", updated.id, updated),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["visitor-type"] });
+            messageApi.success("Non-PDL Visitor Type updated successfully");
+            setIsEditModalOpen(false);
+        },
+        onError: () => {
+            messageApi.error("Failed to update Non-PDL Visitor Type");
+        },
+    });
+    const handleEdit = (record: NonPDLVisitorType) => {
+        setNonPDLVisitorType(record);
+        form.setFieldsValue(record);
+        setIsEditModalOpen(true);
     };
-    editIssueCategory(updatedRisk);
-    } else {
-    messageApi.error("Selected Issue Type is invalid");
-    }
-};
 
-    const dataSource = data?.results?.map((issue_category, index) => (
-        {
-            key: index + 1,
-            id: issue_category?.id,
-            name: issue_category?.name ?? '',
-            description: issue_category?.description ?? '',
-            categorization_rule: issue_category?.categorization_rule,
-            updated_at: issue_category?.updated_at ?? '',
-            updated_by: issue_category?.updated_by ?? '',
+    const handleUpdate = (values: any) => {
+        if (nonPDLVisitorType && nonPDLVisitorType.id) {
+            const updateNonPDLVisitorType: NonPDLVisitorType = {
+                ...nonPDLVisitorType,
+                ...values,
+            };
+            editNonPDLVisitorType(updateNonPDLVisitorType);
+        } else {
+            messageApi.error("Selected Non-PDL Visitor Type is invalid");
         }
-    )) || [];
+    };
 
-    const columns: ColumnsType<IssueCategory> = [
+    const dataSource = data?.results?.map((type, index) => ({
+            key: index + 1,
+            id: type?.id,
+            non_pdl_visitor_type: type?.non_pdl_visitor_type,
+            description: type?.description,
+    }));
+
+    const columns: ColumnsType<NonPDLVisitorType> = [
         {
             title: 'No.',
             key: 'no',
             render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
-            width: 100,
         },
         {
-            title: 'Issue Category',
-            dataIndex: 'name',
-            key: 'name',
-            sorter: (a, b) => a.name.localeCompare(b.name),
-        },
-        {
-            title: 'Categorization Rule',
-            dataIndex: 'categorization_rule',
-            key: 'categorization_rule',
-            sorter: (a, b) => a.categorization_rule.localeCompare(b.categorization_rule),
+            title: 'Non-PDL Visitor Type',
+            dataIndex: 'non_pdl_visitor_type',
+            key: 'non_pdl_visitor_type',
+            sorter: (a, b) => a.non_pdl_visitor_type.localeCompare(b.non_pdl_visitor_type),
         },
         {
             title: 'Description',
@@ -194,24 +177,12 @@ const handleUpdate = (values: any) => {
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
         },
-        // {
-        //     title: "Updated At",
-        //     dataIndex: "updated_at",
-        //     key: "updated_at",
-        //     render: (value) => moment(value).format("MMMM D, YYYY h:mm A"),
-        //     sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
-        // },
-        // {
-        //     title: 'Updated By',
-        //     dataIndex: 'updated_by',
-        //     key: 'updated_by',
-        //     sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
-        // },
         {
             title: "Action",
             key: "action",
+            fixed: "right",
             render: (_, record) => (
-                <div>
+                <div className="flex gap-2">
                     <Button type="link" onClick={() => handleEdit(record)}>
                         <AiOutlineEdit />
                     </Button>
@@ -219,15 +190,16 @@ const handleUpdate = (values: any) => {
                         type="link"
                         danger
                         onClick={() => deleteMutation.mutate(record.id)}
-                        >
+                    >
                         <AiOutlineDelete />
                     </Button>
                 </div>
             ),
         },
     ]
-    const fetchAllIssueCategory = async () => {
-        const res = await fetch(`${BASE_URL}/api/issues_v2/issue-categories/?limit=1000`, {
+
+    const fetchAllNonPDLVisitorType = async () => {
+        const res = await fetch(`${BASE_URL}/api/non-pdl-visitor/non-pdl-visitor-types/?limit=100`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
@@ -242,34 +214,31 @@ const handleUpdate = (values: any) => {
         setLoadingMessage("Generating PDF... Please wait.");
         
         try {
-            const doc = new jsPDF('landscape');
+            const doc = new jsPDF();
             const headerHeight = 48;
             const footerHeight = 32;
             const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
-            const PreparedBy = `${UserData?.first_name ?? ''} ${UserData.last_name ?? ''}`;
+            const PreparedBy = `${UserData?.first_name || ''} ${UserData?.last_name || ''}` || "";
 
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
             const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-            const maxRowsPerPage = 11; 
+            const maxRowsPerPage = 26; 
             let startY = headerHeight;
 
             let allData;
             if (searchText.trim() === '') {
-                allData = await fetchAllIssueCategory();
+                allData = await fetchAllNonPDLVisitorType();
             } else {
-                allData = await fetchIssueCategory(searchText.trim());
+                allData = await fetchNonPDLVisitorType(searchText.trim());
             }
             
             const allResults = allData?.results || [];
-            const printSource = allResults.map((issue_category, index) => ({
-                key: index + 1,
-                id: issue_category?.id,
-                name: issue_category?.name ?? '',
-                categorization_rule: issue_category?.categorization_rule ?? '',
-                description: issue_category?.description ?? '',
-                updated_at: issue_category?.updated_at ?? '',
-                updated_by: issue_category?.updated_by ?? '',
+            const printSource = allResults.map((type, index) => ({
+            key: index + 1,
+            id: type?.id,
+            non_pdl_visitor_type: type?.non_pdl_visitor_type,
+            description: type?.description,
             }));
 
             const addHeader = () => {
@@ -283,7 +252,7 @@ const handleUpdate = (values: any) => {
                 doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
                 doc.setTextColor(0, 102, 204);
                 doc.setFontSize(16);
-                doc.text("Issue Category Report", 10, 15); 
+                doc.text("Non-PDL Visitor Type Report", 10, 15); 
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(10);
                 doc.text(`Organization Name: ${organizationName}`, 10, 25);
@@ -296,16 +265,15 @@ const handleUpdate = (values: any) => {
             addHeader(); 
             const tableData = printSource.map((item, idx) => [
                 idx + 1,
-                item.name || '',
+                item.non_pdl_visitor_type || '',
                 item.description || '',
-                item.categorization_rule || ''
             ]);
 
             for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
                 const pageData = tableData.slice(i, i + maxRowsPerPage);
         
                 autoTable(doc, { 
-                    head: [['No.', 'Issue Category', 'Categorization Rule', 'Description']],
+                    head: [['No.', 'Non-PDL Visitor Type', 'Description']],
                     body: pageData,
                     startY: startY,
                     margin: { top: 0, left: 10, right: 10 },
@@ -356,64 +324,63 @@ const handleUpdate = (values: any) => {
     const handleExportExcel = async () => {
             let allData;
             if (searchText.trim() === '') {
-                allData = await fetchAllIssueCategory();
+                allData = await fetchAllNonPDLVisitorType();
             } else {
-                allData = await fetchIssueCategory(searchText.trim());
+                allData = await fetchNonPDLVisitorType(searchText.trim());
             }
             
             const allResults = allData?.results || [];
-            const printSource = allResults.map((issue_category, index) => ({
-                key: index + 1,
-                id: issue_category?.id,
-                name: issue_category?.name ?? '',
-                categorization_rule: issue_category?.categorization_rule,
-                description: issue_category?.description ?? '',
-                updated_at: issue_category?.updated_at ?? '',
-                updated_by: issue_category?.updated_by ?? '',
+            const printSource = allResults.map((type, index) => ({
+            key: index + 1,
+            id: type?.id,
+            non_pdl_visitor_type: type?.non_pdl_visitor_type,
+            description: type?.description,
+            updated_at: type?.updated_at,
+            updated_by: type?.updated_by,
             }));
-        
-        const exportData = printSource.map((category, index) => {
+
+        const exportData = printSource.map((type, index) => {
             return {
                 "No.": index + 1,
-                "Issue Category": category?.name,
-                "Categorization": category?.categorization_rules,
-                "Description": category?.description,
+                "Non-PDL Visitor Type": type?.non_pdl_visitor_type,
+                "Description": type?.description,
+                "Updated At": type?.updated_at,
+                "Updated By": type?.updated_by,
             };
         });
 
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "IssueCategory");
-        XLSX.writeFile(wb, "IssueCategory.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "NonPDLVisitorType");
+        XLSX.writeFile(wb, "NonPDLVisitorType.xlsx");
     };
-
-        const handleExportCSV = async () => {
+        
+    const handleExportCSV = async () => {
         try {
-
             let allData;
             if (searchText.trim() === '') {
-                allData = await fetchAllIssueCategory();
+                allData = await fetchAllNonPDLVisitorType();
             } else {
-                allData = await fetchIssueCategory(searchText.trim());
+                allData = await fetchNonPDLVisitorType(searchText.trim());
             }
             
             const allResults = allData?.results || [];
-            const printSource = allResults.map((issue_category, index) => ({
-                key: index + 1,
-                id: issue_category?.id,
-                name: issue_category?.name ?? '',
-                categorization_rule: issue_category?.categorization_rule,
-                description: issue_category?.description ?? '',
-                updated_at: issue_category?.updated_at ?? '',
-                updated_by: issue_category?.updated_by ?? '',
+            const printSource = allResults.map((type, index) => ({
+            key: index + 1,
+            id: type?.id,
+            non_pdl_visitor_type: type?.non_pdl_visitor_type,
+            description: type?.description,
+            updated_at: type?.updated_at,
+            updated_by: type?.updated_by,
             }));
-        
-        const exportData = printSource.map((category, index) => {
+
+        const exportData = printSource.map((type, index) => {
             return {
                 "No.": index + 1,
-                "Issue Category": category?.name,
-                "Categorization": category?.categorization_rules,
-                "Description": category?.description,
+                "Non-PDL Visitor Type": type?.non_pdl_visitor_type,
+                "Description": type?.description,
+                "Updated At": type?.updated_at,
+                "Updated By": type?.updated_by,
             };
         });
 
@@ -426,7 +393,7 @@ const handleUpdate = (values: any) => {
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
-            link.setAttribute("download", "IssueCategory.csv");
+            link.setAttribute("download", "NonPDLVisitorType.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -435,10 +402,6 @@ const handleUpdate = (values: any) => {
         }
     };
 
-    const handleClosePdfModal = () => {
-        setIsPdfModalOpen(false);
-        setPdfDataUrl(null); 
-    };
     const menu = (
         <Menu>
             <Menu.Item>
@@ -458,21 +421,18 @@ const handleUpdate = (values: any) => {
     ? data?.count || 0
     : data?.count || 0;
 
-    const mapIssueCategory = ((issue_category, index) => (
-        {
+    const mapNonPDLVisitorType = (type, index) => ({
             key: index + 1,
-            id: issue_category?.id,
-            name: issue_category?.name ?? '',
-            description: issue_category?.description ?? '',
-            categorization_rule: issue_category?.categorization_rule,
-            updated_at: issue_category?.updated_at ?? '',
-            updated_by: issue_category?.updated_by ?? '',
-        }
-    ));
+            id: type?.id,
+            non_pdl_visitor_type: type?.non_pdl_visitor_type,
+            description: type?.description,
+            updated_at: type?.updated_at,
+            updated_by: type?.updated_by,
+            });
     return (
         <div>
         {contextHolder}
-        <h1 className="text-3xl font-bold text-[#1E365D]">Issue Category</h1>
+        <h1 className="text-2xl font-bold text-[#1E365D]">Non-PDL Visitor Type</h1>
         <div className="flex items-center justify-between my-4">
             <div className="flex gap-2">
                     <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
@@ -489,28 +449,27 @@ const handleUpdate = (values: any) => {
                         {isLoading ? loadingMessage : 'PDF Report'}
                     </button>
                 </div>
-            <div className="flex gap-2 items-center">
-                <Input
-                    placeholder="Search..."
-                    value={searchText}
-                    className="py-2 md:w-64 w-full"
-                    onChange={(e) => setSearchText(e.target.value)}
-                />
-                <button
-                    className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center"
-                    onClick={showModal}
-                        >
-                    <GoPlus />
-                        Add Issue Category
-                </button>
+                <div className="flex gap-2 items-center">
+                    <Input
+                        placeholder="Search..."
+                        value={searchText}
+                        className="py-2 md:w-64 w-full"
+                        onChange={(e) => setSearchText(e.target.value)}
+                    />
+                    <button
+                        className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center"
+                        onClick={showModal}>
+                        <GoPlus />
+                            Add Non-PDL Visitor Type
+                    </button>
+                </div>
             </div>
-        </div>
-        <Table
+            <Table
             className="overflow-x-auto"
             loading={isFetching || searchLoading}
             columns={columns}
                 dataSource={debouncedSearch
-                        ? (searchData?.results || []).map(mapIssueCategory)
+                        ? (searchData?.results || []).map(mapNonPDLVisitorType)
                             : dataSource}
                 scroll={{ x: 'max-content' }} 
                 pagination={{
@@ -526,8 +485,8 @@ const handleUpdate = (values: any) => {
                 }}
             rowKey="id"
         />
-        <Modal
-                title="Issue Category Report"
+                    <Modal
+                title="Non-PDL Visitor Type Report"
                 open={isPdfModalOpen}
                 onCancel={handleClosePdfModal}
                 footer={null}
@@ -542,47 +501,46 @@ const handleUpdate = (values: any) => {
                 )}
             </Modal>
             <Modal
-                title="Edit Issue Category"
+                className="overflow-y-auto rounded-lg scrollbar-hide"
+                title="Add Non-PDL Visitor Type"
+                open={isModalOpen}
+                onCancel={handleCancel}
+                footer={null}
+                width="30%"
+                style={{ maxHeight: "80vh", overflowY: "auto" }} 
+                >
+                <AddNPVisitorType
+                    onClose={handleCancel}
+                    />
+            </Modal>
+            <Modal
+                title="Edit Non-PDL Visitor Type"
                 open={isEditModalOpen}
                 onCancel={() => setIsEditModalOpen(false)}
                 onOk={() => form.submit()}
                 confirmLoading={isUpdating}
                 width="40%"
+                
             >
                 <Form form={form} layout="vertical" onFinish={handleUpdate}>
                 <Form.Item
-                    name="name"
-                    label="Issue Type Name"
-                >
-                    <Input />
-                </Form.Item>
-                <Form.Item
-                    name="categorization_rule"
-                    label="Categorization Rule"
+                    name="non_pdl_visitor_type"
+                    label="Non-PDL Visitor Type"
+                    rules={[{ required: true, message: "Please input the Non-PDL Visitor Type" }]}
                 >
                     <Input />
                 </Form.Item>
                 <Form.Item
                     name="description"
                     label="Description"
+                    rules={[{ required: true, message: "Please input a description" }]}
                 >
                     <Input.TextArea rows={3} />
                 </Form.Item>
                 </Form>
             </Modal>
-            <Modal
-                className="overflow-y-auto rounded-lg scrollbar-hide"
-                title="Add Issue Category"
-                open={isModalOpen}
-                onCancel={handleCancel}
-                footer={null}
-                width="40%"
-                style={{ maxHeight: "80vh", overflowY: "auto" }} 
-                >
-            <AddIssueCategory onClose={handleCancel} />
-            </Modal>
         </div>
     )
 }
 
-export default IssueCategory
+export default NPVisitorType
