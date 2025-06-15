@@ -45,25 +45,10 @@ const ServiceProvider = () => {
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const navigate = useNavigate()
 
-    const showModal = () => {
-        setIsModalOpen(true);
-    };
-
-    const handleCancel = () => {
-        setIsModalOpen(false);
-    };
-
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
         setPdfDataUrl(null);
     };
-
-    const handleEdit = (id: number) => {
-        if (!id) {
-            message.error("No ID found for this visitor.")
-        }
-        navigate("update", { state: id })
-    }
 
     const fetchServiceProvider = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/service-providers/service-providers/?search=${search}`, {
@@ -177,7 +162,6 @@ const ServiceProvider = () => {
         },
         enabled: !!token,
         });
-    const groupAffiliationArray = groupAffiliationData?.results || [];
 
     const { data: UserData } = useQuery({
         queryKey: ['user'],
@@ -443,7 +427,7 @@ const ServiceProvider = () => {
             const headerHeight = 48;
             const footerHeight = 32;
             const organizationName = OrganizationData?.results?.[0]?.org_name || "";
-            const PreparedBy = `${UserData?.results?.[0]?.first_name || ''} ${UserData?.results?.[0]?.last_name || ''}`;
+            const PreparedBy = `${UserData?.first_name || ''} ${UserData?.last_name || ''}`;
 
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
@@ -478,13 +462,12 @@ const ServiceProvider = () => {
                 const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
                 const matchedService = serviceArray.find(service => service.id === provider.provided_service);
 
-
                 return {
                     key: index + 1,
                     id: provider?.id,
                     sp_reg_no: provider?.sp_reg_no,
                     serv_prov_type: matchedSPtype?.serv_prov_type,
-                    service_provided: matchedService?.service_provided,
+                    provided_service: matchedService?.service_provided,
                     visitor_type: provider?.visitor_type,
                     group_affiliation: provider?.group_affiliation,
                     person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(),
@@ -526,7 +509,7 @@ const ServiceProvider = () => {
                 const pageData = tableData.slice(i, i + maxRowsPerPage);
 
                 autoTable(doc, {
-                    head: [['No.', 'SP Reg. No', 'Service Provider Type', 'Name', 'Visitor Type', 'Group Affiliation']],
+                    head: [['No.', 'SP Reg. No','Name', 'Service Provided',  'Service Provider Type', 'Group Affiliation']],
                     body: pageData,
                     startY: startY,
                     margin: { top: 0, left: 10, right: 10 },
@@ -598,27 +581,28 @@ const ServiceProvider = () => {
         });
 
         const printSource = filteredResults.map((provider, index) => {
-            const matchedPerson = personsArray.find(person => person.id === provider.person);
-            const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
-            const matchedService = serviceArray.find(service => service.id === provider.provided_service);
+        const matchedPerson = personsArray.find(person => person.id === provider.person);
+        const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
+        const matchedService = serviceArray.find(service => service.id === provider.provided_service);
 
-            return {
-                key: index + 1,
-                id: provider?.id,
-                sp_reg_no: provider?.sp_reg_no,
-                serv_prov_type: matchedSPtype?.serv_prov_type || '',
-                provided_service: matchedService?.service_provided || '',
-                group_affiliation: provider?.group_affiliation || '',
-                person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(),
-            };
-        });
+        return {
+            key: index + 1,
+            id: provider?.id,
+            sp_reg_no: provider?.sp_reg_no,
+            serv_prov_type: matchedSPtype?.serv_prov_type,
+            provided_service: matchedService?.service_provided,
+            visitor_type: provider?.visitor_type,
+            group_affiliation: provider?.group_affiliation,
+            person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(),
+        };
+    });
 
         const exportData = printSource.map((sp, index) => {
             return {
                 "No.": index + 1,
                 "SP Registration No.": sp?.sp_reg_no,
                 "Name": sp?.person,
-                "Service Provided": sp?.service_provided,
+                "Service Provided": sp?.provided_service,
                 "Service Provider Type": sp?.serv_prov_type,
                 "Group Affiliation": sp?.group_affiliation,
             };
@@ -735,9 +719,10 @@ const ServiceProvider = () => {
             key: index + 1,
             id: provider?.id,
             sp_reg_no: provider?.sp_reg_no,
-            serv_prov_type: matchedSPtype?.serv_prov_type || '',
-            provided_service: matchedService?.service_provided || '',
-            group_affiliation: provider?.group_affiliation || '',
+            serv_prov_type: matchedSPtype?.serv_prov_type,
+            provided_service: matchedService?.service_provided,
+            visitor_type: provider?.visitor_type,
+            group_affiliation: provider?.group_affiliation,
             person: `${matchedPerson?.first_name || ''} ${matchedPerson?.middle_name ? matchedPerson?.middle_name[0] + '.' : ''} ${matchedPerson?.last_name || ''}`.replace(/\s+/g, ' ').trim(),
         };
     });

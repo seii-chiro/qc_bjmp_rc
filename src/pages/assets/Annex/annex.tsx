@@ -1,7 +1,7 @@
-import { deleteDetention_Floor, getDetention_Floor, getUser } from "@/lib/queries";
+import { deleteDetention_Floor, getDetention_Building, getDetention_Floor, getJail_Security_Level, getUser, updateDetention_Floor } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Dropdown, Menu, message, Modal } from "antd";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button, Dropdown, Form, Input, Menu, message, Modal, Select } from "antd";
 import Table, { ColumnsType } from "antd/es/table";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
@@ -28,6 +28,7 @@ type AnnexResponse = {
 const Annex = () => {
     const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
+    const [form] = Form.useForm();
     const queryClient = useQueryClient();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -65,8 +66,39 @@ const Annex = () => {
         setIsModalOpen(false);
     };
 
+    const { mutate: editAnnex, isLoading: isUpdating } = useMutation({
+        mutationFn: (updated: AnnexResponse) =>
+            updateDetention_Floor(token ?? "", updated.id, updated),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["annex"] });
+            messageApi.success("Annex updated successfully");
+            setIsEditModalOpen(false);
+        },
+        onError: () => {
+            messageApi.error("Failed to update Annex");
+        },
+    });
+
+    const handleEdit = (record: AnnexResponse) => {
+        setSelectedAnnex(record);
+        form.setFieldsValue(record);
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdate = (values: any) => {
+        if (selectedAnnex && selectedAnnex.id) {
+            const updatedAnnex: AnnexResponse = {
+                ...selectedAnnex,
+                ...values,
+            };
+            editAnnex(updatedAnnex);
+        } else {
+            messageApi.error("Selected Annex is invalid");
+        }
+    };
+
     const dataSource = data?.results?.map((annex, index) => ({
-        key: annex?.id,
+        key: index + 1,
         id: annex?.id,
         building: annex?.building,
         floor_number: annex?.floor_number,
@@ -92,30 +124,12 @@ const Annex = () => {
             dataIndex: "building",
             key: "building",
             sorter: (a, b) => a.building.localeCompare(b.building),
-            filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.building))
-                    ).map(building => ({
-                        text: building,
-                        value: building,
-                    }))
-                ],
-                onFilter: (value, record) => record.building === value,
         },
         {
             title: "Annex Number",
             dataIndex: "floor_number",
             key: "floor_number",
             sorter: (a, b) => a.floor_number.localeCompare(b.floor_number),
-                    filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.floor_number))
-                    ).map(floor_number => ({
-                        text: floor_number,
-                        value: floor_number,
-                    }))
-                ],
-                onFilter: (value, record) => record.floor_number === value,
         },
         {
             title: "Annex Name",
@@ -127,30 +141,15 @@ const Annex = () => {
             dataIndex: "security_level",
             key: "security_level",
             sorter: (a, b) => a.security_level.localeCompare(b.security_level),
-                    filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.security_level))
-                    ).map(security_level => ({
-                        text: security_level,
-                        value: security_level,
-                    }))
-                ],
-                onFilter: (value, record) => record.security_level === value,
         },
         {
             title: "Actions",
             key: "actions",
             render: (_: any, record: AnnexResponse) => (
             <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
-                <Button
-                    type="link"
-                    onClick={() => {
-                        setSelectedAnnex(record);
-                        setIsEditModalOpen(true);
-                    }}
-                >
-                    <AiOutlineEdit/>
-                </Button>
+                    <Button type="link" onClick={() => handleEdit(record)}>
+                        <AiOutlineEdit />
+                    </Button>
                 <Button
                     type="link"
                     danger
@@ -278,6 +277,36 @@ const handleExportExcel = () => {
         </Menu>
     );
 
+    const results = useQueries({
+        queries: [
+            {
+                queryKey: ['detention-building'],
+                queryFn: () => getDetention_Building(token ?? "")
+            },
+            {
+                queryKey: ['security-level'],
+                queryFn: () => getJail_Security_Level(token ?? "")
+            },
+        ]
+    });
+
+    const detentionBuildingData = results[0].data;
+
+    const SecurityLevelData = results[1].data;
+    
+    const onDetentionBuildingChange = (value: number) => {
+        setSelectedAnnex(prevForm => ({
+            ...prevForm,
+            building_id: value,
+        }));
+    }; 
+
+    const onSecurityLevelChange = (value: number) => {
+        setSelectedAnnex(prevForm => ({
+            ...prevForm,
+            security_level_id: value,
+        }));
+    };  
     return (
         <div>
             {contextHolder}
@@ -352,15 +381,52 @@ const handleExportExcel = () => {
                 />
                 </Modal>
             <Modal
-                title="Edit Annex"
-                open={isEditModalOpen}
-                onCancel={() => setIsEditModalOpen(false)}
-                footer={null}
-            >
-                <EditAnnex
-                    annex={selectedAnnex}
-                    onClose={() => setIsEditModalOpen(false)}
-                />
+                    title="Edit Annex"
+                    open={isEditModalOpen}
+                    onCancel={() => setIsEditModalOpen(false)}
+                    onOk={() => form.submit()}
+                    confirmLoading={isUpdating}
+                    width="60%"
+                >
+                <Form form={form} layout="vertical" onFinish={handleUpdate}>
+                    <Form.Item label="Level" name="building">
+                        <Select
+                            className="h-[3rem] w-full"
+                            showSearch
+                            placeholder="Building"
+                            onChange={onDetentionBuildingChange}
+                            options={detentionBuildingData?.results.map(level => ({
+                                    value: level.id,
+                                    label: level?.bldg_name,
+                                }))
+                            }
+                        />
+                </Form.Item>
+                <Form.Item label="Annex Name" name="floor_name" required>
+                    <Input />
+                </Form.Item>
+                <Form.Item label="Annex Number" name="floor_number" required>
+                    <Input />
+                </Form.Item>
+                <Form.Item label="Security Level" name="security_level">
+                    <Select
+                            className="h-[3rem] w-full"
+                            showSearch
+                            placeholder="Security Level"
+                            optionFilterProp="label"
+                            onChange={onSecurityLevelChange}
+                            options={SecurityLevelData?.results?.map(security_level => (
+                                {
+                                    value: security_level.id,
+                                    label: security_level?.category_name,
+                                }
+                            ))}
+                        />
+                </Form.Item>
+                <Form.Item label="Annex Description" name="floor_description" rules={[{ required: true, message: "Please input the Annex Description!" }]}>
+                    <Input />
+                </Form.Item>
+                </Form>
             </Modal>
         </div>
     )

@@ -1,11 +1,11 @@
 
 import { ReasonforVisitRecord } from "@/lib/issues-difinitions";
-import { getImpactLevels, getRiskLevel } from "@/lib/queries";
+import { getImpactLevels, getNPImpactLevel, getNPThreatLevel, getRiskLevel } from "@/lib/queries";
 import { getThreatLevel } from "@/lib/query";
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
-import { message } from "antd";
+import { message, Select } from "antd";
 import { useState } from "react";
 
 
@@ -75,11 +75,12 @@ const handleInputChange = (
             [name]: value,
             }));
         };
-    const results = useQueries({
+
+const results = useQueries({
         queries: [
             {
                 queryKey: ["impact-level"],
-                queryFn: () => getImpactLevels(token ?? ""),
+                queryFn: () => getNPImpactLevel(token ?? ""),
             },
             {
                 queryKey: ["risk-level"],
@@ -87,7 +88,7 @@ const handleInputChange = (
             },
             {
                 queryKey: ["threat-level"],
-                queryFn: () => getThreatLevel(token ?? ""),
+                queryFn: () => getNPThreatLevel(token ?? ""),
             },
         ],
     });
@@ -116,6 +117,7 @@ const handleInputChange = (
             threat_level_id: value,
         }));
     };
+
     return (
         <div>
             {contextHolder}
@@ -150,55 +152,43 @@ const handleInputChange = (
                     <div className="space-y-3">
                         <div className="form-group">
                             <label className="text-gray-500 font-bold" htmlFor="impact_level_id">Impact Level:</label>
-                            <select
-                                id="impact_level_id"
-                                name="impact_level_id"
-                                className="h-12 border border-gray-300 rounded-lg px-2 w-full"
+                            <Select
+                                className="h-[3rem] w-full"
+                                showSearch
+                                placeholder="Impact Level"
+                                optionFilterProp="label"
                                 onChange={onImpactLevelChange}
-                                required
-                            >
-                                <option value="" disabled>Select Impact Level</option>
-                                {impactLevelData?.results?.map(impact => (
-                                    <option key={impact.id} value={impact.id}>
-                                        {impact.impact_level}
-                                    </option>
-                                ))}
-                            </select>
+                                options={impactLevelData?.results?.map(impact => ({
+                                    value: impact.id,
+                                    label: impact?.impact_level
+                                }))} />
                         </div>
 
                         <div className="form-group">
                             <label className="text-gray-500 font-bold" htmlFor="risk_level_id">Risk Level:</label>
-                            <select
-                                id="risk_level_id"
-                                name="risk_level_id"
-                                className="h-12 border border-gray-300 rounded-lg px-2 w-full"
+                            <Select
+                                className="h-[3rem] w-full"
+                                showSearch
+                                placeholder="Risk Level"
+                                optionFilterProp="label"
                                 onChange={onriskLevelChange}
-                                required
-                            >
-                                <option value="" disabled>Select Risk Level</option>
-                                {riskLevelData?.results?.map(risk => (
-                                    <option key={risk.id} value={risk.id}>
-                                        {risk.name}
-                                    </option>
-                                ))}
-                            </select>
+                                options={riskLevelData?.results?.map(risk => ({
+                                    value: risk.id,
+                                    label: risk?.risk_severity
+                                }))} />
                         </div>
                         <div className="form-group">
                             <label className="text-gray-500 font-bold" htmlFor="threat_level_id">Threat Level:</label>
-                            <select
-                                id="threat_level_id"
-                                name="threat_level_id"
-                                className="h-12 border border-gray-300 rounded-lg px-2 w-full"
+                            <Select
+                                className="h-[3rem] w-full"
+                                showSearch
+                                placeholder="Threat Level"
+                                optionFilterProp="label"
                                 onChange={onthreatLevelChange}
-                                required
-                            >
-                                <option value="" disabled>Select Threat Level</option>
-                                {threatLevelData?.results?.map(threat => (
-                                    <option key={threat.id} value={threat.id}>
-                                        {threat.threat_level}
-                                    </option>
-                                ))}
-                            </select>
+                                options={threatLevelData?.results?.map(threat => ({
+                                    value: threat.id,
+                                    label: threat?.threat_level
+                                }))} />
                         </div>
                     </div>
                 </div>

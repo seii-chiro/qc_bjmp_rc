@@ -553,7 +553,7 @@ function App() {
                     element: <VisitorReqDocs />
                 },
                 {
-                    path: "visitors/visitor-relationship",
+                    path: "visitors/visitor-relationship-to-pdl",
                     element: <VisitorRelationship />
                 },
                 {

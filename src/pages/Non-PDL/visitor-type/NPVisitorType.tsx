@@ -223,7 +223,7 @@ const NPVisitorType = () => {
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
             const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-            const maxRowsPerPage = 26; 
+            const maxRowsPerPage = 24; 
             let startY = headerHeight;
 
             let allData;

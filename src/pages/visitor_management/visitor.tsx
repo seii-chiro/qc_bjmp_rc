@@ -477,7 +477,7 @@ const { data, isFetching } = useQuery({
     const maxRowsPerPage = 17;
 
     const organizationName = dataSource[0]?.organization || "Bureau of Jail Management and Penology";
-    const PreparedBy = dataSource[0]?.updated || "";
+    const PreparedBy = `${UserData?.first_name || ''} ${UserData?.last_name || ''}`;
     const today = new Date();
     const formattedDate = today.toISOString().split("T")[0];
     const reportReferenceNo = `TAL-${formattedDate}-XXX`;

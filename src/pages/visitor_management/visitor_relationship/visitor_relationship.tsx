@@ -89,30 +89,12 @@ const VisitorRelationship = () => {
             dataIndex: 'relationship_name',
             key: 'relationship_name',
             sorter: (a, b) => a.relationship_name.localeCompare(b.relationship_name),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.relationship_name))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.relationship_name === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.description))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",

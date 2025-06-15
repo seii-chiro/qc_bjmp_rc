@@ -1,7 +1,7 @@
-import { getDetentionCell, deleteDetentionCell, getUser } from "@/lib/queries";
+import { getDetentionCell, deleteDetentionCell, getUser, updateDetentionCell, getDetention_Floor } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Table, Button, message, Modal, Menu, Dropdown } from "antd";
+import { useQuery, useMutation, useQueryClient, useQueries } from "@tanstack/react-query";
+import { Table, Button, message, Modal, Menu, Dropdown, Form, Input, Select } from "antd";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
@@ -28,6 +28,7 @@ const Dorm = () => {
     const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [form] = Form.useForm();
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -63,6 +64,36 @@ const Dorm = () => {
 
     const handleCancel = () => {
         setIsModalOpen(false);
+    };
+    const { mutate: editDorm, isLoading: isUpdating } = useMutation({
+        mutationFn: (updated: DormResponse) =>
+            updateDetentionCell(token ?? "", updated.id, updated),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["dorm"] });
+            messageApi.success("Dorm updated successfully");
+            setIsEditModalOpen(false);
+        },
+        onError: () => {
+            messageApi.error("Failed to update Dorm");
+        },
+    });
+
+    const handleEdit = (record: DormResponse) => {
+        setSelectDorm(record);
+        form.setFieldsValue(record);
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdate = (values: any) => {
+        if (selectDorm && selectDorm.id) {
+            const updatedDorm: DormResponse = {
+                ...selectDorm,
+                ...values,
+            };
+            editDorm(updatedDorm);
+        } else {
+            messageApi.error("Selected Dorm is invalid");
+        }
     };
 
     const dataSource = data?.results?.map((dorm, index) => ({
@@ -110,14 +141,9 @@ const Dorm = () => {
             key: "action",
             render: (_, record) => (
                 <div className="flex gap-2">
-                    <Button
-                        type="link"
-                        icon={<AiOutlineEdit />}
-                        onClick={() => {
-                            setSelectDorm(record);
-                            setIsEditModalOpen(true);
-                        }}
-                    />
+                    <Button type="link" onClick={() => handleEdit(record)}>
+                        <AiOutlineEdit />
+                    </Button>
                     <Button
                         type="link"
                         danger
@@ -245,6 +271,24 @@ const Dorm = () => {
             </Menu.Item>
         </Menu>
     );
+
+    const results = useQueries({
+        queries: [
+            {
+                queryKey: ['annex'],
+                queryFn: () => getDetention_Floor(token ?? "")
+            },
+        ]
+    });
+
+    const detentionFloorData = results[0].data;
+
+    const onFloorChange = (value: number) => {
+        setSelectDorm(prevForm => ({
+            ...prevForm,
+            floor_id: value
+        }));
+    };
     return (
         <div>
             {contextHolder}
@@ -320,15 +364,57 @@ const Dorm = () => {
                 <AddDorm onClose={handleCancel} />
             </Modal>
             <Modal
-                title="Edit Dorm"
-                open={isEditModalOpen}
-                onCancel={() => setIsEditModalOpen(false)}
-                footer={null}
-            >
-                <EditDorm
-                    dorm={selectDorm}
-                    onClose={() => setIsEditModalOpen(false)}
-                />
+                    title="Edit Dorm"
+                    open={isEditModalOpen}
+                    onCancel={() => setIsEditModalOpen(false)}
+                    onOk={() => form.submit()}
+                    confirmLoading={isUpdating}
+                    width="60%"
+                >
+                <Form form={form} layout="vertical" onFinish={handleUpdate}>
+                    <Form.Item
+                    label="Annex"
+                    name="floor"
+                    rules={[{ required: true, message: "Please select a Annex" }]}
+                >
+                    <Select
+                            className="h-[3rem] w-full"
+                            showSearch
+                            placeholder="Annex"
+                            optionFilterProp="label"
+                            onChange={onFloorChange}
+                            options={detentionFloorData?.results?.map(floor => (
+                                {
+                                    value: floor.id,
+                                    label: floor?.floor_name,
+                                }
+                            ))}
+                        />
+                </Form.Item>
+
+                <Form.Item
+                    label="Dorm No"
+                    name="cell_no"
+                    rules={[{ required: true, message: "Please enter the Dorm number" }]}
+                >
+                    <Input type="number" />
+                </Form.Item>
+
+                <Form.Item
+                    label="Dorm Name"
+                    name="cell_name"
+                    rules={[{ required: true, message: "Please enter the Dorm name" }]}
+                >
+                    <Input />
+                </Form.Item>
+
+                <Form.Item
+                    label="Dorm Description"
+                    name="cell_description"
+                >
+                    <Input />
+                </Form.Item>
+                </Form>
             </Modal>
         </div>
     )

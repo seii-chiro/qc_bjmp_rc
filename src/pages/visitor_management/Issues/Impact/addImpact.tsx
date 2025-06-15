@@ -1,11 +1,14 @@
+import { getImpactLevels, getRisks } from "@/lib/queries";
 import { BASE_URL} from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { message } from "antd";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
+import { message, Select } from "antd";
 import { useState } from "react";
 
 type AddImpactProps = {
     name: string;
+    impact_level_id: number;
+    risk_id: number;
     description: string;
 }
 
@@ -15,6 +18,8 @@ const AddImpact = ({ onClose }: { onClose: () => void }) => {
     const queryClient = useQueryClient();
     const [selectImpact, setSelectImpact] = useState<AddImpactProps>({
         name: '',
+        impact_level_id: 0,
+        risk_id: 0,
         description: '',
     });
 
@@ -71,6 +76,35 @@ const AddImpact = ({ onClose }: { onClose: () => void }) => {
             [name]: value,
             }));
         };
+    const results = useQueries({
+        queries: [
+            {
+                queryKey: ["impact-level"],
+                queryFn: () => getImpactLevels(token ?? ""),
+            },
+            {
+                queryKey: ["risk"],
+                queryFn: () => getRisks(token ?? ""),
+            },
+            ],
+        });
+        
+    const ImpactLevelData = results[0].data;
+    const RiskData = results[1].data;
+
+    const onImpactLevelChange = (value: number) => {
+        setSelectImpact(prevForm => ({
+            ...prevForm,
+           impact_level_id: value,
+        }));
+    }; 
+
+    const onRiskLevelChange = (value: number) => {
+        setSelectImpact(prevForm => ({
+            ...prevForm,
+            risk_id: value,
+        }));
+    }; 
 
     return (
         <div>
@@ -80,6 +114,38 @@ const AddImpact = ({ onClose }: { onClose: () => void }) => {
                     <div>
                         <p className="text-gray-500 font-bold">Impact:</p>
                         <input type="text" name="name" id="name" onChange={handleInputChange} placeholder="Impact" className="h-12 border w-full border-gray-300 rounded-lg px-2" />
+                    </div>
+                    <div>
+                        <p className="text-gray-500 font-bold">Risk:</p>
+                        <Select
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Impact Level"
+                        optionFilterProp="label"
+                        onChange={onImpactLevelChange}
+                        options={ImpactLevelData?.results?.map(impact => (
+                            {
+                                value: impact.id,
+                                label: impact?.impact_level
+                            }
+                        ))}
+                    />
+                    </div>
+                    <div>
+                        <p className="text-gray-500 font-bold">Risk:</p>
+                        <Select
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Risk"
+                        optionFilterProp="label"
+                        onChange={onRiskLevelChange}
+                        options={RiskData?.results?.map(risk => (
+                            {
+                                value: risk.id,
+                                label: risk?.name
+                            }
+                        ))}
+                    />
                     </div>
                     <div>
                         <p className="text-gray-500 font-bold">Description:</p>

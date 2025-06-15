@@ -90,30 +90,12 @@ const VisitorType = () => {
             dataIndex: "visitor_type",
             key: "visitor_type",
             sorter: (a, b) => a.visitor_type.localeCompare(b.visitor_type),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.visitor_type))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.visitor_type === value,
         },
         {
             title: "Description",
             dataIndex: "description", 
             key: "description",
             sorter: (a, b) => a.description.localeCompare(b.description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.description))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],  
-            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",

@@ -1,7 +1,7 @@
-import { deleteDetention_Building, getDetention_Building, getUser } from "@/lib/queries";
+import { deleteDetention_Building, getDetention_Building, getJail, getJail_Security_Level, getUser, updateDetention_Building } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Dropdown, Menu, message, Modal } from "antd";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button, Dropdown, Form, Input, Menu, message, Modal, Select } from "antd";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -27,6 +27,7 @@ const Level = () => {
     const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [form] = Form.useForm();
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -63,12 +64,44 @@ const Level = () => {
         setIsModalOpen(false);
     };
 
+ const { mutate: editLevel, isLoading: isUpdating } = useMutation({
+        mutationFn: (updated: LevelReport) =>
+            updateDetention_Building(token ?? "", updated.id, updated),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["level"] });
+            messageApi.success("Level updated successfully");
+            setIsEditModalOpen(false);
+        },
+        onError: () => {
+            messageApi.error("Failed to update Level");
+        },
+    });
+
+    const handleEdit = (record: LevelReport) => {
+        setSelectedLevel(record);
+        form.setFieldsValue(record);
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdate = (values: any) => {
+        if (selectedLevel && selectedLevel.id) {
+            const updatedALevel: LevelReport = {
+                ...selectedLevel,
+                ...values,
+            };
+            editLevel(updatedALevel);
+        } else {
+            messageApi.error("Selected Level is invalid");
+        }
+    };
         const dataSource = data?.results?.map((level, index) => ({
             key: index + 1,
             id: level?.id,
             jail: level?.jail ?? "N/A",
             bldg_name: level?.bldg_name ?? "N/A",
             bldg_status: level?.bldg_status ?? "N/A",
+            bldg_description: level?.bldg_description ?? "N/A",
+            security_level: level?.security_level ?? "N/A",
             organization: level?.organization ?? 'Bureau of Jail Management and Penology',
             updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         })) || [];
@@ -89,60 +122,27 @@ const Level = () => {
                 dataIndex: "jail",
                 key: "jail",
                 sorter: (a, b) => a.jail.localeCompare(b.jail),
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.jail))
-                    ).map(jail => ({
-                        text: jail,
-                        value: jail,
-                    }))
-                ],
-                onFilter: (value, record) => record.jail === value,
             },
             {
                 title: "Level Name",
                 dataIndex: "bldg_name", 
                 key: "bldg_name",
                 sorter: (a, b) => a.bldg_name.localeCompare(b.bldg_name),
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.bldg_name))
-                    ).map(bldg_name => ({
-                        text: bldg_name,
-                        value: bldg_name,
-                    }))
-                ],
-                onFilter: (value, record) => record.bldg_name === value,
             },
             {
                 title: "Level Status",
                 dataIndex: "bldg_status", 
                 key: "bldg_status",
                 sorter: (a, b) => a.bldg_status.localeCompare(b.bldg_status),
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.bldg_status))
-                    ).map(bldg_status => ({
-                        text: bldg_status,
-                        value: bldg_status,
-                    }))
-                ],
-                onFilter: (value, record) => record.bldg_status === value,
             },
             {
                 title: "Actions",
                 key: "actions",
                 render: (_: any, record: LevelReport) => (
                     <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
-                        <Button
-                            type="link"
-                            onClick={() => {
-                                setSelectedLevel(record);
-                                setIsEditModalOpen(true);
-                            }}
-                        >
-                            <AiOutlineEdit />
-                        </Button>
+                    <Button type="link" onClick={() => handleEdit(record)}>
+                        <AiOutlineEdit />
+                    </Button>
                         <Button
                             type="link"
                             danger
@@ -269,6 +269,36 @@ const isSearching = searchText.trim().length > 0;
                 </Menu.Item>
             </Menu>
         );
+
+    const results = useQueries({
+        queries: [
+            {
+                queryKey: ['jail'],
+                queryFn: () => getJail(token ?? "")
+            },
+            {
+                queryKey: ['security-level'],
+                queryFn: () => getJail_Security_Level(token ?? "")
+            },
+        ]
+    });
+
+    const jailData = results[0].data;
+    const securityLevelData = results[1].data;
+
+    const onJailChange = (value: number) => {
+        setSelectedLevel(prevForm => ({
+            ...prevForm,
+            jail_id: value
+        }));
+    };
+
+    const onSecurityLevelChange = (value: number) => {
+        setSelectedLevel(prevForm => ({
+            ...prevForm,
+            security_level_id: value
+        }));
+    };
     return (
         <div>
             {contextHolder}
@@ -343,17 +373,71 @@ const isSearching = searchText.trim().length > 0;
                 >
                 <AddLevel onClose={handleCancel} />
             </Modal>
-                    <Modal
-                        title="Edit Level"
-                        open={isEditModalOpen}
-                        onCancel={() => setIsEditModalOpen(false)}
-                        footer={null}
-                    >
-                        <EditLevel
-                            level={selectedLevel}
-                            onClose={() => setIsEditModalOpen(false)}
+            <Modal
+                title="Edit Level"
+                open={isEditModalOpen}
+                onCancel={() => setIsEditModalOpen(false)}
+                onOk={() => form.submit()}
+                confirmLoading={isUpdating}
+                width="60%"
+                >
+                <Form form={form} layout="vertical" onFinish={handleUpdate}>
+                    <Form.Item
+                    label="Level Name"
+                    name="bldg_name"
+                >
+                    <Input />
+                </Form.Item>
+                    <Form.Item
+                    label="Level Status"
+                    name="bldg_status"
+                >
+                    <Input />
+                </Form.Item>
+                    <Form.Item
+                    label="Level Description"
+                    name="bldg_description"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Jail"
+                    name="jail"
+                >
+                    <Select
+                            className="h-[3rem] w-full"
+                            showSearch
+                            placeholder="Jail"
+                            optionFilterProp="label"
+                            onChange={onJailChange}
+                            options={jailData?.results?.map(jail => (
+                                {
+                                    value: jail.id,
+                                    label: jail?.jail_name,
+                                }
+                            ))}
                         />
-                    </Modal>
+                </Form.Item>
+                <Form.Item
+                    label="Jail Security Level"
+                    name="security_level"
+                >
+                    <Select
+                            className="h-[3rem] w-full"
+                            showSearch
+                            placeholder="Jail Security Level"
+                            optionFilterProp="label"
+                            onChange={onSecurityLevelChange}
+                            options={securityLevelData?.results?.map(securitylevel => (
+                                {
+                                    value: securitylevel.id,
+                                    label: securitylevel?.category_name,
+                                }
+                            ))}
+                        />
+                </Form.Item>
+                </Form>
+            </Modal>
             </div>
         </div>
     )
