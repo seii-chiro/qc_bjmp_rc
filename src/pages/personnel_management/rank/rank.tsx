@@ -91,12 +91,6 @@ const Rank = () => {
                 (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
-            title: 'Organization',
-            dataIndex: 'organization',
-            key: 'organization',
-            sorter: (a, b) => a.organization.localeCompare(b.organization),
-        },
-        {
             title: 'Rank Code',
             dataIndex: 'rank_code',
             key: 'rank_code',
