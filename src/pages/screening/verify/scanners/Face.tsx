@@ -232,7 +232,8 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
     mutationFn: verifyFaceInWatchlist,
     onSuccess: (data) => {
       message.warning({
-        content: `Watchlist: ${data['message']}`,
+        // content: `Watchlist: ${data['message']}`,
+        content: `This person is found in the Watchlist Database!`,
         duration: 20
       });
       setWatchlistData(data?.data)

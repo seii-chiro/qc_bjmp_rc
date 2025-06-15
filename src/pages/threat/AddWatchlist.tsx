@@ -110,6 +110,14 @@ const AddWatchlist = () => {
 
     const enrollFaceMutation = useMutation({
         mutationKey: ['enroll-face-mutation', 'threats'],
+        onMutate: () => {
+            message.open({
+                key: 'add-watchlist-person-mutation',
+                type: "loading",
+                content: "Enrolling facial biometric...",
+                duration: 0
+            })
+        },
         mutationFn: (id: number) => enrollBiometrics({ ...enrollFormFace, person: id }),
         onSuccess: () => message.success('Successfully enrolled Face'),
         onError: (err) => message.error(err.message)
@@ -118,6 +126,14 @@ const AddWatchlist = () => {
     const personMutation = useMutation({
         mutationKey: ['addPerson', 'threats'],
         mutationFn: () => postPerson(token ?? "", personForm),
+        onMutate: () => {
+            message.open({
+                key: 'add-watchlist-person-mutation',
+                type: "loading",
+                content: "Saving person information...",
+                duration: 0
+            })
+        },
         onSuccess: (data) => {
             setWatchlistForm(prev => ({ ...prev, person_id: data.id }));
             message.success("Person added successfully");
@@ -135,8 +151,21 @@ const AddWatchlist = () => {
     const watchlistPersonMutation = useMutation({
         mutationKey: ['addWatchlistPerson', 'threats'],
         mutationFn: (data: WatchlistForm) => postWatchlistPerson(token ?? "", data),
+        onMutate: () => {
+            message.open({
+                key: 'add-watchlist-person-mutation',
+                type: "loading",
+                content: "Saving records to watchlist database...",
+                duration: 0
+            })
+        },
         onSuccess: () => {
-            message.success("Person added to watchlist successfully")
+            message.open({
+                key: 'add-watchlist-person-mutation',
+                type: "success",
+                content: "Successfully added person information to watchlist database.",
+                duration: 3
+            })
         },
         onError: (error) => {
             message.error(error.message)

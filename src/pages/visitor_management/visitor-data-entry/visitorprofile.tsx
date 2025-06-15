@@ -18,6 +18,7 @@ import { useTokenStore } from "@/store/useTokenStore";
 import { useSystemSettingsStore } from "@/store/useSystemSettingStore";
 import { EnrolledBiometrics } from "../edit-visitor/EditVisitor";
 import WatchlistMatchAlert from "./WatchlistMatchAlert";
+import { PiShieldWarningFill } from "react-icons/pi";
 
 type Props = {
     setEnrolledBiometrics?: Dispatch<SetStateAction<EnrolledBiometrics>>;
@@ -624,12 +625,18 @@ const VisitorProfile = ({
         mutationFn: verifyFace,
         onSuccess: (data) => {
             setFaceVerificationResponse(data);
-            message.info("Match Found");
+            message.info({
+                content: "Facial Biometric Match Found in Biometric Database!",
+                duration: 5
+            });
         },
         onError: (error) => {
             console.error("Biometric enrollment failed:", error);
             setFaceVerificationResponse({ message: "No Matches Found.", data: [] });
-            message.info(error?.message);
+            message.info({
+                content: `Facial Biometric ${error?.message} in Person Biometric Database!`,
+                duration: 5
+            });
         },
     });
 
@@ -638,8 +645,8 @@ const VisitorProfile = ({
         mutationFn: verifyFaceInWatchlist,
         onSuccess: (data) => {
             message.warning({
-                content: `Watchlist: ${data['message']}`,
-                // content: `This Person is Found in the Watchlist Database!`,
+                // content: `Watchlist: ${data['message']}`,
+                content: `This person is found in the Watchlist Database!`,
                 duration: 30
             });
             setWatchlistData(data?.data)
@@ -647,7 +654,11 @@ const VisitorProfile = ({
             setIsInWatchlist(true)
         },
         onError: (error) => {
-            message.info(`Watchlist: ${error?.message}`);
+            // message.info(`Watchlist: ${error?.message}`);
+            message.info({
+                content: `${error?.message} in Watchlist Database!`,
+                duration: 5
+            });
         },
     });
 
@@ -1463,6 +1474,19 @@ const VisitorProfile = ({
                                             <RiFullscreenLine className="text-2xl hover:scale-125 transition-all ease-in-out hover:text-blue-500" />
                                         </button>
                                     </div>
+                                    {
+                                        isInWatchlist && (
+                                            <button
+                                                onClick={() => setIsWatchlistMatchModalOpen(true)}
+                                                className="absolute bottom-3 right-2"
+                                            >
+                                                <PiShieldWarningFill
+                                                    size={22}
+                                                    fill="orange"
+                                                />
+                                            </button>
+                                        )
+                                    }
                                 </div>
                             </div>
 

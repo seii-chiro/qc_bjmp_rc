@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { SOCIAL_MEDIA_PLATFORMS } from "@/lib/urls";
@@ -16,6 +16,7 @@ const AddPlatform = ({ onClose }: { onClose: () => void }) => {
         platform_name: '',
         description: '',
     });
+    const queryClient = useQueryClient();
 
     async function AddPlatform(platform: AddPlatform) {
         const res = await fetch(SOCIAL_MEDIA_PLATFORMS.getSOCIALMEDIAPLATFORMS, {
@@ -26,10 +27,10 @@ const AddPlatform = ({ onClose }: { onClose: () => void }) => {
             },
             body: JSON.stringify(platform),
         });
-    
+
         if (!res.ok) {
             let errorMessage = "Error Adding Social Media Platform";
-    
+
             try {
                 const errorData = await res.json();
                 errorMessage =
@@ -39,10 +40,10 @@ const AddPlatform = ({ onClose }: { onClose: () => void }) => {
             } catch {
                 errorMessage = "Unexpected error occurred";
             }
-    
+
             throw new Error(errorMessage);
         }
-    
+
         return res.json();
     }
 
@@ -52,6 +53,7 @@ const AddPlatform = ({ onClose }: { onClose: () => void }) => {
         onSuccess: (data) => {
             console.log(data);
             messageApi.success("Added successfully");
+            queryClient.invalidateQueries({ queryKey: ["social-media-platform"] });
             onClose();
         },
         onError: (error) => {
@@ -87,7 +89,7 @@ const AddPlatform = ({ onClose }: { onClose: () => void }) => {
                             <p>Description:</p>
                             <input type="text" name="description" id="description" onChange={handleInputChange} placeholder="Description" className="w-full h-12 border border-gray-300 rounded-lg px-2" />
                         </div>
-                        
+
                     </div>
                 </div>
 

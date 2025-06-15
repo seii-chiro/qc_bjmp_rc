@@ -31,7 +31,7 @@ const MapLayerChanger = ({ mapLayerChangeHandler, setmapLayerURL }: MapLayerChan
                 }}
                 className={clsx('p-1 rounded-lg w-28 text-sm font-bold', activeButton === "googlemap" ? 'bg-white' : '')}
             >
-                Google Map
+                Street Map
             </button>
         </div>
     )
