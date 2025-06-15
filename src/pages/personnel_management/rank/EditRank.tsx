@@ -41,17 +41,17 @@ const EditRank = ({ rank, onClose }: { rank: any; onClose: () => void }) => {
         },
     });
 
-    const results = useQueries({
-        queries: [
-            {
-                queryKey: ['organization'],
-                queryFn: () => getOrganization(token ?? "")
-            },
-        ]
-    });
+    // const results = useQueries({
+    //     queries: [
+    //         {
+    //             queryKey: ['organization'],
+    //             queryFn: () => getOrganization(token ?? "")
+    //         },
+    //     ]
+    // });
 
-    const organizationData = results[0].data;
-    const organizationLoading = results[0].isLoading;
+    // const organizationData = results[0].data;
+    // const organizationLoading = results[0].isLoading;
 
     useEffect(() => {
         if (rank) {
@@ -77,12 +77,12 @@ const EditRank = ({ rank, onClose }: { rank: any; onClose: () => void }) => {
         updateMutation.mutate({ ...rankForm, ...values });
     };
     
-    const onOrganizationChange = (value: number) => {
-        setRankForm(prevForm => ({
-            ...prevForm,
-            organization_id: value
-        }));
-    };
+    // const onOrganizationChange = (value: number) => {
+    //     setRankForm(prevForm => ({
+    //         ...prevForm,
+    //         organization_id: value
+    //     }));
+    // };
     const onRankCategoryChange = (value: string) => {
         setRankForm(prevForm => ({
             ...prevForm,
@@ -105,7 +105,7 @@ const EditRank = ({ rank, onClose }: { rank: any; onClose: () => void }) => {
                 layout="vertical"
                 onFinish={handleOrganizationSubmit}
             >
-                <Form.Item
+                {/* <Form.Item
                     label="Organization"
                     name="organization"
                 >
@@ -120,7 +120,7 @@ const EditRank = ({ rank, onClose }: { rank: any; onClose: () => void }) => {
                             value: organization.id,
                             label: organization?.org_name
                         }))}/>
-                </Form.Item>
+                </Form.Item> */}
                 <Form.Item
                     label="Rank Code"
                     name="rank_code"

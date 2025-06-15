@@ -1,11 +1,11 @@
-import { getPosition, deletePosition, getUser } from "@/lib/queries"
+import { getPosition, deletePosition, getUser, updatePosition, getRank, getOrganization } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore"
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Button, Dropdown, Menu, message, Modal, Table } from "antd"
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Button, Dropdown, Form, Input, Menu, message, Modal, Select, Table } from "antd"
 import { useState } from "react";
 import { ColumnsType } from "antd/es/table";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
@@ -30,6 +30,7 @@ type Position = {
 const Position = () => {
     const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
+    const [form] = Form.useForm();
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -66,19 +67,48 @@ const Position = () => {
     
     const handleCancel = () => {
         setIsModalOpen(false);
-        };
+    };
 
+    const { mutate: editPosition, isLoading: isUpdating } = useMutation({
+        mutationFn: (updated: Position) =>
+            updatePosition(token ?? "", updated.id, updated),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["position"] });
+            messageApi.success("Position updated successfully");
+            setIsEditModalOpen(false);
+        },
+        onError: () => {
+            messageApi.error("Failed to update Position");
+        },
+    });
+    const handleEdit = (record: Position) => {
+        setPosition(record);
+        form.setFieldsValue(record);
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdate = (values: any) => {
+        if (position && position.id) {
+            const updatedPosition: Position = {
+                ...position,
+                ...values,
+            };
+            editPosition(updatedPosition);
+        } else {
+            messageApi.error("Selected Position is invalid");
+        }
+    };
     const dataSource = data?.results?.map((position, index) => (
         {
             key: index + 1,
             id: position?.id,
-            position_code: position?.position_code ?? 'N/A',
-            position_title: position?.position_title ?? 'N/A',
-            position_level: position?.position_level ?? 'N/A',
-            position_type: position?.position_type ?? 'N/A',
-            organization: position?.organization ?? 'N/A',
+            position_code: position?.position_code ?? '',
+            position_title: position?.position_title ?? '',
+            position_level: position?.position_level ?? '',
+            position_type: position?.position_type ?? '',
+            organization: position?.organization ?? '',
             updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-            is_active: position?.is_active ?? 'N/A',
+            is_active: position?.is_active ?? '',
         }
     )) || [];
 
@@ -142,13 +172,7 @@ const Position = () => {
             align: "center",
             render: (_: any, record: Position) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
-                    <Button
-                        type="link"
-                        onClick={() => {
-                            setPosition(record);
-                            setIsEditModalOpen(true);
-                        }}
-                    >
+                    <Button type="link" onClick={() => handleEdit(record)}>
                         <AiOutlineEdit />
                     </Button>
                     <Button
@@ -278,6 +302,24 @@ const Position = () => {
             </Menu.Item>
         </Menu>
     );
+
+    const results = useQueries({
+        queries: [
+            {
+                queryKey: ['organization'],
+                queryFn: () => getOrganization(token ?? "")
+            },
+        ]
+    });
+
+    const organizationData = results[0].data;
+
+    const onOrganizationChange = (value: number) => {
+        setPosition(prevForm => ({
+            ...prevForm,
+            organization_id: value
+        }));
+    };
     return (
         <div>
             {contextHolder}
@@ -358,12 +400,53 @@ const Position = () => {
                 title="Edit Position"
                 open={isEditModalOpen}
                 onCancel={() => setIsEditModalOpen(false)}
-                footer={null}
+                onOk={() => form.submit()}
+                confirmLoading={isUpdating}
             >
-                <EditPosition
-                    position={position}
-                    onClose={() => setIsEditModalOpen(false)}
-                />
+                <Form form={form} layout="vertical" onFinish={handleUpdate}>
+                    <Form.Item
+                    label="Position Code"
+                    name="position_code"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Position Title"
+                    name="position_title"
+                >
+                    <Input />
+                </Form.Item>
+
+                <Form.Item
+                    label="Position Level"
+                    name="position_level"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Position Type"
+                    name="position_type"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Organization"
+                    name="organization"
+                >
+                    <Select 
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Organization"
+                        optionFilterProp="label"
+                        onChange={onOrganizationChange}
+                        options={organizationData?.results?.map(organization => (
+                            {
+                                value: organization.id,
+                                label: organization?.org_name
+                            }
+                        ))}/>
+                </Form.Item>
+                </Form>
             </Modal>
         </div>
     )

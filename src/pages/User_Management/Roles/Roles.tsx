@@ -481,21 +481,23 @@ const handleExportPDF = async () => {
     //         permissions: value,
     //     }));
     // }; 
-    const onPermissionChange = (value) => {
-        if (value.includes('all')) {
-            const allPermissions = PermissionData?.results?.map(permission => permission.id);
-            setRoles(prevForm => ({
-                ...prevForm,
-                permissions: allPermissions,
-            }));
-        } else {
-            const newPermissions = value.filter(val => val !== 'all');
-            setRoles(prevForm => ({
-                ...prevForm,
-                permissions: newPermissions,
-            }));
-        }
-    };
+const onPermissionChange = (values: (string | number)[]) => {
+  const allPermissionIds = PermissionData?.results?.map(permission => permission.id) || [];
+
+  if (values.includes('all')) {
+    form.setFieldValue('permissions', allPermissionIds);
+    setRoles(prev => ({ ...prev, permissions: allPermissionIds }));
+  } else if (values.includes('none')) {
+    form.setFieldValue('permissions', []);
+    setRoles(prev => ({ ...prev, permissions: [] }));
+  } else {
+    const filtered = values.filter(val => val !== 'all' && val !== 'none');
+    form.setFieldValue('permissions', filtered);
+    setRoles(prev => ({ ...prev, permissions: filtered }));
+  }
+};
+
+
     return (
         <div>
             {contextHolder}
@@ -599,39 +601,43 @@ const handleExportPDF = async () => {
                     <h1>Permissions:</h1>
                     <Form.Item
                     name="permissions"
-                    className="h-96 overflow-scroll "
-                >
-                {/* <Select
+                    className="h-96 overflow-scroll"
+                    >
+                    <Select
                         className="py-4 w-full"
                         showSearch
                         mode="multiple"
                         placeholder="Permissions"
                         optionFilterProp="label"
                         onChange={onPermissionChange}
-                        options={PermissionData?.results?.map(permission => ({
-                            value: permission.id, 
-                            label: permission.name
-                        }))} /> */}
-                <Select
-                    className="py-4 w-full"
-                    showSearch
-                    mode="multiple"
-                    placeholder="Permissions"
-                    optionFilterProp="label"
-                    onChange={onPermissionChange}
-                    value={roles?.permissions}
-                >    
-                <Select.Option key="all" value="all">
-                        Select All
-                    </Select.Option>
-                    {PermissionData?.results?.map(permission => (
+                        value={(() => {
+                        const formValue = form.getFieldValue('permissions') || [];
+                        const allPermissionIds = PermissionData?.results?.map(p => p.id) || [];
+
+                        if (
+                            allPermissionIds.length > 0 &&
+                            formValue.length === allPermissionIds.length &&
+                            allPermissionIds.every(id => formValue.includes(id))
+                        ) {
+                            return ['all', ...formValue];
+                        }
+
+                        return formValue.filter(val => val !== 'all' && val !== 'none');
+                        })()}
+                    >
+                        <Select.Option key="all" value="all">
+                            Select All
+                        </Select.Option>
+                        <Select.Option key="none" value="none">
+                            Unselect All
+                        </Select.Option>
+                        {PermissionData?.results?.map(permission => (
                         <Select.Option key={permission.id} value={permission.id}>
                             {permission.name}
                         </Select.Option>
-                    ))}
-
-                </Select>
-                </Form.Item>
+                        ))}
+                    </Select>
+                    </Form.Item>
                 </Form>
             </Modal>
         </div>

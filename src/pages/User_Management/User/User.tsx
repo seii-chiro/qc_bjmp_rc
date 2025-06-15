@@ -157,69 +157,80 @@ const Users = () => {
         }
     };
 
-  const dataSource = data?.results?.map((user, index) => ({
-    key: index + 1,
-    id: user?.id,
-    email: user?.email ?? "",
-    first_name: user?.first_name ?? "",
-    last_name: user?.last_name ?? "",
-    groups: user?.groups,
-  })) || [];
+    const dataSource = data?.results?.map((user, index) => ({
+        key: index + 1,
+        id: user?.id,
+        email: user?.email ?? "",
+        first_name: user?.first_name ?? "",
+        last_name: user?.last_name ?? "",
+        groups: user?.groups,
+    }))
 
-  const columns: ColumnsType<UsersProps> = [
-      {
+    const columns: ColumnsType<UsersProps> = [
+        {
             title: 'No.',
             key: 'no',
             render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
             width: 100,
+            },
+            {
+            title: 'Email',
+            dataIndex: 'email',
+            key: 'email',
+            sorter: (a, b) => a.email.localeCompare(b.email),
+            defaultSortOrder: 'descend',
+            sortDirections: ['descend', 'ascend'],
+            },
+            {
+            title: 'First Name',
+            dataIndex: 'first_name',
+            key: 'first_name',
+            sorter: (a, b) => a.first_name.localeCompare(b.first_name),
+            defaultSortOrder: 'descend', // 👈 Descending by default
+            sortDirections: ['descend', 'ascend'],
+            width: 200,
+            },
+        {
+        title: 'Last Name',
+        dataIndex: 'last_name',
+        key: 'last_name',
+        sorter: (a, b) => a.last_name.localeCompare(b.last_name),
+        width: 200
         },
-    {
-      title: 'Email',
-      dataIndex: 'email',
-      key: 'email',
-      sorter: (a, b) => a.email.localeCompare(b.email),
-    },
-    {
-      title: 'First Name',
-      dataIndex: 'first_name',
-      key: 'first_name',
-      sorter: (a, b) => a.first_name.localeCompare(b.first_name),
-      width: 200
-    },
-    {
-      title: 'Last Name',
-      dataIndex: 'last_name',
-      key: 'last_name',
-      sorter: (a, b) => a.last_name.localeCompare(b.last_name),
-      width: 200
-    },
-    {
-      title: "Groups",
-      dataIndex: "groups",
-      key: "groups",
-      render: (groups: string[]) => groups?.join(", "),
-      width: 800
-    },
-    {
-      title: "Action",
-      key: "action",
-      fixed: 'right',
-      render: (_, record) => (
-          <div className="flex gap-2">
-              <Button type="link" onClick={() => handleEdit(record)}>
-                  <AiOutlineEdit />
-              </Button>
-              <Button
-                type="link"
-                danger
-                onClick={() => deleteMutation.mutate(record.id)}
-              >
-                <AiOutlineDelete />
-            </Button>
-          </div>
-      ),
-    },
-  ];
+        {
+        title: "Groups",
+        dataIndex: "groups",
+        key: "groups",
+        render: (groups: string[]) => groups?.join(", "),
+        width: 800,
+        sorter: (a, b) => {
+            const aText = a.groups?.join(', ') || '';
+            const bText = b.groups?.join(', ') || '';
+            return aText.localeCompare(bText);
+        },
+        defaultSortOrder: 'descend', // 👈 optional: newest group values at top
+        sortDirections: ['descend', 'ascend'],
+        },
+        {
+        title: "Action",
+        key: "action",
+        fixed: 'right',
+        render: (_, record) => (
+            <div className="flex gap-2">
+                <Button type="link" onClick={() => handleEdit(record)}>
+                    <AiOutlineEdit />
+                </Button>
+                <Button
+                    type="link"
+                    danger
+                    onClick={() => deleteMutation.mutate(record.id)}
+                >
+                    <AiOutlineDelete />
+                </Button>
+            </div>
+        ),
+        },
+    ];
 
     const fetchAllUsers = async () => {
         const res = await fetch(`${BASE_URL}/api/user/users/?limit=10000`, {
@@ -232,119 +243,119 @@ const Users = () => {
         return await res.json();
     };
 
-  const handleExportPDF = async () => {
-      setIsLoading(true);
-      setLoadingMessage("Generating PDF... Please wait.");
-      
-      try {
-          const doc = new jsPDF('landscape');
-          const headerHeight = 48;
-          const footerHeight = 32;
-          const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
-          const PreparedBy = `${UserData?.first_name || ''} ${UserData?.last_name || ''}`;
-          const today = new Date();
-          const formattedDate = today.toISOString().split('T')[0];
-          const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-          const maxRowsPerPage = 16; 
-          let startY = headerHeight;
+    const handleExportPDF = async () => {
+        setIsLoading(true);
+        setLoadingMessage("Generating PDF... Please wait.");
+        
+        try {
+            const doc = new jsPDF('landscape');
+            const headerHeight = 48;
+            const footerHeight = 32;
+            const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+            const PreparedBy = `${UserData?.first_name || ''} ${UserData?.last_name || ''}`;
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+            const maxRowsPerPage = 16; 
+            let startY = headerHeight;
 
-          let allData;
-          if (searchText.trim() === '') {
-              allData = await fetchAllUsers();
-          } else {
-              allData = await fetchUsers(searchText.trim());
-          }
-          
-          const allResults = allData?.results || [];
-          const printSource = allResults.map((user, index) => ({
-              key: index + 1,
-              id: user?.id,
-              email: user?.email ?? "N/A",
-              first_name: user?.first_name ?? "N/A",
-              last_name: user?.last_name ?? "N/A",
-              groups: user?.groups,
-          }));
+            let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllUsers();
+            } else {
+                allData = await fetchUsers(searchText.trim());
+            }
+            
+            const allResults = allData?.results || [];
+            const printSource = allResults.map((user, index) => ({
+                key: index + 1,
+                id: user?.id,
+                email: user?.email ?? "N/A",
+                first_name: user?.first_name ?? "N/A",
+                last_name: user?.last_name ?? "N/A",
+                groups: user?.groups,
+            }));
 
-          const addHeader = () => {
-              const pageWidth = doc.internal.pageSize.getWidth(); 
-              const imageWidth = 30;
-              const imageHeight = 30; 
-              const margin = 10; 
-              const imageX = pageWidth - imageWidth - margin;
-              const imageY = 12;
+            const addHeader = () => {
+                const pageWidth = doc.internal.pageSize.getWidth(); 
+                const imageWidth = 30;
+                const imageHeight = 30; 
+                const margin = 10; 
+                const imageX = pageWidth - imageWidth - margin;
+                const imageY = 12;
 
-              doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-              doc.setTextColor(0, 102, 204);
-              doc.setFontSize(16);
-              doc.text("Users Report", 10, 15); 
-              doc.setTextColor(0, 0, 0);
-              doc.setFontSize(10);
-              doc.text(`Organization Name: ${organizationName}`, 10, 25);
-              doc.text("Report Date: " + formattedDate, 10, 30);
-              doc.text("Prepared By: " + PreparedBy, 10, 35);
-              doc.text("Department/ Unit: IT", 10, 40);
-              doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
-          };
+                doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
+                doc.setTextColor(0, 102, 204);
+                doc.setFontSize(16);
+                doc.text("Users Report", 10, 15); 
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(10);
+                doc.text(`Organization Name: ${organizationName}`, 10, 25);
+                doc.text("Report Date: " + formattedDate, 10, 30);
+                doc.text("Prepared By: " + PreparedBy, 10, 35);
+                doc.text("Department/ Unit: IT", 10, 40);
+                doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
+            };
 
-          addHeader(); 
-          const tableData = printSource.map((item, idx) => [
-              idx + 1,
-              item.email || '',
-              item.first_name || '',
-              item.last_name || '',
-          ]);
+            addHeader(); 
+            const tableData = printSource.map((item, idx) => [
+                idx + 1,
+                item.email || '',
+                item.first_name || '',
+                item.last_name || '',
+            ]);
 
-          for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
-              const pageData = tableData.slice(i, i + maxRowsPerPage);
-      
-              autoTable(doc, { 
-                  head: [['No.', 'Email', 'First Name', 'Last Name']],
-                  body: pageData,
-                  startY: startY,
-                  margin: { top: 0, left: 10, right: 10 },
-                  styles: {
-                      fontSize: 10,
-                  },
-                  didDrawPage: function (data) {
-                      if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                          addHeader(); 
-                      }
-                  },
-              });
-      
-              if (i + maxRowsPerPage < tableData.length) {
-                  doc.addPage();
-                  startY = headerHeight;
-              }
-          }
-      
-          const pageCount = doc.internal.getNumberOfPages();
-          for (let page = 1; page <= pageCount; page++) {
-              doc.setPage(page);
-              const footerText = [
-                  "Document Version: Version 1.0",
-                  "Confidentiality Level: Internal use only",
-                  "Contact Info: " + PreparedBy,
-                  `Timestamp of Last Update: ${formattedDate}`
-              ].join('\n');
-              const footerX = 10;
-              const footerY = doc.internal.pageSize.height - footerHeight + 15;
-              const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
-              doc.setFontSize(8);
-              doc.text(footerText, footerX, footerY);
-              doc.text(`${page} / ${pageCount}`, pageX, footerY);
-          }
-      
-          const pdfOutput = doc.output('datauristring');
-          setPdfDataUrl(pdfOutput);
-          setIsPdfModalOpen(true);
-      } catch (error) {
-          console.error("Error generating PDF:", error);
-          alert("An error occurred while generating the PDF. Please try again.");
-      } finally {
-          setIsLoading(false);
-      }
-  };
+            for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
+                const pageData = tableData.slice(i, i + maxRowsPerPage);
+        
+                autoTable(doc, { 
+                    head: [['No.', 'Email', 'First Name', 'Last Name']],
+                    body: pageData,
+                    startY: startY,
+                    margin: { top: 0, left: 10, right: 10 },
+                    styles: {
+                        fontSize: 10,
+                    },
+                    didDrawPage: function (data) {
+                        if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+                            addHeader(); 
+                        }
+                    },
+                });
+        
+                if (i + maxRowsPerPage < tableData.length) {
+                    doc.addPage();
+                    startY = headerHeight;
+                }
+            }
+        
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let page = 1; page <= pageCount; page++) {
+                doc.setPage(page);
+                const footerText = [
+                    "Document Version: Version 1.0",
+                    "Confidentiality Level: Internal use only",
+                    "Contact Info: " + PreparedBy,
+                    `Timestamp of Last Update: ${formattedDate}`
+                ].join('\n');
+                const footerX = 10;
+                const footerY = doc.internal.pageSize.height - footerHeight + 15;
+                const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+                doc.setFontSize(8);
+                doc.text(footerText, footerX, footerY);
+                doc.text(`${page} / ${pageCount}`, pageX, footerY);
+            }
+        
+            const pdfOutput = doc.output('datauristring');
+            setPdfDataUrl(pdfOutput);
+            setIsPdfModalOpen(true);
+        } catch (error) {
+            console.error("Error generating PDF:", error);
+            alert("An error occurred while generating the PDF. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
 const handleClosePdfModal = () => {
     setIsPdfModalOpen(false);
@@ -387,22 +398,22 @@ const handleClosePdfModal = () => {
 
         const handleExportCSV = async () => {
         try {
-            let allData;
-          if (searchText.trim() === '') {
-              allData = await fetchAllUsers();
-          } else {
-              allData = await fetchUsers(searchText.trim());
-          }
-          
-          const allResults = allData?.results || [];
-          const printSource = allResults.map((user, index) => ({
-              key: index + 1,
-              id: user?.id,
-              email: user?.email ?? "N/A",
-              first_name: user?.first_name ?? "N/A",
-              last_name: user?.last_name ?? "N/A",
-              groups: user?.groups,
-          }));
+                let allData;
+            if (searchText.trim() === '') {
+                allData = await fetchAllUsers();
+            } else {
+                allData = await fetchUsers(searchText.trim());
+            }
+            
+            const allResults = allData?.results || [];
+            const printSource = allResults.map((user, index) => ({
+                key: index + 1,
+                id: user?.id,
+                email: user?.email ?? "N/A",
+                first_name: user?.first_name ?? "N/A",
+                last_name: user?.last_name ?? "N/A",
+                groups: user?.groups,
+            }));
 
         const exportData = printSource.map((user, index) => {
             return {
@@ -457,29 +468,49 @@ const handleClosePdfModal = () => {
 
     const groupRoleData = results[0].data;
 
-    // const onGroupRoleChange = (values: string[]) => {
-    //     setSelectedUser(prevForm => ({
-    //         ...prevForm,
-    //         groups: values,
-    //     }));
-    // }; 
+// const onGroupRoleChange = (values: string[]) => {
+//     const allGroupNames = groupRoleData?.results?.map(group => group.name) || [];
+    
+//     if (values.includes('all')) {
+//         form.setFieldValue('groups', allGroupNames);
+//         setSelectedUser(prevUser => ({
+//             ...prevUser,
+//             groups: allGroupNames,
+//         }));
+//     } else {
+//         const individualSelections = values.filter(val => val !== 'all');
+//         form.setFieldValue('groups', individualSelections);
+//         setSelectedUser(prevUser => ({
+//             ...prevUser,
+//             groups: individualSelections,
+//         }));
+//     }
+// };
 
     const onGroupRoleChange = (values: string[]) => {
-    // Check if "all" is selected
+    const allGroupNames = groupRoleData?.results?.map(group => group.name) || [];
+
     if (values.includes('all')) {
-        const allGroups = groupRoleData?.results?.map(group => group.name);
-        setSelectedUser(prevForm => ({
-            ...prevForm,
-            groups: allGroups,
+        form.setFieldValue('groups', allGroupNames);
+        setSelectedUser(prevUser => ({
+        ...prevUser,
+        groups: allGroupNames,
+        }));
+    } else if (values.includes('none')) {
+        form.setFieldValue('groups', []);
+        setSelectedUser(prevUser => ({
+        ...prevUser,
+        groups: [],
         }));
     } else {
-        const newGroups = values.filter(val => val !== 'all');
-        setSelectedUser(prevForm => ({
-            ...prevForm,
-            groups: newGroups,
+        form.setFieldValue('groups', values);
+        setSelectedUser(prevUser => ({
+        ...prevUser,
+        groups: values,
         }));
     }
-};
+    };
+
 
     const totalRecords = debouncedSearch 
     ? data?.count || 0
@@ -603,10 +634,10 @@ const handleClosePdfModal = () => {
                     >
                         <Input />
                     </Form.Item>
-                    <Form.Item
+                        <Form.Item
                         name="groups"
                         label="Groups"
-                >
+                        >
                         <Select
                             className="py-4 w-full"
                             showSearch
@@ -614,19 +645,34 @@ const handleClosePdfModal = () => {
                             placeholder="Groups"
                             optionFilterProp="label"
                             onChange={onGroupRoleChange}
-                            value={selectedUser?.groups} 
+                            value={(() => {
+                            const formValue = form.getFieldValue('groups') || [];
+                            const allGroupNames = groupRoleData?.results?.map(group => group.name) || [];
+
+                            if (
+                                allGroupNames.length > 0 &&
+                                formValue.length === allGroupNames.length &&
+                                allGroupNames.every(group => formValue.includes(group))
+                            ) {
+                                return ['all', ...formValue];
+                            }
+
+                            return formValue.filter(val => val !== 'all' && val !== 'none');
+                            })()}
                         >
                             <Select.Option key="all" value="all">
-                                Select All
+                            Select All
+                            </Select.Option>
+                            <Select.Option key="none" value="none">
+                            Unselect All
                             </Select.Option>
                             {groupRoleData?.results?.map(group => (
-                                <Select.Option key={group.name} value={group.name}>
-                                    {group.name}
-                                </Select.Option>
+                            <Select.Option key={group.name} value={group.name}>
+                                {group.name}
+                            </Select.Option>
                             ))}
-
                         </Select>
-                </Form.Item>
+                        </Form.Item>
                 </Form>
                 </Modal>
                     <Modal
