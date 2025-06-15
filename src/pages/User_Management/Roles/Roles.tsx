@@ -483,7 +483,7 @@ const handleExportPDF = async () => {
     // }; 
     const onPermissionChange = (value) => {
         if (value.includes('all')) {
-            const allPermissions = PermissionData.results.map(permission => permission.id);
+            const allPermissions = PermissionData?.results?.map(permission => permission.id);
             setRoles(prevForm => ({
                 ...prevForm,
                 permissions: allPermissions,

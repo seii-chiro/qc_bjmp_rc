@@ -467,13 +467,12 @@ const handleClosePdfModal = () => {
     const onGroupRoleChange = (values: string[]) => {
     // Check if "all" is selected
     if (values.includes('all')) {
-        const allGroups = groupRoleData.results.map(group => group.name);
+        const allGroups = groupRoleData?.results?.map(group => group.name);
         setSelectedUser(prevForm => ({
             ...prevForm,
             groups: allGroups,
         }));
     } else {
-        // Remove "all" if it was previously selected
         const newGroups = values.filter(val => val !== 'all');
         setSelectedUser(prevForm => ({
             ...prevForm,
@@ -487,162 +486,162 @@ const handleClosePdfModal = () => {
     : data?.count || 0;
 
     const mapUsers = (user, index) => ({
-              key: index + 1,
-              id: user?.id,
-              email: user?.email ?? "N/A",
-              first_name: user?.first_name ?? "N/A",
-              last_name: user?.last_name ?? "N/A",
-              groups: user?.groups,
-          });
+        key: index + 1,
+        id: user?.id,
+        email: user?.email ?? "N/A",
+        first_name: user?.first_name ?? "N/A",
+        last_name: user?.last_name ?? "N/A",
+        groups: user?.groups,
+    });
 
-  return (
-    <div>
-      {contextHolder}
-      <h1 className="text-2xl font-bold text-[#1E365D]">User</h1>
-      <div className="flex items-center justify-between my-4">
-        <div className="flex gap-2">
-                    <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-                        <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
-                            {isLoading ? <span className="loader"></span> : <GoDownload />}
-                            {isLoading ? ' Loading...' : ' Export'}
-                        </a>
-                    </Dropdown>
-                    <button 
-                        className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
-                        onClick={handleExportPDF} 
-                        disabled={isLoading}
-                    >
-                        {isLoading ? loadingMessage : 'PDF Report'}
-                    </button>
-                </div>
-        <div className="flex gap-2 items-center">
-          <Input
-              placeholder="Search..."
-              value={searchText}
-              className="py-2 md:w-64 w-full"
-              onChange={(e) => setSearchText(e.target.value)}
-          />
-          <button
-              className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center"
-              onClick={showModal}
-          >
-              <GoPlus />
-              Add User
-          </button>
+    return (
+        <div>
+        {contextHolder}
+        <h1 className="text-2xl font-bold text-[#1E365D]">User</h1>
+        <div className="flex items-center justify-between my-4">
+            <div className="flex gap-2">
+                <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
+                    <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
+                        {isLoading ? <span className="loader"></span> : <GoDownload />}
+                        {isLoading ? ' Loading...' : ' Export'}
+                    </a>
+                </Dropdown>
+                <button 
+                    className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                    onClick={handleExportPDF} 
+                    disabled={isLoading}
+                >
+                    {isLoading ? loadingMessage : 'PDF Report'}
+                </button>
+            </div>
+            <div className="flex gap-2 items-center">
+                <Input
+                    placeholder="Search..."
+                    value={searchText}
+                    className="py-2 md:w-64 w-full"
+                    onChange={(e) => setSearchText(e.target.value)}
+                />
+            <button
+                className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center"
+                onClick={showModal}
+            >
+                <GoPlus />
+                Add User
+            </button>
+            </div>
         </div>
-      </div>
-        <Table
-          className="overflow-x-auto"
-            loading={isFetching || searchLoading}
-            columns={columns}
-                dataSource={debouncedSearch
-                  ? (searchData?.results || []).map(mapUsers)
-                            : dataSource}
-                scroll={{ x: 'max-content' }} 
-                pagination={{
-                current: page,
-                pageSize: limit,
-                total: totalRecords,
-                pageSizeOptions: ['10', '20', '50', '100'],
-                    showSizeChanger: true, 
-                    onChange: (newPage, newPageSize) => {
-                        setPage(newPage);
-                        setLimit(newPageSize); 
-                    },
-                }}
-            rowKey="id"
-        />
-      <Modal
-                title="User Report"
-                open={isPdfModalOpen}
-                onCancel={handleClosePdfModal}
-                footer={null}
-                width="80%"
-            >
-                {pdfDataUrl && (
-                    <iframe
-                        src={pdfDataUrl}
-                        title="PDF Preview"
-                        style={{ width: '100%', height: '80vh', border: 'none' }}
-                    />
-                )}
-            </Modal>
-            <Modal
-              title="Edit User"
-              open={isEditModalOpen}
-              onCancel={() => setIsEditModalOpen(false)}
-              onOk={() => form.submit()}
-              confirmLoading={isUpdating}
-            >
-              <Form form={form} layout="vertical" onFinish={handleUpdate}>
-                <Form.Item
-                    name="email"
-                    label="Email"
-                    id="email"
-                    rules={[{ required: true, message: "Please input the User's Email" }]}
+            <Table
+            className="overflow-x-auto"
+                loading={isFetching || searchLoading}
+                columns={columns}
+                    dataSource={debouncedSearch
+                    ? (searchData?.results || []).map(mapUsers)
+                                : dataSource}
+                    scroll={{ x: 'max-content' }} 
+                    pagination={{
+                    current: page,
+                    pageSize: limit,
+                    total: totalRecords,
+                    pageSizeOptions: ['10', '20', '50', '100'],
+                        showSizeChanger: true, 
+                        onChange: (newPage, newPageSize) => {
+                            setPage(newPage);
+                            setLimit(newPageSize); 
+                        },
+                    }}
+                rowKey="id"
+            />
+        <Modal
+                    title="User Report"
+                    open={isPdfModalOpen}
+                    onCancel={handleClosePdfModal}
+                    footer={null}
+                    width="80%"
                 >
-                    <Input />
-                </Form.Item>
-                <Form.Item
-                    name="password"
-                    label="Password"
-                    id="password"
+                    {pdfDataUrl && (
+                        <iframe
+                            src={pdfDataUrl}
+                            title="PDF Preview"
+                            style={{ width: '100%', height: '80vh', border: 'none' }}
+                        />
+                    )}
+                </Modal>
+                <Modal
+                title="Edit User"
+                open={isEditModalOpen}
+                onCancel={() => setIsEditModalOpen(false)}
+                onOk={() => form.submit()}
+                confirmLoading={isUpdating}
                 >
-                    <Input />
-                </Form.Item>
-                <Form.Item
-                    name="first_name"
-                    label="First Name"
-                    id="first_name"
-                >
-                    <Input />
-                </Form.Item>
-                <Form.Item
-                    name="last_name"
-                    label="Last Name"
-                    id="last_name"
-                >
-                    <Input />
-                </Form.Item>
-                <Form.Item
-                    name="groups"
-                    label="Groups"
-              >
-                    <Select
-                        className="py-4 w-full"
-                        showSearch
-                        mode="multiple"
-                        placeholder="Groups"
-                        optionFilterProp="label"
-                        onChange={onGroupRoleChange}
-                        value={selectedUser?.groups} // Make sure this is linked to your state
+                <Form form={form} layout="vertical" onFinish={handleUpdate}>
+                    <Form.Item
+                        name="email"
+                        label="Email"
+                        id="email"
+                        rules={[{ required: true, message: "Please input the User's Email" }]}
                     >
-                        <Select.Option key="all" value="all">
-                            Select All
-                        </Select.Option>
-                        {groupRoleData?.results?.map(group => (
-                            <Select.Option key={group.name} value={group.name}>
-                                {group.name}
-                            </Select.Option>
-                        ))}
-
-                    </Select>
-              </Form.Item>
-              </Form>
-            </Modal>
-                  <Modal
-                className="overflow-y-auto rounded-lg scrollbar-hide"
-                title="Add User"
-                open={isModalOpen}
-                onCancel={handleCancel}
-                footer={null}
-                width="40%"
-                style={{ maxHeight: "80vh", overflowY: "auto" }} 
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="password"
+                        label="Password"
+                        id="password"
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="first_name"
+                        label="First Name"
+                        id="first_name"
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="last_name"
+                        label="Last Name"
+                        id="last_name"
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="groups"
+                        label="Groups"
                 >
-                <AddUser onClose={handleCancel} />
-            </Modal>
-    </div>
-  )
+                        <Select
+                            className="py-4 w-full"
+                            showSearch
+                            mode="multiple"
+                            placeholder="Groups"
+                            optionFilterProp="label"
+                            onChange={onGroupRoleChange}
+                            value={selectedUser?.groups} 
+                        >
+                            <Select.Option key="all" value="all">
+                                Select All
+                            </Select.Option>
+                            {groupRoleData?.results?.map(group => (
+                                <Select.Option key={group.name} value={group.name}>
+                                    {group.name}
+                                </Select.Option>
+                            ))}
+
+                        </Select>
+                </Form.Item>
+                </Form>
+                </Modal>
+                    <Modal
+                    className="overflow-y-auto rounded-lg scrollbar-hide"
+                    title="Add User"
+                    open={isModalOpen}
+                    onCancel={handleCancel}
+                    footer={null}
+                    width="40%"
+                    style={{ maxHeight: "80vh", overflowY: "auto" }} 
+                    >
+                    <AddUser onClose={handleCancel} />
+                </Modal>
+        </div>
+    )
 }
 
 export default Users;
