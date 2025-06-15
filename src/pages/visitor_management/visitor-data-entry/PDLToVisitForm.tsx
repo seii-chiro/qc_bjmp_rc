@@ -21,6 +21,8 @@ type Props = {
     pdlsCount: number;
     pdlFirstName: string;
     setPdlFirstName: (val: string) => void;
+    pdlIdSearch: string;
+    setPdlIdSearch: (val: string) => void;
 }
 
 // ...existing imports...
@@ -36,7 +38,9 @@ const PDLToVisitForm = ({
     editPdlToVisitIndex,
     visitorForm,
     setPdlFirstName,
-    setPdlPage
+    setPdlPage,
+    pdlIdSearch,
+    setPdlIdSearch,
 }: Props) => {
     const [pdlToVisitID, setPdlToVisitID] = useState<number | null>(() => {
         if (editPdlToVisitIndex !== null && visitorForm?.pdl_data?.[editPdlToVisitIndex]) {
@@ -47,6 +51,7 @@ const PDLToVisitForm = ({
 
     const [selectedPdl, setSelectedPdl] = useState<PDLs | null>(null);
     const [isSearching, setIsSearching] = useState(false);
+    const [pdlIdInput, setPdlIdInput] = useState(pdlIdSearch);
 
     const [helperForm, setHelperForm] = useState<PdlToVisitForm>(() => {
         if (editPdlToVisitIndex !== null && pdlToVisitTableInfo?.[editPdlToVisitIndex]) {
@@ -66,6 +71,14 @@ const PDLToVisitForm = ({
             multipleBirthClass: null,
         }
     })
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setPdlIdSearch(pdlIdInput);
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(handler);
+    }, [pdlIdInput, setPdlIdSearch]);
 
     useEffect(() => {
         if (editPdlToVisitIndex !== null && pdlToVisitTableInfo && pdlToVisitTableInfo[editPdlToVisitIndex]) {
@@ -224,17 +237,15 @@ const PDLToVisitForm = ({
                                 <span className='font-semibold'>PDL ID <span className='text-red-500'>*</span></span>
                                 <Input
                                     className="h-12 rounded-md outline-gray-300"
-                                    value={pdlToVisitID ?? ""}
+                                    value={pdlIdInput}
                                     placeholder="Enter PDL ID"
                                     onChange={e => {
                                         const val = e.target.value;
-                                        // Only allow numbers or empty
                                         if (/^\d*$/.test(val)) {
-                                            setPdlToVisitID(val ? Number(val) : null);
+                                            setPdlIdInput(val);
                                             setIsSearching(true);
                                             setPdlFirstName(""); // Clear name search
                                             setPdlPage(1);
-                                            // You should update your PDL fetching logic to use `search=pdlToVisitID`
                                         }
                                     }}
                                     onBlur={() => setIsSearching(false)}
@@ -269,7 +280,10 @@ const PDLToVisitForm = ({
                                         setPdlFirstName(value);
                                         setPdlPage(1);
                                     }}
-                                    onChange={value => setPdlToVisitID(value)}
+                                    onChange={value => {
+                                        setPdlToVisitID(value);
+                                        setPdlIdSearch("");
+                                    }}
                                     onBlur={() => setIsSearching(false)}
                                     onDropdownVisibleChange={open => {
                                         if (!open) setIsSearching(false);
