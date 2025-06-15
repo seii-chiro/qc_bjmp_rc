@@ -38,7 +38,7 @@ const UpdatePdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
     } = useQuery({
         queryKey: ['pdl-visitors', debouncedVisitorSearch, visitorPage],
         queryFn: () => getVisitorsPaginated(token ?? "", 10, debouncedVisitorSearch, visitorPage),
-        keepPreviousData: true,
+        placeholderData: prev => prev,
         staleTime: 10 * 60 * 1000,
     });
 
@@ -103,7 +103,7 @@ const UpdatePdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
                             firstName: visitor?.person?.first_name ?? "N/A",
                             middleName: visitor?.person?.middle_name ?? "N/A",
                             relationship: relationship?.relationship_name ?? "N/A",
-                            visitationStatus: "N/A",
+                            visitationStatus: visitor?.visitor_app_status ?? "N/A",
                             birthClassClassification:
                                 visitor?.person?.multiple_birth_siblings?.[0]?.multiple_birth_class ?? "Single",
                             action: (
@@ -173,11 +173,11 @@ const UpdatePdlVisitor = ({ pdlForm, setPdlForm }: Props) => {
                 dataIndex: 'middleName',
                 key: 'middleName',
             },
-            {
-                title: 'Relationship to PDL',
-                dataIndex: 'relationship',
-                key: 'relationship',
-            },
+            // {
+            //     title: 'Relationship to PDL',
+            //     dataIndex: 'relationship',
+            //     key: 'relationship',
+            // },
             {
                 title: 'Visitor Visitation Status',
                 dataIndex: 'visitationStatus',

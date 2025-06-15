@@ -116,7 +116,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
           },
         });
 
-        if (!res.ok) throw new Error(`Failed to fetch visitor log. Status: ${res.status}`);
+        if (!res.ok) throw new Error(`Failed to fetch visitor log.`);
         visitorData = await res.json();
 
         setLastScanned(visitorData);
@@ -129,7 +129,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
           },
         });
 
-        if (!res.ok) throw new Error(`Failed to fetch PDL. Status: ${res.status}`);
+        if (!res.ok) throw new Error(`Failed to fetch PDL.`);
         visitorData = await res.json();
 
         setLastScannedPdl(visitorData);
@@ -150,7 +150,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
         })
       });
 
-      if (!postRes.ok) throw new Error(`Failed to log visit. Status: ${postRes.status}`);
+      if (!postRes.ok) throw new Error(`Failed to log visit.`);
 
       const visitLogResponse = await postRes.json();
       message.success("Visit logged successfully!");
@@ -166,7 +166,7 @@ const Iris = ({ devices, deviceLoading, selectedArea }: Props) => {
           body: JSON.stringify({ visit_id: visitLogResponse.id })
         });
 
-        if (!trackingRes.ok) throw new Error(`Failed to log visit tracking. Status: ${trackingRes.status}`);
+        if (!trackingRes.ok) throw new Error(`Failed to log visit tracking.`);
 
         message.success("Visit tracking created successfully!");
         message.success("Process Complete!");

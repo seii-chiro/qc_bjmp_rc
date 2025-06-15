@@ -129,7 +129,7 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
           },
         });
 
-        if (!res.ok) throw new Error(`Failed to fetch visitor. Status: ${res.status}`);
+        if (!res.ok) throw new Error(`Failed to fetch visitor.`);
         visitorData = await res.json();
         setLastScanned(visitorData);
       } else {
@@ -141,7 +141,7 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
           },
         });
 
-        if (!res.ok) throw new Error(`Failed to fetch PDL. Status: ${res.status}`);
+        if (!res.ok) throw new Error(`Failed to fetch PDL.`);
         visitorData = await res.json();
         setLastScannedPdl(visitorData);
       }
@@ -164,7 +164,7 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
         })
       });
 
-      if (!postRes.ok) throw new Error(`Failed to log visit. Status: ${postRes.status}`);
+      if (!postRes.ok) throw new Error(`Failed to log visit.`);
       const visitLogResponse = await postRes.json();
 
       // Post to tracking endpoint
@@ -178,7 +178,7 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
           body: JSON.stringify({ visit_id: visitLogResponse.id })
         });
 
-        if (!trackingRes.ok) throw new Error(`Failed to log visit tracking. Status: ${trackingRes.status}`);
+        if (!trackingRes.ok) throw new Error(`Failed to log visit tracking.`);
 
         processingMessage?.();
         message.success("Visit and tracking logged successfully!");
