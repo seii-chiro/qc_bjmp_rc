@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { useQuery } from "@tanstack/react-query";
 import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
+import { Key } from "react";
 
 
 const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHistory: any[] }) => {
@@ -37,7 +38,7 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHisto
 
     const sortedVisitHistory = visitHistoryForVisitor
         ?.slice()
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .sort((a: { created_at: string | number | Date; }, b: { created_at: string | number | Date; }) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 3);
 
 
@@ -91,35 +92,35 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHisto
         }
     }
 
-    const relationshipToPdl = visitor?.pdls?.map(pdl => pdl?.relationship_to_pdl)
-    const requirements = visitor?.person?.media_requirements?.map(requirement => requirement?.name)
+    const relationshipToPdl = visitor?.pdls?.map((pdl: { relationship_to_pdl: any; }) => pdl?.relationship_to_pdl)
+    const requirements = visitor?.person?.media_requirements?.map((requirement: { name: any; }) => requirement?.name)
 
     const requirementImg = visitor?.person?.media_requirements?.find(
-        requirement => requirement?.name?.toLowerCase?.() === "waiver"
+        (requirement: { name: string; }) => requirement?.name?.toLowerCase?.() === "waiver"
     )?.direct_image;
 
     const cohabitationRequirementImg = visitor?.person?.media_requirements?.find(
-        requirement => requirement?.name?.toLowerCase?.() === "cohabitation"
+        (requirement: { name: string; }) => requirement?.name?.toLowerCase?.() === "cohabitation"
     )?.direct_image;
 
     const leftViewImg = visitor?.person?.media?.find(
-        media => media?.media_description?.toLowerCase?.() === "left-side view picture"
+        (media: { media_description: string; }) => media?.media_description?.toLowerCase?.() === "left-side view picture"
     )?.media_binary;
 
     const rightViewImg = visitor?.person?.media?.find(
-        media => media?.media_description?.toLowerCase?.() === "right-side view picture"
+        (media: { media_description: string; }) => media?.media_description?.toLowerCase?.() === "right-side view picture"
     )?.media_binary;
 
     const fullBodyViewImg = visitor?.person?.media?.find(
-        media => media?.media_description?.toLowerCase?.() === "full-body front picture"
+        (media: { media_description: string; }) => media?.media_description?.toLowerCase?.() === "full-body front picture"
     )?.media_binary;
 
     const signatureImg = visitor?.person?.media?.find(
-        media => media?.media_description?.toLowerCase?.() === "signature picture"
+        (media: { media_description: string; }) => media?.media_description?.toLowerCase?.() === "signature picture"
     )?.media_binary;
 
     const rightThumbImg = visitor?.person?.biometrics?.find(
-        media => media?.position?.toLowerCase?.() === "finger_right_thumb"
+        (media: { position: string; }) => media?.position?.toLowerCase?.() === "finger_right_thumb"
     )?.data
 
     const address = visitor?.person?.addresses?.[0];
@@ -137,7 +138,7 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHisto
 
     const hasAnyAddress = addressParts.some(Boolean);
 
-    // console.log("Visitor Info", visitor)
+    console.log("Visitor Info", visitor)
 
     return (
         <div>
@@ -172,7 +173,7 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHisto
                                                     </thead>
                                                     <tbody>
                                                         {displayedVisitHistory && displayedVisitHistory.length > 0 ? (
-                                                            displayedVisitHistory.map((visit, index) => {
+                                                            displayedVisitHistory.map((visit: { timestamp_in: string | number | Date; timestamp_out: string | number | Date; duration: any; isCurrent: any; }, index: Key | null | undefined) => {
                                                                 const login = new Date(visit.timestamp_in);
                                                                 const logout = visit.timestamp_out ? new Date(visit.timestamp_out) : null;
                                                                 const duration_in_sec = visit?.duration ? visit?.duration : 0;
@@ -257,7 +258,7 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHisto
                                     <div className="rounded-l-lg bg-[#2F3237] text-white py-1 px-2 font-semibold text-center">
                                         PDL No.
                                     </div>
-                                    {visitor?.pdls?.map(pdl => (
+                                    {visitor?.pdls?.map((pdl: any) => (
                                         <div
                                             key={pdl?.pdl?.id}
                                             className="rounded-l-lg border-l border-t border-b border-[#DCDCDC] flex flex-col gap-2 text-center font-light p-1 mt-2"
@@ -270,7 +271,7 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHisto
                                     <div className="bg-[#2F3237] text-white py-1 px-2 font-semibold text-center">
                                         Surname
                                     </div>
-                                    {visitor?.pdls?.map(pdl => (
+                                    {visitor?.pdls?.map((pdl: any) => (
                                         <div key={pdl?.pdl?.id} className="border-b border-t border-[#DCDCDC] flex flex-col gap-2 text-center font-light p-1 mt-2">
                                             {pdl?.pdl?.person?.last_name || "N/A"}
                                         </div>
@@ -280,7 +281,7 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHisto
                                     <div className="bg-[#2F3237] text-white py-1 px-2 font-semibold text-center">
                                         FirstName
                                     </div>
-                                    {visitor?.pdls?.map(pdl => (
+                                    {visitor?.pdls?.map((pdl: any) => (
                                         <div key={pdl?.pdl?.id} className="border-b border-t border-[#DCDCDC] flex flex-col gap-2 text-center font-light p-1 mt-2">
                                             {pdl?.pdl?.person?.first_name || "N/A"}
                                         </div>
@@ -290,7 +291,7 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHisto
                                     <div className="bg-[#2F3237] text-white py-1 px-2 font-semibold text-center">
                                         Middle Name
                                     </div>
-                                    {visitor?.pdls?.map(pdl => (
+                                    {visitor?.pdls?.map((pdl: any) => (
                                         <div key={pdl?.pdl?.id} className="border-b border-t border-[#DCDCDC] flex flex-col gap-2 text-center font-light p-1 mt-2">
                                             {pdl?.pdl?.person?.middle_name || "N/A"}
                                         </div>
@@ -300,17 +301,21 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHisto
                                     <div className="bg-[#2F3237] text-white py-1 px-2 font-semibold text-center">
                                         Level
                                     </div>
-                                    {visitor?.pdls?.map(pdl => (
-                                        <div key={pdl?.pdl?.id} className="border-b border-t border-[#DCDCDC] flex flex-col gap-2 text-center font-light p-1 mt-2">
-                                            {pdl?.pdl?.cell?.building || "N/A"}
-                                        </div>
-                                    ))}
+                                    {visitor?.pdls?.map((pdl: any) => {
+                                        const match = pdl?.pdl?.cell?.floor?.match(/\(([^)]+)\)/);
+                                        const wordInside = match ? match[1] : null;
+                                        return (
+                                            <div key={pdl?.pdl?.id} className="border-b border-t border-[#DCDCDC] flex flex-col gap-2 text-center font-light p-1 mt-2">
+                                                {wordInside || "N/A"}
+                                            </div>
+                                        )
+                                    })}
                                 </div>
                                 <div className="w-full">
                                     <div className="bg-[#2F3237] text-white py-1 px-2 font-semibold text-center">
                                         Annex
                                     </div>
-                                    {visitor?.pdls?.map(pdl => (
+                                    {visitor?.pdls?.map((pdl: any) => (
                                         <div key={pdl?.pdl?.id} className="border-b border-t border-[#DCDCDC] flex flex-col gap-2 text-center font-light p-1 mt-2">
                                             {pdl?.pdl?.cell?.floor?.replace(/\s*\(.*?\)\s*/g, "")}
                                         </div>
@@ -320,8 +325,8 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHisto
                                     <div className="bg-[#2F3237] rounded-r-lg text-white py-1 px-2 font-semibold text-center">
                                         Dorm
                                     </div>
-                                    {visitor?.pdls?.map(pdl => (
-                                        <div key={pdl?.pdl?.id} className="border-b border-t border-[#DCDCDC] flex flex-col gap-2 text-center font-light p-1 mt-2">
+                                    {visitor?.pdls?.map((pdl: any) => (
+                                        <div key={pdl?.pdl?.id} className="border-b border-t border-r rounded-lg border-[#DCDCDC] flex flex-col gap-2 text-center font-light p-1 mt-2">
                                             {pdl?.pdl?.cell?.cell_name}
                                         </div>
                                     ))}
