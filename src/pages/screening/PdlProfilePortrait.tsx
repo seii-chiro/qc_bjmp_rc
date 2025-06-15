@@ -219,9 +219,9 @@ const PdlProfilePortrait = ({ visitorData = {} }: PdlProfilePortraitProps) => {
                                     <Info title="Gender:" info={selectedVisitor?.person?.gender?.gender_option || ""} />
                                     <Info title="Age:" info={selectedVisitor?.person?.date_of_birth ? String(calculateAge(selectedVisitor?.person?.date_of_birth)) : ""} />
                                     <Info title="Birthday:" info={selectedVisitor?.person?.date_of_birth || ""} />
-                                    <Info title="Schedule Day:" info={settingsData?.results?.[0]?.schedule_day || ""} />
+                                    <Info title="Visit Day Schedule:" info={settingsData?.results?.[0]?.schedule_day || ""} />
                                     <Info
-                                        title="Schedule Time:"
+                                        title="Visit Time Schedule:"
                                         info={
                                             (() => {
                                                 const start = settingsData?.results?.[0]?.schedule_time_start ?? "";
