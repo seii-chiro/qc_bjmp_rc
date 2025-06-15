@@ -234,7 +234,7 @@ const PDLToVisitForm = ({
                         <div className='flex w-full justify-between gap-4'>
                             {/* PDL ID Input */}
                             <label htmlFor="last-name" className='flex-1 flex flex-col gap-1'>
-                                <span className='font-semibold'>PDL ID <span className='text-red-500'>*</span></span>
+                                <span className='font-semibold'>PDL ID</span>
                                 <Input
                                     className="h-12 rounded-md outline-gray-300"
                                     value={pdlIdInput}
@@ -283,6 +283,7 @@ const PDLToVisitForm = ({
                                     onChange={value => {
                                         setPdlToVisitID(value);
                                         setPdlIdSearch("");
+                                        setPdlIdInput(value ? String(value) : "");
                                     }}
                                     onBlur={() => setIsSearching(false)}
                                     onDropdownVisibleChange={open => {
@@ -320,7 +321,10 @@ const PDLToVisitForm = ({
                                         setPdlFirstName(value);
                                         setPdlPage(1);
                                     }}
-                                    onChange={value => setPdlToVisitID(value)}
+                                    onChange={value => {
+                                        setPdlToVisitID(value)
+                                        setPdlIdInput(value ? String(value) : "");
+                                    }}
                                     onBlur={() => setIsSearching(false)}
                                     onDropdownVisibleChange={open => {
                                         if (!open) setIsSearching(false);
