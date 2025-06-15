@@ -1,11 +1,11 @@
-import { getDevice, deleteDevice, getUser } from "@/lib/queries"
+import { getDevice, deleteDevice, getUser, updateDevice, getDevice_Types, getJail } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
-import { Button, Dropdown, Menu, message, Modal, Table } from "antd";
+import { Button, Dropdown, Form, Input, Menu, message, Modal, Select, Table } from "antd";
 import { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
@@ -31,6 +31,7 @@ type Device = {
 const Device = () => {
     const [searchText, setSearchText] = useState("");
     const token = useTokenStore().token;
+    const [form] = Form.useForm();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
@@ -69,6 +70,37 @@ const Device = () => {
         setIsModalOpen(false);
     };
 
+    const { mutate: editDevice, isLoading: isUpdating } = useMutation({
+        mutationFn: (updated: Device) =>
+            updateDevice(token ?? "", updated.id, updated),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["devices"] });
+            messageApi.success("Devices updated successfully");
+            setIsEditModalOpen(false);
+        },
+        onError: () => {
+            messageApi.error("Failed to update Devices");
+        },
+    });
+
+    const handleEdit = (record: Device) => {
+        setDevices(record);
+        form.setFieldsValue(record);
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdate = (values: any) => {
+        if (devices && devices.id) {
+            const updatedDevice: Device = {
+                ...devices,
+                ...values,
+            };
+            editDevice(updatedDevice);
+        } else {
+            messageApi.error("Selected Devices is invalid");
+        }
+    };
+
     const dataSource = data?.results?.map((devices, index) => ({
         key: devices?.id,
         id: devices?.id,
@@ -80,6 +112,7 @@ const Device = () => {
         serial_no: devices?.serial_no ?? "N/A",
         manufacturer: devices?.manufacturer ?? "N/A",
         supplier: devices?.supplier ?? "N/A",
+        date_acquired: devices?.date_acquired ?? "N/A",
         organization: devices?.organization ?? 'Bureau of Jail Management and Penology',
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
@@ -137,30 +170,12 @@ const Device = () => {
             dataIndex: 'manufacturer',
             key: 'manufacturer',
             sorter: (a, b) => a.manufacturer.localeCompare(b.manufacturer),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.manufacturer))
-                ).map(manufacturer => ({
-                    text: manufacturer,
-                    value: manufacturer,
-                }))
-            ],
-            onFilter: (value, record) => record.manufacturer === value,
         },
         {
             title: 'Supplier',
             dataIndex: 'supplier',
             key: 'supplier',
             sorter: (a, b) => a.supplier.localeCompare(b.supplier),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.supplier))
-                ).map(supplier => ({
-                    text: supplier,
-                    value: supplier,
-                }))
-            ],
-            onFilter: (value, record) => record.supplier === value,
         },
         {
             title: "Actions",
@@ -169,13 +184,7 @@ const Device = () => {
             fixed: 'right',
             render: (_: any, record: Device) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
-                    <Button
-                        type="link"
-                        onClick={() => {
-                            setDevices(record);
-                            setIsEditModalOpen(true);
-                        }}
-                    >
+                    <Button type="link" onClick={() => handleEdit(record)}>
                         <AiOutlineEdit />
                     </Button>
                     <Button
@@ -308,6 +317,31 @@ const Device = () => {
         </Menu>
     );
 
+    const results = useQueries({
+        queries: [
+            {
+                queryKey: ['device-type'],
+                queryFn: () => getDevice_Types(token ?? "")
+            },
+            {
+                queryKey: ['jail'],
+                queryFn: () => getJail(token ?? "")
+            },
+        ]
+    });
+
+    const deviceTypeData = results[0].data;
+    const jailData = results[1].data;
+
+
+    const onDeviceTypeChange = (value: number) => {
+        form.setFieldsValue({ device_type_id: value });
+    };
+
+    const onJailChange = (value: number) => {
+        form.setFieldsValue({ jail_id: value });
+    };
+
     return (
         <div>
             {contextHolder}
@@ -380,15 +414,80 @@ const Device = () => {
                 <AddDevices onClose={handleCancel} />
             </Modal>
             <Modal
-                title="Edit Devices"
+                title="Devices"
                 open={isEditModalOpen}
                 onCancel={() => setIsEditModalOpen(false)}
-                footer={null}
+                onOk={() => form.submit()}
+                confirmLoading={isUpdating}
             >
-                <EditDevices
-                    devices={devices}
-                    onClose={() => setIsEditModalOpen(false)}
-                />
+                <Form form={form} layout="vertical" onFinish={handleUpdate}>
+                    <Form.Item
+                    label="Device Type"
+                    name="device_type"
+                >
+                    <Select
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Device Type"
+                        optionFilterProp="label"
+                        onChange={onDeviceTypeChange}
+                        options={deviceTypeData?.results?.map(devicetype => ({
+                            value: devicetype.id,
+                            label: devicetype.device_type
+                        }))}/>
+                </Form.Item>
+                <Form.Item
+                    label="Jail"
+                    name="jail"
+                >
+                    <Select
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Jail"
+                        optionFilterProp="label"
+                        onChange={onJailChange}
+                        options={jailData?.results?.map(jail => ({
+                            value: jail.id,
+                            label: jail.jail_name
+                        }))}/>
+                </Form.Item>
+                <Form.Item
+                    label="Device Name"
+                    name="device_name"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Description"
+                    name="description"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Serial Number"
+                    name="serial_no"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Date Acquired"
+                    name="date_acquired"
+                >
+                    <Input type="date" />
+                </Form.Item>
+                <Form.Item
+                    label="Manufacturer"
+                    name="manufacturer"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Supplier"
+                    name="supplier"
+                >
+                    <Input />
+                </Form.Item>
+                </Form>
             </Modal>
         </div>
     )
