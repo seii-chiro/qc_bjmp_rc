@@ -35,7 +35,7 @@ const WatchlistMatchAlert = ({ watchlistData, icao }: Props) => {
                         <div className="flex-1 space-y-4">
                             <div className="flex items-center gap-2 text-gray-700 font-semibold">
                                 <User className="w-5 h-5" />
-                                <h2 className="text-lg">Current Visitor</h2>
+                                <h2 className="text-lg">Current Scanned Person</h2>
                             </div>
                             <div className="border border-gray-300 rounded-lg p-4">
                                 <div className="w-full h-[31.3rem] bg-gray-100 rounded-lg overflow-hidden border border-gray-300">
