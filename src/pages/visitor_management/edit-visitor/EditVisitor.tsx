@@ -896,7 +896,10 @@ const VisitorRegistration = () => {
                 ...media,
                 media_base64: media?.media_binary
             })) ?? [],
-            media_identifier_data: visitorData?.person?.media_identifiers ?? [],
+            media_identifier_data: visitorData?.person?.media_identifiers?.map((prev: { idtype: number; }) => ({
+                ...prev,
+                id_type_id: prev?.idtype,
+            })) ?? [],
             media_requirement_data: visitorData?.person?.media_requirements ?? [],
             diagnosis_data: visitorData?.person?.diagnoses ?? [],
             religion_id: visitorData?.person?.religion?.id ?? 1,

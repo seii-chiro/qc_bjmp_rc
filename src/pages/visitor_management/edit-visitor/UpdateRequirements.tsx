@@ -155,11 +155,11 @@ const UpdateRequirements = ({
                 dataIndex: 'requirement',
                 key: 'requirement',
             },
-            {
-                title: 'Description',
-                dataIndex: 'description',
-                key: 'description',
-            },
+            // {
+            //     title: 'Description',
+            //     dataIndex: 'description',
+            //     key: 'description',
+            // },
             {
                 title: 'Scanned Image',
                 dataIndex: 'image',
@@ -187,8 +187,8 @@ const UpdateRequirements = ({
     const IdentifierDataSource = personForm?.media_identifier_data?.map((identififier, index) => {
         return ({
             key: index,
-            requirement: idTypes?.find(id => id?.id === identififier?.idtype)?.id_type || '',
-            description: idTypes?.find(id => id?.id === identififier?.idtype)?.description || '',
+            requirement: idTypes?.find(id => id?.id === identififier?.id_type_id)?.id_type || '',
+            description: idTypes?.find(id => id?.id === identififier?.id_type_id)?.description || '',
             image: (
                 identififier?.direct_image ? (
                     <FullScreen handle={idFullscreenHandle} className="flex items-center justify-center">
