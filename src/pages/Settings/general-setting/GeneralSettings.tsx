@@ -6,24 +6,13 @@ import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { patchSettings } from "@/lib/query";
 import { message } from "antd";
+import { fetchSettings } from "@/lib/additionalQueries";
 
 const GeneralSettings = () => {
     const queryClient = useQueryClient();
     const token = useTokenStore().token;
 
     const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-    const fetchSettings = async () => {
-        const res = await fetch(`${BASE_URL}/api/codes/global-system-settings/`, {
-            headers: {
-                Authorization: `Token ${token}`,
-                "Content-Type": "application/json",
-            },
-        });
-
-        if (!res.ok) throw new Error("Network error");
-        return res.json();
-    };
 
     const { data: jailData, isLoading: jailLoading } = useQuery({
         queryKey: ['jail'],
@@ -38,7 +27,7 @@ const GeneralSettings = () => {
 
     const { data: settingsData, isLoading, isError } = useQuery({
         queryKey: ['global-settings'],
-        queryFn: fetchSettings,
+        queryFn: () => fetchSettings(token ?? ""),
     });
 
     const [formData, setFormData] = useState({
@@ -85,7 +74,7 @@ const GeneralSettings = () => {
         e.preventDefault();
         try {
             await patchSettings(token ?? "", formData.id, formData);
-            queryClient.invalidateQueries(['global-settings']);
+            queryClient.invalidateQueries({ queryKey: ['global-settings'] });
             message.success("Settings updated successfully!");
         } catch (error) {
             console.error("Error updating settings:", error);
