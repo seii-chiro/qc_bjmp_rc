@@ -1018,8 +1018,10 @@ export async function getOrganizational_Level(
   return res.json();
 }
 
-export async function getJail_Type(token: string): Promise<JailType[]> {
-  const res = await fetch(JAIL_TYPE.getJAIL_TYPE, {
+export async function getJail_Type(
+  token: string
+): Promise<PaginatedResponse<JailType>> {
+  const res = await fetch(`${JAIL_TYPE.getJAIL_TYPE}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -1426,8 +1428,10 @@ export const deleteDevice = async (token: string, id: number) => {
   return text ? JSON.parse(text) : {};
 };
 
-export async function getDevice_Types(token: string): Promise<Device_Type[]> {
-  const res = await fetch(DEVICE_TYPE.getDEVICE_TYPE, {
+export async function getDevice_Types(
+  token: string
+): Promise<PaginatedResponse<Device_Type>> {
+  const res = await fetch(`${DEVICE_TYPE.getDEVICE_TYPE}?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
