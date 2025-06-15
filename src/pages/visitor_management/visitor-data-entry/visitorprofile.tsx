@@ -18,6 +18,7 @@ import { useTokenStore } from "@/store/useTokenStore";
 import { useSystemSettingsStore } from "@/store/useSystemSettingStore";
 import { EnrolledBiometrics } from "../edit-visitor/EditVisitor";
 import WatchlistMatchAlert from "./WatchlistMatchAlert";
+import { PiShieldWarningFill } from "react-icons/pi";
 
 type Props = {
     setEnrolledBiometrics?: Dispatch<SetStateAction<EnrolledBiometrics>>;
@@ -1473,6 +1474,19 @@ const VisitorProfile = ({
                                             <RiFullscreenLine className="text-2xl hover:scale-125 transition-all ease-in-out hover:text-blue-500" />
                                         </button>
                                     </div>
+                                    {
+                                        isInWatchlist && (
+                                            <button
+                                                onClick={() => setIsWatchlistMatchModalOpen(true)}
+                                                className="absolute bottom-3 right-2"
+                                            >
+                                                <PiShieldWarningFill
+                                                    size={22}
+                                                    fill="orange"
+                                                />
+                                            </button>
+                                        )
+                                    }
                                 </div>
                             </div>
 
