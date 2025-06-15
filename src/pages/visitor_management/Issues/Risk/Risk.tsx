@@ -368,7 +368,7 @@ const menu = (
                         options={riskLevelData?.results?.map(risklevel => (
                             {
                                 value: risklevel.id,
-                                label: risklevel?.name
+                                label: risklevel?.risk_severity
                             }
                         ))}
                     />
@@ -381,7 +381,7 @@ const menu = (
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
-                width="30%"
+                width="40%"
                 style={{ maxHeight: "80vh", overflowY: "auto" }} 
                 >
                 <AddRisk onClose={handleCancel} />

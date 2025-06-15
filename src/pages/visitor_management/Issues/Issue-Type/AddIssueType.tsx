@@ -9,7 +9,6 @@ type AddIssueType = {
     name: string;
     description: string;
     risk_id: number | null;
-    remarks: string;
     issue_category_id: number | null;
 }
 
@@ -20,7 +19,6 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
     const [selectIssueType, setSelectIssueType] = useState<AddIssueType>({
         name: '',
         description: '',
-        remarks: '',
         issue_category_id: null,
         risk_id: null,
     });
@@ -121,10 +119,6 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
                     <div>
                         <p className="text-gray-500 font-bold">Description:</p>
                         <input type="text" name="description" id="description" onChange={handleInputChange} placeholder="Description" className="h-12 border border-gray-300 rounded-lg px-2 w-full" />
-                    </div>
-                    <div>
-                        <p className="text-gray-500 font-bold">Remarks:</p>
-                        <textarea name="remarks" id="remarks" onChange={handleInputChange} placeholder="Description" className="h-14 py-2 outline-none border border-gray-300 rounded-lg px-2 w-full" />
                     </div>
                     <div>
                         <p className="text-gray-500 font-bold">Issue Category:</p>

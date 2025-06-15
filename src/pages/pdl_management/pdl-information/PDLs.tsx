@@ -381,7 +381,7 @@ const PDLtable = () => {
     ];
 
     const fetchAllPDLs = async () => {
-        const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=10000`, {
+        const res = await fetch(`${BASE_URL}/api/pdls/pdl/?limit=6000`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",

@@ -532,11 +532,11 @@ export const ISSUE_TYPE = {
 };
 
 export const ISSUE_CATEGORIES = {
-  getISSUE_CATEGORIES: `${BASE_URL}/api/issues/issue-categories/`,
-  postISSUE_CATEGORIES: `${BASE_URL}/api/issues/issue-categories/`,
-  putISSUE_CATEGORIES: `${BASE_URL}/api/issues/issue-categories/{id}/`,
-  patchISSUE_CATEGORIES: `${BASE_URL}/api/issues/issue-categories/{id}/`,
-  deleteISSUE_CATEGORIES: `${BASE_URL}/api/issues/issue-categories/{id}/`,
+  getISSUE_CATEGORIES: `${BASE_URL}/api/issues_v2/issue-categories/`,
+  postISSUE_CATEGORIES: `${BASE_URL}/api/issues_v2/issue-categories/`,
+  putISSUE_CATEGORIES: `${BASE_URL}/api/issues_v2/issue-categories/{id}/`,
+  patchISSUE_CATEGORIES: `${BASE_URL}/api/issues_v2/issue-categories/{id}/`,
+  deleteISSUE_CATEGORIES: `${BASE_URL}/api/issues_v2/issue-categories/{id}/`,
 };
 
 export const RISK = {

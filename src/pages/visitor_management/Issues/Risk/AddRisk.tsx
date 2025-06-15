@@ -114,7 +114,7 @@ const AddRisk = ({ onClose }: { onClose: () => void }) => {
                         options={riskLevelData?.results?.map(risklevel => (
                             {
                                 value: risklevel.id,
-                                label: risklevel?.description,
+                                label: risklevel?.risk_severity,
                             }
                         ))}
                         />

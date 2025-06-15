@@ -98,11 +98,11 @@ const Impact = () => {
 
     const dataSource = data?.results?.map((impact, index) => ({
         key: index + 1,
-        id: impact?.id ?? 'N/A',
-        name: impact?.name ?? 'N/A',
-        // description: impact?.description ?? 'N/A',
-        updated_at: impact?.updated_at ?? 'N/A',
-        updated_by: impact?.updated_by ?? 'N/A',
+        id: impact?.id ?? '',
+        name: impact?.name ?? '',
+        // description: impact?.description ?? '',
+        updated_at: impact?.updated_at ?? '',
+        updated_by: impact?.updated_by ?? '',
         organization: impact?.organization ?? 'Bureau of Jail Management and Penology',
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
@@ -146,7 +146,7 @@ const Impact = () => {
             dataIndex: "updated_at",
             key: "updated_at",
             render: (value) =>
-                value !== 'N/A' ? moment(value).format("MMMM D, YYYY h:mm A") : "N/A",
+                value !== '' ? moment(value).format("MMMM D, YYYY h:mm A") : "",
             sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
         },
         {
