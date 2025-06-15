@@ -249,7 +249,7 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                         },
                     });
 
-                    if (!res.ok) throw new Error(`Failed to fetch PDL. Status: ${res.status}`);
+                    if (!res.ok) throw new Error(`Failed to fetch PDL.`);
                     const pdlData = await res.json();
 
                     setLastScannedPdl(pdlData);
@@ -272,7 +272,7 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                     });
 
                     if (!res.ok) {
-                        throw new Error(`Failed to fetch visitor log. Status: ${res.status}`);
+                        throw new Error(`Failed to fetch visitor log.`);
                     }
 
                     const data = await res.json();
@@ -324,7 +324,7 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                 });
 
                 if (!postRes.ok) {
-                    throw new Error(`Failed to log visit. Status: ${postRes.status}`);
+                    throw new Error(`Failed to log visit.`);
                 }
 
                 const visitLogResponse = await postRes.json();
@@ -342,7 +342,7 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                     });
 
                     if (!trackingRes.ok) {
-                        throw new Error(`Failed to log visit tracking. Status: ${trackingRes.status}`);
+                        throw new Error(`Failed to log visit tracking.`);
                     }
 
                     message.success("Visit tracking created successfully!");
