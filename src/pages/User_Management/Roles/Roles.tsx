@@ -474,14 +474,28 @@ const handleExportPDF = async () => {
 
     const PermissionData = results[0].data;
 
-    const onPermissionChange = (value: number) => {
-        console.log(value)
-        setRoles(prevForm => ({
-            ...prevForm,
-            permissions: value,
-        }));
-    }; 
-
+    // const onPermissionChange = (value: number) => {
+    //     console.log(value)
+    //     setRoles(prevForm => ({
+    //         ...prevForm,
+    //         permissions: value,
+    //     }));
+    // }; 
+    const onPermissionChange = (value) => {
+        if (value.includes('all')) {
+            const allPermissions = PermissionData.results.map(permission => permission.id);
+            setRoles(prevForm => ({
+                ...prevForm,
+                permissions: allPermissions,
+            }));
+        } else {
+            const newPermissions = value.filter(val => val !== 'all');
+            setRoles(prevForm => ({
+                ...prevForm,
+                permissions: newPermissions,
+            }));
+        }
+    };
     return (
         <div>
             {contextHolder}
@@ -587,7 +601,7 @@ const handleExportPDF = async () => {
                     name="permissions"
                     className="h-96 overflow-scroll "
                 >
-                <Select
+                {/* <Select
                         className="py-4 w-full"
                         showSearch
                         mode="multiple"
@@ -597,7 +611,26 @@ const handleExportPDF = async () => {
                         options={PermissionData?.results?.map(permission => ({
                             value: permission.id, 
                             label: permission.name
-                        }))} />
+                        }))} /> */}
+                <Select
+                    className="py-4 w-full"
+                    showSearch
+                    mode="multiple"
+                    placeholder="Permissions"
+                    optionFilterProp="label"
+                    onChange={onPermissionChange}
+                    value={roles?.permissions}
+                >    
+                <Select.Option key="all" value="all">
+                        Select All
+                    </Select.Option>
+                    {PermissionData?.results?.map(permission => (
+                        <Select.Option key={permission.id} value={permission.id}>
+                            {permission.name}
+                        </Select.Option>
+                    ))}
+
+                </Select>
                 </Form.Item>
                 </Form>
             </Modal>

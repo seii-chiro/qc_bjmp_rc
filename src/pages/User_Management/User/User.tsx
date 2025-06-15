@@ -457,12 +457,30 @@ const handleClosePdfModal = () => {
 
     const groupRoleData = results[0].data;
 
+    // const onGroupRoleChange = (values: string[]) => {
+    //     setSelectedUser(prevForm => ({
+    //         ...prevForm,
+    //         groups: values,
+    //     }));
+    // }; 
+
     const onGroupRoleChange = (values: string[]) => {
+    // Check if "all" is selected
+    if (values.includes('all')) {
+        const allGroups = groupRoleData.results.map(group => group.name);
         setSelectedUser(prevForm => ({
             ...prevForm,
-            groups: values,
+            groups: allGroups,
         }));
-    }; 
+    } else {
+        // Remove "all" if it was previously selected
+        const newGroups = values.filter(val => val !== 'all');
+        setSelectedUser(prevForm => ({
+            ...prevForm,
+            groups: newGroups,
+        }));
+    }
+};
 
     const totalRecords = debouncedSearch 
     ? data?.count || 0
@@ -587,20 +605,28 @@ const handleClosePdfModal = () => {
                     <Input />
                 </Form.Item>
                 <Form.Item
-                  name="groups"
-                  label="Groups"
+                    name="groups"
+                    label="Groups"
               >
-                  <Select
-                      className="py-4 w-full"
-                      showSearch
-                      mode="multiple"
-                      placeholder="Groups"
-                      optionFilterProp="label"
-                      onChange={onGroupRoleChange}
-                      options={groupRoleData?.results?.map(group => ({
-                          value: group.name, 
-                          label: group.name
-                      }))} />
+                    <Select
+                        className="py-4 w-full"
+                        showSearch
+                        mode="multiple"
+                        placeholder="Groups"
+                        optionFilterProp="label"
+                        onChange={onGroupRoleChange}
+                        value={selectedUser?.groups} // Make sure this is linked to your state
+                    >
+                        <Select.Option key="all" value="all">
+                            Select All
+                        </Select.Option>
+                        {groupRoleData?.results?.map(group => (
+                            <Select.Option key={group.name} value={group.name}>
+                                {group.name}
+                            </Select.Option>
+                        ))}
+
+                    </Select>
               </Form.Item>
               </Form>
             </Modal>

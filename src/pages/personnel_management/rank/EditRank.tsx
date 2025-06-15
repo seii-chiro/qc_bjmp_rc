@@ -107,7 +107,7 @@ const EditRank = ({ rank, onClose }: { rank: any; onClose: () => void }) => {
             >
                 <Form.Item
                     label="Organization"
-                    name="organization_id"
+                    name="organization"
                 >
                     <Select 
                         className="h-[3rem] w-full"
