@@ -1176,7 +1176,7 @@ const VisitorRegistration = () => {
                                     value={personForm?.place_of_birth}
                                     className='mt-2 px-3 py-2 rounded-md outline-gray-300'
                                     type="text" name="birth-date"
-                                    placeholder="Date of Birth"
+                                    placeholder="Place of Birth"
                                     required
                                     onChange={(e) => setPersonForm(prev => ({ ...prev, place_of_birth: e.target.value }))}
                                 />
@@ -1415,7 +1415,7 @@ const VisitorRegistration = () => {
                                 />
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
-                                <div className='flex gap-1'>Approved By</div>
+                                <div className='flex gap-1'>Approved By <span className='text-red-600'>*</span></div>
                                 <Select
                                     value={visitorForm?.approved_by_id ?? null}
                                     loading={userLoading}

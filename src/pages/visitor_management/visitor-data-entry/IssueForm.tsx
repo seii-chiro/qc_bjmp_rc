@@ -75,11 +75,11 @@ const IssueForm: React.FC<IssueFormProps> = ({
         if (initialData) {
             setFormValues({
                 ...initialData,
-                risks: initialData.risks || null,  // Ensure it's always a string
-                risk_level_id: initialData.risk_level_id || null,  // Ensure it's always a string
-                impact_level_id: initialData.impact_level_id || null,  // Ensure it's always a string
-                impact_id: initialData.impact_id || null,  // Ensure it's always a string
-                recommendedAction: String(initialData.recommendedAction) || "",  // Ensure it's always a string
+                risks: initialData.risks || null,
+                risk_level_id: initialData.risk_level_id || null,
+                impact_level_id: initialData.impact_level_id || null,
+                impact_id: initialData.impact_id || null,
+                recommendedAction: String(initialData.recommendedAction) || "",
             });
         } else {
             setFormValues({
@@ -190,11 +190,19 @@ const IssueForm: React.FC<IssueFormProps> = ({
                 setFormValues(prev => ({
                     ...prev,
                     issue_category_id: issueType?.issue_category?.id ?? null,
-                    risks: risks?.find(risk => risk?.name === issueType?.risk)?.id ?? 2,
+                    risks: risks?.find(risk => risk?.name === issueType?.risk?.name)?.id ?? null,
+                    risk_level_id: issueType?.risk?.risk_level,
+                    impact_level_id: issueType?.risk?.impacts?.[0]?.impact_level,
+                    impact_id: issueType?.risk?.impacts?.[0]?.id,
+                    recommendedAction: issueType?.risk?.recommended_action?.[0]?.name
                 }));
             }
         }
     }, [formValues?.issueType, issueTypes, risks]);
+
+    const selectedIssueType = issueTypes.find(type => type.id === formValues.issueType);
+    const filteredImpacts = selectedIssueType?.risk?.impacts || [];
+    const filteredRecommendedActions = selectedIssueType?.risk?.recommended_action || [];
 
     return (
         <div className="issue-form-container" style={{ padding: "16px 8px" }}>
@@ -280,7 +288,7 @@ const IssueForm: React.FC<IssueFormProps> = ({
                         value={formValues.impact_id || undefined}
                         onChange={(value) => handleInputChange('impact_id', value)}
                     >
-                        {impact.map(option => (
+                        {filteredImpacts.map(option => (
                             <Option key={option?.id} value={option?.id}>{option?.name}</Option>
                         ))}
                     </Select>
@@ -295,7 +303,7 @@ const IssueForm: React.FC<IssueFormProps> = ({
                         value={formValues.recommendedAction || undefined}
                         onChange={(value) => handleInputChange('recommendedAction', value)}
                     >
-                        {recommendedActions.map(option => (
+                        {filteredRecommendedActions.map(option => (
                             <Option key={option?.id} value={option?.id}>{option?.name}</Option>
                         ))}
                     </Select>

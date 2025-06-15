@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
 import { getVisitorAppStatus } from '@/lib/queries';
 import { useTokenStore } from '@/store/useTokenStore';
+import { fetchSettings } from '@/lib/additionalQueries';
 
 const Info = ({ title, info }: { title: string, info: string }) => (
     <div className="flex items-center">
@@ -18,21 +19,71 @@ const Image = ({ src, alt, className }: { src: string, alt: string, className: s
     <img src={src} alt={alt} className={className} />
 );
 
-const PdlProfilePortrait = ({ visitorData = {} }) => {
+type PdlProfilePortraitProps = {
+    visitorData?: {
+        id?: string;
+        risk_classification?: string;
+        person?: {
+            last_name?: string;
+            first_name?: string;
+            middle_name?: string;
+            addresses?: { full_address?: string }[];
+            gender?: { gender_option?: string };
+            date_of_birth?: string;
+            media?: {
+                media_description?: string;
+                media_binary?: string;
+                name?: string;
+                direct_image?: string;
+            }[];
+            media_requirements?: {
+                name?: string;
+                direct_image?: string;
+            }[];
+            biometrics?: {
+                position?: string;
+                data?: string;
+            }[];
+        };
+        pdl_station_visits?: {
+            created_at: string;
+            timestamp_in: string;
+            timestamp_out?: string;
+            duration?: number;
+            isCurrent?: boolean;
+        }[];
+        visitor?: {
+            visitor_reg_no?: string;
+            person?: string;
+            visitor_type?: string;
+            visitor_app_status?: number;
+        }[];
+    };
+};
+
+const PdlProfilePortrait = ({ visitorData = {} }: PdlProfilePortraitProps) => {
     const token = useTokenStore()?.token
     const modalContentRef = useRef(null);
     const selectedVisitor = visitorData || {};
+    console.log(selectedVisitor)
 
     const { data: visitorStatus } = useQuery({
         queryKey: ['visitor-app-status'],
         queryFn: () => getVisitorAppStatus(token ?? ""),
         staleTime: 10 * 60 * 1000
     })
+    console.log(visitorStatus)
+
+    const { data: settingsData } = useQuery({
+        queryKey: ['global-settings'],
+        queryFn: () => fetchSettings(token ?? ""),
+        enabled: !!selectedVisitor?.id
+    });
 
     let ProfileImage = "";
     if (visitorData?.person?.media) {
         const frontPicture = visitorData?.person?.media?.find(
-            (media: { media_description: string; }) => media?.media_description === "Close-Up Front Picture"
+            (media) => media?.media_description === "Close-Up Front Picture"
         )?.media_binary;
 
         if (frontPicture) {
@@ -158,7 +209,7 @@ const PdlProfilePortrait = ({ visitorData = {} }) => {
                         <div className="space-y-3">
                             <div className="border border-[#EAEAEC] rounded-xl p-2 pb-2 w-full">
                                 <p className="text-[#404958] text-sm">PDL Basic Info</p>
-                                <div className="grid grid-cols-1 gap-2 py-2">
+                                <div className="grid grid-cols-1 gap-1.5 py-1">
                                     <Info title="PDL No:" info={selectedVisitor?.id ?? ""} />
                                     <Info title="Risk Classification:" info={selectedVisitor?.risk_classification ?? ""} />
                                     <Info title="Surname:" info={selectedVisitor?.person?.last_name || ""} />
@@ -168,20 +219,31 @@ const PdlProfilePortrait = ({ visitorData = {} }) => {
                                     <Info title="Gender:" info={selectedVisitor?.person?.gender?.gender_option || ""} />
                                     <Info title="Age:" info={selectedVisitor?.person?.date_of_birth ? String(calculateAge(selectedVisitor?.person?.date_of_birth)) : ""} />
                                     <Info title="Birthday:" info={selectedVisitor?.person?.date_of_birth || ""} />
-                                    {/* <div className="flex items-center">
-                                        <label className="w-48 text-[10px] text-[#8E8E8E]">Relationship to PDL:</label>
-                                        <p className="mt-1 block w-full bg-[#F9F9F9] rounded-md text-xs px-2 py-[1px]">
-                                            {selectedVisitor?.pdls?.[0]?.relationship_to_pdl || "No PDL relationship"}
-                                        </p>
-                                    </div>
+                                    <Info title="Visit Day Schedule:" info={settingsData?.results?.[0]?.schedule_day || ""} />
                                     <Info
-                                        title="Requirements:"
+                                        title="Visit Time Schedule:"
                                         info={
-                                            selectedVisitor?.person?.media_requirements
-                                                ?.map((req) => req.name)
-                                                .join(", ") || "No Requirements"
+                                            (() => {
+                                                const start = settingsData?.results?.[0]?.schedule_time_start ?? "";
+                                                const end = settingsData?.results?.[0]?.schedule_time_end ?? "";
+                                                let durationStr = "";
+                                                if (start && end) {
+                                                    // Parse as dayjs objects
+                                                    const startTime = dayjs(start, "HH:mm:ss");
+                                                    const endTime = dayjs(end, "HH:mm:ss");
+                                                    let duration = endTime.diff(startTime, "minute");
+                                                    // Handle overnight schedules (end < start)
+                                                    if (duration < 0) {
+                                                        duration += 24 * 60;
+                                                    }
+                                                    const hours = Math.floor(duration / 60);
+                                                    const minutes = duration % 60;
+                                                    durationStr = `(${hours}${minutes > 0 ? `h ${minutes}m` : "h"})`;
+                                                }
+                                                return `${start} - ${end} ${durationStr}`;
+                                            })()
                                         }
-                                    /> */}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -203,12 +265,12 @@ const PdlProfilePortrait = ({ visitorData = {} }) => {
                                             <th className="py-1 px-2">Visitor No.</th>
                                             <th className="py-1 px-2">Full Name</th>
                                             <th className="py-1 px-2">Visitor Type</th>
-                                            <th className="py-1 px-2">Visitation Status</th>
+                                            <th className="py-1 px-2">Visitor Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {selectedVisitor?.visitor?.length > 0 ? (
-                                            selectedVisitor?.visitor?.map((pdlItem, index) => (
+                                        {(selectedVisitor?.visitor ?? []).length > 0 ? (
+                                            (selectedVisitor?.visitor ?? []).map((pdlItem, index) => (
                                                 <tr key={index}>
                                                     <td className="text-center text-[9px] font-light">
                                                         {pdlItem?.visitor_reg_no || "N/A"}

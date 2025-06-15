@@ -17,6 +17,7 @@ import { BASE_URL } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useSystemSettingsStore } from "@/store/useSystemSettingStore";
 import { EnrolledBiometrics } from "../edit-visitor/EditVisitor";
+import WatchlistMatchAlert from "./WatchlistMatchAlert";
 
 type Props = {
     setEnrolledBiometrics?: Dispatch<SetStateAction<EnrolledBiometrics>>;
@@ -77,7 +78,6 @@ const VisitorProfile = ({
     const frontViewHandle = useFullScreenHandle();
     const leftViewHandle = useFullScreenHandle();
     const rightViewHandle = useFullScreenHandle();
-    const [messageApi, contextHolder] = message.useMessage()
     const [cameraModalOpen, setCameraModalOpen] = useState(false)
     const [cameraFullBodyModalOpen, setCameraFullBodyModalOpen] = useState(false)
     const [cameraLeftModalOpen, setCameraLeftModalOpen] = useState(false)
@@ -90,6 +90,10 @@ const VisitorProfile = ({
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isInWatchlist, setIsInWatchlist] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isWatchlistMatchModalOpen, setIsWatchlistMatchModalOpen] = useState(false);
+
+    const [watchlistData, setWatchlistData] = useState<any | null>(null)
+
     const { fingerScannerTimeout, irisScannerTimeout, nfiqQuality, allowForce } = useSystemSettingsStore()
 
     const handleOpenPad = () => setIsModalOpen(true);
@@ -281,7 +285,11 @@ const VisitorProfile = ({
                 }
 
                 if (!isCancelled) {
-                    message.success('Issue successfully submitted!');
+                    message.open({
+                        type: "success",
+                        content: "Issue successfully submitted!",
+                        duration: 10
+                    })
                 }
             } catch (error) {
                 if (!isCancelled) {
@@ -616,12 +624,12 @@ const VisitorProfile = ({
         mutationFn: verifyFace,
         onSuccess: (data) => {
             setFaceVerificationResponse(data);
-            messageApi.info("Match Found");
+            message.info("Match Found");
         },
         onError: (error) => {
             console.error("Biometric enrollment failed:", error);
             setFaceVerificationResponse({ message: "No Matches Found.", data: [] });
-            messageApi.info(error?.message);
+            message.info(error?.message);
         },
     });
 
@@ -629,15 +637,17 @@ const VisitorProfile = ({
         mutationKey: ['biometric-verification', 'threat'],
         mutationFn: verifyFaceInWatchlist,
         onSuccess: (data) => {
-            messageApi.warning({
+            message.warning({
                 content: `Watchlist: ${data['message']}`,
                 // content: `This Person is Found in the Watchlist Database!`,
                 duration: 30
             });
+            setWatchlistData(data?.data)
+            setIsWatchlistMatchModalOpen(true)
             setIsInWatchlist(true)
         },
         onError: (error) => {
-            messageApi.info(`Watchlist: ${error?.message}`);
+            message.info(`Watchlist: ${error?.message}`);
         },
     });
 
@@ -652,16 +662,16 @@ const VisitorProfile = ({
             }));
             if (data?.images?.icao) {
                 if (data?.images?.gender !== inputGender) {
-                    messageApi.warning("The provided gender does not match the gender identified through face recognition.")
+                    message.warning("The provided gender does not match the gender identified through face recognition.")
                 }
                 verifyFaceMutation.mutate({ template: data?.images?.icao, type: "face" })
                 verifyFaceInWatchlistMutation.mutate({ template: data?.images?.icao, type: "face" })
             } else {
-                messageApi.warning("No Face Captured. Please try again")
+                message.warning("No Face Captured. Please try again")
             }
         },
         onError: (error) => {
-            messageApi.error(error.message);
+            message.error(error.message);
         }
     });
 
@@ -683,11 +693,11 @@ const VisitorProfile = ({
         mutationFn: getIrisScannerInfo,
         onSuccess: () => {
             setIrisScannerReady(true);
-            messageApi.info("Iris Scanner Ready")
+            message.info("Iris Scanner Ready")
         },
         onError: (error) => {
             console.error(error.message);
-            messageApi.info("Error Initializing Fingerprint Scanner")
+            message.info("Error Initializing Fingerprint Scanner")
         }
     });
 
@@ -696,11 +706,11 @@ const VisitorProfile = ({
         mutationFn: verifyIris,
         onSuccess: (data) => {
             setLeftIrisVerificationResponse(data)
-            messageApi.info(data?.message === "Match found." ? "Match Found" : "No Matches Found");
+            message.info(data?.message === "Match found." ? "Match Found" : "No Matches Found");
         },
         onError: () => {
             setLeftIrisVerificationResponse([{ message: "Match not Found." }])
-            messageApi.info("Match Not Found");
+            message.info("Match Not Found");
         },
     });
 
@@ -709,11 +719,11 @@ const VisitorProfile = ({
         mutationFn: verifyIris,
         onSuccess: (data) => {
             setRightIrisVerificationResponse(data)
-            messageApi.info(data?.message === "Match found." ? "Match Found" : "No Matches Found");
+            message.info(data?.message === "Match found." ? "Match Found" : "No Matches Found");
         },
         onError: () => {
             setRightIrisVerificationResponse([{ message: "Match not Found." }])
-            messageApi.info("Match Not Found");
+            message.info("Match Not Found");
         },
     });
 
@@ -777,11 +787,11 @@ const VisitorProfile = ({
         mutationFn: getScannerInfo,
         onSuccess: () => {
             setFingerScannerReady(true);
-            messageApi.info("Fingerprint Scanner Ready")
+            message.info("Fingerprint Scanner Ready")
         },
         onError: (error) => {
             console.error(error.message);
-            messageApi.info("Error Initializing Fingerprint Scanner")
+            message.info("Error Initializing Fingerprint Scanner")
         }
     });
 
@@ -790,15 +800,15 @@ const VisitorProfile = ({
         mutationFn: verifyFingerprint,
         onSuccess: (data) => {
             setFingerprintVerificationResult1(data);
-            messageApi.info("Match Found");
+            message.info("Match Found");
         },
         onError: (error) => {
             if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
                 setFingerprintVerificationResult1({ message: error.message });
-                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+                message.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult1({ message: "Match not found." });
-                messageApi.info(`${error?.message}: Match Not Found.`);
+                message.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -808,15 +818,15 @@ const VisitorProfile = ({
         mutationFn: verifyFingerprint,
         onSuccess: (data) => {
             setFingerprintVerificationResult2(data);
-            messageApi.info("Match Found");
+            message.info("Match Found");
         },
         onError: (error) => {
             if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
                 setFingerprintVerificationResult2({ message: error.message });
-                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+                message.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult2({ message: "Match not found." });
-                messageApi.info(`${error?.message}: Match Not Found.`);
+                message.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -826,15 +836,15 @@ const VisitorProfile = ({
         mutationFn: verifyFingerprint,
         onSuccess: (data) => {
             setFingerprintVerificationResult3(data);
-            messageApi.info("Match Found");
+            message.info("Match Found");
         },
         onError: (error) => {
             if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
                 setFingerprintVerificationResult3({ message: error.message });
-                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+                message.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult3({ message: "Match not found." });
-                messageApi.info(`${error?.message}: Match Not Found.`);
+                message.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -844,15 +854,15 @@ const VisitorProfile = ({
         mutationFn: verifyFingerprint,
         onSuccess: (data) => {
             setFingerprintVerificationResult4(data);
-            messageApi.info("Match Found");
+            message.info("Match Found");
         },
         onError: (error) => {
             if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
                 setFingerprintVerificationResult4({ message: error.message });
-                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+                message.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult4({ message: "Match not found." });
-                messageApi.info(`${error?.message}: Match Not Found.`);
+                message.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -862,15 +872,15 @@ const VisitorProfile = ({
         mutationFn: verifyFingerprint,
         onSuccess: (data) => {
             setFingerprintVerificationResult5(data);
-            messageApi.info("Match Found");
+            message.info("Match Found");
         },
         onError: (error) => {
             if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
                 setFingerprintVerificationResult5({ message: error.message });
-                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+                message.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult5({ message: "Match not found." });
-                messageApi.info(`${error?.message}: Match Not Found.`);
+                message.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -880,15 +890,15 @@ const VisitorProfile = ({
         mutationFn: verifyFingerprint,
         onSuccess: (data) => {
             setFingerprintVerificationResult6(data);
-            messageApi.info("Match Found");
+            message.info("Match Found");
         },
         onError: (error) => {
             if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
                 setFingerprintVerificationResult6({ message: error.message });
-                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+                message.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult6({ message: "Match not found." });
-                messageApi.info(`${error?.message}: Match Not Found.`);
+                message.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -898,15 +908,15 @@ const VisitorProfile = ({
         mutationFn: verifyFingerprint,
         onSuccess: (data) => {
             setFingerprintVerificationResult7(data);
-            messageApi.info("Match Found");
+            message.info("Match Found");
         },
         onError: (error) => {
             if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
                 setFingerprintVerificationResult7({ message: error.message });
-                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+                message.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult7({ message: "Match not found." });
-                messageApi.info(`${error?.message}: Match Not Found.`);
+                message.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -916,15 +926,15 @@ const VisitorProfile = ({
         mutationFn: verifyFingerprint,
         onSuccess: (data) => {
             setFingerprintVerificationResult8(data);
-            messageApi.info("Match Found");
+            message.info("Match Found");
         },
         onError: (error) => {
             if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
                 setFingerprintVerificationResult8({ message: error.message });
-                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+                message.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult8({ message: "Match not found." });
-                messageApi.info(`${error?.message}: Match Not Found.`);
+                message.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -934,15 +944,15 @@ const VisitorProfile = ({
         mutationFn: verifyFingerprint,
         onSuccess: (data) => {
             setFingerprintVerificationResult9(data);
-            messageApi.info("Match Found");
+            message.info("Match Found");
         },
         onError: (error) => {
             if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
                 setFingerprintVerificationResult9({ message: error.message });
-                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+                message.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult9({ message: "Match not found." });
-                messageApi.info(`${error?.message}: Match Not Found.`);
+                message.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -952,15 +962,15 @@ const VisitorProfile = ({
         mutationFn: verifyFingerprint,
         onSuccess: (data) => {
             setFingerprintVerificationResult10(data);
-            messageApi.info("Match Found");
+            message.info("Match Found");
         },
         onError: (error) => {
             if (error?.message === "Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated") {
                 setFingerprintVerificationResult10({ message: error.message });
-                messageApi.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
+                message.error("Error identifying fingerprint data. - NBiometricStatus is not OK: operation_not_activated");
             } else {
                 setFingerprintVerificationResult10({ message: "Match not found." });
-                messageApi.info(`${error?.message}: Match Not Found.`);
+                message.info(`${error?.message}: Match Not Found.`);
             }
         },
     });
@@ -1167,7 +1177,19 @@ const VisitorProfile = ({
 
     return (
         <div className="w-full mt-5">
-            {contextHolder}
+            <Modal
+                centered
+                open={isWatchlistMatchModalOpen}
+                onCancel={() => setIsWatchlistMatchModalOpen(false)}
+                onClose={() => setIsWatchlistMatchModalOpen(false)}
+                footer={[]}
+                width={"70%"}
+            >
+                <WatchlistMatchAlert
+                    icao={icao}
+                    watchlistData={watchlistData}
+                />
+            </Modal >
             <Modal
                 open={cameraModalOpen}
                 onCancel={() => setCameraModalOpen(false)}
@@ -1818,7 +1840,7 @@ const VisitorProfile = ({
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

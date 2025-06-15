@@ -2,7 +2,7 @@
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import React, { Suspense, useEffect } from "react";
 import Spinner from "./components/loaders/Spinner.tsx";
-// import GeneralErrorElement from "./pages/error_pages/GeneralErrorElement.tsx";
+import GeneralErrorElement from "./pages/error_pages/GeneralErrorElement.tsx";
 import { useAuthStore } from "./store/useAuthStore.ts";
 import { MapContent } from "./map/MapContent.tsx";
 import Landing from "./pages/landing/Home.tsx";
@@ -27,7 +27,6 @@ import Roles from "./pages/User_Management/Roles/Roles.tsx";
 import Tools from "./pages/tools/Tools.tsx";
 import Integration from "./pages/Integration/Integration.tsx";
 import Support from "./pages/support/Support.tsx";
-import Report from "./pages/reports/Report.tsx";
 import Incidents from "./pages/Incidents/Incidents.tsx";
 import Threat from "./pages/threat/Threat.tsx";
 import Screening from "./pages/screening/Screening.tsx";
@@ -160,6 +159,7 @@ import VisitorRelPersonnel from "./pages/visitor_management/relationship/Visitor
 import NonPDLReasonforVisit from "./pages/visitor_management/reason-for-visit/NonPDLReasonforVisit.tsx";
 import ServiceProviderUpdate from "./pages/visitor_management/service-provider-data-entry/ServiceProviderUpdate.tsx";
 import NPVisitorType from "./pages/Non-PDL/visitor-type/NPVisitorType.tsx";
+import NonPdlVisitorUpdate from "./pages/visitor_management/non-pdl-visitor-data-entry/NonPDLVisitorUpdate.tsx";
 
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -175,10 +175,10 @@ function App() {
     }, [fetchSystemSettings, token]);
 
     const router = createBrowserRouter([
-        // {
-        //     path: "*",
-        //     element: <GeneralErrorElement />
-        // },
+        {
+            path: "*",
+            element: <GeneralErrorElement />
+        },
         {
             path: "/login",
             element: <LoginOTP />,
@@ -743,6 +743,10 @@ function App() {
                 {
                     path: "non-pdl-visitors/non-pdl-visitor-type",
                     element: <NPVisitorType />
+                },
+                {
+                    path: "non-pdl-visitors/update",
+                    element: <NonPdlVisitorUpdate />
                 },
                 {
                     path: "service-provider",

@@ -1,6 +1,7 @@
 import {
   GroupAffiliation,
   NonPdlVisitorReasonVisit,
+  NonPDLVisitorType,
   PDLVisitStatus,
   PersonnelStatus,
   PersonnelType,
@@ -208,3 +209,39 @@ export async function getPDLVisitStatuses(
 
   return res.json();
 }
+
+export async function getNonPDLVisitorTypes(
+  token: string
+): Promise<PaginatedResponse<NonPDLVisitorType>> {
+  const res = await fetch(
+    `${BASE_URL}/api/non-pdl-visitor/non-pdl-visitor-types/?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch Non PDL Visitor Type data.");
+  }
+
+  return res.json();
+}
+
+export const fetchSettings = async (token: string) => {
+  const res = await fetch(`${BASE_URL}/api/codes/global-system-settings/`, {
+    headers: {
+      Authorization: `Token ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+};

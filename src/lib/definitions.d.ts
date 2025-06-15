@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type Visitors = {
   id: number;
   created_at: string;
@@ -2236,18 +2237,93 @@ type AddressData = {
   description: string;
 };
 
+export type IssueCategoryFull = {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+  description: string;
+  categorization_rule: string;
+};
+
+export type ImpactFull = {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+  description: string;
+  impact_level: number;
+  risk: number;
+};
+
+export type RecommendedActionFull = {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+  description: string;
+  risk: number;
+};
+
+export type RiskFull = {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  impacts: ImpactFull[];
+  recommended_action: RecommendedActionFull[];
+  created_at: string;
+  updated_at: string;
+  name: string;
+  description: string;
+  risk_level: number;
+};
+
+export type IssueStatus = {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+  description: string;
+};
+
 export type IssueType = {
   id: number;
-  issue_category: IssueCategory;
+  created_by: string;
+  updated_by: string;
+  issue_category: IssueCategoryFull;
   record_status: string;
+  risk: RiskFull;
   created_at: string;
   updated_at: string;
   name: string;
   remarks: string;
   description: string;
-  created_by: number;
-  updated_by: number;
-  risk?: string | number | null;
+};
+
+export type IssueTypeFull = {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  issue_type: IssueType;
+  issue_category: IssueCategoryFull;
+  status: IssueStatus;
+  record_status: string;
+  created_at: string;
+  updated_at: string;
+  remarks: string;
 };
 
 export type CourtBranch = {
@@ -2529,4 +2605,15 @@ export type RelationshipOfVisitorToPersonnel = {
   impacts: string;
   threats: string;
   mitigation: string;
+};
+
+export type NonPDLVisitorType = {
+  id: number;
+  created_by: string | null;
+  updated_by: string | null;
+  record_status: string;
+  created_at: string | null;
+  updated_at: string | null;
+  non_pdl_visitor_type: string;
+  description: string;
 };

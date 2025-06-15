@@ -9,7 +9,7 @@ import { useMutation, useQueries } from "@tanstack/react-query";
 import {
     getCivilStatus, getCountries, getCurrentUser, getGenders, getJail_Barangay,
     getJail_Municipality, getJail_Province, getJailRegion, getNationalities,
-    getPrefixes, getReligion, getSuffixes, getUsers, getVisitor_Type, getVisitorAppStatus
+    getPrefixes, getReligion, getSuffixes, getUsers, getVisitorAppStatus
 } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { NonPdlVisitorForm, PersonForm } from "@/lib/visitorFormDefinition";
@@ -20,7 +20,7 @@ import Remarks from "../visitor-data-entry/Remarks";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
 import { BASE_URL, BIOMETRIC, PERSON } from "@/lib/urls";
 import Identifiers from "../personnel-data-entry/Identifiers";
-import { getNonPdlVisitorReasons, getRelationshipOfVisitorToPersonnel } from "@/lib/additionalQueries";
+import { getNonPdlVisitorReasons, getNonPDLVisitorTypes, getRelationshipOfVisitorToPersonnel } from "@/lib/additionalQueries";
 import { downloadBase64Image } from "@/functions/dowloadBase64Image";
 import { sanitizeRFID } from "@/functions/sanitizeRFIDInput";
 import usePersonnelSearch from "./custom-hooks/usePersonnelSearch";
@@ -133,7 +133,7 @@ const NonPdlVisitorRegistration = () => {
         approved_by_id: null,
         verified_at: "",
         verified_by_id: null,
-        visitor_status_id: null
+        visitor_status_id: null,
     })
 
     const [icao, setIcao] = useState("")
@@ -312,7 +312,7 @@ const NonPdlVisitorRegistration = () => {
 
     const dropdownOptions = useQueries({
         queries: [
-            { queryKey: ['visitor-type'], queryFn: () => getVisitor_Type(token ?? ""), staleTime: 10 * 60 * 1000 },
+            { queryKey: ['visitor-type'], queryFn: () => getNonPDLVisitorTypes(token ?? ""), staleTime: 10 * 60 * 1000 },
             { queryKey: ['person-gender'], queryFn: () => getGenders(token ?? ""), staleTime: 10 * 60 * 1000 },
             { queryKey: ['person-nationality'], queryFn: () => getNationalities(token ?? ""), staleTime: 10 * 60 * 1000 },
             { queryKey: ['person-civil-status'], queryFn: () => getCivilStatus(token ?? ""), staleTime: 10 * 60 * 1000 },
@@ -752,7 +752,7 @@ const NonPdlVisitorRegistration = () => {
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
                                     options={visitorTypes?.map(type => ({
                                         value: type?.id,
-                                        label: type?.visitor_type
+                                        label: type?.non_pdl_visitor_type
                                     }))}
                                     onChange={value => {
                                         setNonPdlVisitorForm(prev => ({
@@ -950,7 +950,7 @@ const NonPdlVisitorRegistration = () => {
                                 <Input
                                     className='mt-2 px-3 py-2 rounded-md outline-gray-300'
                                     type="text" name="birth-date"
-                                    placeholder="Date of Birth"
+                                    placeholder="Place of Birth"
                                     required
                                     onChange={(e) => setPersonForm(prev => ({ ...prev, place_of_birth: e.target.value }))}
                                 />
@@ -1276,7 +1276,7 @@ const NonPdlVisitorRegistration = () => {
                                 />
                             </div>
                             <div className='flex flex-col mt-2 w-full'>
-                                <div className='flex gap-1'>Approved By</div>
+                                <div className='flex gap-1'>Approved By <span className='text-red-600'>*</span></div>
                                 <Select
                                     loading={userLoading}
                                     className='mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100'
@@ -1284,11 +1284,11 @@ const NonPdlVisitorRegistration = () => {
                                         value: user?.id,
                                         label: `${user?.first_name ?? ""} ${user?.last_name ?? ""}`,
                                     }))}
-                                    onChange={(value, label) => {
+                                    onChange={(value) => {
                                         setNonPdlVisitorForm(prev => ({
                                             ...prev,
                                             approved_by_id: value,
-                                            approved_by: label
+                                            approved_by: value
                                         }))
                                     }}
                                 />

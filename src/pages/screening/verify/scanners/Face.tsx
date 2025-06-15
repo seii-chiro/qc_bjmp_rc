@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { captureFace, verifyFace } from '@/lib/scanner-queries'
 import { useMutation } from '@tanstack/react-query'
-import { message, Select } from 'antd'
+import { message, Modal, Select } from 'antd'
 import { useEffect, useState } from 'react'
 import check from "@/assets/Icons/check-mark.png"
 import ex from "@/assets/Icons/close.png"
@@ -12,6 +12,7 @@ import { verifyFaceInWatchlist } from '@/lib/threatQueries'
 import VisitorProfilePortrait from '../../VisitorProfilePortrait'
 import PdlProfilePortrait from '../../PdlProfilePortrait'
 import { useSystemSettingsStore } from '@/store/useSystemSettingStore'
+import WatchlistMatchAlert from '@/pages/visitor_management/visitor-data-entry/WatchlistMatchAlert'
 
 type Props = {
   devices: Device[];
@@ -32,6 +33,8 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
   const [error, setError] = useState<Error | null>(null);
 
   const [inWatchList, setInWatchlist] = useState<string | null>(null)
+  const [watchlistData, setWatchlistData] = useState<any | null>(null)
+  const [isWatchlistMatchModalOpen, setIsWatchlistMatchModalOpen] = useState(false);
 
   const allowForce = useSystemSettingsStore(state => state.allowForce)
 
@@ -232,6 +235,8 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
         content: `Watchlist: ${data['message']}`,
         duration: 20
       });
+      setWatchlistData(data?.data)
+      setIsWatchlistMatchModalOpen(true)
       setInWatchlist("Warning: This individual has a match in the watchlist database.")
     },
     onError: (error) => {
@@ -296,6 +301,19 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
 
   return (
     <div>
+      <Modal
+        centered
+        open={isWatchlistMatchModalOpen}
+        onCancel={() => setIsWatchlistMatchModalOpen(false)}
+        onClose={() => setIsWatchlistMatchModalOpen(false)}
+        footer={[]}
+        width={"70%"}
+      >
+        <WatchlistMatchAlert
+          icao={icao}
+          watchlistData={watchlistData}
+        />
+      </Modal >
       <div className="flex">
         <div className="flex-1 flex flex-col items-center justify-center p-4">
           <div className="w-full flex items-center justify-center">
