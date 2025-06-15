@@ -48,7 +48,7 @@ const Visitors = () => {
                         <div className="ml-8">
                             <GodotLink link="visitor-type" title="Types of Visitors" />
                             <GodotLink link="visitor-req-docs" title="Visitor Requirement Documents" />
-                            <GodotLink link="visitor-relationship" title="Visitor Relationship to PDL" />
+                            <GodotLink link="visitor-relationship-to-pdl" title="Visitor Relationship to PDL" />
                             <GodotLink link="/jvms/issues" title="Issues and Findings" />
                         </div>
                         <div className="ml-8">

@@ -418,7 +418,7 @@ const NonPDL = () => {
             const headerHeight = 48;
             const footerHeight = 32;
             const organizationName = OrganizationData?.results?.[0]?.org_name || "";
-            const PreparedBy = `${UserData?.results?.[0]?.first_name || ''} ${UserData?.results?.[0]?.last_name || ''}`;
+            const PreparedBy = `${UserData?.first_name || ''} ${UserData?.last_name || ''}`;
 
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];

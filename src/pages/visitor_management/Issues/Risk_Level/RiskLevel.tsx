@@ -114,15 +114,15 @@ const RiskLevel = () => {
         }
     };
 
-    const dataSource = data?.results?.map((risk_level) => ({
-        key: risk_level?.id,
+    const dataSource = data?.results?.map((risk_level, index) => ({
+        key: index + 1,
         id: risk_level?.id ?? '',
-        name: risk_level?.name ?? '',
+        risk_severity: risk_level?.risk_severity ?? '',
+        risk_value: risk_level?.risk_value ?? '',
         description: risk_level?.description ?? '',
         updated_at: risk_level?.updated_at ?? '',
         updated_by: risk_level?.updated_by ?? '',
         organization: risk_level?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
     const filteredData = searchText
@@ -139,10 +139,15 @@ const RiskLevel = () => {
             render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
         {
+            title: 'Risk Value',
+            dataIndex: 'risk_value',
+            key: 'risk_value',
+            sorter: (a, b) => a.risk_value.localeCompare(b.risk_value),
+        },
+        {
             title: 'Risk Level',
-            dataIndex: 'name',
-            key: 'name',
-            sorter: (a, b) => a.name.localeCompare(b.name),
+            dataIndex: 'risk_severity',
+            key: 'risk_severity',
         },
         {
             title: 'Description',
@@ -167,6 +172,7 @@ const RiskLevel = () => {
         {
             title: "Action",
             key: "action",
+            fixed: 'right',
             render: (_, record) => (
                 <div className="flex gap-2">
                     <Button type="link" onClick={() => handleEdit(record)}>
@@ -191,17 +197,17 @@ const RiskLevel = () => {
     };
 
     const handleExportPDF = () => {
-        const doc = new jsPDF();
+        const doc = new jsPDF('landscape');
         const headerHeight = 48;
         const footerHeight = 32;
         const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+        const PreparedBy = `${UserData?.first_name || ''} ${UserData?.last_name || ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 29; 
+        const maxRowsPerPage = 15; 
     
         let startY = headerHeight;
     
@@ -233,7 +239,8 @@ const RiskLevel = () => {
 const isSearching = searchText.trim().length > 0;
     const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
             idx + 1,
-            item.name,
+            item.risk_value,
+            item.risk_severity,
             item.description,
         ]);
     
@@ -241,7 +248,7 @@ const isSearching = searchText.trim().length > 0;
             const pageData = tableData.slice(i, i + maxRowsPerPage);
     
             autoTable(doc, { 
-                head: [['No.', 'Risk Level', 'Description']],
+                head: [['No.', 'Risk Value', 'Risk Level', 'Description']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
@@ -363,16 +370,20 @@ const isSearching = searchText.trim().length > 0;
             >
                 <Form form={form} layout="vertical" onFinish={handleUpdate}>
                 <Form.Item
-                    name="name"
-                    label="Risk Level Name"
-                    rules={[{ required: true, message: "Please input the Risk Level name" }]}
+                    name="risk_value"
+                    label="Risk Value"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    name="risk_severity"
+                    label="Risk Level"
                 >
                     <Input />
                 </Form.Item>
                 <Form.Item
                     name="description"
                     label="Description"
-                    rules={[{ required: true, message: "Please input a description" }]}
                 >
                     <Input.TextArea rows={3} />
                 </Form.Item>

@@ -235,7 +235,7 @@ const dataSource = data?.results.map((status, index) => ({
             const headerHeight = 48;
             const footerHeight = 32;
             const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
-            const PreparedBy = dataSource[0]?.updated || ''; 
+            const PreparedBy = `${UserData?.first_name || ''} ${UserData?.last_name}` || ''; 
 
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];

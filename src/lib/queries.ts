@@ -146,6 +146,7 @@ import {
   ReportingCategory,
   SeverityLevel,
 } from "./issues-difinitions";
+import { NPImpactLevel, NPThreatLevel } from "./spdefinitions";
 
 export type PaginatedResponse<T> = {
   count: number;
@@ -3666,7 +3667,7 @@ export const patchIssue_Category = async (
 export async function getRiskLevel(
   token: string
 ): Promise<PaginatedResponse<RiskLevel>> {
-  const res = await fetch(`${BASE_URL}/api/issues/risk-levels/?limit=1000`, {
+  const res = await fetch(`${BASE_URL}/api/issues_v2/risk-levels/?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
@@ -3681,7 +3682,7 @@ export async function getRiskLevel(
 }
 
 export const deleteRiskLevels = async (token: string, id: number) => {
-  const response = await fetch(`${BASE_URL}/api/issues/risk-levels/${id}/`, {
+  const response = await fetch(`${BASE_URL}/api/issues_v2/risk-levels/${id}/`, {
     method: "DELETE",
     headers: {
       Authorization: `Token ${token}`,
@@ -3701,7 +3702,7 @@ export const patchRisk_level = async (
   id: number,
   data: Partial<RiskLevel>
 ): Promise<RiskLevel> => {
-  const url = `${BASE_URL}/api/issues/risk-levels/${id}/`;
+  const url = `${BASE_URL}/api/issues_v2/risk-levels/${id}/`;
   const res = await fetch(url, {
     method: "PATCH",
     headers: {
@@ -3911,6 +3912,40 @@ export async function getSummaryDaily(
 
   if (!res.ok) {
     throw new Error("Failed to fetch Daily data.");
+  }
+
+  return res.json();
+}
+
+export async function getNPImpactLevel(
+  token: string
+): Promise<PaginatedResponse<NPImpactLevel>> {
+  const res = await fetch(`${BASE_URL}/api/non-pdl-visitor/impact-levels/?limit=1000`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch Impact Levels data.");
+  }
+
+  return res.json();
+}
+
+export async function getNPThreatLevel(
+  token: string
+): Promise<PaginatedResponse<NPThreatLevel>> {
+  const res = await fetch(`${BASE_URL}/api/non-pdl-visitor/threat-levels/?limit=1000`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch Threats Levels data.");
   }
 
   return res.json();

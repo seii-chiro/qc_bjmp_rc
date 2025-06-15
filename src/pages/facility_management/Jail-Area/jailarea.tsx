@@ -1,7 +1,7 @@
-import { getJail_Area, deleteJail_Area, getUser } from "@/lib/queries"
+import { getJail_Area, deleteJail_Area, getUser, updateJailArea, getDetention_Building, getJail, getDetention_Floor } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Button, Dropdown, Menu, message, Modal, Table } from "antd"
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Button, Dropdown, Form, Input, Menu, message, Modal, Select, Table } from "antd"
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -23,7 +23,7 @@ type jailAreaReport = {
     floor: number;
     area_name: string;
     floor_status: string;
-  };
+};
 
 const JailArea = () => {
     const [searchText, setSearchText] = useState("");
@@ -31,6 +31,7 @@ const JailArea = () => {
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [form] = Form.useForm();
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [jailArea, setJailArea] = useState<jailAreaReport | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
@@ -63,6 +64,37 @@ const JailArea = () => {
 
     const handleCancel = () => {
         setIsModalOpen(false);
+    };
+
+    const { mutate: editAnnex, isLoading: isUpdating } = useMutation({
+        mutationFn: (updated: jailAreaReport) =>
+            updateJailArea(token ?? "", updated.id, updated),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["jail-area"] });
+            messageApi.success("Jail Area updated successfully");
+            setIsEditModalOpen(false);
+        },
+        onError: () => {
+            messageApi.error("Failed to update Jail Area");
+        },
+    });
+
+    const handleEdit = (record: jailAreaReport) => {
+        setJailArea(record);
+        form.setFieldsValue(record);
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdate = (values: any) => {
+        if (jailArea && jailArea.id) {
+            const updateJailArea: jailAreaReport = {
+                ...jailArea,
+                ...values,
+            };
+            editAnnex(updateJailArea);
+        } else {
+            messageApi.error("Selected Jail Area is invalid");
+        }
     };
 
     const dataSource = data?.results?.map((jailarea, index) => (
@@ -126,13 +158,7 @@ const JailArea = () => {
             key: "actions",
             render: (_: any, record: jailAreaReport) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
-                    <Button
-                        type="link"
-                        onClick={() => {
-                            setJailArea(record);
-                            setIsEditModalOpen(true);
-                        }}
-                    >
+                    <Button type="link" onClick={() => handleEdit(record)}>
                         <AiOutlineEdit />
                     </Button>
                     <Button
@@ -264,6 +290,47 @@ const JailArea = () => {
         </Menu>
     );
 
+    const results = useQueries({
+        queries: [
+            {
+                queryKey: ['jail'],
+                queryFn: () => getJail(token ?? "")
+            },
+            {
+                queryKey: ['building'],
+                queryFn: () => getDetention_Building(token ?? "")
+            },
+            {
+            queryKey: ['floor'],
+            queryFn: () => getDetention_Floor(token ?? "")
+            }
+        ]
+    });
+
+    const JailData = results[0].data;
+    const DetentionBuildingData = results[1].data;
+    const DetentionFloorData = results[2].data;
+    
+    const onJailChange = (value: number) => {
+        setJailArea(prevForm => ({
+            ...prevForm,
+            jail_id: value
+        }));
+    };
+
+    const onDetentionBuildingChange = (value: number) => {
+        setJailArea(prevForm => ({
+            ...prevForm,
+            building_id: value
+        }));
+    };
+
+    const onDetentionFloorChange = (value: number) => {
+        setJailArea(prevForm => ({
+            ...prevForm,
+            floor_id: value
+        }));
+    };
     return (
         <div>
             {contextHolder}
@@ -339,16 +406,73 @@ const JailArea = () => {
                 <AddArea onClose={handleCancel} />
             </Modal>
             <Modal
-                title="Edit Jail Area"
-                open={isEditModalOpen}
-                onCancel={() => setIsEditModalOpen(false)}
-                footer={null}
-            >
-                <EditJailArea
-                    jailarea={jailArea}
-                    onClose={() => setIsEditModalOpen(false)}
-                />
-            </Modal>
+                    title="Edit Jail Area"
+                    open={isEditModalOpen}
+                    onCancel={() => setIsEditModalOpen(false)}
+                    onOk={() => form.submit()}
+                    confirmLoading={isUpdating}
+                    width="60%"
+                >
+                    <Form form={form} layout="vertical" onFinish={handleUpdate}>
+                        <Form.Item
+                    label="Area Name"
+                    name="area_name"
+                >
+                    <Input />
+                </Form.Item>
+                <Form.Item
+                    label="Jail"
+                    name="jail"
+                >
+                    <Select 
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Jail"
+                        optionFilterProp="label"
+                        onChange={onJailChange}
+                        options={JailData?.results?.map(jail => (
+                            {
+                                value: jail.id,
+                                label: jail?.jail_name
+                            }
+                        ))}/>
+                </Form.Item>
+                <Form.Item
+                    label="Building"
+                    name="building"
+                >
+                    <Select 
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Building"
+                        optionFilterProp="label"
+                        onChange={onDetentionBuildingChange}
+                        options={DetentionBuildingData?.results?.map(building => (
+                            {
+                                value: building.id,
+                                label: building?.bldg_name
+                            }
+                        ))}/>
+                </Form.Item>
+                <Form.Item
+                    label="Floor"
+                    name="floor"
+                >
+                    <Select 
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Floor"
+                        optionFilterProp="label"
+                        onChange={onDetentionFloorChange}
+                        options={DetentionFloorData?.results?.map(floor => (
+                            {
+                                value: floor.id,
+                                label: floor?.floor_name
+                            }
+                        ))}/>
+                </Form.Item>
+                    </Form>
+                </Modal>
         </div>
     )
 }

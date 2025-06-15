@@ -1,6 +1,6 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation, useQuery, useQueryClient, } from "@tanstack/react-query";
-import { Button, Dropdown, Form, Input, Menu, message, Modal,Table,} from "antd";
+import { useMutation, useQueries, useQuery, useQueryClient, } from "@tanstack/react-query";
+import { Button, Dropdown, Form, Input, Menu, message, Modal,Select,Table,} from "antd";
 import { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
@@ -10,7 +10,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { GoDownload, GoPlus } from "react-icons/go";
-import { deleteImpact, getImpacts, getUser, patchImpact } from "@/lib/queries";
+import { deleteImpact, getImpactLevels, getImpacts, getRisks, getUser, patchImpact } from "@/lib/queries";
 import AddImpact from "./addImpact";
 import bjmp from '../../../../assets/Logo/QCJMD.png'
 
@@ -19,6 +19,8 @@ export type ImpactProps = {
     id: number;
     updated_at: string;
     name: string;
+    impact_level: number;
+    risk: number;
     description: string;
     updated_by: number;
 };
@@ -100,7 +102,9 @@ const Impact = () => {
         key: index + 1,
         id: impact?.id ?? '',
         name: impact?.name ?? '',
-        // description: impact?.description ?? '',
+        impact_level: impact?.impact_level,
+        risk: impact?.risk,
+        description: impact?.description ?? '',
         updated_at: impact?.updated_at ?? '',
         updated_by: impact?.updated_by ?? '',
         organization: impact?.organization ?? 'Bureau of Jail Management and Penology',
@@ -120,41 +124,24 @@ const Impact = () => {
             title: 'No.',
             render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
         },
+        // {
+        //     title: 'Impact Level',
+        //     dataIndex: 'impact_level',
+        //     key: 'impact_level',
+        //     sorter: (a, b) => a.impact_level.localeCompare(b.impact_level),
+        // },
+        // {
+        //     title: 'Risk',
+        //     dataIndex: 'risk',
+        //     key: 'risk',
+        //     sorter: (a, b) => a.risk.localeCompare(b.risk),
+        // },
         {
             title: 'Impact',
             dataIndex: 'name',
             key: 'name',
             sorter: (a, b) => a.name.localeCompare(b.name),
         },
-        // {
-        //     title: 'Description',
-        //     dataIndex: 'description',
-        //     key: 'description',
-        //     sorter: (a, b) => a.description.localeCompare(b.description),
-        //     filters: [
-        //         ...Array.from(
-        //             new Set(filteredData.map(item => item.description))
-        //         ).map(name => ({
-        //             text: name,
-        //             value: name,
-        //         }))
-        //     ],
-        //     onFilter: (value, record) => record.description === value,
-        // },
-        // {
-        //     title: "Updated At",
-        //     dataIndex: "updated_at",
-        //     key: "updated_at",
-        //     render: (value) =>
-        //         value !== '' ? moment(value).format("MMMM D, YYYY h:mm A") : "",
-        //     sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
-        // },
-        // {
-        //     title: 'Updated By',
-        //     dataIndex: 'updated_by',
-        //     key: 'updated_by',
-        //     sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
-        // },
         {
             title: "Action",
             key: "action",
@@ -289,6 +276,37 @@ const isSearching = searchText.trim().length > 0;
             </Menu.Item>
         </Menu>
     );
+
+    const results = useQueries({
+        queries: [
+            {
+                queryKey: ["impact-level"],
+                queryFn: () => getImpactLevels(token ?? ""),
+            },
+            {
+                queryKey: ["risk"],
+                queryFn: () => getRisks(token ?? ""),
+            },
+            ],
+        });
+        
+    const ImpactLevelData = results[0].data;
+    const RiskData = results[1].data;
+
+    const onImpactLevelChange = (value: number) => {
+        setSelctedImpact(prevForm => ({
+            ...prevForm,
+           impact_level_id: value,
+        }));
+    }; 
+
+    const onRiskLevelChange = (value: number) => {
+        setSelctedImpact(prevForm => ({
+            ...prevForm,
+            risk_id: value,
+        }));
+    }; 
+
     return (
         <div className="p-4">
             {contextHolder}
@@ -362,11 +380,40 @@ const isSearching = searchText.trim().length > 0;
                     <Input />
                 </Form.Item>
                 <Form.Item
-                    name="description"
-                    label="Description"
-                    rules={[{ required: true, message: "Please input a description" }]}
+                    name="risk"
+                    label="Risk"
                 >
-                    <Input.TextArea rows={3} />
+                    <Select
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Risk"
+                        optionFilterProp="label"
+                        onChange={onRiskLevelChange}
+                        options={RiskData?.results?.map(risk => (
+                            {
+                                value: risk.id,
+                                label: risk?.name
+                            }
+                        ))}
+                    />
+                </Form.Item>
+                <Form.Item
+                    name="impact_level"
+                    label="Impact Level"
+                >
+                    <Select
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Impact Level"
+                        optionFilterProp="label"
+                        onChange={onImpactLevelChange}
+                        options={ImpactLevelData?.results?.map(impact => (
+                            {
+                                value: impact.id,
+                                label: impact?.impact_level
+                            }
+                        ))}
+                    />
                 </Form.Item>
                 </Form>
             </Modal>

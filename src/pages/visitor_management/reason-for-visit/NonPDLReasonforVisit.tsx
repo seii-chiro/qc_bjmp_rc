@@ -11,7 +11,7 @@ import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import bjmp from '../../../assets/Logo/QCJMD.png'
 import { ReasonforVisitRecord } from "@/lib/issues-difinitions";
-import { getImpactLevels, getOrganization, getRiskLevel, getUser, PaginatedResponse } from "@/lib/queries";
+import { getImpactLevels, getImpacts, getNPImpactLevel, getNPThreatLevel, getOrganization, getRiskLevel, getRisks, getUser, PaginatedResponse } from "@/lib/queries";
 import { deleteReasonforVisit, getThreatLevel, updateReasonforVisit } from "@/lib/query";
 import AddReasonforVisit from "./AddReasonforVisit";
 
@@ -518,7 +518,7 @@ const results = useQueries({
         queries: [
             {
                 queryKey: ["impact-level"],
-                queryFn: () => getImpactLevels(token ?? ""),
+                queryFn: () => getNPImpactLevel(token ?? ""),
             },
             {
                 queryKey: ["risk-level"],
@@ -526,7 +526,7 @@ const results = useQueries({
             },
             {
                 queryKey: ["threat-level"],
-                queryFn: () => getThreatLevel(token ?? ""),
+                queryFn: () => getNPThreatLevel(token ?? ""),
             },
         ],
     });
@@ -555,7 +555,6 @@ const results = useQueries({
             threat_level_id: value,
         }));
     };
-
     return (
         <div>
         {contextHolder}
@@ -661,7 +660,6 @@ const results = useQueries({
                                 <Form.Item
                                     name="risks"
                                     label="Risks"
-                                    rules={[{ required: true, message: "Please input the Risks" }]}
                                 >
                                     <Input className="h-12 border w-full border-gray-300 rounded-lg px-2"/>
                                 </Form.Item>
@@ -697,7 +695,7 @@ const results = useQueries({
                             <div className="w-full md:w-1/2 p-2">
                                 <Form.Item
                                     label="Impact Level"
-                                    name="impact_level_id"
+                                    name="impact_level"
                                 >
                                     <Select
                                         className="h-[3rem] w-full"
@@ -712,7 +710,7 @@ const results = useQueries({
                                 </Form.Item>
                                 <Form.Item
                                     label="Risk Level"
-                                    name="risk_level_id"
+                                    name="risk_level"
                                 >
                                     <Select
                                         className="h-[3rem] w-full"
@@ -722,12 +720,12 @@ const results = useQueries({
                                         onChange={onriskLevelChange}
                                         options={riskLevelData?.results?.map(risk => ({
                                             value: risk.id,
-                                            label: risk?.name
+                                            label: risk?.risk_severity
                                         }))} />
                                 </Form.Item>
                                 <Form.Item
                                     label="Threat Level"
-                                    name="threat_level_id"
+                                    name="threat_level"
                                 >
                                     <Select
                                         className="h-[3rem] w-full"

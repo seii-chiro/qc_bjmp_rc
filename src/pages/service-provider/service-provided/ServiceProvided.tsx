@@ -540,7 +540,7 @@ const handleExportPDF = async () => {
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
-                width="50%"
+                width="40%"
                 style={{ maxHeight: "80vh", overflowY: "auto" }} 
                 >
                 <AddServiceProvided
@@ -555,12 +555,12 @@ const handleExportPDF = async () => {
                 confirmLoading={isUpdating}
             >
                 <Form form={form} layout="vertical" onFinish={handleUpdate}>
-                <Form.Item
+                <Form.Item 
                     name="service_provided"
                     label="Service Provided"
                     rules={[{ required: true, message: "Please input the Service Provided" }]}
                 >
-                    <Input />
+                    <Input  className="h-[2.8rem]"/>
                 </Form.Item>
                 <Form.Item
                     name="description"
@@ -574,7 +574,7 @@ const handleExportPDF = async () => {
                     label="Priority Level"
                     rules={[{ required: true, message: "Please input the Priority Level" }]}
                 >
-                    <Select>
+                    <Select className="h-[2.8rem]">
                             <Option value="Low">Low</Option>
                             <Option value="Medium">Medium</Option>
                             <Option value="High">High</Option>
@@ -585,7 +585,7 @@ const handleExportPDF = async () => {
                     label="Service Frequency"
                     rules={[{ required: true, message: "Please input the Service Frequency" }]}
                 >
-                    <Select>
+                    <Select className="h-[2.8rem]">
                             <Option value="Daily">Daily</Option>
                             <Option value="Weekly">Weekly</Option>
                             <Option value="Monthly">Monthly</Option>

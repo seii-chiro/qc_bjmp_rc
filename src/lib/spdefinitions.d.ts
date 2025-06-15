@@ -136,3 +136,25 @@ interface YourMainType {
     updated_at: string; // ISO 8601 format
     remarks: string;
 }
+
+interface NPImpactLevel {
+    id: number;               // Unique identifier
+    created_by: string;      // User who created the record
+    updated_by: string;      // User who last updated the record
+    record_status: string;    // Status of the record (e.g., active, inactive)
+    created_at: string;      // Timestamp of creation in ISO 8601 format
+    updated_at: string;      // Timestamp of last update in ISO 8601 format
+    impact_level: string;    // Level of impact (e.g., Low, Medium, High)
+    description: string;     // Description of the impact
+}
+
+interface NPThreatLevel {
+    id: number;               // Unique identifier
+    created_by: string;      // User who created the record
+    updated_by: string;      // User who last updated the record
+    record_status: string;    // Status of the record (e.g., active, inactive)
+    created_at: string;      // Timestamp of creation in ISO 8601 format
+    updated_at: string;      // Timestamp of last update in ISO 8601 format
+    threat_level: string;    // Level of impact (e.g., Low, Medium, High)
+    description: string;     // Description of the impact
+}

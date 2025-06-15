@@ -210,6 +210,7 @@ const handleUpdate = (values: any) => {
         {
             title: "Action",
             key: "action",
+            fixed: 'right',
             render: (_, record) => (
                 <div>
                     <Button type="link" onClick={() => handleEdit(record)}>

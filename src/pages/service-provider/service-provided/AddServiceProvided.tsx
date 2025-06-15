@@ -1,7 +1,7 @@
 import { BASE_URL} from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { message } from "antd";
+import { message, Select } from "antd";
 import { useState } from "react";
 
 type AddServiceProvidedProps = {
@@ -11,6 +11,7 @@ type AddServiceProvidedProps = {
     service_frequency: 'Daily' | 'Weekly' | 'Monthly';
     onClose: () => void;
 }
+const { Option } = Select;
 
 const AddServiceProvided: React.FC<AddServiceProvidedProps> = ({ onClose }) => {
     const token = useTokenStore().token;
@@ -55,7 +56,6 @@ const AddServiceProvided: React.FC<AddServiceProvidedProps> = ({ onClose }) => {
             queryClient.invalidateQueries({ queryKey: ['service-provided'] });
             messageApi.success("Added successfully");
             onClose();
-            onAdded?.();
         },
         onError: (error) => {
             console.error(error);
@@ -84,37 +84,35 @@ const AddServiceProvided: React.FC<AddServiceProvidedProps> = ({ onClose }) => {
             <form onSubmit={handleServiceProvidedSubmit}>
                 <div className="grid grid-cols-1 w-full gap-3">
                     <div>
-                        <p className="text-gray-500 font-bold">Service Provided:</p>
+                        <p className="py-1">Service Provided:</p>
                         <input type="text" name="service_provided" id="service_provided" onChange={handleInputChange} placeholder="Service Provided" className="h-12 border w-full border-gray-300 rounded-lg px-2" />
                     </div>
                     <div>
-                        <p className="text-gray-500 font-bold">Description:</p>
+                        <p className="py-1">Description:</p>
                         <input type="text" name="description" id="description" onChange={handleInputChange} placeholder="Description" className="h-12 border border-gray-300 rounded-lg px-2 w-full" />
                     </div>
                     <div>
-                        <p className="text-gray-500 font-bold">Priority Level:</p>
-                        <select className="h-12 border border-gray-300 rounded-lg px-2 w-full" name="priority_level" id="priority_level">
-                            <option value=""></option>
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
-                        </select>
+                        <p className="py-1">Priority Level:</p>
+                        <Select className="w-full h-[2.8rem]">
+                            <Option value="Low">Low</Option>
+                            <Option value="Medium">Medium</Option>
+                            <Option value="High">High</Option>
+                        </Select>
                     </div>
                     <div>
-                        <p className="text-gray-500 font-bold">Service Frequency:</p>
-                        <select className="h-12 border border-gray-300 rounded-lg px-2 w-full" name="service_frequency" id="service_frequency">
-                            <option value=""></option>
-                            <option value="Daily">Daily</option>
-                            <option value="Weekly">Weekly</option>
-                            <option value="Monthly">Monthly</option>
-                            <option value="Quarterly">Quarterly</option>
-                            <option value="Annually">Annually</option>
-                            <option value="As Needed">As Needed</option>
-                        </select>
+                        <p className="py-1">Service Frequency:</p>
+                        <Select className="w-full h-[2.8rem]">
+                            <Option value="Daily">Daily</Option>
+                            <Option value="Weekly">Weekly</Option>
+                            <Option value="Monthly">Monthly</Option>
+                            <Option value="Quarterly">Quarterly</Option>
+                            <Option value="Annually">Annually</Option>
+                            <Option value="As Needed">As Needed</Option>
+                        </Select>
                     </div>
                 </div>
                 <div className="w-full flex justify-end mt-10">
-                    <button type="submit" className="bg-blue-500 text-white w-36 px-3 py-2 rounded font-semibold text-base">
+                    <button type="submit" className="bg-[#1E365D] text-white w-36 px-3 py-2 rounded font-semibold text-base">
                     Submit
                     </button>
                 </div>
