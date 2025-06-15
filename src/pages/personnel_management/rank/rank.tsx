@@ -113,15 +113,6 @@ const Rank = () => {
             dataIndex: 'category',
             key: 'category',
             sorter: (a, b) => a.category.localeCompare(b.category),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.category))
-                ).map(category => ({
-                    text: category,
-                    value: category,
-                }))
-            ],
-            onFilter: (value, record) => record.category === value,
         },
         {
             title: 'Class Level',
