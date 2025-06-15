@@ -86,11 +86,6 @@ const jailfacility = () => {
         queryClient.invalidateQueries({ queryKey: ["jail"] });
     };
 
-    const handleCloseEditModal = () => {
-        setIsEditModalOpen(false);
-        queryClient.invalidateQueries({ queryKey: ["jail"] });
-    };
-
     const { mutate: editJail, isLoading: isUpdating } = useMutation({
         mutationFn: (updated: Jail) =>
             updateJail(token ?? "", updated.id, updated),
