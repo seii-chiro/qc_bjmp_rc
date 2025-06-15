@@ -254,3 +254,67 @@ export async function deleteWatchlistThreatLevel(token: string, id: number) {
   const text = await res.text();
   return text ? JSON.parse(text) : null;
 }
+
+export async function patchWatchlistPerson(
+  token: string,
+  id: number,
+  payload: Partial<{
+    person_id: number | null;
+    white_listed_type_id: number | null;
+    risk_level_id: number | null;
+    threat_level_id: number | null;
+    risks: string;
+    threats: string;
+    mitigation: string;
+    remarks: string;
+  }>
+) {
+  const res = await fetch(
+    `${BASE_URL}/api/whitelists/whitelisted-persons/${id}/`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}
+
+// PATCH a person record
+export async function patchPerson(
+  token: string,
+  id: number,
+  payload: Partial<{
+    gender_id: number | null;
+    nationality_id: number | null;
+    civil_status_id: number | null;
+    first_name: string;
+    last_name: string;
+    middle_name: string;
+  }>
+) {
+  const res = await fetch(`${BASE_URL}/api/standards/persons/${id}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+}

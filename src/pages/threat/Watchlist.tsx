@@ -14,9 +14,9 @@ import { useEffect, useState } from "react";
 import { GoDownload } from "react-icons/go";
 import { LuSearch } from "react-icons/lu";
 import bjmp from '../../assets/Logo/QCJMD.png'
-import { AiOutlineDelete } from "react-icons/ai";
+import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { BASE_URL } from "@/lib/urls";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 type DeleteArgs = { id: number; personId: number };
 
@@ -30,7 +30,7 @@ const Watchlist = () => {
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [exportLoading, setExportLoading] = useState(false);
-    // const navigate = useNavigate()
+    const navigate = useNavigate()
     const [allWatchlist, setAllWatchlist] = useState<WatchlistPerson[]>([]);
 
     useEffect(() => {
@@ -194,12 +194,6 @@ const Watchlist = () => {
             dataIndex: 'person',
             key: 'person',
             sorter: (a, b) => a.person.localeCompare(b.person),
-            filters: [
-                ...Array.from(new Set(allWatchlist.map(item => item.person ?? '')))
-                    .filter(name => name)
-                    .map(name => ({ text: name, value: name }))
-            ],
-            onFilter: (value, record) => record.person === value,
         },
         {
             title: 'White Listed Type',
@@ -256,15 +250,15 @@ const Watchlist = () => {
             align: "center",
             render: (_: any, record: WatchlistPerson) => (
                 <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
-                    {/* <Button
+                    <Button
                         type="link"
                         danger
                         onClick={() => {
-                            navigate("/jvms/threats/watchlist_registration", { state: record })
+                            navigate("/jvms/threats/watchlist_registration", { state: record?.id })
                         }}
                     >
                         <AiOutlineEdit color="blue" />
-                    </Button> */}
+                    </Button>
                     <Button
                         type="link"
                         danger
