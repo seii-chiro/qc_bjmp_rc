@@ -65,6 +65,7 @@ const PdlProfilePortrait = ({ visitorData = {} }: PdlProfilePortraitProps) => {
     const token = useTokenStore()?.token
     const modalContentRef = useRef(null);
     const selectedVisitor = visitorData || {};
+
     console.log(selectedVisitor)
 
     const { data: visitorStatus } = useQuery({
@@ -72,7 +73,6 @@ const PdlProfilePortrait = ({ visitorData = {} }: PdlProfilePortraitProps) => {
         queryFn: () => getVisitorAppStatus(token ?? ""),
         staleTime: 10 * 60 * 1000
     })
-    console.log(visitorStatus)
 
     const { data: settingsData } = useQuery({
         queryKey: ['global-settings'],
@@ -269,20 +269,20 @@ const PdlProfilePortrait = ({ visitorData = {} }: PdlProfilePortraitProps) => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {(selectedVisitor?.visitor ?? []).length > 0 ? (
-                                            (selectedVisitor?.visitor ?? []).map((pdlItem, index) => (
+                                        {(selectedVisitor?.visitors_from_pdl ?? []).length > 0 ? (
+                                            (selectedVisitor?.visitors_from_pdl ?? []).map((pdlItem, index) => (
                                                 <tr key={index}>
                                                     <td className="text-center text-[9px] font-light">
                                                         {pdlItem?.visitor_reg_no || "N/A"}
                                                     </td>
                                                     <td className="text-center text-[9px] font-light">
-                                                        {pdlItem?.person || "N/A"}
+                                                        {`${pdlItem?.person?.first_name ?? ""} ${pdlItem?.person?.middle_name ?? ""} ${pdlItem?.person?.last_name ?? ""}` || "N/A"}
                                                     </td>
                                                     <td className="text-center text-[9px] font-light">
                                                         {pdlItem?.visitor_type || "N/A"}
                                                     </td>
                                                     <td className="text-center text-[9px] font-light">
-                                                        {visitorStatus?.results?.find(status => status?.id === pdlItem?.visitor_app_status)?.status || "N/A"}
+                                                        {pdlItem?.visitor_app_status || "N/A"}
                                                     </td>
                                                 </tr>
                                             ))
