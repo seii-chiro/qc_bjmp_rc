@@ -1,4 +1,5 @@
 import { OTPAccount } from "@/lib/issues-difinitions";
+import { getUser, getUsers } from "@/lib/queries";
 import { deleteOTP, getOTP } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,9 +16,14 @@ const OTP = () => {
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
 
-    const { data } = useQuery({
+    const { data: otpData } = useQuery({
         queryKey: ['OTP'],
         queryFn: () => getOTP(token ?? ""),
+    });
+
+    const { data: usersData } = useQuery({
+        queryKey: ['users'],
+        queryFn: () => getUsers(token ?? ""),
     });
 
     const deleteMutation = useMutation({
@@ -31,12 +37,17 @@ const OTP = () => {
         },
     });
 
-    const dataSource = data?.results?.map((otp) => ({
-        id: otp?.id ?? '',
-        failed_attempts: otp?.failed_attempts ?? '',
-        last_failed_at: otp?.last_failed_at ?? '',
-        locked_until: otp?.locked_until ?? '',
-        user: otp?.user ?? '',
+    // Create a map from user ID to full name
+    const usersMap = new Map(
+        usersData?.results.map(user => [user.id, `${user.first_name} ${user.last_name}`]) || []
+    );
+
+    const dataSource = otpData?.results.map((otp) => ({
+        id: otp.id ?? '',
+        failed_attempts: otp.failed_attempts ?? '',
+        last_failed_at: otp.last_failed_at ?? '',
+        locked_until: otp.locked_until ?? '',
+        user: usersMap.get(otp.user) || 'Unknown User', // Fallback for unknown users
     })) || [];
 
     const filteredData = dataSource.filter((otp) =>
@@ -54,19 +65,19 @@ const OTP = () => {
             title: 'Failed Attempt',
             dataIndex: 'failed_attempts',
             key: 'failed_attempts',
-            sorter: (a, b) => a.failed_attempts - b.failed_attempts, // Sorting
+            sorter: (a, b) => a.failed_attempts - b.failed_attempts,
         },
         {
             title: 'Last Failed At',
             dataIndex: 'last_failed_at',
             key: 'last_failed_at',
-            sorter: (a, b) => new Date(b.last_failed_at).getTime() - new Date(a.last_failed_at).getTime(), // Sorting
+            sorter: (a, b) => new Date(b.last_failed_at).getTime() - new Date(a.last_failed_at).getTime(),
         },
         {
             title: 'Locked Until',
             dataIndex: 'locked_until',
             key: 'locked_until',
-            sorter: (a, b) => new Date(b.locked_until).getTime() - new Date(a.locked_until).getTime(), // Sorting
+            sorter: (a, b) => new Date(b.locked_until).getTime() - new Date(a.locked_until).getTime(),
         },
         {
             title: 'User',
