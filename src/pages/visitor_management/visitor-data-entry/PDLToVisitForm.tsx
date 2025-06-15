@@ -23,6 +23,8 @@ type Props = {
     setPdlFirstName: (val: string) => void;
 }
 
+// ...existing imports...
+
 const PDLToVisitForm = ({
     setVisitorForm,
     visitorToPdlRelationship,
@@ -44,6 +46,7 @@ const PDLToVisitForm = ({
     })
 
     const [selectedPdl, setSelectedPdl] = useState<PDLs | null>(null);
+    const [isSearching, setIsSearching] = useState(false);
 
     const [helperForm, setHelperForm] = useState<PdlToVisitForm>(() => {
         if (editPdlToVisitIndex !== null && pdlToVisitTableInfo?.[editPdlToVisitIndex]) {
@@ -216,10 +219,32 @@ const PDLToVisitForm = ({
                 <div className='flex gap-8'>
                     <div className='flex-1'>
                         <div className='flex w-full justify-between gap-4'>
+                            {/* PDL ID Input */}
+                            <label htmlFor="last-name" className='flex-1 flex flex-col gap-1'>
+                                <span className='font-semibold'>PDL ID <span className='text-red-500'>*</span></span>
+                                <Input
+                                    className="h-12 rounded-md outline-gray-300"
+                                    value={pdlToVisitID ?? ""}
+                                    placeholder="Enter PDL ID"
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        // Only allow numbers or empty
+                                        if (/^\d*$/.test(val)) {
+                                            setPdlToVisitID(val ? Number(val) : null);
+                                            setIsSearching(true);
+                                            setPdlFirstName(""); // Clear name search
+                                            setPdlPage(1);
+                                            // You should update your PDL fetching logic to use `search=pdlToVisitID`
+                                        }
+                                    }}
+                                    onBlur={() => setIsSearching(false)}
+                                />
+                            </label>
+                            {/* Last Name Select */}
                             <label htmlFor="last-name" className='flex-1 flex flex-col gap-1'>
                                 <span className='font-semibold'>Last Name <span className='text-red-500'>*</span></span>
                                 <Select
-                                    loading={pdlsLoading}
+                                    loading={pdlsLoading || isSearching}
                                     showSearch
                                     value={pdlToVisitID}
                                     optionFilterProp="label"
@@ -235,21 +260,28 @@ const PDLToVisitForm = ({
                                                 : []
                                     }
                                     notFoundContent={
-                                        pdlsLoading && !pdls?.length
+                                        (pdlsLoading || isSearching) && !pdls?.length
                                             ? "Loading..."
                                             : "No data found"
                                     }
                                     onSearch={value => {
+                                        setIsSearching(true);
                                         setPdlFirstName(value);
                                         setPdlPage(1);
                                     }}
                                     onChange={value => setPdlToVisitID(value)}
+                                    onBlur={() => setIsSearching(false)}
+                                    onDropdownVisibleChange={open => {
+                                        if (!open) setIsSearching(false);
+                                    }}
                                 />
                             </label>
+                        </div>
+                        <div className='flex w-full justify-between gap-4'>
                             <label htmlFor="first-name" className='flex-1 flex flex-col gap-1'>
                                 <span className='font-semibold'>First Name <span className='text-red-500'>*</span></span>
                                 <Select
-                                    loading={pdlsLoading}
+                                    loading={pdlsLoading || isSearching}
                                     showSearch
                                     value={pdlToVisitID}
                                     optionFilterProp="label"
@@ -264,20 +296,27 @@ const PDLToVisitForm = ({
                                                 }))
                                                 : []
                                     }
-                                    notFoundContent={pdlsLoading ? "Loading..." : "No data found"}
+                                    notFoundContent={
+                                        (pdlsLoading || isSearching) && !pdls?.length
+                                            ? "Loading..."
+                                            : "No data found"
+                                    }
                                     onSearch={value => {
+                                        setIsSearching(true);
                                         setPdlFirstName(value);
                                         setPdlPage(1);
                                     }}
                                     onChange={value => setPdlToVisitID(value)}
+                                    onBlur={() => setIsSearching(false)}
+                                    onDropdownVisibleChange={open => {
+                                        if (!open) setIsSearching(false);
+                                    }}
                                 />
                             </label>
-                        </div>
-                        <div className='flex w-full justify-between gap-4'>
                             <label htmlFor="middle-name" className='flex-1 flex flex-col gap-1'>
                                 <span className='font-semibold'>Middle Name </span>
                                 <Select
-                                    loading={pdlsLoading}
+                                    loading={pdlsLoading || isSearching}
                                     showSearch
                                     value={pdlToVisitID}
                                     optionFilterProp="label"
@@ -286,11 +325,25 @@ const PDLToVisitForm = ({
                                         value: pdl?.id,
                                         label: pdl?.person?.middle_name
                                     }))}
-                                    onChange={(value) =>
-                                        setPdlToVisitID(value)
+                                    notFoundContent={
+                                        (pdlsLoading || isSearching) && !pdls?.length
+                                            ? "Loading..."
+                                            : "No data found"
                                     }
+                                    onSearch={value => {
+                                        setIsSearching(true);
+                                        setPdlFirstName(value);
+                                        setPdlPage(1);
+                                    }}
+                                    onChange={(value) => setPdlToVisitID(value)}
+                                    onBlur={() => setIsSearching(false)}
+                                    onDropdownVisibleChange={open => {
+                                        if (!open) setIsSearching(false);
+                                    }}
                                 />
                             </label>
+                        </div>
+                        <div className='flex w-full justify-between gap-4'>
                             <label htmlFor="mbc" className='flex-1 flex flex-col gap-1'>
                                 <span className='font-semibold'>Multiple Birth Classification </span>
                                 <Input
@@ -298,8 +351,6 @@ const PDLToVisitForm = ({
                                     className='h-12 rounded-md outline-gray-300'
                                 />
                             </label>
-                        </div>
-                        <div className='flex w-full justify-between gap-4'>
                             <label htmlFor="level" className='flex-1 flex flex-col gap-1'>
                                 <span className='font-semibold'>Level <span className='text-red-500'>*</span></span>
                                 <Input
@@ -308,6 +359,8 @@ const PDLToVisitForm = ({
                                     className='h-12'
                                 />
                             </label>
+                        </div>
+                        <div className='flex w-full justify-between gap-4'>
                             <label htmlFor="annex" className='flex-1 flex flex-col gap-1'>
                                 <span className='font-semibold'>Annex </span>
                                 <Input
@@ -316,8 +369,6 @@ const PDLToVisitForm = ({
                                     className='h-12'
                                 />
                             </label>
-                        </div>
-                        <div className='flex w-full justify-between gap-4'>
                             <label htmlFor="dorm" className='flex-1 flex flex-col gap-1'>
                                 <span className='font-semibold'>Dorm <span className='text-red-500'>*</span></span>
                                 <Input
@@ -326,6 +377,8 @@ const PDLToVisitForm = ({
                                     className='h-12'
                                 />
                             </label>
+                        </div>
+                        <div className='flex w-full justify-between gap-4'>
                             <label htmlFor="pdl-visitation-status" className='flex-1 flex flex-col gap-1'>
                                 <span className='font-semibold'>PDL Visitation Status <span className='text-red-500'>*</span></span>
                                 <Input
@@ -334,8 +387,6 @@ const PDLToVisitForm = ({
                                     className='h-12'
                                 />
                             </label>
-                        </div>
-                        <div className='flex w-full justify-between gap-4'>
                             <label htmlFor="relationship" className='flex-1 flex flex-col gap-1'>
                                 <span className='font-semibold'>Relationship <span className='text-red-500'>*</span></span>
                                 <Select
@@ -355,26 +406,6 @@ const PDLToVisitForm = ({
                             </label>
                         </div>
                     </div>
-                    {/* <div className='flex-1'>
-                        <div className="border border-gray-100 bg-gray-200 rounded w-full h-full">
-                            {
-                                !selectedPdl ? (
-                                    <div className='w-full h-full flex items-center justify-center'>
-                                        <h2 className='text-3xl font-bold text-gray-600'>Select a PDL to visit</h2>
-                                    </div>
-                                ) : selectedPdl?.person?.biometrics?.find(bio => bio.type === "face")?.image ? (
-                                    <img
-                                        src={selectedPdl?.person?.biometrics.find(bio => bio.type === "face")?.image}
-                                        alt="pdl image"
-                                    />
-                                ) : (
-                                    <div className='w-full h-full flex items-center justify-center'>
-                                        <h2 className='text-3xl font-bold text-gray-600'>No Image Available</h2>
-                                    </div>
-                                )
-                            }
-                        </div>
-                    </div> */}
                 </div>
 
                 <div className='w-[30%] flex gap-4 ml-[70%]'>
@@ -413,4 +444,4 @@ const PDLToVisitForm = ({
     )
 }
 
-export default PDLToVisitForm
+export default PDLToVisitForm;

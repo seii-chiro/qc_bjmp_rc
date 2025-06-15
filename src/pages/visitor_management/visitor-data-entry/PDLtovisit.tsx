@@ -242,11 +242,11 @@ const PDLtovisit = ({
                 dataIndex: 'visitationStatus',
                 key: 'visitationStatus',
             },
-            {
-                title: 'Multiple Birth Classification',
-                dataIndex: 'birthClassClassification',
-                key: 'multipleBirthClass',
-            },
+            // {
+            //     title: 'Multiple Birth Classification',
+            //     dataIndex: 'birthClassClassification',
+            //     key: 'multipleBirthClass',
+            // },
             {
                 title: "Actions",
                 key: "actions",
