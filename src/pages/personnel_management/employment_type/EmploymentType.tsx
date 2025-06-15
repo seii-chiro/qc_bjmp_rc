@@ -58,7 +58,7 @@ const EmploymentType = () => {
     const showModal = () => {
         setIsModalOpen(true);
     };
-    
+
     const handleCancel = () => {
         setIsModalOpen(false);
     };
@@ -90,30 +90,12 @@ const EmploymentType = () => {
             dataIndex: 'employment_type',
             key: 'employment_type',
             sorter: (a, b) => a.employment_type.localeCompare(b.employment_type),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.employment_type))
-                ).map(employment_type => ({
-                    text: employment_type,
-                    value: employment_type,
-                }))
-            ],
-            onFilter: (value, record) => record.employment_type === value,
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
             sorter: (a, b) => a.description.localeCompare(b.description),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.description))
-                ).map(description => ({
-                    text: description,
-                    value: description,
-                }))
-            ],
-            onFilter: (value, record) => record.description === value,
         },
         {
             title: "Actions",
@@ -153,30 +135,30 @@ const EmploymentType = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
-    
+        const organizationName = dataSource[0]?.organization || "";
+        const PreparedBy = dataSource[0]?.updated_by || '';
+
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-    
-        const maxRowsPerPage = 27; 
-    
+
+        const maxRowsPerPage = 27;
+
         let startY = headerHeight;
-    
+
         const addHeader = () => {
-            const pageWidth = doc.internal.pageSize.getWidth(); 
+            const pageWidth = doc.internal.pageSize.getWidth();
             const imageWidth = 30;
-            const imageHeight = 30; 
-            const margin = 10; 
+            const imageHeight = 30;
+            const margin = 10;
             const imageX = pageWidth - imageWidth - margin;
             const imageY = 12;
-        
+
             doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-        
+
             doc.setTextColor(0, 102, 204);
             doc.setFontSize(16);
-            doc.text("Employment Type Report", 10, 15); 
+            doc.text("Employment Type Report", 10, 15);
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(10);
             doc.text(`Organization Name: ${organizationName}`, 10, 25);
@@ -185,38 +167,38 @@ const EmploymentType = () => {
             doc.text("Department/ Unit: IT", 10, 40);
             doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
         };
-        
-    
-        addHeader(); 
-    
-const isSearching = searchText.trim().length > 0;
-    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+
+
+        addHeader();
+
+        const isSearching = searchText.trim().length > 0;
+        const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
             idx + 1,
             item.employment_type,
             item.description,
         ]);
-    
+
         for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
-    
-            autoTable(doc, { 
+
+            autoTable(doc, {
                 head: [['No.', 'Employment Type', 'Description']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
                 didDrawPage: function (data) {
                     if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                        addHeader(); 
+                        addHeader();
                     }
                 },
             });
-    
+
             if (i + maxRowsPerPage < tableData.length) {
                 doc.addPage();
                 startY = headerHeight;
             }
         }
-    
+
         const pageCount = doc.internal.getNumberOfPages();
         for (let page = 1; page <= pageCount; page++) {
             doc.setPage(page);
@@ -233,7 +215,7 @@ const isSearching = searchText.trim().length > 0;
             doc.text(footerText, footerX, footerY);
             doc.text(`${page} / ${pageCount}`, pageX, footerY);
         }
-    
+
         const pdfOutput = doc.output('datauristring');
         setPdfDataUrl(pdfOutput);
         setIsPdfModalOpen(true);
@@ -241,7 +223,7 @@ const isSearching = searchText.trim().length > 0;
 
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
-        setPdfDataUrl(null); 
+        setPdfDataUrl(null);
     };
     const menu = (
         <Menu>
@@ -274,30 +256,30 @@ const isSearching = searchText.trim().length > 0;
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="flex-1 relative flex items-center">
-                        <input
-                            placeholder="Search"
-                            type="text"
-                            onChange={(e) => setSearchText(e.target.value)}
-                            className="border border-gray-400 h-10 w-96 rounded-md px-2 active:outline-none focus:outline-none"
-                        />
-                        <LuSearch className="absolute right-[1%] text-gray-400" />
-                    </div>
-                    <button
-                        className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center"
-                        onClick={showModal}
+                            <input
+                                placeholder="Search"
+                                type="text"
+                                onChange={(e) => setSearchText(e.target.value)}
+                                className="border border-gray-400 h-10 w-96 rounded-md px-2 active:outline-none focus:outline-none"
+                            />
+                            <LuSearch className="absolute right-[1%] text-gray-400" />
+                        </div>
+                        <button
+                            className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center"
+                            onClick={showModal}
                         >
-                        <GoPlus />
-                        Add Employment Type
-                    </button>
+                            <GoPlus />
+                            Add Employment Type
+                        </button>
                     </div>
-                    
+
                 </div>
                 <div className="overflow-x-auto overflow-y-auto h-full">
                     <Table
                         className="overflow-x-auto"
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{ x: 'max-content' }} 
+                        scroll={{ x: 'max-content' }}
                         pagination={{
                             current: pagination.current,
                             pageSize: pagination.pageSize,
@@ -328,9 +310,9 @@ const isSearching = searchText.trim().length > 0;
                 onCancel={handleCancel}
                 footer={null}
                 width="30%"
-                style={{ maxHeight: "80vh", overflowY: "auto" }} 
-                >
-                <AddEmploymentType onClose={handleCancel}/>
+                style={{ maxHeight: "80vh", overflowY: "auto" }}
+            >
+                <AddEmploymentType onClose={handleCancel} />
             </Modal>
             <Modal
                 title="Edit Employment Type"
