@@ -1,4 +1,4 @@
-import { DatePicker, Input, message, Modal, Select, Table } from "antd";
+import { Button, DatePicker, Input, message, Modal, Select, Table } from "antd";
 import { Plus } from "lucide-react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import AddAddress from "../visitor-data-entry/AddAddress";
@@ -95,6 +95,8 @@ const PdlRegistration = () => {
 
     const [editAddressIndex, setEditAddressIndex] = useState<number | null>(null);
     const [editContactIndex, setEditContactIndex] = useState<number | null>(null);
+
+    const [hasSubmitted, setHasSubmitted] = useState(false);
 
     const [personForm, setPersonForm] = useState<PersonForm>({
         first_name: "",
@@ -576,7 +578,10 @@ const PdlRegistration = () => {
     const addPdlMutation = useMutation({
         mutationKey: ['add-visitor'],
         mutationFn: (id: number) => registerPdl({ ...pdlForm, person_id: id }, token ?? ""),
-        onSuccess: () => message.success('Successfully registered PDL'),
+        onSuccess: () => {
+            message.success('Successfully registered PDL')
+            setHasSubmitted(true);
+        },
         onError: (err) => message.error(err.message)
     })
 
@@ -1592,15 +1597,16 @@ const PdlRegistration = () => {
                                 >
                                     View Profile
                                 </button>
-                                <button
-                                    type="button"
+                                <Button
+                                    disabled={hasSubmitted}
+                                    loading={addPersonMutation.isPending || addPdlMutation.isPending}
                                     className="bg-blue-500 text-white rounded-md py-2 px-6 flex-1"
                                     onClick={() => {
                                         addPersonMutation.mutate()
                                     }}
                                 >
                                     Save
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Input, message, Modal, Select, Table } from "antd";
+import { Button, Input, message, Modal, Select, Table } from "antd";
 import { Plus } from "lucide-react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import AddAddress from "./AddAddress";
@@ -94,6 +94,8 @@ const VisitorRegistration = () => {
 
     const [personSearch, setPersonSearch] = useState("");
     const [personPage, setPersonPage] = useState(1);
+
+    const [hasSubmitted, setHasSubmitted] = useState(false);
 
     const [personForm, setPersonForm] = useState<PersonForm>({
         first_name: "",
@@ -486,7 +488,10 @@ const VisitorRegistration = () => {
     const addVisitorMutation = useMutation({
         mutationKey: ['add-visitor'],
         mutationFn: (id: number) => registerVisitor({ ...visitorForm, person_id: id }, token ?? ""),
-        onSuccess: () => message.success('Successfully registered visitor'),
+        onSuccess: () => {
+            message.success('Successfully registered visitor')
+            setHasSubmitted(true);
+        },
         onError: (err) => message.error(err.message)
     })
 
@@ -1253,15 +1258,16 @@ const VisitorRegistration = () => {
                                 >
                                     View Profile
                                 </button>
-                                <button
-                                    type="button"
+                                <Button
+                                    disabled={hasSubmitted}
+                                    loading={addPersonMutation.isPending || addVisitorMutation.isPending}
                                     className="bg-blue-500 text-white rounded-md py-2 px-6 flex-1"
                                     onClick={() => {
                                         addPersonMutation.mutate()
                                     }}
                                 >
                                     Save
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
