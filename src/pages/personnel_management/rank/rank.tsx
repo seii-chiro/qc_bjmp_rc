@@ -61,7 +61,7 @@ const Rank = () => {
     const showModal = () => {
         setIsModalOpen(true);
     };
-    
+
     const handleCancel = () => {
         setIsModalOpen(false);
     };
@@ -84,7 +84,7 @@ const Rank = () => {
     );
 
     const columns: ColumnsType<Rank> = [
-         {
+        {
             title: 'No.',
             key: 'no',
             render: (_: any, __: any, index: number) =>
@@ -95,45 +95,18 @@ const Rank = () => {
             dataIndex: 'organization',
             key: 'organization',
             sorter: (a, b) => a.organization.localeCompare(b.organization),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.organization))
-                ).map(organization => ({
-                    text: organization,
-                    value: organization,
-                }))
-            ],
-            onFilter: (value, record) => record.organization === value,
         },
         {
             title: 'Rank Code',
             dataIndex: 'rank_code',
             key: 'rank_code',
             sorter: (a, b) => a.rank_code.localeCompare(b.rank_code),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.rank_code))
-                ).map(rank_code => ({
-                    text: rank_code,
-                    value: rank_code,
-                }))
-            ],
-            onFilter: (value, record) => record.rank_code === value,
         },
         {
             title: 'Rank Name',
             dataIndex: 'rank_name',
             key: 'rank_name',
             sorter: (a, b) => a.rank_name.localeCompare(b.rank_name),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.rank_name))
-                ).map(rank_name => ({
-                    text: rank_name,
-                    value: rank_name,
-                }))
-            ],
-            onFilter: (value, record) => record.rank_name === value,
         },
         {
             title: 'Category',
@@ -155,15 +128,6 @@ const Rank = () => {
             dataIndex: 'class_level',
             key: 'class_level',
             sorter: (a, b) => a.class_level - b.class_level,
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.class_level))
-                ).map(class_level => ({
-                    text: class_level,
-                    value: class_level,
-                }))
-            ],
-            onFilter: (value, record) => record.class_level === value,
         },
         {
             title: "Actions",
@@ -185,7 +149,7 @@ const Rank = () => {
                         danger
                         onClick={() => deleteMutation.mutate(record.id)}
                     >
-                        <AiOutlineDelete/>
+                        <AiOutlineDelete />
                     </Button>
                 </div>
             ),
@@ -203,31 +167,31 @@ const Rank = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
-    
+        const organizationName = dataSource[0]?.organization || "";
+        const PreparedBy = dataSource[0]?.updated_by || '';
+
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-    
+
         const availableHeight = doc.internal.pageSize.height - headerHeight - footerHeight;
-        const maxRowsPerPage = 27; 
-    
+        const maxRowsPerPage = 27;
+
         let startY = headerHeight;
-    
+
         const addHeader = () => {
-            const pageWidth = doc.internal.pageSize.getWidth(); 
+            const pageWidth = doc.internal.pageSize.getWidth();
             const imageWidth = 30;
-            const imageHeight = 30; 
-            const margin = 10; 
+            const imageHeight = 30;
+            const margin = 10;
             const imageX = pageWidth - imageWidth - margin;
             const imageY = 12;
-        
+
             doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-        
+
             doc.setTextColor(0, 102, 204);
             doc.setFontSize(16);
-            doc.text("Rank Report", 10, 15); 
+            doc.text("Rank Report", 10, 15);
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(10);
             doc.text(`Organization Name: ${organizationName}`, 10, 25);
@@ -236,39 +200,39 @@ const Rank = () => {
             doc.text("Department/ Unit: IT", 10, 40);
             doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
         };
-        
-    
-        addHeader(); 
-    
-const isSearching = searchText.trim().length > 0;
-    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+
+
+        addHeader();
+
+        const isSearching = searchText.trim().length > 0;
+        const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
             idx + 1,
             item.rank_code,
             item.rank_name,
             item.category,
         ]);
-    
+
         for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
-    
-            autoTable(doc, { 
+
+            autoTable(doc, {
                 head: [['No.', 'Rank Code', 'Rank', 'Category']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
                 didDrawPage: function (data) {
                     if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                        addHeader(); 
+                        addHeader();
                     }
                 },
             });
-    
+
             if (i + maxRowsPerPage < tableData.length) {
                 doc.addPage();
                 startY = headerHeight;
             }
         }
-    
+
         const pageCount = doc.internal.getNumberOfPages();
         for (let page = 1; page <= pageCount; page++) {
             doc.setPage(page);
@@ -285,16 +249,16 @@ const isSearching = searchText.trim().length > 0;
             doc.text(footerText, footerX, footerY);
             doc.text(`${page} / ${pageCount}`, pageX, footerY);
         }
-    
+
         const pdfOutput = doc.output('datauristring');
         setPdfDataUrl(pdfOutput);
         setIsPdfModalOpen(true);
     };
-    
+
 
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
-        setPdfDataUrl(null); 
+        setPdfDataUrl(null);
     };
 
     const menu = (
@@ -326,24 +290,24 @@ const isSearching = searchText.trim().length > 0;
                             Print Report
                         </button>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                         <div className="flex-1 relative flex items-center">
-                        <input
-                            placeholder="Search"
-                            type="text"
-                            onChange={(e) => setSearchText(e.target.value)}
-                            className="border border-gray-400 h-10 w-96 rounded-md px-2 active:outline-none focus:outline-none"
-                        />
-                        <LuSearch className="absolute right-[1%] text-gray-400" />
-                    </div>
-                    <button
-                        className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center"
-                        onClick={showModal}
+                            <input
+                                placeholder="Search"
+                                type="text"
+                                onChange={(e) => setSearchText(e.target.value)}
+                                className="border border-gray-400 h-10 w-96 rounded-md px-2 active:outline-none focus:outline-none"
+                            />
+                            <LuSearch className="absolute right-[1%] text-gray-400" />
+                        </div>
+                        <button
+                            className="bg-[#1E365D] text-white px-3 py-2 rounded-md flex gap-1 items-center justify-center"
+                            onClick={showModal}
                         >
-                        <GoPlus />
-                        Add Rank
-                    </button>
+                            <GoPlus />
+                            Add Rank
+                        </button>
                     </div>
                 </div>
                 <div className="overflow-x-auto overflow-y-auto h-full">
@@ -351,7 +315,7 @@ const isSearching = searchText.trim().length > 0;
                         className="overflow-x-auto"
                         columns={columns}
                         dataSource={filteredData}
-                        scroll={{ x: 'max-content' }} 
+                        scroll={{ x: 'max-content' }}
                         pagination={{
                             current: pagination.current,
                             pageSize: pagination.pageSize,
@@ -382,7 +346,7 @@ const isSearching = searchText.trim().length > 0;
                 onCancel={handleCancel}
                 footer={null}
                 width="25%"
-                style={{ maxHeight: "80vh", overflowY: "auto" }} 
+                style={{ maxHeight: "80vh", overflowY: "auto" }}
             >
                 <AddRank onClose={handleCancel} />
             </Modal>
