@@ -12,7 +12,7 @@ type AddDevices = {
     device_name: string;
     description: string;
     serial_no: string;
-    date_acquired: string | null; 
+    date_acquired: string | null;
     manufacturer: string;
     supplier: string;
 };
@@ -28,7 +28,7 @@ const AddDevices = ({ onClose }: { onClose: () => void }) => {
         device_name: '',
         description: '',
         serial_no: '',
-        date_acquired: null, 
+        date_acquired: null,
         manufacturer: '',
         supplier: '',
     });
@@ -70,10 +70,10 @@ const AddDevices = ({ onClose }: { onClose: () => void }) => {
             },
             body: JSON.stringify(devices),
         });
-    
+
         if (!res.ok) {
             let errorMessage = "Error Adding Devices";
-    
+
             try {
                 const errorData = await res.json();
                 errorMessage =
@@ -83,10 +83,10 @@ const AddDevices = ({ onClose }: { onClose: () => void }) => {
             } catch {
                 errorMessage = "Unexpected error occurred";
             }
-    
+
             throw new Error(errorMessage);
         }
-    
+
         return res.json();
     }
 
@@ -186,7 +186,7 @@ const AddDevices = ({ onClose }: { onClose: () => void }) => {
                             ))}
                         />
                     </div>
-                    <div>
+                    {/* <div>
                         <p>Jail Type:</p>
                         <Select
                             className="h-[3rem] w-full"
@@ -202,7 +202,7 @@ const AddDevices = ({ onClose }: { onClose: () => void }) => {
                                 }
                             ))}
                         />
-                    </div>
+                    </div> */}
                     <div>
                         <p>Serial No:</p>
                         <input type="number" name="serial_no" id="serial_no" onChange={handleInputChange} placeholder="Serial Number" className="w-full h-12 border border-gray-300 rounded-lg px-2" />

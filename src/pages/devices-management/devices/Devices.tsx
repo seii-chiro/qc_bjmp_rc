@@ -17,7 +17,7 @@ import bjmp from '../../../assets/Logo/QCJMD.png'
 
 type Device = {
     key: number;
-    id: number ;
+    id: number;
     device_type: string;
     jail: string;
     area: string;
@@ -64,7 +64,7 @@ const Device = () => {
     const showModal = () => {
         setIsModalOpen(true);
     };
-    
+
     const handleCancel = () => {
         setIsModalOpen(false);
     };
@@ -101,7 +101,7 @@ const Device = () => {
             key: 'device_type',
             sorter: (a, b) => a.device_type.localeCompare(b.device_type),
         },
-        
+
         {
             title: 'Device Name',
             dataIndex: 'device_name',
@@ -120,12 +120,12 @@ const Device = () => {
             key: 'jail',
             sorter: (a, b) => a.jail.localeCompare(b.jail),
         },
-        {
-            title: 'Jail Area',
-            dataIndex: 'area',
-            key: 'area',
-            sorter: (a, b) => a.area.localeCompare(b.area),
-        },
+        // {
+        //     title: 'Jail Area',
+        //     dataIndex: 'area',
+        //     key: 'area',
+        //     sorter: (a, b) => a.area.localeCompare(b.area),
+        // },
         {
             title: 'Serial No.',
             dataIndex: 'serial_no',
@@ -189,7 +189,7 @@ const Device = () => {
             ),
         },
     ];
-    
+
     const handleExportExcel = () => {
         const ws = XLSX.utils.json_to_sheet(dataSource);
         const wb = XLSX.utils.book_new();
@@ -201,30 +201,30 @@ const Device = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated || ''; 
-    
+        const organizationName = dataSource[0]?.organization || "";
+        const PreparedBy = dataSource[0]?.updated || '';
+
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
-    
-        const maxRowsPerPage = 18; 
-    
+
+        const maxRowsPerPage = 18;
+
         let startY = headerHeight;
-    
+
         const addHeader = () => {
-            const pageWidth = doc.internal.pageSize.getWidth(); 
+            const pageWidth = doc.internal.pageSize.getWidth();
             const imageWidth = 30;
-            const imageHeight = 30; 
-            const margin = 10; 
+            const imageHeight = 30;
+            const margin = 10;
             const imageX = pageWidth - imageWidth - margin;
             const imageY = 12;
-        
+
             doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-        
+
             doc.setTextColor(0, 102, 204);
             doc.setFontSize(16);
-            doc.text("Devices Report", 10, 15); 
+            doc.text("Devices Report", 10, 15);
             doc.setTextColor(0, 0, 0);
             doc.setFontSize(10);
             doc.text(`Organization Name: ${organizationName}`, 10, 25);
@@ -233,12 +233,12 @@ const Device = () => {
             doc.text("Department/ Unit: IT", 10, 40);
             doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
         };
-        
-    
-        addHeader(); 
-    
-    const isSearching = searchText.trim().length > 0;
-    const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
+
+
+        addHeader();
+
+        const isSearching = searchText.trim().length > 0;
+        const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
             idx + 1,
             item.serial_no,
             item.device_name,
@@ -246,28 +246,28 @@ const Device = () => {
             item.manufacturer,
             item.supplier
         ]);
-    
+
         for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
-    
-            autoTable(doc, { 
-                head: [['No.','Serial No.', 'Devices','Device Type', 'Manufacturer', 'Supplier']],
+
+            autoTable(doc, {
+                head: [['No.', 'Serial No.', 'Devices', 'Device Type', 'Manufacturer', 'Supplier']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
                 didDrawPage: function (data) {
                     if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                        addHeader(); 
+                        addHeader();
                     }
                 },
             });
-    
+
             if (i + maxRowsPerPage < tableData.length) {
                 doc.addPage();
                 startY = headerHeight;
             }
         }
-    
+
         const pageCount = doc.internal.getNumberOfPages();
         for (let page = 1; page <= pageCount; page++) {
             doc.setPage(page);
@@ -284,7 +284,7 @@ const Device = () => {
             doc.text(footerText, footerX, footerY);
             doc.text(`${page} / ${pageCount}`, pageX, footerY);
         }
-    
+
         const pdfOutput = doc.output('datauristring');
         setPdfDataUrl(pdfOutput);
         setIsPdfModalOpen(true);
@@ -292,7 +292,7 @@ const Device = () => {
 
     const handleClosePdfModal = () => {
         setIsPdfModalOpen(false);
-        setPdfDataUrl(null); 
+        setPdfDataUrl(null);
     };
 
     const menu = (
@@ -313,18 +313,18 @@ const Device = () => {
             {contextHolder}
             <h1 className="text-3xl font-bold text-[#1E365D]">Devices</h1>
             <div className="my-4 flex justify-between gap-2">
-            <div className="flex gap-2">
-                        <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-                            <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
-                                <GoDownload /> Export
-                            </a>
-                        </Dropdown>
-                        <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
-                            Print Report
-                        </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="flex-1 relative flex items-center">
+                <div className="flex gap-2">
+                    <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
+                        <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
+                            <GoDownload /> Export
+                        </a>
+                    </Dropdown>
+                    <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
+                        Print Report
+                    </button>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="flex-1 relative flex items-center">
                         <input
                             placeholder="Search"
                             type="text"
@@ -340,21 +340,21 @@ const Device = () => {
                         <GoPlus />
                         Add Devices
                     </button>
-                    </div>
-                    
                 </div>
-                    <Table
-                        className="overflow-x-auto"
-                        columns={columns}
-                        dataSource={filteredData}
-                        scroll={{ x: 'max-content' }} 
-                        pagination={{
-                            current: pagination.current,
-                            pageSize: pagination.pageSize,
-                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
-                        }}
-                    />
-                        <Modal
+
+            </div>
+            <Table
+                className="overflow-x-auto"
+                columns={columns}
+                dataSource={filteredData}
+                scroll={{ x: 'max-content' }}
+                pagination={{
+                    current: pagination.current,
+                    pageSize: pagination.pageSize,
+                    onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                }}
+            />
+            <Modal
                 title="Devices Report"
                 open={isPdfModalOpen}
                 onCancel={handleClosePdfModal}
@@ -375,8 +375,8 @@ const Device = () => {
                 onCancel={handleCancel}
                 footer={null}
                 width="40%"
-                style={{ maxHeight: "80vh", overflowY: "auto" }} 
-                >
+                style={{ maxHeight: "80vh", overflowY: "auto" }}
+            >
                 <AddDevices onClose={handleCancel} />
             </Modal>
             <Modal
