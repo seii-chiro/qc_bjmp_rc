@@ -26,18 +26,32 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
     const results = useQueries({
         queries: [
             {
-                queryKey: ['issue_category'],
-                queryFn: () => getIssueCategories(token ?? "")
+                queryKey: ["issue-category"],
+                queryFn: () => getIssueCategories(token ?? ""),
             },
             {
-                queryKey: ['risk'],
-                queryFn: () => getRisks(token ?? "")
-            }
-        ]
-    });
+                queryKey: ["risk"],
+                queryFn: () => getRisks(token ?? ""),
+            },
+            ],
+        });
+        
+    const IssueCategoryData = results[0].data;
+    const RiskData = results[1].data;
 
-    const issueCategoryData = results[0].data;
-    const riskData = results[1].data;
+        const onIssueCategory = (value: number) => {
+        setSelectIssueType(prevForm => ({
+            ...prevForm,
+            issue_category_id: value,
+        }));
+    }; 
+
+    const onRiskLevelChange = (value: number) => {
+        setSelectIssueType(prevForm => ({
+            ...prevForm,
+            risk_id: value,
+        }));
+    }; 
 
     async function AddIssueType(issue_type: AddIssueType) {
         const res = await fetch(ISSUE_TYPE.getISSUE_TYPE, {
@@ -93,20 +107,6 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
             }));
         };
 
-    const onIssueCategoryChange = (value: number) => {
-        setSelectIssueType(prevForm => ({
-            ...prevForm,
-            issue_category_id: value
-        }));
-    };
-
-    const onRiskChange = (value: number) => {
-        setSelectIssueType(prevForm => ({
-            ...prevForm,
-            risk_id: value
-        }));
-    };
-
     return (
         <div>
         {contextHolder}
@@ -121,20 +121,24 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
                         <input type="text" name="description" id="description" onChange={handleInputChange} placeholder="Description" className="h-12 border border-gray-300 rounded-lg px-2 w-full" />
                     </div>
                     <div>
+                        <p className="text-gray-500 font-bold">Categorization Rule:</p>
+                        <input type="text" name="categorization_rule" id="categorization_rule" onChange={handleInputChange} placeholder="Categorization Rule" className="h-12 border border-gray-300 rounded-lg px-2 w-full" />
+                    </div>
+                    <div>
                         <p className="text-gray-500 font-bold">Issue Category:</p>
                         <Select
                         className="h-[3rem] w-full"
                         showSearch
                         placeholder="Issue Category"
                         optionFilterProp="label"
-                        onChange={onIssueCategoryChange}
-                        options={issueCategoryData?.results?.map(issue_category => (
+                        onChange={onIssueCategory}
+                        options={IssueCategoryData?.results?.map(issue_category => (
                             {
                                 value: issue_category.id,
-                                label: issue_category?.name,
+                                label: issue_category?.name
                             }
                         ))}
-                        />
+                    />
                     </div>
                     <div>
                         <p className="text-gray-500 font-bold">Risk:</p>
@@ -143,14 +147,14 @@ const AddIssueType = ({ onClose }: { onClose: () => void }) => {
                         showSearch
                         placeholder="Risk"
                         optionFilterProp="label"
-                        onChange={onRiskChange}
-                        options={riskData?.results?.map(risk => (
+                        onChange={onRiskLevelChange}
+                        options={RiskData?.results?.map(risk => (
                             {
                                 value: risk.id,
-                                label: risk?.name,
+                                label: risk?.name
                             }
                         ))}
-                        />
+                    />
                     </div>
                 </div>
                 <div className="w-full flex justify-end mt-10">

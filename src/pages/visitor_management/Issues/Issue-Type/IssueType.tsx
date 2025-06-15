@@ -1,5 +1,5 @@
 
-import { deleteIssue_Type, getIssueCategories, getIssueType, getUser, patchIssue_Type } from "@/lib/queries";
+import { deleteIssue_Type, getIssueCategories, getIssueType, getRisks, getUser, patchIssue_Type } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CSVLink } from "react-csv";
@@ -29,6 +29,7 @@ type IssueTypes = {
     risk: string;
     name: string;
     description: string;
+    recommended_action: string[];
 };
 
 const IssueType = () => {
@@ -92,10 +93,15 @@ const IssueType = () => {
                 queryKey: ["issue-category"],
                 queryFn: () => getIssueCategories(token ?? ""),
             },
+            {
+                queryKey: ["risk"],
+                queryFn: () => getRisks(token ?? ""),
+            },
             ],
         });
         
     const IssueCategoryData = results[0].data;
+    const RiskData = results[1].data;
 
     const handleEdit = (record: IssueTypes) => {
         setSelctedIssueType(record);
@@ -115,10 +121,17 @@ const IssueType = () => {
         }
     };
 
-    const onIssueTypeChange = (value: string) => {
+    const onIssueCategory = (value: number) => {
         setSelctedIssueType(prevForm => ({
             ...prevForm,
-            issue_category: value,
+            issue_category_id: value,
+        }));
+    }; 
+
+    const onRiskLevelChange = (value: number) => {
+        setSelctedIssueType(prevForm => ({
+            ...prevForm,
+            risk_id: value,
         }));
     }; 
 
@@ -132,6 +145,8 @@ const IssueType = () => {
             issue_category: issue_type?.issue_category?.name ?? '',
             categorization_rule: issue_type?.issue_category?.categorization_rule ?? '',
             issue_category_description: issue_type?.issue_category?.description ?? '',
+            risk: issue_type?.risk?.name,
+            recommended_action: issue_type?.risk?.recommended_action.map(recommended_action => recommended_action.name),
             organization: issue_type?.organization ?? 'Bureau of Jail Management and Penology',
             updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
@@ -182,7 +197,7 @@ const IssueType = () => {
             sorter: (a, b) => a.issue_category_description.localeCompare(b.issue_category_description),
         },
         {
-            title: 'Issue Category',
+            title: 'Categorization Rule',
             dataIndex: 'categorization_rule',
             key: 'categorization_rule',
             sorter: (a, b) => a.categorization_rule.localeCompare(b.categorization_rule),
@@ -191,49 +206,6 @@ const IssueType = () => {
         //     title: 'Risk',
         //     dataIndex: 'risk',
         //     key: 'risk',
-        //     sorter: (a, b) => a.risk.localeCompare(b.risk),
-        //     filters: [
-        //         ...Array.from(
-        //             new Set(filteredData.map(item => item.risk))
-        //         ).map(name => ({
-        //             text: name,
-        //             value: name,
-        //         }))
-        //     ],
-        //     onFilter: (value, record) => record.risk === value,
-        // },
-        // {
-        //     title: "Updated At",
-        //     dataIndex: "updated_at",
-        //     key: "updated_at",
-        //     render: (value) =>
-        //         value !== '' ? moment(value).format("MMMM D, YYYY h:mm A") : "",
-        //     sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
-        //     filters: [
-        //         ...Array.from(
-        //             new Set(filteredData.map(item => moment(item.updated_at).format("MMMM D, YYYY h:mm A")))
-        //         ).map(dateTime => ({
-        //             text: dateTime,
-        //             value: dateTime,
-        //         }))
-        //     ],
-        //     onFilter: (value, record) =>
-        //         moment(record.updated_at).format("MMMM D, YYYY h:mm A") === value,
-        // },
-        // {
-        //     title: 'Updated By',
-        //     dataIndex: 'updated_by',
-        //     key: 'updated_by',
-        //     sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
-        //     filters: [
-        //         ...Array.from(
-        //             new Set(filteredData.map(item => item.updated_by))
-        //         ).map(name => ({
-        //             text: name,
-        //             value: name,
-        //         }))
-        //     ],
-        //     onFilter: (value, record) => record.updated_by === value,
         // },
         {
             title: "Action",
@@ -262,7 +234,7 @@ const IssueType = () => {
     };
 
     const handleExportPDF = () => {
-        const doc = new jsPDF();
+        const doc = new jsPDF('landscape');
         const headerHeight = 48;
         const footerHeight = 32;
         const organizationName = dataSource[0]?.organization || ""; 
@@ -272,7 +244,7 @@ const IssueType = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 27; 
+        const maxRowsPerPage = 15; 
     
         let startY = headerHeight;
     
@@ -398,18 +370,18 @@ const isSearching = searchText.trim().length > 0;
                 </button>
             </div>
         </div>
-                    <Table
-                        className="overflow-x-auto"
-                        columns={columns}
-                        dataSource={filteredData}
-                        scroll={{ x: 'max-content' }} 
-                        pagination={{
-                            current: pagination.current,
-                            pageSize: pagination.pageSize,
-                            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
-                        }}
-                    />
-        <Modal
+            <Table
+                className="overflow-x-auto"
+                columns={columns}
+                dataSource={filteredData}
+                scroll={{ x: 'max-content' }} 
+                pagination={{
+                    current: pagination.current,
+                    pageSize: pagination.pageSize,
+                    onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+                }}
+            />
+            <Modal
                 title="Issue Type Report"
                 open={isPdfModalOpen}
                 onCancel={handleClosePdfModal}
@@ -430,6 +402,7 @@ const isSearching = searchText.trim().length > 0;
                 onCancel={() => setIsEditModalOpen(false)}
                 onOk={() => form.submit()}
                 confirmLoading={isUpdating}
+                width="50%"
             >
                 <Form form={form} layout="vertical" onFinish={handleUpdate}>
                 <Form.Item
@@ -440,13 +413,6 @@ const isSearching = searchText.trim().length > 0;
                     <Input />
                 </Form.Item>
                 <Form.Item
-                    name="issue_category_description"
-                    label="Issue Category Description"
-                    rules={[{ required: true, message: "Please input a description" }]}
-                >
-                    <Input.TextArea rows={3} />
-                </Form.Item>
-                <Form.Item
                     name="issue_category"
                     label="Issue Category"
                 >
@@ -455,11 +421,48 @@ const isSearching = searchText.trim().length > 0;
                         showSearch
                         placeholder="Issue Category"
                         optionFilterProp="label"
-                        onChange={onIssueTypeChange}
+                        onChange={onIssueCategory}
                         options={IssueCategoryData?.results?.map(issue_category => (
                             {
                                 value: issue_category.id,
                                 label: issue_category?.name
+                            }
+                        ))}
+                    />
+                </Form.Item>
+                <Form.Item
+                    name="issue_category_description"
+                    label="Issue Category Description"
+                    rules={[{ required: true, message: "Please input a description" }]}
+                >
+                    <Input.TextArea rows={3} />
+                </Form.Item>
+                <Form.Item
+                    name="categorization_rule"
+                    label="Categorization Rule"
+                >
+                    <Input.TextArea rows={3} />
+                </Form.Item>
+                <Form.Item
+                    name="recommended_action"
+                    label="Recommended Action"
+                >
+                    <Input.TextArea rows={3} />
+                </Form.Item>
+                    <Form.Item
+                    name="risk"
+                    label="Risk"
+                >
+                    <Select
+                        className="h-[3rem] w-full"
+                        showSearch
+                        placeholder="Risk"
+                        optionFilterProp="label"
+                        onChange={onRiskLevelChange}
+                        options={RiskData?.results?.map(risk => (
+                            {
+                                value: risk.id,
+                                label: risk?.name
                             }
                         ))}
                     />
@@ -472,7 +475,7 @@ const isSearching = searchText.trim().length > 0;
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
-                width="30%"
+                width="40%"
                 style={{ maxHeight: "80vh", overflowY: "auto" }} 
                 >
                 <AddIssueType onClose={handleCancel} />

@@ -141,20 +141,20 @@ const Impact = () => {
         //     ],
         //     onFilter: (value, record) => record.description === value,
         // },
-        {
-            title: "Updated At",
-            dataIndex: "updated_at",
-            key: "updated_at",
-            render: (value) =>
-                value !== '' ? moment(value).format("MMMM D, YYYY h:mm A") : "",
-            sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
-        },
-        {
-            title: 'Updated By',
-            dataIndex: 'updated_by',
-            key: 'updated_by',
-            sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
-        },
+        // {
+        //     title: "Updated At",
+        //     dataIndex: "updated_at",
+        //     key: "updated_at",
+        //     render: (value) =>
+        //         value !== '' ? moment(value).format("MMMM D, YYYY h:mm A") : "",
+        //     sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
+        // },
+        // {
+        //     title: 'Updated By',
+        //     dataIndex: 'updated_by',
+        //     key: 'updated_by',
+        //     sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
+        // },
         {
             title: "Action",
             key: "action",
@@ -183,7 +183,7 @@ const Impact = () => {
     };
 
     const handleExportPDF = () => {
-        const doc = new jsPDF();
+        const doc = new jsPDF('landscape');
         const headerHeight = 48;
         const footerHeight = 32;
         const organizationName = dataSource[0]?.organization || ""; 
@@ -193,7 +193,7 @@ const Impact = () => {
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
     
-        const maxRowsPerPage = 27; 
+        const maxRowsPerPage = 15; 
     
         let startY = headerHeight;
     
@@ -226,14 +226,14 @@ const isSearching = searchText.trim().length > 0;
     const tableData = (isSearching ? (filteredData || []) : (dataSource || [])).map((item, idx) => [
             idx + 1,
             item.name,
-            item.description,
+            // item.description,
         ]);
     
         for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
     
             autoTable(doc, { 
-                head: [['No.', 'Impact', 'Description']],
+                head: [['No.', 'Impact']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
