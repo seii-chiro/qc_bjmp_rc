@@ -229,3 +229,19 @@ export async function getNonPDLVisitorTypes(
 
   return res.json();
 }
+
+export const fetchSettings = async (token: string) => {
+  const res = await fetch(`${BASE_URL}/api/codes/global-system-settings/`, {
+    headers: {
+      Authorization: `Token ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(JSON.stringify(err));
+  }
+
+  return res.json();
+};
