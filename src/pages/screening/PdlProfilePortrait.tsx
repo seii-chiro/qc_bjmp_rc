@@ -2,7 +2,6 @@ import { useRef } from 'react';
 import noimg from "@/assets/noimg.png"
 import dayjs from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
-import { getVisitorAppStatus } from '@/lib/queries';
 import { useTokenStore } from '@/store/useTokenStore';
 import { fetchSettings } from '@/lib/additionalQueries';
 
@@ -58,6 +57,16 @@ type PdlProfilePortraitProps = {
             visitor_type?: string;
             visitor_app_status?: number;
         }[];
+        visitors_from_pdl?: {
+            visitor_reg_no?: string;
+            person?: {
+                first_name?: string;
+                middle_name?: string;
+                last_name?: string;
+            };
+            visitor_type?: string;
+            visitor_app_status?: number;
+        }[];
     };
 };
 
@@ -66,13 +75,13 @@ const PdlProfilePortrait = ({ visitorData = {} }: PdlProfilePortraitProps) => {
     const modalContentRef = useRef(null);
     const selectedVisitor = visitorData || {};
 
-    console.log(selectedVisitor)
+    // console.log(selectedVisitor)
 
-    const { data: visitorStatus } = useQuery({
-        queryKey: ['visitor-app-status'],
-        queryFn: () => getVisitorAppStatus(token ?? ""),
-        staleTime: 10 * 60 * 1000
-    })
+    // const { data: visitorStatus } = useQuery({
+    //     queryKey: ['visitor-app-status'],
+    //     queryFn: () => getVisitorAppStatus(token ?? ""),
+    //     staleTime: 10 * 60 * 1000
+    // })
 
     const { data: settingsData } = useQuery({
         queryKey: ['global-settings'],
@@ -276,7 +285,7 @@ const PdlProfilePortrait = ({ visitorData = {} }: PdlProfilePortraitProps) => {
                                                         {pdlItem?.visitor_reg_no || "N/A"}
                                                     </td>
                                                     <td className="text-center text-[9px] font-light">
-                                                        {`${pdlItem?.person?.first_name ?? ""} ${pdlItem?.person?.middle_name ?? ""} ${pdlItem?.person?.last_name ?? ""}` || "N/A"}
+                                                        {`${pdlItem?.person?.first_name ?? ""} ${pdlItem?.person?.middle_name ?? ""} ${pdlItem?.person?.last_name ?? ""}`}
                                                     </td>
                                                     <td className="text-center text-[9px] font-light">
                                                         {pdlItem?.visitor_type || "N/A"}
