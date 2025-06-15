@@ -24,6 +24,12 @@ export async function getPersonnelTypes(
     },
   });
 
+  if (res.status === 403) {
+    throw new Error(
+      "Access denied: You are not authorized to view Personnel Type data."
+    );
+  }
+
   if (!res.ok) {
     throw new Error("Failed to fetch Personnel Type data.");
   }
@@ -43,6 +49,12 @@ export async function getPersonnelStatuses(
       },
     }
   );
+
+  if (res.status === 403) {
+    throw new Error(
+      "Access denied: You are not authorized to view Personnel Status data."
+    );
+  }
 
   if (!res.ok) {
     throw new Error("Failed to fetch Personnel Status data.");
