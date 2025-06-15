@@ -577,14 +577,14 @@ const handleExportPDF = async () => {
             >
                 <Form form={form} layout="vertical" onFinish={handleUpdate}>
                     <Form.Item
-                        label="Group Role Name"
+                        label="Group Role"
                         name="name"
                     >
                         <Input />
                     </Form.Item>
+                    <h1>Permissions:</h1>
                     <Form.Item
                     name="permissions"
-                    label="Permission"
                     className="h-96 overflow-scroll "
                 >
                 <Select
