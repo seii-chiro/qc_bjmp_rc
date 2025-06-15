@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { RELIGION } from "@/lib/urls";
@@ -12,6 +12,7 @@ type AddReligion = {
 
 const AddReligion = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
+    const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
     const [religionForm, setReligionForm] = useState<AddReligion>({
         name: '',
@@ -19,7 +20,7 @@ const AddReligion = ({ onClose }: { onClose: () => void }) => {
         record_status: null,
     });
 
-    async function AddReligion (religion: AddReligion) {
+    async function AddReligion(religion: AddReligion) {
         const res = await fetch(RELIGION.postRELIGION, {
             method: "POST",
             headers: {
@@ -47,7 +48,8 @@ const AddReligion = ({ onClose }: { onClose: () => void }) => {
         onSuccess: (data) => {
             console.log(data);
             messageApi.success("Added successfully");
-            onClose(); 
+            queryClient.invalidateQueries({ queryKey: ["religion"] });
+            onClose();
         },
         onError: (error) => {
             console.error(error);

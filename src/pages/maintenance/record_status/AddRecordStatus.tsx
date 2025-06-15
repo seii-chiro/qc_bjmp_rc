@@ -1,5 +1,5 @@
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { message } from "antd";
 import { RECORD_STATUS } from "@/lib/urls";
@@ -12,6 +12,7 @@ type AddRecordStatus = {
 const AddRecordStatus = ({ onClose }: { onClose: () => void }) => {
     const token = useTokenStore().token;
     const [messageApi, contextHolder] = message.useMessage();
+    const queryClient = useQueryClient();
     const [recordStatusForm, setRecordStatusForm] = useState<AddRecordStatus>({
         status: '',
         description: '',
@@ -26,10 +27,10 @@ const AddRecordStatus = ({ onClose }: { onClose: () => void }) => {
             },
             body: JSON.stringify(recordStatus),
         });
-    
+
         if (!res.ok) {
             let errorMessage = "Error Adding Record Status";
-    
+
             try {
                 const errorData = await res.json();
                 errorMessage =
@@ -39,10 +40,10 @@ const AddRecordStatus = ({ onClose }: { onClose: () => void }) => {
             } catch {
                 errorMessage = "Unexpected error occurred";
             }
-    
+
             throw new Error(errorMessage);
         }
-    
+
         return res.json();
     }
 
@@ -52,6 +53,7 @@ const AddRecordStatus = ({ onClose }: { onClose: () => void }) => {
         onSuccess: (data) => {
             console.log(data);
             messageApi.success("Added successfully");
+            queryClient.invalidateQueries({ queryKey: ["record-status"] });
             onClose();
         },
         onError: (error) => {
@@ -87,7 +89,7 @@ const AddRecordStatus = ({ onClose }: { onClose: () => void }) => {
                             <p>Description:</p>
                             <input type="text" name="description" id="description" onChange={handleInputChange} placeholder="Description" className="w-full h-12 border border-gray-300 rounded-lg px-2" />
                         </div>
-                        
+
                     </div>
                 </div>
                 <div className="w-full flex gap-3 justify-end mt-10">

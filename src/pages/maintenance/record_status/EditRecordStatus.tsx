@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message } from "antd";
 import { updateRecord_Status } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -8,18 +8,20 @@ const EditRecordStatus = ({ recordstatus, onClose }: { recordstatus: any; onClos
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
-    const [isLoading, setIsLoading] = useState(false); 
+    const [isLoading, setIsLoading] = useState(false);
+    const queryClient = useQueryClient();
 
     const updateMutation = useMutation({
         mutationFn: (updatedData: any) =>
             updateRecord_Status(token ?? "", recordstatus.id, updatedData),
         onSuccess: () => {
-            setIsLoading(true); 
+            setIsLoading(true);
+            queryClient.invalidateQueries({ queryKey: ["record-status"] });
             messageApi.success("Record Status updated successfully");
             onClose();
         },
         onError: (error: any) => {
-            setIsLoading(false); 
+            setIsLoading(false);
             messageApi.error(error.message || "Failed to update Record Status");
         },
     });

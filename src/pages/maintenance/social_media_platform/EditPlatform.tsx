@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Form, Input, Button, message } from "antd";
 import { updateSocialMediaPlatforms } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
@@ -8,18 +8,20 @@ const EditPlatform = ({ platform, onClose }: { platform: any; onClose: () => voi
     const token = useTokenStore().token;
     const [form] = Form.useForm();
     const [messageApi, contextHolder] = message.useMessage();
-    const [isLoading, setIsLoading] = useState(false); 
+    const [isLoading, setIsLoading] = useState(false);
+    const queryClient = useQueryClient();
 
     const updateMutation = useMutation({
         mutationFn: (updatedData: any) =>
             updateSocialMediaPlatforms(token ?? "", platform.id, updatedData),
         onSuccess: () => {
-            setIsLoading(true); 
+            setIsLoading(true);
             messageApi.success("Social Media Platform updated successfully");
+            queryClient.invalidateQueries({ queryKey: ["social-media-platform"] });
             onClose();
         },
         onError: (error: any) => {
-            setIsLoading(false); 
+            setIsLoading(false);
             messageApi.error(error.message || "Failed to update Social Media Platform");
         },
     });
@@ -33,9 +35,10 @@ const EditPlatform = ({ platform, onClose }: { platform: any; onClose: () => voi
         }
     }, [platform, form]);
 
-    const handleplatformSubmit = (values: { 
+    const handleplatformSubmit = (values: {
         platform_name: string;
-        description: string; }) => {
+        description: string;
+    }) => {
         setIsLoading(true);
         updateMutation.mutate(values);
     };

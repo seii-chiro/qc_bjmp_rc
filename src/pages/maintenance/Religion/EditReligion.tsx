@@ -1,6 +1,6 @@
 import { updateReligion } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button, Form, Input, message } from "antd";
 import { useEffect, useState } from "react";
 
@@ -9,17 +9,19 @@ const EditReligion = ({ religion, onClose }: { religion: any; onClose: () => voi
     const [isLoading, setIsLoading] = useState(false);
     const [messageApi, contextHolder] = message.useMessage();
     const [form] = Form.useForm();
+    const queryClient = useQueryClient();
 
     const updateMutation = useMutation({
         mutationFn: (updatedData: any) =>
             updateReligion(token ?? "", religion.id, updatedData),
         onSuccess: () => {
-            setIsLoading(true); 
+            setIsLoading(true);
             messageApi.success("Religion updated successfully");
+            queryClient.invalidateQueries({ queryKey: ["religion"] });
             onClose();
         },
         onError: (error: any) => {
-            setIsLoading(false); 
+            setIsLoading(false);
             messageApi.error(error.message || "Failed to update Religion");
         },
     });
@@ -32,14 +34,14 @@ const EditReligion = ({ religion, onClose }: { religion: any; onClose: () => voi
             });
         }
     }, [religion, form]);
-    
-        const handleReligionSubmit = (values: {
-            name: string;
-            description: string;
-        }) => {
-            setIsLoading(true);
-            updateMutation.mutate(values);
-        };
+
+    const handleReligionSubmit = (values: {
+        name: string;
+        description: string;
+    }) => {
+        setIsLoading(true);
+        updateMutation.mutate(values);
+    };
     return (
         <div>
             {contextHolder}
@@ -69,7 +71,7 @@ const EditReligion = ({ religion, onClose }: { religion: any; onClose: () => voi
                         Update Religion
                     </Button>
                 </Form.Item>
-                
+
             </Form>
         </div>
     )
