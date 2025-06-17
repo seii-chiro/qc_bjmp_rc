@@ -1775,7 +1775,7 @@ const Dashboard = () => {
                 </FullScreen>
             </div>
             <div className="w-full flex justify-between items-center">
-                <div className="flex gap-2 items-center">
+                <div className="flex gap-2 items-center mt-1">
                     <FooterCard
                         header="Secured by"
                         icon={merlin_logo}
