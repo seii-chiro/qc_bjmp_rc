@@ -160,6 +160,7 @@ import NonPDLReasonforVisit from "./pages/visitor_management/reason-for-visit/No
 import ServiceProviderUpdate from "./pages/visitor_management/service-provider-data-entry/ServiceProviderUpdate.tsx";
 import NPVisitorType from "./pages/Non-PDL/visitor-type/NPVisitorType.tsx";
 import NonPdlVisitorUpdate from "./pages/visitor_management/non-pdl-visitor-data-entry/NonPDLVisitorUpdate.tsx";
+import EncrytionParameters from "./pages/Settings/encryption-params/EncrytionParameters.tsx";
 
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
@@ -359,6 +360,10 @@ function App() {
                 {
                     path: "settings/system-settings",
                     element: <SystemSettings />
+                },
+                {
+                    path: "settings/encryption_parameters",
+                    element: <EncrytionParameters />
                 },
                 {
                     path: "users",
