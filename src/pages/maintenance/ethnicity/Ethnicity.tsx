@@ -1,5 +1,5 @@
 import { Button, Dropdown, Form, Input, Menu, message, Modal, Table } from "antd"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai"
 import { GoDownload, GoPlus } from "react-icons/go"
 import AddEthnicity from "./AddEthnicity";
@@ -16,6 +16,7 @@ import { patchEthnicity } from "@/lib/query";
 import moment from "moment";
 import bjmp from '../../../assets/Logo/QCJMD.png'
 import AddEthnicityProvince from "./AddEthnicityProvince";
+import { BASE_URL } from "@/lib/urls";
 
 type EthnicityProps = {
   id: number;
@@ -59,6 +60,13 @@ const Ethnicity = () => {
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const [editProvinces, setEditProvinces] = useState<any[]>([]);
     const [isEditProvinceModalOpen, setIsEditProvinceModalOpen] = useState(false);
+    const [selectEditEthnicity, setSelectedEditEthnicity] = useState<EthnicityProps>({
+            id: 0, 
+            updated_by: '', 
+            updated_at: '',
+            name: '',
+            description: '',
+        })
 
   const { data } = useQuery({
     queryKey: ['ethnicity'],
@@ -99,7 +107,7 @@ const Ethnicity = () => {
 
   const { data: provinceData } = useQuery({
     queryKey: ['ethnicity-provinces'],
-    queryFn: () => fetch('/api/codes/ethnicity-provinces/', {
+    queryFn: () => fetch(`${BASE_URL}/api/codes/ethnicity-provinces/?limit=1000`, {
       headers: { Authorization: `Token ${token}` }
     }).then(res => res.json()),
   });
@@ -124,32 +132,60 @@ const Ethnicity = () => {
     },
   });
 
-  const handleEdit = (record: any) => {
-    setSelectedEthnicity(record);
-    form.setFieldsValue(record);
+const handleEdit = (record: EthnicityProps) => {
+  setSelectedEditEthnicity(record);
+  form.setFieldsValue(record);
 
-  const provincesForEthnicity = provinceList.filter(
-    (p) => p.ethnicity === record.name
-  );
-  setEditProvinces(provincesForEthnicity);
+  // Only set provinces if provinceList is loaded
+  if (provinceList.length > 0) {
+    const provincesForEthnicity = provinceList.filter(
+      (p) => p.ethnicity?.trim().toLowerCase() === record.name?.trim().toLowerCase()
+    );
+    setEditProvinces(provincesForEthnicity);
+  } else {
+    setEditProvinces([]); // or keep previous state
+  }
 
-    setIsEditModalOpen(true);
-  };
+  setIsEditModalOpen(true);
+};
 
-  const handleUpdate = (values: any) => {
-    if (selectEthnicity && selectEthnicity.id) {
-      const updatedEthnicity: EthnicityProps = {
-        ...selectEthnicity,
-        ...values,
-      };
-      editEthnicity(updatedEthnicity);
-    } else {
-      messageApi.error("Selected Ethnicity is invalid");
-    }
-  };
-  const handleRemoveEditProvince = (index: number) => {
-    setEditProvinces((prev) => prev.filter((_, i) => i !== index));
-  };
+useEffect(() => {
+  if (isEditModalOpen && selectEditEthnicity && provinceList.length > 0) {
+    const provincesForEthnicity = provinceList.filter(
+      (p) => {
+        const a = (p.ethnicity || "").trim().toLowerCase();
+        const b = (selectEditEthnicity.name || "").trim().toLowerCase();
+        return a === b;
+      }
+    );
+    console.log("Filtered provinces for", selectEditEthnicity.name, provincesForEthnicity);
+    setEditProvinces(provincesForEthnicity);
+  }
+}, [isEditModalOpen, selectEditEthnicity, provinceList]);
+
+const handleRemoveEditProvince = (index: number) => {
+  const province = editProvinces[index];
+  if (!province || !province.id) return;
+  Modal.confirm({
+    title: "Are you sure you want to remove this Ethnicity Province?",
+    onOk: async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/api/codes/ethnicity-provinces/${province.id}/`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        });
+        if (!res.ok) throw new Error("Failed to delete Ethnicity Province");
+        // Invalidate and refetch the province list
+        queryClient.invalidateQueries({ queryKey: ["ethnicity-provinces"] });
+        message.success("Ethnicity Province removed successfully");
+      } catch (err) {
+        message.error("Failed to remove Ethnicity Province");
+      }
+    },
+  });
+};
 
   const results = useQueries({
     queries: [
@@ -174,7 +210,7 @@ const handleAddEditProvince = (newProvince: any) => {
       ...newProvince,
       region: RegionData?.find(r => r.id === newProvince.region_id)?.desc || '',
       province: ProvinceData?.find(p => p.id === newProvince.province_id)?.desc || '',
-      ethnicity: selectEthnicity?.name || "",
+      ethnicity: selectEditEthnicity?.name || "",
       record_status_id: 1,
     },
   ]);
@@ -448,19 +484,19 @@ const handleAddEditProvince = (newProvince: any) => {
           footer={null}
           width="60%"
         >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={(values) => {
-              // Save ethnicity and provinces
-              editEthnicity({
-                ...selectEthnicity,
-                ...values,
-                provinces: editProvinces,
-              });
-              setIsEditModalOpen(false);
-            }}
-          >
+<Form
+  form={form}
+  layout="vertical"
+  onFinish={(values) => {
+    // Save ethnicity and provinces
+    editEthnicity({
+      ...selectEditEthnicity,
+      ...values,
+      provinces: editProvinces,
+    });
+    setIsEditModalOpen(false);
+  }}
+>
             <div className="flex gap-4">
               <div className="w-full">
                 <p className="text-[#1E365D] font-bold text-base">Ethnicity Name:</p>
@@ -493,26 +529,26 @@ const handleAddEditProvince = (newProvince: any) => {
                   Add Province
                 </Button>
               </div>
-<Table
-  columns={[
-    { title: "Ethnicity", dataIndex: "ethnicity", key: "ethnicity" },
-    { title: "Region", dataIndex: "region", key: "region" },
-    { title: "Province", dataIndex: "province", key: "province" },
-    { title: "Description", dataIndex: "description", key: "description" },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_: any, __: any, index: number) => (
-        <Button danger onClick={() => handleRemoveEditProvince(index)}>
-          <AiOutlineDelete />
-        </Button>
-      ),
-    },
-  ]}
-  dataSource={editProvinces}
-  rowKey={row => row.id || row.province + row.region + row.description || Math.random()}
-  pagination={false}
-/>
+            <Table
+              columns={[
+                { title: "Ethnicity", dataIndex: "ethnicity", key: "ethnicity" },
+                { title: "Region", dataIndex: "region", key: "region" },
+                { title: "Province", dataIndex: "province", key: "province" },
+                { title: "Description", dataIndex: "description", key: "description" },
+                {
+                  title: "Actions",
+                  key: "actions",
+                  render: (_: any, __: any, index: number) => (
+                    <Button danger onClick={() => handleRemoveEditProvince(index)}>
+                      <AiOutlineDelete />
+                    </Button>
+                  ),
+                },
+              ]}
+              dataSource={editProvinces}
+              rowKey={row => row.id || row.province + row.region + row.description || Math.random()}
+              pagination={false}
+            />
               <div className="flex justify-end gap-2 mt-6">
                 <Button
                   className="bg-white border border-[#1e365d] text-[#1e365d] px-5 text-lg py-4 rounded-md"
@@ -537,12 +573,12 @@ const handleAddEditProvince = (newProvince: any) => {
             footer={null}
             width="40%"
           >
-            <AddEthnicityProvince
-              ethnicityId={selectEthnicity?.id || 0}
-              ethnicityName={form.getFieldValue("name") || ""}
-              onAdd={handleAddEditProvince}
-              onCancel={() => setIsEditProvinceModalOpen(false)}
-            />
+              <AddEthnicityProvince
+                ethnicityId={selectEditEthnicity?.id || 0}
+                ethnicityName={form.getFieldValue("name") || selectEditEthnicity?.name || ""}
+                onAdd={handleAddEditProvince}
+                onCancel={() => setIsEditProvinceModalOpen(false)}
+              />
           </Modal>
         </Modal>
       </div>
