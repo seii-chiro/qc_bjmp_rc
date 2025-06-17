@@ -1,4 +1,4 @@
-import { getCourt, getJail_Province, getJailRegion, getRecord_Status } from "@/lib/queries";
+import { getCourt, getJail_Province, getJailRegion} from "@/lib/queries";
 import { BRANCH } from "@/lib/urls";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
