@@ -75,7 +75,7 @@ const handleSubmit = () => {
   }
 
   onAdd({
-    ethnicity_id: ethnicityId, // <-- include ethnicity_id
+    ethnicity_id: ethnicityId, 
     region_id,
     province_id,
     description,
