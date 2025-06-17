@@ -79,10 +79,10 @@ const PDLtable = () => {
             }
 
             const res = await fetch(`${BASE_URL}/api/pdls/pdl/?${params.toString()}`, {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Token ${token}`,
-            },
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Token ${token}`,
+                },
             });
 
             if (!res.ok) throw new Error("Failed to fetch PDLs.");
@@ -138,63 +138,63 @@ const PDLtable = () => {
     const genderList = gender !== "all" ? gender.split(",").map(decodeURIComponent) : [];
 
     const { data: pdlsGenderData, isLoading: pdlsByGenderLoading } = useQuery({
-            queryKey: ['pdls', 'pdls-table', page, genderList],
-            queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
-                const offset = (page - 1) * limit;
-                const res = await fetch(
-                    `${BASE_URL}/api/pdls/pdl/?gender=${encodeURIComponent (genderList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `Token ${token}`,
-                        },
-                    }
-                );
-        
-                if (!res.ok) {
-                    throw new Error('Failed to fetch PDL Gender data.');
+        queryKey: ['pdls', 'pdls-table', page, genderList],
+        queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
+            const offset = (page - 1) * limit;
+            const res = await fetch(
+                `${BASE_URL}/api/pdls/pdl/?gender=${encodeURIComponent(genderList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
                 }
-        
-                return res.json();
-            },
-            enabled: !!token,
-        });
+            );
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch PDL Gender data.');
+            }
+
+            return res.json();
+        },
+        enabled: !!token,
+    });
 
     const status = searchParams.get("status") || "all";
     const statusList = status !== "all" ? status.split(",").map(decodeURIComponent) : [];
 
     useEffect(() => {
-    if (genderList.length > 0 && JSON.stringify(genderColumnFilter) !== JSON.stringify(genderList)) {
-        setGenderColumnFilter(genderList);
-    }
+        if (genderList.length > 0 && JSON.stringify(genderColumnFilter) !== JSON.stringify(genderList)) {
+            setGenderColumnFilter(genderList);
+        }
     }, [genderList, genderColumnFilter]);
 
     useEffect(() => {
-    if (statusList.length > 0 && JSON.stringify(statusColumnFilter) !== JSON.stringify(statusList)) {
-        setstatusColumnFilter(statusList);
-    }
+        if (statusList.length > 0 && JSON.stringify(statusColumnFilter) !== JSON.stringify(statusList)) {
+            setstatusColumnFilter(statusList);
+        }
     }, [statusList, statusColumnFilter]);
 
     const { data: pdlStatusData, isLoading: pdlByStatusLoading } = useQuery({
         queryKey: ['pdls', 'pdls-table', page, statusList],
-            queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
-                const offset = (page - 1) * limit;
-                const res = await fetch(
-                    `${BASE_URL}/api/pdls/pdl/?status=${encodeURIComponent(statusList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Authorization: `Token ${token}`,
-                        },
-                    }
-                );
-        
-                if (!res.ok) {
-                    throw new Error('Failed to fetch PDL Status data.');
+        queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
+            const offset = (page - 1) * limit;
+            const res = await fetch(
+                `${BASE_URL}/api/pdls/pdl/?status=${encodeURIComponent(statusList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
                 }
-        
-                return res.json();
-            },
+            );
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch PDL Status data.');
+            }
+
+            return res.json();
+        },
         enabled: !!token,
     });
 
@@ -202,54 +202,54 @@ const PDLtable = () => {
     const visitationList = visitation_status !== "all" ? visitation_status.split(",").map(decodeURIComponent) : [];
 
     useEffect(() => {
-    if (visitationList.length > 0 && JSON.stringify(visitationColumnFilter) !== JSON.stringify(visitationList)) {
-        setvisitationColumnFilter(visitationList);
-    }
+        if (visitationList.length > 0 && JSON.stringify(visitationColumnFilter) !== JSON.stringify(visitationList)) {
+            setvisitationColumnFilter(visitationList);
+        }
     }, [visitationList, visitationColumnFilter]);
 
     const { data: pdlVisitationStatusData, isLoading: pdlByVisitationStatusLoading } = useQuery({
-            queryKey: ['pdls', 'pdls-table', page, visitationList],
-                queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
-                    const offset = (page - 1) * limit;
-                    const res = await fetch(
-                        `${BASE_URL}/api/pdls/pdl/?visitation_status=${encodeURIComponent(visitationList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
-                        {
-                            headers: {
-                                'Content-Type': 'application/json',
-                                Authorization: `Token ${token}`,
-                            },
-                        }
-                    );
-            
-                    if (!res.ok) {
-                        throw new Error('Failed to fetch PDL Visitation Status data.');
-                    }
-            
-                    return res.json();
-                },
-            enabled: !!token,
-        });
+        queryKey: ['pdls', 'pdls-table', page, visitationList],
+        queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
+            const offset = (page - 1) * limit;
+            const res = await fetch(
+                `${BASE_URL}/api/pdls/pdl/?visitation_status=${encodeURIComponent(visitationList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch PDL Visitation Status data.');
+            }
+
+            return res.json();
+        },
+        enabled: !!token,
+    });
 
     const { data: visitationStatusData } = useQuery({
-    queryKey: ['visitation-status'],
-    queryFn: async () => {
-        const res = await fetch(`${BASE_URL}/api/pdls/pdl-visitation-statuses/`, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Token ${token}`,
+        queryKey: ['visitation-status'],
+        queryFn: async () => {
+            const res = await fetch(`${BASE_URL}/api/pdls/pdl-visitation-statuses/`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Token ${token}`,
+                },
+            });
+            if (!res.ok) throw new Error('Failed to fetch Visitation Status');
+            return res.json();
         },
-        });
-        if (!res.ok) throw new Error('Failed to fetch Visitation Status');
-        return res.json();
-    },
-    enabled: !!token,
+        enabled: !!token,
     });
 
     const visitationFilters = visitationStatusData?.results?.map(visitation => ({
-    text: visitation.name,
-    value: visitation.name,
+        text: visitation.name,
+        value: visitation.name,
     })) ?? [];
-    
+
     const confirmDelete = (recordId) => {
         Modal.confirm({
             title: 'Are you sure you want to delete this record?',
@@ -267,117 +267,125 @@ const PDLtable = () => {
     };
 
     const dataSource = (data?.results || []).map((pdl, index) => {
-    const address = [
-        pdl?.person?.addresses?.[0]?.barangay,
-        pdl?.person?.addresses?.[0]?.city_municipality,
-        pdl?.person?.addresses?.[0]?.province,
-    ]
-    .filter(Boolean)
-    .join(", ");
+        const address = [
+            pdl?.person?.addresses?.[0]?.barangay,
+            pdl?.person?.addresses?.[0]?.city_municipality,
+            pdl?.person?.addresses?.[0]?.province,
+        ]
+            .filter(Boolean)
+            .join(", ");
 
-    return {
-        ...pdl,
-        key: index + 1,
-        id: pdl?.id,
-        name: `${pdl?.person?.first_name ?? ""} ${pdl?.person?.middle_name ?? ""} ${pdl?.person?.last_name ?? ""}`.trim(),
-        gender: pdl?.person?.gender?.gender_option?.trim() ?? "",
-        status: pdl?.status ?? "",
-        cell_name: pdl?.cell?.cell_name,
-        floor: pdl?.cell?.floor,
-        visitation_status: pdl?.visitation_status,
-        address,
-        created_at: pdl?.created_at,
-    };
-}).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const paddedId = String(pdl?.id ?? '').padStart(6, '0').slice(-6);
+
+        return {
+            ...pdl,
+            key: index + 1,
+            pdlNo: `${pdl?.date_of_admission?.replace(/-/g, "")}-${paddedId}`,
+            id: pdl?.id,
+            name: `${pdl?.person?.first_name ?? ""} ${pdl?.person?.middle_name ?? ""} ${pdl?.person?.last_name ?? ""}`.trim(),
+            gender: pdl?.person?.gender?.gender_option?.trim() ?? "",
+            status: pdl?.status ?? "",
+            cell_name: pdl?.cell?.cell_name,
+            floor: pdl?.cell?.floor,
+            visitation_status: pdl?.visitation_status,
+            address,
+            created_at: pdl?.created_at,
+        };
+    }).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     const columns = [
-    {
-        title: "No.",
-        key: "no",
-        render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
-    },
-    {
-        title: "PDL Name",
-        key: "name",
-        render: (_, pdl) => pdl.name,
-        sorter: (a, b) => a.name.localeCompare(b.name),
-    },
-    {
-        title: 'Gender',
-        dataIndex: 'gender',
-        key: 'gender',
-        sorter: (a, b) => a.gender.localeCompare(b.gender),
-        filters: [
-            { text: 'Male', value: 'Male' },
-            { text: 'LGBTQ + GAY / BISEXUAL', value: 'LGBTQ + GAY / BISEXUAL' },
-            { text: 'LGBTQ + TRANSGENDER', value: 'LGBTQ + TRANSGENDER' },
-        ],
-        filteredValue: genderColumnFilter,
-        onFilter: (value, record) => record.gender === value,
-    },
-    {
-        title: "Dorm",
-        key: "cell_name",
-        render: (_, pdl) => pdl.cell_name,
-        sorter: (a, b) => a.cell_name.localeCompare(b.cell_name),
-    },
         {
-        title: "Annex",
-        key: "floor",
-        render: (_, pdl) => pdl.floor,
-        sorter: (a, b) => a.floor.localeCompare(b.floor),
-    },
-    {
-        title: 'Status',
-        dataIndex: 'status',
-        key: 'status',
-        sorter: (a, b) => a.status.localeCompare(b.status),
-        filters: [
-            { text: 'Committed', value: 'Committed' },
-            { text: 'Convicted', value: 'Convicted' },
-            { text: 'Released', value: 'Released' },
-            { text: 'Hospitalized', value: 'Hospitalized' },
-        ],
-        filteredValue: statusColumnFilter,
-        onFilter: (value, record) => record.status === value,
-    },
-    {
-        title: 'Visitation Status',
-        dataIndex: 'visitation_status',
-        key: 'visitation_status',
-        sorter: (a, b) => a.visitation_status.localeCompare(b.visitation_status),
-        filters: visitationFilters,
-        filteredValue: visitationColumnFilter,
-        onFilter: (value, record) => record.visitation_status === value,
-    },
-    {
-        title: "Action",
-        key: "action",
-        render: (_, record) => (
-        <div className="flex gap-2">
-            <NavLink to="update" state={{ pdl: record }} className={"flex items-center justify-center"}>
-                <AiOutlineEdit />
-            </NavLink>
-            {/* <Button
+            title: "No.",
+            key: "no",
+            render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
+        },
+        {
+            title: "PDL No.",
+            key: "pdlNo",
+            dataIndex: "pdlNo",
+        },
+        {
+            title: "PDL Name",
+            key: "name",
+            render: (_, pdl) => pdl.name,
+            sorter: (a, b) => a.name.localeCompare(b.name),
+        },
+        {
+            title: 'Gender',
+            dataIndex: 'gender',
+            key: 'gender',
+            sorter: (a, b) => a.gender.localeCompare(b.gender),
+            filters: [
+                { text: 'Male', value: 'Male' },
+                { text: 'LGBTQ + GAY / BISEXUAL', value: 'LGBTQ + GAY / BISEXUAL' },
+                { text: 'LGBTQ + TRANSGENDER', value: 'LGBTQ + TRANSGENDER' },
+            ],
+            filteredValue: genderColumnFilter,
+            onFilter: (value, record) => record.gender === value,
+        },
+        {
+            title: "Dorm",
+            key: "cell_name",
+            render: (_, pdl) => pdl.cell_name,
+            sorter: (a, b) => a.cell_name.localeCompare(b.cell_name),
+        },
+        {
+            title: "Annex",
+            key: "floor",
+            render: (_, pdl) => pdl.floor,
+            sorter: (a, b) => a.floor.localeCompare(b.floor),
+        },
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'status',
+            sorter: (a, b) => a.status.localeCompare(b.status),
+            filters: [
+                { text: 'Committed', value: 'Committed' },
+                { text: 'Convicted', value: 'Convicted' },
+                { text: 'Released', value: 'Released' },
+                { text: 'Hospitalized', value: 'Hospitalized' },
+            ],
+            filteredValue: statusColumnFilter,
+            onFilter: (value, record) => record.status === value,
+        },
+        {
+            title: 'Visitation Status',
+            dataIndex: 'visitation_status',
+            key: 'visitation_status',
+            sorter: (a, b) => a.visitation_status.localeCompare(b.visitation_status),
+            filters: visitationFilters,
+            filteredValue: visitationColumnFilter,
+            onFilter: (value, record) => record.visitation_status === value,
+        },
+        {
+            title: "Action",
+            key: "action",
+            render: (_, record) => (
+                <div className="flex gap-2">
+                    <NavLink to="update" state={{ pdl: record }} className={"flex items-center justify-center"}>
+                        <AiOutlineEdit />
+                    </NavLink>
+                    {/* <Button
                 type="link"
                 danger
                 onClick={() => deleteMutation.mutate(record.id)}
             >
                 <AiOutlineDelete />
             </Button> */}
-            <Button
-                type="link"
-                danger
-                onClick={(e) => {
-                    e.stopPropagation();
-                    confirmDelete(record.id);
-                }}
-            >
-                <AiOutlineDelete />
-            </Button>
-            </div>
-        ),
-    },
+                    <Button
+                        type="link"
+                        danger
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            confirmDelete(record.id);
+                        }}
+                    >
+                        <AiOutlineDelete />
+                    </Button>
+                </div>
+            ),
+        },
     ];
 
     const fetchAllPDLs = async () => {
@@ -403,12 +411,12 @@ const PDLtable = () => {
         const footerHeight = 32;
         const MAX_ROWS_PER_PRINT = 800;
 
-            let allData;
-            if (searchText.trim() === '') {
-                allData = await fetchAllPDLs();
-            } else {
-                allData = await fetchPDLs(searchText.trim());
-            }
+        let allData;
+        if (searchText.trim() === '') {
+            allData = await fetchAllPDLs();
+        } else {
+            allData = await fetchPDLs(searchText.trim());
+        }
         const allResults = allData?.results || [];
 
         const filteredResults = allResults.filter(pdl => {
@@ -432,7 +440,7 @@ const PDLtable = () => {
                 matchesColumnVisitation &&
                 matchesGlobalVisitationStatus
             );
-            });
+        });
 
         const printSource = filteredResults.map((pdl, index) => ({
             key: lastPrintIndexRef.current + index + 1,
@@ -549,35 +557,35 @@ const PDLtable = () => {
     const handleExportExcel = async () => {
         setIsLoading(true);
         try {
-                let allData;
+            let allData;
             if (searchText.trim() === '') {
                 allData = await fetchAllPDLs();
             } else {
                 allData = await fetchPDLs(searchText.trim());
             }
-        const allResults = allData?.results || [];
+            const allResults = allData?.results || [];
 
-        const filteredResults = allResults.filter(pdl => {
-            const genderValue = pdl?.person?.gender?.gender_option ?? '';
-            const statusValue = pdl?.status ?? '';
-            const visitationStatusValue = pdl?.visitation_status ?? '';
+            const filteredResults = allResults.filter(pdl => {
+                const genderValue = pdl?.person?.gender?.gender_option ?? '';
+                const statusValue = pdl?.status ?? '';
+                const visitationStatusValue = pdl?.visitation_status ?? '';
 
-            const matchesGlobalGender = gender === "all" || genderValue === gender;
-            const matchesGlobalStatus = status === "all" || statusValue === status;
-            const matchesGlobalVisitationStatus = visitation_status === "all" || visitationStatusValue === visitation_status;
+                const matchesGlobalGender = gender === "all" || genderValue === gender;
+                const matchesGlobalStatus = status === "all" || statusValue === status;
+                const matchesGlobalVisitationStatus = visitation_status === "all" || visitationStatusValue === visitation_status;
 
-            const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
-            const matchesColumnStatus = statusColumnFilter.length === 0 || statusColumnFilter.includes(statusValue);
-            const matchesColumnVisitation = visitationColumnFilter.length === 0 || visitationColumnFilter.includes(visitationStatusValue);
+                const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
+                const matchesColumnStatus = statusColumnFilter.length === 0 || statusColumnFilter.includes(statusValue);
+                const matchesColumnVisitation = visitationColumnFilter.length === 0 || visitationColumnFilter.includes(visitationStatusValue);
 
-            return (
-                matchesGlobalGender &&
-                matchesGlobalStatus &&
-                matchesColumnGender &&
-                matchesColumnStatus &&
-                matchesColumnVisitation &&
-                matchesGlobalVisitationStatus
-            );
+                return (
+                    matchesGlobalGender &&
+                    matchesGlobalStatus &&
+                    matchesColumnGender &&
+                    matchesColumnStatus &&
+                    matchesColumnVisitation &&
+                    matchesGlobalVisitationStatus
+                );
             });
 
             const exportData = filteredResults.map(pdl => {
@@ -598,7 +606,7 @@ const PDLtable = () => {
             XLSX.writeFile(wb, "PDL.xlsx");
         } catch (error) {
             console.error("Error exporting Excel:", error);
-            messageApi.error("Failed to export Excel."); 
+            messageApi.error("Failed to export Excel.");
         } finally {
             setIsLoading(false);
         }
@@ -607,35 +615,35 @@ const PDLtable = () => {
     const handleExportCSV = async () => {
         setIsLoading(true);
         try {
-                let allData;
+            let allData;
             if (searchText.trim() === '') {
                 allData = await fetchAllPDLs();
             } else {
                 allData = await fetchPDLs(searchText.trim());
             }
-        const allResults = allData?.results || [];
+            const allResults = allData?.results || [];
 
-        const filteredResults = allResults.filter(pdl => {
-            const genderValue = pdl?.person?.gender?.gender_option ?? '';
-            const statusValue = pdl?.status ?? '';
-            const visitationStatusValue = pdl?.visitation_status ?? '';
+            const filteredResults = allResults.filter(pdl => {
+                const genderValue = pdl?.person?.gender?.gender_option ?? '';
+                const statusValue = pdl?.status ?? '';
+                const visitationStatusValue = pdl?.visitation_status ?? '';
 
-            const matchesGlobalGender = gender === "all" || genderValue === gender;
-            const matchesGlobalStatus = status === "all" || statusValue === status;
-            const matchesGlobalVisitationStatus = visitation_status === "all" || visitationStatusValue === visitation_status;
+                const matchesGlobalGender = gender === "all" || genderValue === gender;
+                const matchesGlobalStatus = status === "all" || statusValue === status;
+                const matchesGlobalVisitationStatus = visitation_status === "all" || visitationStatusValue === visitation_status;
 
-            const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
-            const matchesColumnStatus = statusColumnFilter.length === 0 || statusColumnFilter.includes(statusValue);
-            const matchesColumnVisitation = visitationColumnFilter.length === 0 || visitationColumnFilter.includes(visitationStatusValue);
+                const matchesColumnGender = genderColumnFilter.length === 0 || genderColumnFilter.includes(genderValue);
+                const matchesColumnStatus = statusColumnFilter.length === 0 || statusColumnFilter.includes(statusValue);
+                const matchesColumnVisitation = visitationColumnFilter.length === 0 || visitationColumnFilter.includes(visitationStatusValue);
 
-            return (
-                matchesGlobalGender &&
-                matchesGlobalStatus &&
-                matchesColumnGender &&
-                matchesColumnStatus &&
-                matchesColumnVisitation &&
-                matchesGlobalVisitationStatus
-            );
+                return (
+                    matchesGlobalGender &&
+                    matchesGlobalStatus &&
+                    matchesColumnGender &&
+                    matchesColumnStatus &&
+                    matchesColumnVisitation &&
+                    matchesGlobalVisitationStatus
+                );
             });
 
             const exportData = filteredResults.map(pdl => {
@@ -651,7 +659,7 @@ const PDLtable = () => {
             }) || [];
 
             const csvContent = [
-                Object.keys(exportData[0]).join(","), 
+                Object.keys(exportData[0]).join(","),
                 ...exportData.map(item => Object.values(item).join(","))
             ].join("\n");
 
@@ -684,35 +692,35 @@ const PDLtable = () => {
         </Menu>
     );
 
-    const totalRecords = debouncedSearch 
-    ? data?.count || 0
-    : gender !== "all" 
-    ? pdlsGenderData?.count || 0 
-    : status !== "all"
-    ? pdlStatusData?.count || 0
-    : visitation_status !== "all"
-    ? pdlVisitationStatusData?.count || 0
-    : data?.count || 0;
-    
+    const totalRecords = debouncedSearch
+        ? data?.count || 0
+        : gender !== "all"
+            ? pdlsGenderData?.count || 0
+            : status !== "all"
+                ? pdlStatusData?.count || 0
+                : visitation_status !== "all"
+                    ? pdlVisitationStatusData?.count || 0
+                    : data?.count || 0;
+
     const mapPDL = (pdl, index) => ({
-    key: index + 1,
-    id: pdl?.id ?? 'N/A',
-    pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
-    first_name: pdl?.person?.first_name ?? 'N/A',
-    middle_name: pdl?.person?.middle_name ?? '',
-    last_name: pdl?.person?.last_name ?? '',
-    name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
-    cell_no: pdl?.cell?.cell_no ?? 'N/A',
-    cell_name: pdl?.cell?.cell_name ?? 'N/A',
-    gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
-    look: pdl?.look ?? 'N/A',
-    status: pdl?.status ?? 'N/A',
-    gender: pdl?.person?.gender?.gender_option,
-    visitation_status: pdl?.visitation_status ?? 'N/A',
-    floor: pdl?.cell?.floor ?? 'N/A',
-    date_of_admission: pdl?.date_of_admission ?? 'N/A',
-    organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
-    updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
+        key: index + 1,
+        id: pdl?.id ?? 'N/A',
+        pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
+        first_name: pdl?.person?.first_name ?? 'N/A',
+        middle_name: pdl?.person?.middle_name ?? '',
+        last_name: pdl?.person?.last_name ?? '',
+        name: `${pdl?.person?.first_name ?? 'N/A'} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? 'N/A'}`,
+        cell_no: pdl?.cell?.cell_no ?? 'N/A',
+        cell_name: pdl?.cell?.cell_name ?? 'N/A',
+        gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
+        look: pdl?.look ?? 'N/A',
+        status: pdl?.status ?? 'N/A',
+        gender: pdl?.person?.gender?.gender_option,
+        visitation_status: pdl?.visitation_status ?? 'N/A',
+        floor: pdl?.cell?.floor ?? 'N/A',
+        date_of_admission: pdl?.date_of_admission ?? 'N/A',
+        organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
+        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     });
 
     return (
@@ -727,9 +735,9 @@ const PDLtable = () => {
                             {isLoading ? ' Loading...' : ' Export'}
                         </a>
                     </Dropdown>
-                    <button 
-                        className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
-                        onClick={handleExportPDF} 
+                    <button
+                        className={`bg-[#1E365D] py-2 px-5 rounded-md text-white ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={handleExportPDF}
                         disabled={isLoading}
                     >
                         {isLoading ? loadingMessage : 'PDF Report'}
@@ -747,30 +755,30 @@ const PDLtable = () => {
                     debouncedSearch
                         ? (searchData?.results || []).map(mapPDL)
                         : gender !== "all"
-                        ? (pdlsGenderData?.results || []).map(mapPDL)
-                        : status !== "all"
-                            ? (pdlStatusData?.results || []).map(mapPDL)
-                            : visitation_status !== "all"
-                            ? (pdlVisitationStatusData?.results || []).map(mapPDL)
-                            : dataSource
-                    }
+                            ? (pdlsGenderData?.results || []).map(mapPDL)
+                            : status !== "all"
+                                ? (pdlStatusData?.results || []).map(mapPDL)
+                                : visitation_status !== "all"
+                                    ? (pdlVisitationStatusData?.results || []).map(mapPDL)
+                                    : dataSource
+                }
                 pagination={{
                     current: page,
                     pageSize: limit,
                     total: totalRecords,
                     pageSizeOptions: ['10', '20', '50', '100'],
-                    showSizeChanger: true, 
+                    showSizeChanger: true,
                     onChange: (newPage, newPageSize) => {
                         setPage(newPage);
-                        setLimit(newPageSize); 
+                        setLimit(newPageSize);
                     },
                 }}
                 onChange={(pagination, filters, sorter) => {
                     setPage(pagination.current || 1);
-                        setGenderColumnFilter(filters.gender as string[] || []);
-                        setstatusColumnFilter(filters.status as string[] || []);
-                        setvisitationColumnFilter(filters.visitation_status as string[] || []);
-                    }}
+                    setGenderColumnFilter(filters.gender as string[] || []);
+                    setstatusColumnFilter(filters.status as string[] || []);
+                    setvisitationColumnFilter(filters.visitation_status as string[] || []);
+                }}
                 rowKey="id"
             />
             <Modal open={isEditModalOpen} onCancel={() => setIsEditModalOpen(false)} onOk={() => form.submit()} width="40%" confirmLoading={isUpdating} style={{ overflowY: "auto" }} >
