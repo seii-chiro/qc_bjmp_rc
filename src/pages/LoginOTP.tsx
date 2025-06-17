@@ -12,6 +12,8 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { message, Modal, Input } from 'antd';
 import { BASE_URL } from "@/lib/urls";
 import { useUserStore } from "@/store/useUserStore";
+import tambuli_logo_horizontal from "@/assets/logo_tambuli-labs-horizontal.png"
+import merlin_logo from "@/assets/MastheadLOGO.png"
 
 const LoginOTP = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -138,7 +140,7 @@ const LoginOTP = () => {
         <>
             <div className="bg-[url('/login.png')] bg-blue-500 bg-cover bg-center flex flex-col items-center justify-center gap-4 min-h-screen w-screen">
                 {/* <div className="bg-white/50 filter backdrop-blur-sm p-14 rounded-xl flex flex-col gap-8 items-center justify-center w-[32rem] shadow-lg"></div> */}
-                <div className="bg-white/50 filter backdrop-blur-sm p-14 rounded-xl flex flex-col gap-8 items-center justify-center w-[32rem] shadow-lg">
+                <div className="bg-white/50 filter backdrop-blur-sm p-10 rounded-xl flex flex-col gap-8 items-center justify-center w-[32rem] shadow-lg">
                     <div className="flex flex-col gap-6 items-center">
                         <div >
                             <div className="flex gap-2 items-center justify-center">
@@ -204,11 +206,28 @@ const LoginOTP = () => {
                             </div>
                             <button
                                 type="submit"
-                                className="shadow w-full bg-black text-white rounded-lg hover:bg-gray-600 hover:text-white h-12 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="shadow w-full bg-[#1E365D] text-white rounded-lg hover:bg-gray-600 hover:text-white h-12 disabled:opacity-50 disabled:cursor-not-allowed"
                                 disabled={loginMutation.isPending}
                             >
                                 {loginMutation.isPending ? "Logging in..." : "Login"}
                             </button>
+                            <div className="w-full flex justify-center items-center mt-4">
+                                <div className="relative flex-1 flex items-center justify-center gap-1">
+                                    <div className="font-bold text-xs text-[#1E365D]">Secured by:</div>
+                                    <img
+                                        src={merlin_logo}
+                                        className="w-32"
+                                    />
+                                </div>
+                                <div className="h-8 w-[2px] bg-[#1E365D] ml-5" />
+                                <div className="relative flex-1 flex items-center justify-center gap-1">
+                                    <div className="font-bold text-xs text-[#1E365D]">Powered by:</div>
+                                    <img
+                                        src={tambuli_logo_horizontal}
+                                        className="w-20"
+                                    />
+                                </div>
+                            </div>
                         </form>
                     </div>
                 </div>
