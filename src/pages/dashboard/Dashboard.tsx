@@ -1,4 +1,4 @@
-import {  getSummary_Card, getSummaryDaily } from "@/lib/queries";
+import { getSummary_Card, getSummaryDaily } from "@/lib/queries";
 import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -39,6 +39,9 @@ import html2canvas from "html2canvas";
 import { Title } from "./components/SummaryCards";
 import { BASE_URL } from "@/lib/urls";
 import { Button, Input, Modal, Select, Skeleton, Tabs } from "antd";
+import FooterCard from "./FooterCard";
+import merlin_logo from '@/assets/merlin_logo.png';
+import tambuli_logo from '@/assets/tambuli_logo.png';
 
 const { Option } = Select;
 const { TabPane } = Tabs;
@@ -64,7 +67,7 @@ const Dashboard = () => {
     const [summaryStartYear, setSummaryStartYear] = useState(currentYear.toString());
     const [summaryEndYear, setSummaryEndYear] = useState(currentYear.toString());
     const [dateField, setDateField] = useState('date_convicted');
-    const [summaryfrequency, setSummaryFrequency] = useState('daily'); 
+    const [summaryfrequency, setSummaryFrequency] = useState('daily');
 
     const [visitType, setvisitType] = useState('MainGateVisit');
     const [pdlvisitType, setpdlvisitType] = useState('PDLStationVisit');
@@ -79,7 +82,7 @@ const Dashboard = () => {
     //VisitLog
     const [visitFrequency, setVisitFrequency] = useState('daily');
     const [visitStartDate, setvisitStartDate] = useState('');
-    const [visitendDate, setVisitEndDate] = useState(''); 
+    const [visitendDate, setVisitEndDate] = useState('');
     const [visitStartYear, setVisitStartYear] = useState(currentYear.toString());
     const [visitendYear, setVisitEndYear] = useState(currentYear.toString());
 
@@ -138,8 +141,8 @@ const Dashboard = () => {
     const selectedJail = systemsettingdata?.results[0]?.jail_facility?.jail_name || 'BJMP Quezon City Jail - Male Dormitory';
 
     const getJailTitle = (jail) => {
-        return jail.includes('QUEZON CITY JAIL-FEMALE DORM') ? 
-            'BJMP Quezon City Jail - Female Dormitory Dashboard' : 
+        return jail.includes('QUEZON CITY JAIL-FEMALE DORM') ?
+            'BJMP Quezon City Jail - Female Dormitory Dashboard' :
             'BJMP Quezon City Jail - Male Dormitory Dashboard';
     };
 
@@ -212,135 +215,135 @@ const Dashboard = () => {
         : summarydata?.success?.total_pdl_by_status?.Hospitalized?.Active ?? 0;
 
     function formatDateToMMDDYYYY(dateStr) {
-    const date = new Date(dateStr);
-    if (isNaN(date)) return ""; 
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    const yyyy = date.getFullYear();
-    return `${mm}-${dd}-${yyyy}`;
+        const date = new Date(dateStr);
+        if (isNaN(date)) return "";
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        const yyyy = date.getFullYear();
+        return `${mm}-${dd}-${yyyy}`;
     }
 
-const fetchSummaryVisitorLog = async () => {
-    let url = `${BASE_URL}/api/dashboard/summary-dashboard/`;
-    const params = new URLSearchParams();
-    if (visitType === 'PDLStationVisit') return null;
+    const fetchSummaryVisitorLog = async () => {
+        let url = `${BASE_URL}/api/dashboard/summary-dashboard/`;
+        const params = new URLSearchParams();
+        if (visitType === 'PDLStationVisit') return null;
 
-    params.append('visit_type', visitType);
+        params.append('visit_type', visitType);
 
-    if (visitFrequency === 'daily') {
-        url += 'get-daily-visitor-logs-summary';
-        params.append('start_date', formatDateToMMDDYYYY(visitStartDate));
-        params.append('end_date', formatDateToMMDDYYYY(visitendDate));
-    
-    } else if (visitFrequency === 'monthly') {
-        url += 'get-monthly-visitor-logs-summary';
-        params.append('start_date', visitStartDate); 
-        params.append('end_date', visitendDate);     
-    } else if (visitFrequency === 'weekly') {
-        url += 'get-weekly-visitor-logs-summary';
-        params.append('start_date', formatDateToMMDDYYYY(visitStartDate));
-        params.append('end_date', formatDateToMMDDYYYY(visitendDate));
-    } else if (visitFrequency === 'quarterly') {
-        url += 'get-quarterly-visitor-logs-summary';
-        params.append('start_year', visitStartYear);
-        params.append('end_year', visitendYear);
-    }
+        if (visitFrequency === 'daily') {
+            url += 'get-daily-visitor-logs-summary';
+            params.append('start_date', formatDateToMMDDYYYY(visitStartDate));
+            params.append('end_date', formatDateToMMDDYYYY(visitendDate));
 
-    const res = await fetch(`${url}?${params.toString()}`, {
-        headers: {
-            Authorization: `Token ${token}`,
-            "Content-Type": "application/json",
-        },
-    });
+        } else if (visitFrequency === 'monthly') {
+            url += 'get-monthly-visitor-logs-summary';
+            params.append('start_date', visitStartDate);
+            params.append('end_date', visitendDate);
+        } else if (visitFrequency === 'weekly') {
+            url += 'get-weekly-visitor-logs-summary';
+            params.append('start_date', formatDateToMMDDYYYY(visitStartDate));
+            params.append('end_date', formatDateToMMDDYYYY(visitendDate));
+        } else if (visitFrequency === 'quarterly') {
+            url += 'get-quarterly-visitor-logs-summary';
+            params.append('start_year', visitStartYear);
+            params.append('end_year', visitendYear);
+        }
 
-    if (!res.ok) throw new Error("Network error");
-    return res.json();
-};
+        const res = await fetch(`${url}?${params.toString()}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
 
-const fetchSummaryPDLVisitorLog = async () => {
-    let url = `${BASE_URL}/api/dashboard/summary-dashboard/`;
-    const params = new URLSearchParams();
-    params.append('visit_type', 'PDLStationVisit');
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
 
-    if (pdlFrequency === 'daily') {
-        url += 'get-daily-visitor-logs-summary';
-        params.append('start_date', formatDateToMMDDYYYY(pdlStartDate));
-        params.append('end_date', formatDateToMMDDYYYY(pdlEndDate));
-    
-    } else if (pdlFrequency === 'monthly') {
-        url += 'get-monthly-visitor-logs-summary';
-        params.append('start_date', pdlStartDate); 
-        params.append('end_date', pdlEndDate);     
-    } else if (pdlFrequency === 'weekly') {
-        url += 'get-weekly-visitor-logs-summary';
-        params.append('start_date', formatDateToMMDDYYYY(pdlStartDate));
-        params.append('end_date', formatDateToMMDDYYYY(pdlEndDate));
-    } else if (pdlFrequency === 'quarterly') {
-        url += 'get-quarterly-visitor-logs-summary';
-        params.append('start_year', pdlStartYear);
-        params.append('end_year', pdlEndYear);
-    }
+    const fetchSummaryPDLVisitorLog = async () => {
+        let url = `${BASE_URL}/api/dashboard/summary-dashboard/`;
+        const params = new URLSearchParams();
+        params.append('visit_type', 'PDLStationVisit');
 
-    const res = await fetch(`${url}?${params.toString()}`, {
-        headers: {
-            Authorization: `Token ${token}`,
-            "Content-Type": "application/json",
-        },
-    });
+        if (pdlFrequency === 'daily') {
+            url += 'get-daily-visitor-logs-summary';
+            params.append('start_date', formatDateToMMDDYYYY(pdlStartDate));
+            params.append('end_date', formatDateToMMDDYYYY(pdlEndDate));
 
-    if (!res.ok) throw new Error("Network error");
-    return res.json();
-};
+        } else if (pdlFrequency === 'monthly') {
+            url += 'get-monthly-visitor-logs-summary';
+            params.append('start_date', pdlStartDate);
+            params.append('end_date', pdlEndDate);
+        } else if (pdlFrequency === 'weekly') {
+            url += 'get-weekly-visitor-logs-summary';
+            params.append('start_date', formatDateToMMDDYYYY(pdlStartDate));
+            params.append('end_date', formatDateToMMDDYYYY(pdlEndDate));
+        } else if (pdlFrequency === 'quarterly') {
+            url += 'get-quarterly-visitor-logs-summary';
+            params.append('start_year', pdlStartYear);
+            params.append('end_year', pdlEndYear);
+        }
+
+        const res = await fetch(`${url}?${params.toString()}`, {
+            headers: {
+                Authorization: `Token ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!res.ok) throw new Error("Network error");
+        return res.json();
+    };
 
     const { data: visitorLogData } = useQuery({
-    queryKey: ['visit-log', visitType.trim(), visitFrequency, visitStartYear, visitendYear, visitStartDate, visitendDate],
-    queryFn: fetchSummaryVisitorLog,
-    enabled: !!token,
+        queryKey: ['visit-log', visitType.trim(), visitFrequency, visitStartYear, visitendYear, visitStartDate, visitendDate],
+        queryFn: fetchSummaryVisitorLog,
+        enabled: !!token,
     });
 
     const { data: pdlVisitorLogData } = useQuery({
-    queryKey: ['pdl-log', pdlFrequency, pdlStartYear, pdlEndYear, pdlStartDate, pdlEndDate],
-    queryFn: fetchSummaryPDLVisitorLog,
-    enabled: !!token,
+        queryKey: ['pdl-log', pdlFrequency, pdlStartYear, pdlEndYear, pdlStartDate, pdlEndDate],
+        queryFn: fetchSummaryPDLVisitorLog,
+        enabled: !!token,
     });
 
     let visitCounts = {};
     if (visitFrequency === 'daily') {
         visitCounts = visitorLogData?.success?.daily_visitor_logs_summary || {};
-        } else if (visitFrequency === 'monthly') {
+    } else if (visitFrequency === 'monthly') {
         visitCounts = visitorLogData?.success?.monthly_visitor_logs_summary || {};
-        } else if (visitFrequency === 'weekly') {
+    } else if (visitFrequency === 'weekly') {
         visitCounts = visitorLogData?.success?.weekly_visitor_logs_summary || {};
-        } else if (visitFrequency === 'quarterly') {
+    } else if (visitFrequency === 'quarterly') {
         visitCounts = visitorLogData?.success?.quarterly_visitor_logs_summary || {};
-        }
+    }
 
     let pdlvisitCounts = {};
     if (pdlFrequency === 'daily') {
         pdlvisitCounts = pdlVisitorLogData?.success?.daily_visitor_logs_summary || {};
-        } else if (pdlFrequency === 'monthly') {
+    } else if (pdlFrequency === 'monthly') {
         pdlvisitCounts = pdlVisitorLogData?.success?.monthly_visitor_logs_summary || {};
-        } else if (pdlFrequency === 'weekly') {
+    } else if (pdlFrequency === 'weekly') {
         pdlvisitCounts = pdlVisitorLogData?.success?.weekly_visitor_logs_summary || {};
-        } else if (pdlFrequency === 'quarterly') {
+    } else if (pdlFrequency === 'quarterly') {
         pdlvisitCounts = pdlVisitorLogData?.success?.quarterly_visitor_logs_summary || {};
-        }
+    }
 
-const totalVisit = isFormVisitChanged
-    ? Object.values(visitCounts).reduce((total, data) => total + (data?.logins || 0), 0)
-    : visitType.trim() === 'MainGateVisit'
-    ? Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logins || 0), 0)
-    : visitType.trim() === 'VisitorStationVisit'
-    ? Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logins || 0), 0)
-    : 0
+    const totalVisit = isFormVisitChanged
+        ? Object.values(visitCounts).reduce((total, data) => total + (data?.logins || 0), 0)
+        : visitType.trim() === 'MainGateVisit'
+            ? Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logins || 0), 0)
+            : visitType.trim() === 'VisitorStationVisit'
+                ? Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logins || 0), 0)
+                : 0
 
     const totalVisitOut = isFormVisitChanged
-    ? Object.values(visitCounts).reduce((total, data) => total + (data?.logouts || 0), 0)
-    : visitType === 'MainGateVisit'
-        ?  Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logouts || 0), 0)
-        : visitType === 'VisitorStationVisit'
-        ? Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logouts || 0), 0)
-        : 0;
+        ? Object.values(visitCounts).reduce((total, data) => total + (data?.logouts || 0), 0)
+        : visitType === 'MainGateVisit'
+            ? Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logouts || 0), 0)
+            : visitType === 'VisitorStationVisit'
+                ? Object.values(visitorLogData?.success?.daily_visitor_logs_summary || {}).reduce((total, data) => total + (data?.logouts || 0), 0)
+                : 0;
 
     const totalVisitPDLStation = isFormPDLVisitChanged && pdlvisitType === 'PDLStationVisit'
         ? Object.values(pdlvisitCounts).reduce((total, data) => total + (data?.logins || 0), 0)
@@ -353,23 +356,23 @@ const totalVisit = isFormVisitChanged
     const latestDate = Object.keys(dailysummarydata?.success.daily_visit_summary || {})[0];
     const summary = dailysummarydata?.success.daily_visit_summary[latestDate];
     const visitorOtherCount = Object.entries(summarydata?.success?.visitor_based_on_gender?.Active || {})
-    .filter(([key]) => key !== "Male" && key !== "Female")
-    .reduce((total, [, value]) => total + (value ?? 0), 0);
+        .filter(([key]) => key !== "Male" && key !== "Female")
+        .reduce((total, [, value]) => total + (value ?? 0), 0);
 
     const personnelOtherCount = Object.entries(summarydata?.success?.personnel_based_on_gender?.Active || {})
-    .filter(([key]) => key !== "Male" && key !== "Female")
-    .reduce((total, [, value]) => total + (value ?? 0), 0);
+        .filter(([key]) => key !== "Male" && key !== "Female")
+        .reduce((total, [, value]) => total + (value ?? 0), 0);
 
     const visitorGenderData = [
-    { name: 'Male', value: summarydata?.success?.visitor_based_on_gender?.Active?.Male ?? 0 },
-    { name: 'Female', value: summarydata?.success?.visitor_based_on_gender?.Active?.Female ?? 0 },
-    { name: 'Other', value: visitorOtherCount },
+        { name: 'Male', value: summarydata?.success?.visitor_based_on_gender?.Active?.Male ?? 0 },
+        { name: 'Female', value: summarydata?.success?.visitor_based_on_gender?.Active?.Female ?? 0 },
+        { name: 'Other', value: visitorOtherCount },
     ];
 
     const personnelGenderData = [
-    { name: 'Male', value: summarydata?.success?.personnel_based_on_gender?.Active?.Male ?? 0 },
-    { name: 'Female', value: summarydata?.success?.personnel_based_on_gender?.Active?.Female ?? 0 },
-    { name: 'Other', value: personnelOtherCount },
+        { name: 'Male', value: summarydata?.success?.personnel_based_on_gender?.Active?.Male ?? 0 },
+        { name: 'Female', value: summarydata?.success?.personnel_based_on_gender?.Active?.Female ?? 0 },
+        { name: 'Other', value: personnelOtherCount },
     ];
 
     const genderData = [
@@ -387,40 +390,40 @@ const totalVisit = isFormVisitChanged
     ];
 
     const VisitorEnteredExitData = [
-    { name: 'Entered', value: totalVisit },
-    { name: 'Exited', value: totalVisitOut },
+        { name: 'Entered', value: totalVisit },
+        { name: 'Exited', value: totalVisitOut },
     ];
 
     const PersonnelEnteredExitData = [
-        { name: 'Entered', value: summarydata?.success.premises_logs.personnel_logs_today["Time In"] || 0},
+        { name: 'Entered', value: summarydata?.success.premises_logs.personnel_logs_today["Time In"] || 0 },
         { name: 'Exited', value: summarydata?.success.premises_logs.personnel_logs_today["Time Out"] || 0 },
     ];
 
     const ServiceEnteredExitData = [
-        { name: 'Entered', value: 0},
+        { name: 'Entered', value: 0 },
         { name: 'Exited', value: 0 },
     ];
 
     const NonRegisterEnteredExitData = [
-        { name: 'Entered', value: 0},
+        { name: 'Entered', value: 0 },
         { name: 'Exited', value: 0 },
     ];
 
     const onOffDutyPersonnelData = [
-        { name: 'Entered', value: summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0},
-        { name: 'Exited', value: summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0},
+        { name: 'Entered', value: summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0 },
+        { name: 'Exited', value: summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0 },
     ];
 
     const EmergencyMalfunctionData = [
-        { name: 'Emergency', value: 0},
-        { name: 'Malfunction of System', value: 0,},
-        { name: 'Illegal Entry/Exit', value: 0,},
+        { name: 'Emergency', value: 0 },
+        { name: 'Malfunction of System', value: 0, },
+        { name: 'Illegal Entry/Exit', value: 0, },
     ];
 
     const ActionTakenData = [
-        { name: 'Action Taken Emergency', value: 0},
-        { name: 'Malfunction of System', value: 0,},
-        { name: 'Illegal Entry/Exit', value: 0,},
+        { name: 'Action Taken Emergency', value: 0 },
+        { name: 'Malfunction of System', value: 0, },
+        { name: 'Illegal Entry/Exit', value: 0, },
     ];
 
     const PDLEnteredExitCOLORS = ['#00B21B', '#97A5BB'];
@@ -431,7 +434,7 @@ const totalVisit = isFormVisitChanged
     const onOffDutyPersonnelEnteredExitCOLORS = ['#0D5ACF', '#739EDF'];
     const EmergencyMalfunctionEnteredExitCOLORS = ['#F63554', '#F7EA39', '#1EE9E4'];
     const ActionTakenEnteredExitCOLORS = ['#843EEE', '#F7C439', '#20B1EF'];
-    
+
     const Card2 = (props: {
         title: string;
         image: string;
@@ -470,14 +473,14 @@ const totalVisit = isFormVisitChanged
         count: number | string;
         linkto?: string;
         state?: any;
-        onClick?: () => void; 
+        onClick?: () => void;
     }) => {
         const navigate = useNavigate();
         const { title, image, count, linkto, state, onClick } = props;
 
         const handleClick = () => {
             if (onClick) {
-                onClick(); 
+                onClick();
             }
             if (linkto) {
                 navigate(linkto, { state });
@@ -499,20 +502,20 @@ const totalVisit = isFormVisitChanged
         );
     };
 
-        const Card4 = (props: {
+    const Card4 = (props: {
         title: string;
         image: string;
         count: number | string;
         linkto?: string;
         state?: any;
-        onClick?: () => void; 
+        onClick?: () => void;
     }) => {
         const navigate = useNavigate();
         const { title, image, count, linkto, state, onClick } = props;
 
         const handleClick = () => {
             if (onClick) {
-                onClick(); 
+                onClick();
             }
             if (linkto) {
                 navigate(linkto, { state });
@@ -537,23 +540,23 @@ const totalVisit = isFormVisitChanged
 
     const exportDashboardAsImage = async () => {
         if (!handle.active) {
-        await handle.enter();
-        await new Promise(r => setTimeout(r, 500));
+            await handle.enter();
+            await new Promise(r => setTimeout(r, 500));
         }
 
         const element = document.getElementById("dashboard");
         if (!element) return;
 
         const oldStyle = {
-        width: element.style.width,
-        height: element.style.height,
-        overflow: element.style.overflow,
-        position: element.style.position,
-        top: element.style.top,
-        left: element.style.left,
-        boxShadow: element.style.boxShadow,
-        border: element.style.border,
-        outline: element.style.outline,
+            width: element.style.width,
+            height: element.style.height,
+            overflow: element.style.overflow,
+            position: element.style.position,
+            top: element.style.top,
+            left: element.style.left,
+            boxShadow: element.style.boxShadow,
+            border: element.style.border,
+            outline: element.style.outline,
         };
 
         element.style.width = "100vw";
@@ -616,7 +619,7 @@ const totalVisit = isFormVisitChanged
             </ul>
         );
     };
-    
+
     const handleReset = () => {
         setTime(new Date().toLocaleTimeString());
         queryClient.clear();
@@ -667,8 +670,8 @@ const totalVisit = isFormVisitChanged
 
     const personnelHandleClick = (gender: string) => {
         if (gender === "Other") {
-        const allGenders = Object.keys(summarydata?.success?.personnel_based_on_gender?.Active || {});
-        const otherGenders = allGenders.filter(g => g !== "Male" && g !== "Female");
+            const allGenders = Object.keys(summarydata?.success?.personnel_based_on_gender?.Active || {});
+            const otherGenders = allGenders.filter(g => g !== "Male" && g !== "Female");
             const encodedGenders = otherGenders.map(g => encodeURIComponent(g)).join(",");
             navigate(`/jvms/personnels/personnel?gender=${encodedGenders}`);
         } else {
@@ -712,29 +715,29 @@ const totalVisit = isFormVisitChanged
 
     const handleApplyFilters = () => {
         if (activeTab === 'visitLogs') {
-        setvisitType(formVisitType);
-        setVisitFrequency(formVisitFrequency);
-        setvisitStartDate(formVisitStartDate);
-        setVisitEndDate(formVisitEndDate);
-        setVisitStartYear(formVisitStartYear);
-        setVisitEndYear(formVisitEndYear);
-        setIsFormVisitChanged(true);
+            setvisitType(formVisitType);
+            setVisitFrequency(formVisitFrequency);
+            setvisitStartDate(formVisitStartDate);
+            setVisitEndDate(formVisitEndDate);
+            setVisitStartYear(formVisitStartYear);
+            setVisitEndYear(formVisitEndYear);
+            setIsFormVisitChanged(true);
         } else if (activeTab === 'pdlvisitorlogs') {
-        setpdlvisitType(formPDLVisitType);
-        setPDLFrequency(formPDLFrequency);
-        setPDLStartDate(formPDLStartDate);
-        setPDLEndDate(formPDLEndDate);
-        setPDLStartYear(formPDLStartYear);
-        setPDLEndYear(formPDLEndYear);
-        setIsFormPDLVisitChanged(true);
+            setpdlvisitType(formPDLVisitType);
+            setPDLFrequency(formPDLFrequency);
+            setPDLStartDate(formPDLStartDate);
+            setPDLEndDate(formPDLEndDate);
+            setPDLStartYear(formPDLStartYear);
+            setPDLEndYear(formPDLEndYear);
+            setIsFormPDLVisitChanged(true);
         } else if (activeTab === 'summaryData') {
-        setDateField(formDateField);
-        setSummaryFrequency(formFrequency);
-        setSummaryStartDate(formStartDate);
-        setSummaryEndDate(formEndDate);
-        setSummaryStartYear(formStartYear);
-        setSummaryEndYear(formEndYear);
-        setIsFormChanged(true);
+            setDateField(formDateField);
+            setSummaryFrequency(formFrequency);
+            setSummaryStartDate(formStartDate);
+            setSummaryEndDate(formEndDate);
+            setSummaryStartYear(formStartYear);
+            setSummaryEndYear(formEndYear);
+            setIsFormChanged(true);
         }
         setVisible(false);
     };
@@ -742,13 +745,13 @@ const totalVisit = isFormVisitChanged
     const congestionRateRaw = summarydata?.success?.jail_congestion_rates?.total_congestion_rate;
 
     const formattedRate = typeof congestionRateRaw === 'number'
-    ? `${congestionRateRaw.toFixed(2)}%`
-    : '0%';
+        ? `${congestionRateRaw.toFixed(2)}%`
+        : '0%';
     return (
         <div>
             <div id="dashboard">
                 <FullScreen handle={handle}>
-                    <div  className={`w-full ${isFullscreen ? "h-screen bg-[#F6F7FB]" : ""} space-y-2  text-sm`}
+                    <div className={`w-full ${isFullscreen ? "h-screen bg-[#F6F7FB]" : ""} space-y-2  text-sm`}
                         style={{
                             minHeight: isFullscreen ? "100vh" : undefined,
                             height: isFullscreen ? "100vh" : undefined,
@@ -793,19 +796,19 @@ const totalVisit = isFormVisitChanged
                                             title="Jail Capacity"
                                             count={systemsettingdata?.results[0]?.jail_facility?.jail_capacity ?? 0}
                                             linkto={`/jvms/assets/jail-facility?jail_name=${encodeURIComponent(systemsettingdata?.results[0]?.jail_facility?.jail_name)}`}
-                                            />
+                                        />
                                         <Card3
                                             image={release}
                                             title='Congestion Rate'
                                             count={formattedRate}
-                                            />
+                                        />
                                     </>
                                 )}
                             </div>
                             {isFullscreen && (
                                 <div className="bg-white border shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col gap-2
                                     max-w-full md:max-w-sm lg:max-w-[16rem] w-full flex-[1.2]">
-                                    
+
                                     {isSummaryLoading ? (
                                         <>
                                             <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
@@ -816,27 +819,27 @@ const totalVisit = isFormVisitChanged
                                     ) : (
                                         <>
                                             <Card4
-                                                image={convicted} 
-                                                title="Convicted PDL" 
-                                                count={totalConvictedCount} 
+                                                image={convicted}
+                                                title="Convicted PDL"
+                                                count={totalConvictedCount}
                                                 onClick={() => pdlstatusHandleClick("Convicted")}
                                             />
                                             <Card4
-                                                image={release_pdl} 
-                                                title="Released PDL" 
-                                                count={totalReleasedCount} 
+                                                image={release_pdl}
+                                                title="Released PDL"
+                                                count={totalReleasedCount}
                                                 onClick={() => pdlstatusHandleClick("Released")}
                                             />
                                             <Card4
-                                                image={prison} 
-                                                title='Committed PDL' 
-                                                count={totalAdmissionCount} 
+                                                image={prison}
+                                                title='Committed PDL'
+                                                count={totalAdmissionCount}
                                                 onClick={() => pdlstatusHandleClick("Committed")}
                                             />
                                             <Card4
-                                                image={hospital} 
-                                                title='Hospitalized PDL' 
-                                                count={totalHospitalizedCount} 
+                                                image={hospital}
+                                                title='Hospitalized PDL'
+                                                count={totalHospitalizedCount}
                                                 onClick={() => pdlstatusHandleClick("Hospitalized")}
                                             />
                                         </>
@@ -916,126 +919,126 @@ const totalVisit = isFormVisitChanged
                                     </div>
                                     <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
                                         <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-64 min-h-[180px]">
-                                        {isVisitorGenderLoading ? (
-                                            <Skeleton.Input active className="w-full h-full rounded-lg" />
-                                        ) : (
-                                            <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                data={visitorGenderData}
-                                                dataKey="value"
-                                                nameKey="name"
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius="50%"
-                                                outerRadius="90%"
-                                                >
-                                                {visitorGenderData.map((entry, index) => (
-                                                    <Cell key={`cell-visitor-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                ))}
-                                                </Pie>
-                                                <Tooltip />
-                                                <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
-                                            </PieChart>
-                                            </ResponsiveContainer>
-                                        )}
+                                            {isVisitorGenderLoading ? (
+                                                <Skeleton.Input active className="w-full h-full rounded-lg" />
+                                            ) : (
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={visitorGenderData}
+                                                            dataKey="value"
+                                                            nameKey="name"
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius="50%"
+                                                            outerRadius="90%"
+                                                        >
+                                                            {visitorGenderData.map((entry, index) => (
+                                                                <Cell key={`cell-visitor-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                            ))}
+                                                        </Pie>
+                                                        <Tooltip />
+                                                        <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            )}
                                         </div>
 
                                         <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
-                                        {isVisitorGenderLoading ? (
-                                            <>
-                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            </>
-                                        ) : (
-                                            <>
-                                            <Card3
-                                                image={visitor_male}
-                                                title="Male"
-                                                count={summarydata?.success?.visitor_based_on_gender?.Active?.Male || 0}
-                                                onClick={() => visitorHandleClick("Male")}
-                                            />
-                                            <Card3
-                                                image={visitor_female}
-                                                title="Female"
-                                                count={summarydata?.success?.visitor_based_on_gender?.Active?.Female || 0}
-                                                onClick={() => visitorHandleClick("Female")}
-                                            />
-                                            <Card3
-                                                image={trans}
-                                                title="Other"
-                                                count={visitorOtherCount || 0}
-                                                onClick={() => visitorHandleClick("Other")}
-                                                />
-                                            </>
-                                        )}
+                                            {isVisitorGenderLoading ? (
+                                                <>
+                                                    <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                    <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                    <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Card3
+                                                        image={visitor_male}
+                                                        title="Male"
+                                                        count={summarydata?.success?.visitor_based_on_gender?.Active?.Male || 0}
+                                                        onClick={() => visitorHandleClick("Male")}
+                                                    />
+                                                    <Card3
+                                                        image={visitor_female}
+                                                        title="Female"
+                                                        count={summarydata?.success?.visitor_based_on_gender?.Active?.Female || 0}
+                                                        onClick={() => visitorHandleClick("Female")}
+                                                    />
+                                                    <Card3
+                                                        image={trans}
+                                                        title="Other"
+                                                        count={visitorOtherCount || 0}
+                                                        onClick={() => visitorHandleClick("Other")}
+                                                    />
+                                                </>
+                                            )}
                                         </div>
                                     </div>
-                                    </div>
+                                </div>
                                 <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
                                     <div className="my-1">
                                         <Title title="Personnel Based on their Gender" />
                                     </div>
                                     <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
                                         <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-64 min-h-[180px]">
-                                        {isPersonnelGenderLoading ? (
-                                            <Skeleton.Input active className="w-full h-full rounded-lg" />
-                                        ) : (
-                                            <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                data={personnelGenderData}
-                                                dataKey="value"
-                                                nameKey="name"
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius="50%"
-                                                outerRadius="90%"
-                                                >
-                                                {personnelGenderData.map((entry, index) => (
-                                                    <Cell key={`cell-personnel-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                ))}
-                                                </Pie>
-                                                <Tooltip />
-                                                <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
-                                            </PieChart>
-                                            </ResponsiveContainer>
-                                        )}
+                                            {isPersonnelGenderLoading ? (
+                                                <Skeleton.Input active className="w-full h-full rounded-lg" />
+                                            ) : (
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={personnelGenderData}
+                                                            dataKey="value"
+                                                            nameKey="name"
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius="50%"
+                                                            outerRadius="90%"
+                                                        >
+                                                            {personnelGenderData.map((entry, index) => (
+                                                                <Cell key={`cell-personnel-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                            ))}
+                                                        </Pie>
+                                                        <Tooltip />
+                                                        <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            )}
                                         </div>
 
                                         <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
-                                        {isPersonnelGenderLoading ? (
-                                            <>
-                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            </>
-                                        ) : (
-                                            <>
-                                            <Card3
-                                                image={personnel_male}
-                                                title="Male"
-                                                count={summarydata?.success?.personnel_based_on_gender?.Active?.Male || 0}
-                                                onClick={() => personnelHandleClick("Male")}
-                                            />
-                                            <Card3
-                                                image={personnel_woman}
-                                                title="Female"
-                                                count={summarydata?.success?.personnel_based_on_gender?.Active?.Female || 0}
-                                                onClick={() => personnelHandleClick("Female")}
-                                            />
-                                            <Card3
-                                                image={trans}
-                                                title="Other"
-                                                count={personnelOtherCount || 0}
-                                                onClick={() => personnelHandleClick("Other")}
-                                            />
-                                            </>
-                                        )}
+                                            {isPersonnelGenderLoading ? (
+                                                <>
+                                                    <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                    <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                    <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Card3
+                                                        image={personnel_male}
+                                                        title="Male"
+                                                        count={summarydata?.success?.personnel_based_on_gender?.Active?.Male || 0}
+                                                        onClick={() => personnelHandleClick("Male")}
+                                                    />
+                                                    <Card3
+                                                        image={personnel_woman}
+                                                        title="Female"
+                                                        count={summarydata?.success?.personnel_based_on_gender?.Active?.Female || 0}
+                                                        onClick={() => personnelHandleClick("Female")}
+                                                    />
+                                                    <Card3
+                                                        image={trans}
+                                                        title="Other"
+                                                        count={personnelOtherCount || 0}
+                                                        onClick={() => personnelHandleClick("Other")}
+                                                    />
+                                                </>
+                                            )}
                                         </div>
                                     </div>
-                                    </div>
+                                </div>
 
                             </div>
                         </div>
@@ -1044,42 +1047,42 @@ const totalVisit = isFormVisitChanged
                                 <div className="bg-white border shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col gap-2
                                     max-w-full md:max-w-sm lg:max-w-[16rem] w-full flex-[1.2]">
                                     {isSummaryLoading ? (
-                                    <>
-                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                    </>
+                                        <>
+                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                        </>
                                     ) : (
-                                    <div className="flex flex-wrap gap-2">
-                                        <Card4 
-                                            image={convicted} 
-                                            title="Convicted PDL" 
-                                            count={totalConvictedCount} 
-                                            onClick={() => pdlstatusHandleClick("Convicted")}
-                                        />
-                                        <Card4 
-                                            image={release_pdl} 
-                                            title="Released PDL" 
-                                            count={totalReleasedCount} 
-                                            onClick={() => pdlstatusHandleClick("Released")}
-                                        />
-                                        <Card4
-                                            image={prison} 
-                                            title='Committed PDL' 
-                                            count={totalAdmissionCount} 
-                                            onClick={() => pdlstatusHandleClick("Committed")}
-                                        />
-                                        <Card4
-                                            image={hospital} 
-                                            title='Hospitalized PDL' 
-                                            count={totalHospitalizedCount} 
-                                            onClick={() => pdlstatusHandleClick("Hospitalized")}
-                                        />
-                                    </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <Card4
+                                                image={convicted}
+                                                title="Convicted PDL"
+                                                count={totalConvictedCount}
+                                                onClick={() => pdlstatusHandleClick("Convicted")}
+                                            />
+                                            <Card4
+                                                image={release_pdl}
+                                                title="Released PDL"
+                                                count={totalReleasedCount}
+                                                onClick={() => pdlstatusHandleClick("Released")}
+                                            />
+                                            <Card4
+                                                image={prison}
+                                                title='Committed PDL'
+                                                count={totalAdmissionCount}
+                                                onClick={() => pdlstatusHandleClick("Committed")}
+                                            />
+                                            <Card4
+                                                image={hospital}
+                                                title='Hospitalized PDL'
+                                                count={totalHospitalizedCount}
+                                                onClick={() => pdlstatusHandleClick("Hospitalized")}
+                                            />
+                                        </div>
                                     )}
                                 </div>
-                                )}
+                            )}
                             <div className="w-full flex flex-col md:flex-row flex-1 gap-2">
                                 {/* PDLs */}
                                 <div className="bg-white border flex-1 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
@@ -1089,51 +1092,51 @@ const totalVisit = isFormVisitChanged
                                     <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
                                         <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-[12.5rem] min-h-[100px]" : "h-64 min-h-[180px]"}`}>
                                             {isPDLEnteredExitLoading ? (
-                                            <Skeleton.Input active size="large" className="w-full h-full rounded-lg" />
+                                                <Skeleton.Input active size="large" className="w-full h-full rounded-lg" />
                                             ) : (
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                <Pie
-                                                    data={PDLEnteredExitData}
-                                                    dataKey="value"
-                                                    nameKey="name"
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius="50%"
-                                                    outerRadius="90%"
-                                                >
-                                                    {PDLEnteredExitData.map((entry, index) => (
-                                                    <Cell key={`cell-pdl-${index}`} fill={PDLEnteredExitCOLORS[index % PDLEnteredExitCOLORS.length]} />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip />
-                                                <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
-                                                </PieChart>
-                                            </ResponsiveContainer>
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={PDLEnteredExitData}
+                                                            dataKey="value"
+                                                            nameKey="name"
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius="50%"
+                                                            outerRadius="90%"
+                                                        >
+                                                            {PDLEnteredExitData.map((entry, index) => (
+                                                                <Cell key={`cell-pdl-${index}`} fill={PDLEnteredExitCOLORS[index % PDLEnteredExitCOLORS.length]} />
+                                                            ))}
+                                                        </Pie>
+                                                        <Tooltip />
+                                                        <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
                                             )}
                                         </div>
                                         <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
                                             {isPDLEnteredExitLoading ? (
-                                            <>
-                                                <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                                <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            </>
+                                                <>
+                                                    <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                    <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                </>
                                             ) : (
-                                            <>
-                                                <Card3
-                                                image={pdl_enter}
-                                                title="Entered"
-                                                count={totalVisitPDLStation}
-                                                />
-                                                <Card3
-                                                image={exited}
-                                                title="Exited"
-                                                count={totalVisitPDLStationOut}
-                                                />
-                                            </>
+                                                <>
+                                                    <Card3
+                                                        image={pdl_enter}
+                                                        title="Entered"
+                                                        count={totalVisitPDLStation}
+                                                    />
+                                                    <Card3
+                                                        image={exited}
+                                                        title="Exited"
+                                                        count={totalVisitPDLStationOut}
+                                                    />
+                                                </>
                                             )}
                                         </div>
-                                        </div>
+                                    </div>
                                 </div>
                                 {/* Visitors */}
                                 <div className="bg-white border flex-1 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
@@ -1142,62 +1145,61 @@ const totalVisit = isFormVisitChanged
                                     </div>
                                     <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
                                         <div
-                                            className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${
-                                            isFullscreen ? "h-[12.5rem] min-h-[100px]" : "h-64 min-h-[180px]"
-                                            }`}
+                                            className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-[12.5rem] min-h-[100px]" : "h-64 min-h-[180px]"
+                                                }`}
                                         >
                                             {isVisitorDataLoading ? (
-                                            <Skeleton.Input active className="w-full h-full rounded-lg" />
+                                                <Skeleton.Input active className="w-full h-full rounded-lg" />
                                             ) : (
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                <Pie
-                                                    data={VisitorEnteredExitData}
-                                                    dataKey="value"
-                                                    nameKey="name"
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius="50%"
-                                                    outerRadius="90%"
-                                                >
-                                                    {VisitorEnteredExitData.map((entry, index) => (
-                                                    <Cell
-                                                        key={`cell-visitor-${index}`}
-                                                        fill={VisitorEnteredExitCOLORS[index % VisitorEnteredExitCOLORS.length]}
-                                                    />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip />
-                                                <Legend
-                                                    content={renderLegendCircle}
-                                                    layout="horizontal"
-                                                    align="center"
-                                                    verticalAlign="bottom"
-                                                />
-                                                </PieChart>
-                                            </ResponsiveContainer>
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={VisitorEnteredExitData}
+                                                            dataKey="value"
+                                                            nameKey="name"
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius="50%"
+                                                            outerRadius="90%"
+                                                        >
+                                                            {VisitorEnteredExitData.map((entry, index) => (
+                                                                <Cell
+                                                                    key={`cell-visitor-${index}`}
+                                                                    fill={VisitorEnteredExitCOLORS[index % VisitorEnteredExitCOLORS.length]}
+                                                                />
+                                                            ))}
+                                                        </Pie>
+                                                        <Tooltip />
+                                                        <Legend
+                                                            content={renderLegendCircle}
+                                                            layout="horizontal"
+                                                            align="center"
+                                                            verticalAlign="bottom"
+                                                        />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
                                             )}
                                         </div>
 
                                         <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
                                             {isVisitorDataLoading ? (
-                                            <>
-                                                <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                                <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            </>
+                                                <>
+                                                    <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                    <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                </>
                                             ) : (
-                                            <>
-                                                <Card3
-                                                image={pdl_enter}
-                                                title="Entered"
-                                                count={totalVisit}
-                                                />
-                                                <Card3
-                                                image={exited}
-                                                title="Exited"
-                                                count={totalVisitOut}
-                                                />
-                                            </>
+                                                <>
+                                                    <Card3
+                                                        image={pdl_enter}
+                                                        title="Entered"
+                                                        count={totalVisit}
+                                                    />
+                                                    <Card3
+                                                        image={exited}
+                                                        title="Exited"
+                                                        count={totalVisitOut}
+                                                    />
+                                                </>
                                             )}
                                         </div>
                                     </div>
@@ -1211,178 +1213,177 @@ const totalVisit = isFormVisitChanged
                                     <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
                                         {/* PIE CHART */}
                                         <div
-                                        className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${
-                                            isFullscreen ? "h-[11rem] min-h-[100px]" : "h-64 min-h-[180px]"
-                                        }`}
+                                            className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-[11rem] min-h-[100px]" : "h-64 min-h-[180px]"
+                                                }`}
                                         >
-                                        {isPersonnelLoading ? (
-                                            <Skeleton.Input active className="w-full h-full rounded-lg" />
-                                        ) : (
-                                            <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                data={PersonnelEnteredExitData}
-                                                dataKey="value"
-                                                nameKey="name"
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius="50%"
-                                                outerRadius="90%"
-                                                >
-                                                {PersonnelEnteredExitData.map((entry, index) => (
-                                                    <Cell
-                                                    key={`cell-personnel-${index}`}
-                                                    fill={PersonnelEnteredExitCOLORS[index % PersonnelEnteredExitCOLORS.length]}
-                                                    />
-                                                ))}
-                                                </Pie>
-                                                <Tooltip />
-                                                <Legend
-                                                content={renderLegendCircle}
-                                                layout="horizontal"
-                                                align="center"
-                                                verticalAlign="bottom"
-                                                />
-                                            </PieChart>
-                                            </ResponsiveContainer>
-                                        )}
+                                            {isPersonnelLoading ? (
+                                                <Skeleton.Input active className="w-full h-full rounded-lg" />
+                                            ) : (
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={PersonnelEnteredExitData}
+                                                            dataKey="value"
+                                                            nameKey="name"
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius="50%"
+                                                            outerRadius="90%"
+                                                        >
+                                                            {PersonnelEnteredExitData.map((entry, index) => (
+                                                                <Cell
+                                                                    key={`cell-personnel-${index}`}
+                                                                    fill={PersonnelEnteredExitCOLORS[index % PersonnelEnteredExitCOLORS.length]}
+                                                                />
+                                                            ))}
+                                                        </Pie>
+                                                        <Tooltip />
+                                                        <Legend
+                                                            content={renderLegendCircle}
+                                                            layout="horizontal"
+                                                            align="center"
+                                                            verticalAlign="bottom"
+                                                        />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            )}
                                         </div>
 
                                         {/* ENTRY/EXIT CARDS */}
                                         <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
-                                        {isPersonnelLoading ? (
-                                            <>
-                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            </>
-                                        ) : (
-                                            <>
-                                            <Card3
-                                                image={pdl_enter}
-                                                title="Entered"
-                                                count={summarydata?.success.premises_logs.personnel_logs_today["Time In"] || 0}
-                                            />
-                                            <Card3
-                                                image={exited}
-                                                title="Exited"
-                                                count={summarydata?.success.premises_logs.personnel_logs_today["Time Out"] || 0}
-                                            />
-                                            </>
-                                        )}
+                                            {isPersonnelLoading ? (
+                                                <>
+                                                    <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                    <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Card3
+                                                        image={pdl_enter}
+                                                        title="Entered"
+                                                        count={summarydata?.success.premises_logs.personnel_logs_today["Time In"] || 0}
+                                                    />
+                                                    <Card3
+                                                        image={exited}
+                                                        title="Exited"
+                                                        count={summarydata?.success.premises_logs.personnel_logs_today["Time Out"] || 0}
+                                                    />
+                                                </>
+                                            )}
                                         </div>
                                     </div>
-                                    </div>
+                                </div>
                                 {/* Service Provider (fullscreen only) */}
                                 {isFullscreen && (
                                     <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
                                         <div className="my-1.5">
-                                        <Title title="Entry/Exits to Jail Premises of Service Providers" />
+                                            <Title title="Entry/Exits to Jail Premises of Service Providers" />
                                         </div>
                                         <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
-                                        <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-[11rem] min-h-[100px]">
-                                            {isSettingLoading ? (
-                                            <Skeleton.Input active className="w-full h-full rounded-lg" />
-                                            ) : (
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                <Pie
-                                                    data={ServiceEnteredExitData}
-                                                    dataKey="value"
-                                                    nameKey="name"
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius="50%"
-                                                    outerRadius="90%"
-                                                >
-                                                    {ServiceEnteredExitData.map((entry, index) => (
-                                                    <Cell
-                                                        key={`cell-sp-${index}`}
-                                                        fill={ServiceProviderEnteredExitCOLORS[index % ServiceProviderEnteredExitCOLORS.length]}
-                                                    />
-                                                    ))}
-                                                </Pie>
-                                                <Legend
-                                                    content={renderLegendCircle}
-                                                    layout="horizontal"
-                                                    align="center"
-                                                    verticalAlign="bottom"
-                                                />
-                                                </PieChart>
-                                            </ResponsiveContainer>
-                                            )}
-                                        </div>
+                                            <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-[11rem] min-h-[100px]">
+                                                {isSettingLoading ? (
+                                                    <Skeleton.Input active className="w-full h-full rounded-lg" />
+                                                ) : (
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <PieChart>
+                                                            <Pie
+                                                                data={ServiceEnteredExitData}
+                                                                dataKey="value"
+                                                                nameKey="name"
+                                                                cx="50%"
+                                                                cy="50%"
+                                                                innerRadius="50%"
+                                                                outerRadius="90%"
+                                                            >
+                                                                {ServiceEnteredExitData.map((entry, index) => (
+                                                                    <Cell
+                                                                        key={`cell-sp-${index}`}
+                                                                        fill={ServiceProviderEnteredExitCOLORS[index % ServiceProviderEnteredExitCOLORS.length]}
+                                                                    />
+                                                                ))}
+                                                            </Pie>
+                                                            <Legend
+                                                                content={renderLegendCircle}
+                                                                layout="horizontal"
+                                                                align="center"
+                                                                verticalAlign="bottom"
+                                                            />
+                                                        </PieChart>
+                                                    </ResponsiveContainer>
+                                                )}
+                                            </div>
 
-                                        <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
-                                            {isSettingLoading ? (
-                                            <>
-                                                <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                                <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            </>
-                                            ) : (
-                                            <>
-                                                <Card3 image={pdl_enter} title="Entered" count={0} />
-                                                <Card3 image={exited} title="Exited" count={0} />
-                                            </>
-                                            )}
-                                        </div>
+                                            <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                                {isSettingLoading ? (
+                                                    <>
+                                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Card3 image={pdl_enter} title="Entered" count={0} />
+                                                        <Card3 image={exited} title="Exited" count={0} />
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                    )}
+                                )}
                                 {/* Non Service Provider (fullscreen only) */}
                                 {isFullscreen && (
                                     <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
                                         <div className="my-1.5">
-                                        <Title title="Entry/Exits to Jail Premises of Non Service Providers" />
+                                            <Title title="Entry/Exits to Jail Premises of Non Service Providers" />
                                         </div>
                                         <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
-                                        <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-[11rem] min-h-[100px]">
-                                            {isNonServiceLoading ? (
-                                            <Skeleton.Input active className="w-full h-full rounded-lg" />
-                                            ) : (
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                <Pie
-                                                    data={NonRegisterEnteredExitData}
-                                                    dataKey="value"
-                                                    nameKey="name"
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius="50%"
-                                                    outerRadius="90%"
-                                                >
-                                                    {NonRegisterEnteredExitData.map((entry, index) => (
-                                                    <Cell
-                                                        key={`cell-nsp-${index}`}
-                                                        fill={NonRegisterEnteredExitCOLORS[index % NonRegisterEnteredExitCOLORS.length]}
-                                                    />
-                                                    ))}
-                                                </Pie>
-                                                <Legend
-                                                    content={renderLegendCircle}
-                                                    layout="horizontal"
-                                                    align="center"
-                                                    verticalAlign="bottom"
-                                                />
-                                                </PieChart>
-                                            </ResponsiveContainer>
-                                            )}
-                                        </div>
-                                        <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
-                                            {isNonServiceLoading ? (
-                                            <>
-                                                <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                                <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            </>
-                                            ) : (
-                                            <>
-                                                <Card3 image={pdl_enter} title="Entered" count={0} />
-                                                <Card3 image={exited} title="Exited" count={0} />
-                                            </>
-                                            )}
-                                        </div>
+                                            <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-[11rem] min-h-[100px]">
+                                                {isNonServiceLoading ? (
+                                                    <Skeleton.Input active className="w-full h-full rounded-lg" />
+                                                ) : (
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <PieChart>
+                                                            <Pie
+                                                                data={NonRegisterEnteredExitData}
+                                                                dataKey="value"
+                                                                nameKey="name"
+                                                                cx="50%"
+                                                                cy="50%"
+                                                                innerRadius="50%"
+                                                                outerRadius="90%"
+                                                            >
+                                                                {NonRegisterEnteredExitData.map((entry, index) => (
+                                                                    <Cell
+                                                                        key={`cell-nsp-${index}`}
+                                                                        fill={NonRegisterEnteredExitCOLORS[index % NonRegisterEnteredExitCOLORS.length]}
+                                                                    />
+                                                                ))}
+                                                            </Pie>
+                                                            <Legend
+                                                                content={renderLegendCircle}
+                                                                layout="horizontal"
+                                                                align="center"
+                                                                verticalAlign="bottom"
+                                                            />
+                                                        </PieChart>
+                                                    </ResponsiveContainer>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                                {isNonServiceLoading ? (
+                                                    <>
+                                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Card3 image={pdl_enter} title="Entered" count={0} />
+                                                        <Card3 image={exited} title="Exited" count={0} />
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                    )}
+                                )}
 
                             </div>
                         </div>
@@ -1394,96 +1395,96 @@ const totalVisit = isFormVisitChanged
                             {!isFullscreen && (
                                 <>
                                     <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
-                                    <div className="my-1.5">
-                                        <Title title="Entry/Exits to Jail Premises of Service Provider" />
-                                    </div>
-                                    <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
-                                        <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-60 min-h-[100px]" : "h-56 min-h-[160px]"}`}>
-                                        {isServiceLoading ? (
-                                            <Skeleton.Input active className="w-full h-full rounded-lg" />
-                                        ) : (
-                                            <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                data={ServiceEnteredExitData}
-                                                dataKey="value"
-                                                nameKey="name"
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius="50%"
-                                                outerRadius="90%"
-                                                >
-                                                {ServiceEnteredExitData.map((entry, index) => (
-                                                    <Cell key={`cell-sp-${index}`} fill={ServiceProviderEnteredExitCOLORS[index % ServiceProviderEnteredExitCOLORS.length]} />
-                                                ))}
-                                                </Pie>
-                                                <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
-                                            </PieChart>
-                                            </ResponsiveContainer>
-                                        )}
+                                        <div className="my-1.5">
+                                            <Title title="Entry/Exits to Jail Premises of Service Provider" />
                                         </div>
-                                        <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
-                                        {isServiceLoading ? (
-                                            <>
-                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            </>
-                                        ) : (
-                                            <>
-                                            <Card3 image={pdl_enter} title="Entered" count={0} />
-                                            <Card3 image={exited} title="Exited" count={0} />
-                                            </>
-                                        )}
+                                        <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                            <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-60 min-h-[100px]" : "h-56 min-h-[160px]"}`}>
+                                                {isServiceLoading ? (
+                                                    <Skeleton.Input active className="w-full h-full rounded-lg" />
+                                                ) : (
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <PieChart>
+                                                            <Pie
+                                                                data={ServiceEnteredExitData}
+                                                                dataKey="value"
+                                                                nameKey="name"
+                                                                cx="50%"
+                                                                cy="50%"
+                                                                innerRadius="50%"
+                                                                outerRadius="90%"
+                                                            >
+                                                                {ServiceEnteredExitData.map((entry, index) => (
+                                                                    <Cell key={`cell-sp-${index}`} fill={ServiceProviderEnteredExitCOLORS[index % ServiceProviderEnteredExitCOLORS.length]} />
+                                                                ))}
+                                                            </Pie>
+                                                            <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                        </PieChart>
+                                                    </ResponsiveContainer>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                                {isServiceLoading ? (
+                                                    <>
+                                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Card3 image={pdl_enter} title="Entered" count={0} />
+                                                        <Card3 image={exited} title="Exited" count={0} />
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
                                     </div>
 
                                     <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
-                                    <div className="my-1.5">
-                                        <Title title="Entry/Exits to Jail Premises of Non Register Visitor" />
-                                    </div>
-                                    <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
-                                        <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-60 min-h-[100px]" : "h-56 min-h-[160px]"}`}>
-                                        {isNonServiceLoading ? (
-                                            <Skeleton.Input active className="w-full h-full rounded-lg" />
-                                        ) : (
-                                            <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                data={NonRegisterEnteredExitData}
-                                                dataKey="value"
-                                                nameKey="name"
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius="50%"
-                                                outerRadius="90%"
-                                                >
-                                                {NonRegisterEnteredExitData.map((entry, index) => (
-                                                    <Cell key={`cell-nsp-${index}`} fill={NonRegisterEnteredExitCOLORS[index % NonRegisterEnteredExitCOLORS.length]} />
-                                                ))}
-                                                </Pie>
-                                                <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
-                                            </PieChart>
-                                            </ResponsiveContainer>
-                                        )}
+                                        <div className="my-1.5">
+                                            <Title title="Entry/Exits to Jail Premises of Non Register Visitor" />
                                         </div>
-                                        <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
-                                        {isNonServiceLoading ? (
-                                            <>
-                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                            </>
-                                        ) : (
-                                            <>
-                                            <Card3 image={pdl_enter} title="Entered" count={0} />
-                                            <Card3 image={exited} title="Exited" count={0} />
-                                            </>
-                                        )}
+                                        <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                            <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-60 min-h-[100px]" : "h-56 min-h-[160px]"}`}>
+                                                {isNonServiceLoading ? (
+                                                    <Skeleton.Input active className="w-full h-full rounded-lg" />
+                                                ) : (
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <PieChart>
+                                                            <Pie
+                                                                data={NonRegisterEnteredExitData}
+                                                                dataKey="value"
+                                                                nameKey="name"
+                                                                cx="50%"
+                                                                cy="50%"
+                                                                innerRadius="50%"
+                                                                outerRadius="90%"
+                                                            >
+                                                                {NonRegisterEnteredExitData.map((entry, index) => (
+                                                                    <Cell key={`cell-nsp-${index}`} fill={NonRegisterEnteredExitCOLORS[index % NonRegisterEnteredExitCOLORS.length]} />
+                                                                ))}
+                                                            </Pie>
+                                                            <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                        </PieChart>
+                                                    </ResponsiveContainer>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                                {isNonServiceLoading ? (
+                                                    <>
+                                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Card3 image={pdl_enter} title="Entered" count={0} />
+                                                        <Card3 image={exited} title="Exited" count={0} />
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
                                     </div>
                                 </>
-                                )}
+                            )}
                             {/* Personnel section always visible */}
                             <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
                                 <div className="my-1">
@@ -1491,316 +1492,332 @@ const totalVisit = isFormVisitChanged
                                 </div>
                                 <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
                                     <div className={`flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 ${isFullscreen ? "h-60 min-h-[100px]" : "h-56 min-h-[160px]"}`}>
-                                    {isPersonnelLoading ? (
-                                        <Skeleton.Input active className="w-full h-full rounded-lg" />
-                                    ) : (
-                                        <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                            data={onOffDutyPersonnelData}
-                                            dataKey="value"
-                                            nameKey="name"
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius="50%"
-                                            outerRadius="90%"
-                                            >
-                                            {onOffDutyPersonnelData.map((entry, index) => (
-                                                <Cell key={`cell-personnel-${index}`} fill={onOffDutyPersonnelEnteredExitCOLORS[index % onOffDutyPersonnelEnteredExitCOLORS.length]} />
-                                            ))}
-                                            </Pie>
-                                            <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
-                                        </PieChart>
-                                        </ResponsiveContainer>
-                                    )}
+                                        {isPersonnelLoading ? (
+                                            <Skeleton.Input active className="w-full h-full rounded-lg" />
+                                        ) : (
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <PieChart>
+                                                    <Pie
+                                                        data={onOffDutyPersonnelData}
+                                                        dataKey="value"
+                                                        nameKey="name"
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius="50%"
+                                                        outerRadius="90%"
+                                                    >
+                                                        {onOffDutyPersonnelData.map((entry, index) => (
+                                                            <Cell key={`cell-personnel-${index}`} fill={onOffDutyPersonnelEnteredExitCOLORS[index % onOffDutyPersonnelEnteredExitCOLORS.length]} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        )}
                                     </div>
                                     <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
-                                    {isPersonnelLoading ? (
-                                        <>
-                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                        <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
-                                        </>
-                                    ) : (
-                                        <>
-                                        <Card3
-                                            image={on_duty}
-                                            title="On Duty"
-                                            count={summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0}
-                                            onClick={() => personnelstatusHandleClick("On Duty")}
-                                        />
-                                        <Card3
-                                            image={off_duty}
-                                            title="Off Duty"
-                                            count={summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0}
-                                            onClick={() => personnelstatusHandleClick("Off Duty")}
-                                        />
-                                        </>
-                                    )}
+                                        {isPersonnelLoading ? (
+                                            <>
+                                                <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                                <Skeleton.Input active size="large" className="h-[80px] rounded-lg" />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Card3
+                                                    image={on_duty}
+                                                    title="On Duty"
+                                                    count={summarydata?.success.personnel_count_by_status.Active["On Duty"] || 0}
+                                                    onClick={() => personnelstatusHandleClick("On Duty")}
+                                                />
+                                                <Card3
+                                                    image={off_duty}
+                                                    title="Off Duty"
+                                                    count={summarydata?.success.personnel_count_by_status.Active["Off Duty"] || 0}
+                                                    onClick={() => personnelstatusHandleClick("Off Duty")}
+                                                />
+                                            </>
+                                        )}
                                     </div>
                                 </div>
-                                </div>
+                            </div>
                             {isFullscreen && (
-                            <>
-                                {/* First Section: Emergency / Malfunction / Illegal Entry */}
-                                <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
-                                <div className="my-1">
-                                    <Title title="Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
-                                </div>
-                                <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
-                                    {/* Pie Chart with Skeleton */}
-                                    <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-[13.6rem] min-h-[100px]">
-                                    {isEmergencyLoading ? (
-                                        <Skeleton.Avatar active size={120} shape="circle" />
-                                    ) : (
-                                        <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                            data={EmergencyMalfunctionData}
-                                            dataKey="value"
-                                            nameKey="name"
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius="50%"
-                                            outerRadius="90%"
-                                            >
-                                            {EmergencyMalfunctionData.map((entry, index) => (
-                                                <Cell
-                                                key={`cell-emergency-${index}`}
-                                                fill={EmergencyMalfunctionEnteredExitCOLORS[index % EmergencyMalfunctionEnteredExitCOLORS.length]}
-                                                />
-                                            ))}
-                                            </Pie>
-                                            <Legend
-                                            content={renderLegendCircle}
-                                            layout="horizontal"
-                                            align="center"
-                                            verticalAlign="bottom"
-                                            />
-                                        </PieChart>
-                                        </ResponsiveContainer>
-                                    )}
+                                <>
+                                    {/* First Section: Emergency / Malfunction / Illegal Entry */}
+                                    <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                        <div className="my-1">
+                                            <Title title="Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
+                                        </div>
+                                        <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                            {/* Pie Chart with Skeleton */}
+                                            <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-[13.6rem] min-h-[100px]">
+                                                {isEmergencyLoading ? (
+                                                    <Skeleton.Avatar active size={120} shape="circle" />
+                                                ) : (
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <PieChart>
+                                                            <Pie
+                                                                data={EmergencyMalfunctionData}
+                                                                dataKey="value"
+                                                                nameKey="name"
+                                                                cx="50%"
+                                                                cy="50%"
+                                                                innerRadius="50%"
+                                                                outerRadius="90%"
+                                                            >
+                                                                {EmergencyMalfunctionData.map((entry, index) => (
+                                                                    <Cell
+                                                                        key={`cell-emergency-${index}`}
+                                                                        fill={EmergencyMalfunctionEnteredExitCOLORS[index % EmergencyMalfunctionEnteredExitCOLORS.length]}
+                                                                    />
+                                                                ))}
+                                                            </Pie>
+                                                            <Legend
+                                                                content={renderLegendCircle}
+                                                                layout="horizontal"
+                                                                align="center"
+                                                                verticalAlign="bottom"
+                                                            />
+                                                        </PieChart>
+                                                    </ResponsiveContainer>
+                                                )}
+                                            </div>
+
+                                            {/* Cards with Skeleton */}
+                                            <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                                {isEmergencyLoading ? (
+                                                    <>
+                                                        <Skeleton.Avatar active size={48} shape="square" />
+                                                        <Skeleton.Input style={{ width: '80%', height: 32 }} active />
+                                                        <Skeleton.Input style={{ width: '60%', height: 32, marginTop: 12 }} active />
+                                                        <Skeleton.Input style={{ width: '70%', height: 32, marginTop: 12 }} active />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Card2 image={emergency} title="Emergency" count={0} />
+                                                        <Card2 image={malfunction} title="Malfunction of System" count={0} />
+                                                        <Card2 image={illegal} title="Illegal Entry/Exit" count={0} />
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    {/* Cards with Skeleton */}
-                                    <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
-                                    {isEmergencyLoading ? (
-                                        <>
-                                        <Skeleton.Avatar active size={48} shape="square" />
-                                        <Skeleton.Input style={{ width: '80%', height: 32 }} active />
-                                        <Skeleton.Input style={{ width: '60%', height: 32, marginTop: 12 }} active />
-                                        <Skeleton.Input style={{ width: '70%', height: 32, marginTop: 12 }} active />
-                                        </>
-                                    ) : (
-                                        <>
-                                        <Card2 image={emergency} title="Emergency" count={0} />
-                                        <Card2 image={malfunction} title="Malfunction of System" count={0} />
-                                        <Card2 image={illegal} title="Illegal Entry/Exit" count={0} />
-                                        </>
-                                    )}
-                                    </div>
-                                </div>
-                                </div>
+                                    {/* Second Section: Action Taken */}
+                                    <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
+                                        <div className="my-1">
+                                            <Title title="Action Taken Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
+                                        </div>
+                                        <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                            {/* Pie Chart with Skeleton */}
+                                            <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-[13.6rem] min-h-[100px]">
+                                                {isActionTakenLoading ? (
+                                                    <Skeleton.Avatar active size={120} shape="circle" />
+                                                ) : (
+                                                    <ResponsiveContainer width="100%" height="100%">
+                                                        <PieChart>
+                                                            <Pie
+                                                                data={ActionTakenData}
+                                                                dataKey="value"
+                                                                nameKey="name"
+                                                                cx="50%"
+                                                                cy="50%"
+                                                                innerRadius="50%"
+                                                                outerRadius="90%"
+                                                            >
+                                                                {ActionTakenData.map((entry, index) => (
+                                                                    <Cell
+                                                                        key={`cell-actiontaken-${index}`}
+                                                                        fill={ActionTakenEnteredExitCOLORS[index % ActionTakenEnteredExitCOLORS.length]}
+                                                                    />
+                                                                ))}
+                                                            </Pie>
+                                                            <Legend
+                                                                content={renderLegendCircle}
+                                                                layout="horizontal"
+                                                                align="center"
+                                                                verticalAlign="bottom"
+                                                            />
+                                                        </PieChart>
+                                                    </ResponsiveContainer>
+                                                )}
+                                            </div>
 
-                                {/* Second Section: Action Taken */}
-                                <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
-                                <div className="my-1">
-                                    <Title title="Action Taken Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
-                                </div>
-                                <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
-                                    {/* Pie Chart with Skeleton */}
-                                    <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-[13.6rem] min-h-[100px]">
-                                    {isActionTakenLoading ? (
-                                        <Skeleton.Avatar active size={120} shape="circle" />
-                                    ) : (
-                                        <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                            data={ActionTakenData}
-                                            dataKey="value"
-                                            nameKey="name"
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius="50%"
-                                            outerRadius="90%"
-                                            >
-                                            {ActionTakenData.map((entry, index) => (
-                                                <Cell
-                                                key={`cell-actiontaken-${index}`}
-                                                fill={ActionTakenEnteredExitCOLORS[index % ActionTakenEnteredExitCOLORS.length]}
-                                                />
-                                            ))}
-                                            </Pie>
-                                            <Legend
-                                            content={renderLegendCircle}
-                                            layout="horizontal"
-                                            align="center"
-                                            verticalAlign="bottom"
-                                            />
-                                        </PieChart>
-                                        </ResponsiveContainer>
-                                    )}
+                                            {/* Cards with Skeleton */}
+                                            <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                                {isActionTakenLoading ? (
+                                                    <>
+                                                        <Skeleton.Avatar active size={48} shape="square" />
+                                                        <Skeleton.Input style={{ width: '80%', height: 32 }} active />
+                                                        <Skeleton.Input style={{ width: '60%', height: 32, marginTop: 12 }} active />
+                                                        <Skeleton.Input style={{ width: '70%', height: 32, marginTop: 12 }} active />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Card2 image={emergency} title="Action Taken Emergency" count={0} />
+                                                        <Card2 image={malfunction} title="Malfunction of System" count={0} />
+                                                        <Card2 image={illegal} title="Illegal Entry/Exit" count={0} />
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
-
-                                    {/* Cards with Skeleton */}
-                                    <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
-                                    {isActionTakenLoading ? (
-                                        <>
-                                        <Skeleton.Avatar active size={48} shape="square" />
-                                        <Skeleton.Input style={{ width: '80%', height: 32 }} active />
-                                        <Skeleton.Input style={{ width: '60%', height: 32, marginTop: 12 }} active />
-                                        <Skeleton.Input style={{ width: '70%', height: 32, marginTop: 12 }} active />
-                                        </>
-                                    ) : (
-                                        <>
-                                        <Card2 image={emergency} title="Action Taken Emergency" count={0} />
-                                        <Card2 image={malfunction} title="Malfunction of System" count={0} />
-                                        <Card2 image={illegal} title="Illegal Entry/Exit" count={0} />
-                                        </>
-                                    )}
-                                    </div>
-                                </div>
-                                </div>
-                            </>
+                                </>
                             )}
                         </div>
                         {!isFullscreen && (
                             <div className="flex gap-2 flex-wrap">
                                 {/* Emergency/Malfunction Pie + Cards */}
                                 <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
-                                <div className="my-1">
-                                    <Title title="Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
-                                </div>
-                                <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
-                                    <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-64 min-h-[180px]">
-                                    {isEmergencyLoading ? (
-                                        <Skeleton.Avatar active size={120} shape="circle" />
-                                    ) : (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                        <Pie
-                                            data={EmergencyMalfunctionData}
-                                            dataKey="value"
-                                            nameKey="name"
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius="50%"
-                                            outerRadius="90%"
-                                        >
-                                            {EmergencyMalfunctionData.map((entry, index) => (
-                                            <Cell
-                                                key={`cell-emergency-${index}`}
-                                                fill={EmergencyMalfunctionEnteredExitCOLORS[index % EmergencyMalfunctionEnteredExitCOLORS.length]}
-                                            />
-                                            ))}
-                                        </Pie>
-                                        <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                    )}
+                                    <div className="my-1">
+                                        <Title title="Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
                                     </div>
-                                    <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
-                                    {isEmergencyLoading ? (
-                                        <>
-                                        <Skeleton.Avatar active size={48} shape="square" />
-                                        <Skeleton.Input style={{ width: '80%', height: 32 }} active />
-                                        <Skeleton.Input style={{ width: '60%', height: 32, marginTop: 12 }} active />
-                                        <Skeleton.Input style={{ width: '70%', height: 32, marginTop: 12 }} active />
-                                        </>
-                                    ) : (
-                                        <>
-                                        <Card3 image={emergency} title="Emergency" count={0} />
-                                        <Card3 image={malfunction} title="Malfunction of System" count={0} />
-                                        <Card3 image={illegal} title="Illegal Entry/Exit" count={0} />
-                                        </>
-                                        )}
+                                    <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                        <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-64 min-h-[180px]">
+                                            {isEmergencyLoading ? (
+                                                <Skeleton.Avatar active size={120} shape="circle" />
+                                            ) : (
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={EmergencyMalfunctionData}
+                                                            dataKey="value"
+                                                            nameKey="name"
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius="50%"
+                                                            outerRadius="90%"
+                                                        >
+                                                            {EmergencyMalfunctionData.map((entry, index) => (
+                                                                <Cell
+                                                                    key={`cell-emergency-${index}`}
+                                                                    fill={EmergencyMalfunctionEnteredExitCOLORS[index % EmergencyMalfunctionEnteredExitCOLORS.length]}
+                                                                />
+                                                            ))}
+                                                        </Pie>
+                                                        <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                            {isEmergencyLoading ? (
+                                                <>
+                                                    <Skeleton.Avatar active size={48} shape="square" />
+                                                    <Skeleton.Input style={{ width: '80%', height: 32 }} active />
+                                                    <Skeleton.Input style={{ width: '60%', height: 32, marginTop: 12 }} active />
+                                                    <Skeleton.Input style={{ width: '70%', height: 32, marginTop: 12 }} active />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Card3 image={emergency} title="Emergency" count={0} />
+                                                    <Card3 image={malfunction} title="Malfunction of System" count={0} />
+                                                    <Card3 image={illegal} title="Illegal Entry/Exit" count={0} />
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
                                 </div>
 
                                 {/* Personnel Entry/Exit Pie + Cards */}
                                 <div className="bg-white border flex-1 min-w-0 shadow-[#1e7cbf]/25 border-[#1E7CBF]/25 shadow-md rounded-lg p-4 flex flex-col">
-                                <div className="my-1">
-                                    <Title title="Action Taken Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
-                                </div>
-                                <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
-                                    <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-64 min-h-[180px]">
-                                    {isActionTakenLoading ? (
-                                        <Skeleton.Avatar active size={120} shape="circle" />
-                                    ) : (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                        <Pie
-                                            data={ActionTakenData}
-                                            dataKey="value"
-                                            nameKey="name"
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius="50%"
-                                            outerRadius="90%"
-                                        >
-                                            {ActionTakenData.map((entry, index) => (
-                                            <Cell
-                                                key={`cell-personnel-${index}`}
-                                                fill={ActionTakenEnteredExitCOLORS[index % ActionTakenEnteredExitCOLORS.length]}
-                                            />
-                                            ))}
-                                        </Pie>
-                                        <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                    )}
+                                    <div className="my-1">
+                                        <Title title="Action Taken Emergency/Malfunction of System/Illegal Entry/Exit Without Registration" />
                                     </div>
-                                    <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
-                                    {isActionTakenLoading ? (
-                                        <>
-                                        <Skeleton.Avatar active size={48} shape="square" />
-                                        <Skeleton.Input style={{ width: '80%', height: 32 }} active />
-                                        <Skeleton.Input style={{ width: '60%', height: 32, marginTop: 12 }} active />
-                                        <Skeleton.Input style={{ width: '70%', height: 32, marginTop: 12 }} active />
-                                        </>
-                                    ) : (
-                                        <>
-                                        <Card3 image={emergency} title="Action Taken Emergency" count={0} />
-                                        <Card3 image={malfunction} title="Malfunction of System" count={0} />
-                                        <Card3 image={illegal} title="Illegal Entry/Exit" count={0} />
-                                        </>
-                                    )}
+                                    <div className="flex flex-col md:flex-row gap-2 items-stretch h-full min-h-[180px]">
+                                        <div className="flex-1 flex items-center justify-center bg-[#F6F7FB] rounded-lg p-2 h-64 min-h-[180px]">
+                                            {isActionTakenLoading ? (
+                                                <Skeleton.Avatar active size={120} shape="circle" />
+                                            ) : (
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <PieChart>
+                                                        <Pie
+                                                            data={ActionTakenData}
+                                                            dataKey="value"
+                                                            nameKey="name"
+                                                            cx="50%"
+                                                            cy="50%"
+                                                            innerRadius="50%"
+                                                            outerRadius="90%"
+                                                        >
+                                                            {ActionTakenData.map((entry, index) => (
+                                                                <Cell
+                                                                    key={`cell-personnel-${index}`}
+                                                                    fill={ActionTakenEnteredExitCOLORS[index % ActionTakenEnteredExitCOLORS.length]}
+                                                                />
+                                                            ))}
+                                                        </Pie>
+                                                        <Legend content={renderLegendCircle} layout="horizontal" align="center" verticalAlign="bottom" />
+                                                    </PieChart>
+                                                </ResponsiveContainer>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 w-full flex flex-col justify-center gap-2 h-full">
+                                            {isActionTakenLoading ? (
+                                                <>
+                                                    <Skeleton.Avatar active size={48} shape="square" />
+                                                    <Skeleton.Input style={{ width: '80%', height: 32 }} active />
+                                                    <Skeleton.Input style={{ width: '60%', height: 32, marginTop: 12 }} active />
+                                                    <Skeleton.Input style={{ width: '70%', height: 32, marginTop: 12 }} active />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Card3 image={emergency} title="Action Taken Emergency" count={0} />
+                                                    <Card3 image={malfunction} title="Malfunction of System" count={0} />
+                                                    <Card3 image={illegal} title="Illegal Entry/Exit" count={0} />
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
                                 </div>
                             </div>
                         )}
                     </div>
                 </FullScreen>
             </div>
-            <div className="flex flex-wrap gap-2 justify-center md:justify-end my-2 items-center">
-                <button className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full hover:bg-[#163050] transition" onClick={showModal}>
-                <HiFilter className="text-xs"/> Filter
-            </button>
-            <button
-                className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full hover:bg-[#163050] transition"
-                onClick={exportDashboardAsImage}
-            >
-                <RiShareBoxLine /> Export
-            </button>
-            <button
-                className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full hover:bg-[#163050] transition"
-                onClick={handleReset}
-            >
-                <IoMdRefresh /> Reset
-            </button>
-            <button
-                className="gap-2 flex text-white items-center px-4 py-2 bg-[#1E365D] rounded-lg hover:bg-[#163050] transition"
-                onClick={handle.enter}
-            >
-                <RxEnterFullScreen className="text-xl" />
-            </button>
+            <div className="w-full flex justify-between items-center">
+                <div className="flex gap-2 items-center mt-1">
+                    <FooterCard
+                        header="Secured by"
+                        icon={merlin_logo}
+                        title="MerlinCyption"
+                        iconStyle="w-10"
+                    />
+                    <FooterCard
+                        header="Powered by"
+                        icon={tambuli_logo}
+                        title="Tambuli Labs"
+                        iconStyle="w-10"
+                    />
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center md:justify-end my-2 items-center">
+                    <button className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full hover:bg-[#163050] transition" onClick={showModal}>
+                        <HiFilter className="text-xs" /> Filter
+                    </button>
+                    <button
+                        className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full hover:bg-[#163050] transition"
+                        onClick={exportDashboardAsImage}
+                    >
+                        <RiShareBoxLine /> Export
+                    </button>
+                    <button
+                        className="gap-2 flex text-white items-center px-6 py-1.5 bg-[#1E365D] rounded-full hover:bg-[#163050] transition"
+                        onClick={handleReset}
+                    >
+                        <IoMdRefresh /> Reset
+                    </button>
+                    <button
+                        className="gap-2 flex text-white items-center px-4 py-2 bg-[#1E365D] rounded-lg hover:bg-[#163050] transition"
+                        onClick={handle.enter}
+                    >
+                        <RxEnterFullScreen className="text-xl" />
+                    </button>
+                </div>
             </div>
-                <div>
+            <div>
                 <Modal
                     title={
                         <h2 className="text-xl font-bold text-gray-800">
-                        Filter {activeTab === 'visitLogs' ? 'Visit Logs' : 'Summary Data'}
+                            Filter {activeTab === 'visitLogs' ? 'Visit Logs' : 'Summary Data'}
                         </h2>
                     }
                     open={visible}
@@ -1808,7 +1825,7 @@ const totalVisit = isFormVisitChanged
                     footer={null}
                     width={'50%'}
                     style={{ padding: '24px' }}
-                    >
+                >
                     <Tabs activeKey={activeTab} onChange={setActiveTab} className="mb-6">
                         <TabPane tab="Visitor Logs" key="visitLogs" />
                         <TabPane tab="PDL Logs" key="pdlvisitorlogs" />
@@ -1817,320 +1834,320 @@ const totalVisit = isFormVisitChanged
 
                     {activeTab === 'visitLogs' && (
                         <>
-                        <p className="mb-6 text-gray-600">
-                            Use the filters below to fetch specific <strong>visitor log</strong> data.
-                            Click <strong>Apply Filters</strong> when you’re ready.
-                        </p>
+                            <p className="mb-6 text-gray-600">
+                                Use the filters below to fetch specific <strong>visitor log</strong> data.
+                                Click <strong>Apply Filters</strong> when you’re ready.
+                            </p>
 
-                        {/* Visit Type */}
-                        <div className="mb-6">
-                            <label className="block mb-2 font-semibold text-gray-700">Visit Type</label>
-                            <Select
-                            value={formVisitType}
-                            onChange={setFormVisitType}
-                            className="w-full"
-                            size="large"
-                            bordered
-                            >
-                            <Option value="MainGateVisit">Main Gate</Option>
-                            <Option value="VisitorStationVisit">Visitor Station</Option>
-                            {/* <Option value="PDLStationVisit">PDL Station</Option> */}
-                            </Select>
-                        </div>
-
-                        {/* Frequency */}
-                        <div className="mb-6">
-                            <label className="block mb-2 font-semibold text-gray-700">Frequency</label>
-                            <Select
-                            value={formVisitFrequency}
-                            onChange={setFormVisitFrequency}
-                            className="w-full"
-                            size="large"
-                            bordered
-                            >
-                            <Option value="daily">Daily</Option>
-                            <Option value="weekly">Weekly</Option>
-                            <Option value="monthly">Monthly</Option>
-                            <Option value="quarterly">Quarterly</Option>
-                            </Select>
-                        </div>
-
-                        {/* Date Inputs */}
-                        {formVisitFrequency === 'quarterly' ? (
-                            <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">Start Year</label>
-                                <Input
-                                type="number"
-                                min={2000}
-                                max={2100}
-                                value={formVisitStartYear}
-                                onChange={e => setFormVisitStartYear(e.target.value)}
-                                size="large"
-                                placeholder="e.g. 2023"
-                                bordered
-                                />
+                            {/* Visit Type */}
+                            <div className="mb-6">
+                                <label className="block mb-2 font-semibold text-gray-700">Visit Type</label>
+                                <Select
+                                    value={formVisitType}
+                                    onChange={setFormVisitType}
+                                    className="w-full"
+                                    size="large"
+                                    bordered
+                                >
+                                    <Option value="MainGateVisit">Main Gate</Option>
+                                    <Option value="VisitorStationVisit">Visitor Station</Option>
+                                    {/* <Option value="PDLStationVisit">PDL Station</Option> */}
+                                </Select>
                             </div>
 
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">End Year</label>
-                                <Input
-                                type="number"
-                                min={2000}
-                                max={2100}
-                                value={formVisitEndYear}
-                                onChange={e => setFormVisitEndYear(e.target.value)}
-                                size="large"
-                                placeholder="e.g. 2024"
-                                bordered
-                                />
-                            </div>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">Start Date</label>
-                                <Input
-                                type="text"
-                                placeholder={formVisitFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
-                                value={formVisitStartDate}
-                                onChange={e => setFormVisitStartDate(e.target.value)} 
-                                size="large"
-                                bordered
-                                />
+                            {/* Frequency */}
+                            <div className="mb-6">
+                                <label className="block mb-2 font-semibold text-gray-700">Frequency</label>
+                                <Select
+                                    value={formVisitFrequency}
+                                    onChange={setFormVisitFrequency}
+                                    className="w-full"
+                                    size="large"
+                                    bordered
+                                >
+                                    <Option value="daily">Daily</Option>
+                                    <Option value="weekly">Weekly</Option>
+                                    <Option value="monthly">Monthly</Option>
+                                    <Option value="quarterly">Quarterly</Option>
+                                </Select>
                             </div>
 
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">End Date</label>
-                                <Input
-                                type="text"
-                                placeholder={formVisitFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
-                                value={formVisitEndDate}
-                                onChange={e => setFormVisitEndDate(e.target.value)}
-                                size="large"
-                                bordered
-                                />
-                            </div>
-                            </div>
-                        )}
+                            {/* Date Inputs */}
+                            {formVisitFrequency === 'quarterly' ? (
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div>
+                                        <label className="block mb-2 font-semibold text-gray-700">Start Year</label>
+                                        <Input
+                                            type="number"
+                                            min={2000}
+                                            max={2100}
+                                            value={formVisitStartYear}
+                                            onChange={e => setFormVisitStartYear(e.target.value)}
+                                            size="large"
+                                            placeholder="e.g. 2023"
+                                            bordered
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block mb-2 font-semibold text-gray-700">End Year</label>
+                                        <Input
+                                            type="number"
+                                            min={2000}
+                                            max={2100}
+                                            value={formVisitEndYear}
+                                            onChange={e => setFormVisitEndYear(e.target.value)}
+                                            size="large"
+                                            placeholder="e.g. 2024"
+                                            bordered
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div>
+                                        <label className="block mb-2 font-semibold text-gray-700">Start Date</label>
+                                        <Input
+                                            type="text"
+                                            placeholder={formVisitFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
+                                            value={formVisitStartDate}
+                                            onChange={e => setFormVisitStartDate(e.target.value)}
+                                            size="large"
+                                            bordered
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block mb-2 font-semibold text-gray-700">End Date</label>
+                                        <Input
+                                            type="text"
+                                            placeholder={formVisitFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
+                                            value={formVisitEndDate}
+                                            onChange={e => setFormVisitEndDate(e.target.value)}
+                                            size="large"
+                                            bordered
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </>
                     )}
 
                     {activeTab === 'pdlvisitorlogs' && (
                         <>
-                        {/* Visit Type */}
-                        <div className="mb-6">
-                            <label className="block mb-2 font-semibold text-gray-700">Visit Type</label>
-                            <Select
-                            value={formPDLVisitType}
-                            onChange={setFormPDLVisitType}
-                            className="w-full"
-                            size="large"
-                            bordered
-                            >
-                            {/* <Option value="MainGateVisit">Main Gate</Option>
+                            {/* Visit Type */}
+                            <div className="mb-6">
+                                <label className="block mb-2 font-semibold text-gray-700">Visit Type</label>
+                                <Select
+                                    value={formPDLVisitType}
+                                    onChange={setFormPDLVisitType}
+                                    className="w-full"
+                                    size="large"
+                                    bordered
+                                >
+                                    {/* <Option value="MainGateVisit">Main Gate</Option>
                             <Option value="VisitorStationVisit">Visitor Station</Option> */}
-                            <Option value="PDLStationVisit">PDL Station</Option>
-                            </Select>
-                        </div>
-
-                        {/* Frequency */}
-                        <div className="mb-6">
-                            <label className="block mb-2 font-semibold text-gray-700">Frequency</label>
-                            <Select
-                            value={formPDLFrequency}
-                            onChange={setFormPDLFrequency}
-                            className="w-full"
-                            size="large"
-                            bordered
-                            >
-                            <Option value="daily">Daily</Option>
-                            <Option value="weekly">Weekly</Option>
-                            <Option value="monthly">Monthly</Option>
-                            <Option value="quarterly">Quarterly</Option>
-                            </Select>
-                        </div>
-
-                        {/* Date Inputs */}
-                        {formPDLFrequency === 'quarterly' ? (
-                            <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">Start Year</label>
-                                <Input
-                                type="number"
-                                min={2000}
-                                max={2100}
-                                value={formPDLStartYear}
-                                onChange={e => setFormPDLStartYear(e.target.value)}
-                                size="large"
-                                placeholder="e.g. 2023"
-                                bordered
-                                />
+                                    <Option value="PDLStationVisit">PDL Station</Option>
+                                </Select>
                             </div>
 
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">End Year</label>
-                                <Input
-                                type="number"
-                                min={2000}
-                                max={2100}
-                                value={formPDLEndYear}
-                                onChange={e => setFormPDLEndYear(e.target.value)}
-                                size="large"
-                                placeholder="e.g. 2024"
-                                bordered
-                                />
-                            </div>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">Start Date</label>
-                                <Input
-                                type="text"
-                                placeholder={formPDLFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
-                                value={formPDLStartDate}
-                                onChange={e => setFormPDLStartDate(e.target.value)} 
-                                size="large"
-                                bordered
-                                />
+                            {/* Frequency */}
+                            <div className="mb-6">
+                                <label className="block mb-2 font-semibold text-gray-700">Frequency</label>
+                                <Select
+                                    value={formPDLFrequency}
+                                    onChange={setFormPDLFrequency}
+                                    className="w-full"
+                                    size="large"
+                                    bordered
+                                >
+                                    <Option value="daily">Daily</Option>
+                                    <Option value="weekly">Weekly</Option>
+                                    <Option value="monthly">Monthly</Option>
+                                    <Option value="quarterly">Quarterly</Option>
+                                </Select>
                             </div>
 
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">End Date</label>
-                                <Input
-                                type="text"
-                                placeholder={formPDLFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
-                                value={formPDLEndDate}
-                                onChange={e => setFormPDLEndDate(e.target.value)}
-                                size="large"
-                                bordered
-                                />
-                            </div>
-                            </div>
-                        )}
+                            {/* Date Inputs */}
+                            {formPDLFrequency === 'quarterly' ? (
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div>
+                                        <label className="block mb-2 font-semibold text-gray-700">Start Year</label>
+                                        <Input
+                                            type="number"
+                                            min={2000}
+                                            max={2100}
+                                            value={formPDLStartYear}
+                                            onChange={e => setFormPDLStartYear(e.target.value)}
+                                            size="large"
+                                            placeholder="e.g. 2023"
+                                            bordered
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block mb-2 font-semibold text-gray-700">End Year</label>
+                                        <Input
+                                            type="number"
+                                            min={2000}
+                                            max={2100}
+                                            value={formPDLEndYear}
+                                            onChange={e => setFormPDLEndYear(e.target.value)}
+                                            size="large"
+                                            placeholder="e.g. 2024"
+                                            bordered
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div>
+                                        <label className="block mb-2 font-semibold text-gray-700">Start Date</label>
+                                        <Input
+                                            type="text"
+                                            placeholder={formPDLFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
+                                            value={formPDLStartDate}
+                                            onChange={e => setFormPDLStartDate(e.target.value)}
+                                            size="large"
+                                            bordered
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block mb-2 font-semibold text-gray-700">End Date</label>
+                                        <Input
+                                            type="text"
+                                            placeholder={formPDLFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
+                                            value={formPDLEndDate}
+                                            onChange={e => setFormPDLEndDate(e.target.value)}
+                                            size="large"
+                                            bordered
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </>
                     )}
 
                     {activeTab === 'summaryData' && (
                         <>
-                        <p className="mb-6 text-gray-600">
-                            Use the filters below to customize the summary data display.
-                            Click <strong>Apply Filters</strong> when you’re ready.
-                        </p>
+                            <p className="mb-6 text-gray-600">
+                                Use the filters below to customize the summary data display.
+                                Click <strong>Apply Filters</strong> when you’re ready.
+                            </p>
 
-                        {/* Frequency */}
-                        <div className="mb-6">
-                            <label className="block mb-2 font-semibold text-gray-700">Periodical</label>
-                            <Select
-                            value={formFrequency}
-                            onChange={setFormFrequency}
-                            className="w-full"
-                            size="large"
-                            bordered
-                            >
-                            <Option value="daily">Daily</Option>
-                            <Option value="weekly">Weekly</Option>
-                            <Option value="monthly">Monthly</Option>
-                            <Option value="quarterly">Quarterly</Option>
-                            </Select>
-                        </div>
-
-                        {/* Date Field */}
-                        <div className="mb-6">
-                            <label className="block mb-2 font-semibold text-gray-700">Date Field</label>
-                            <Select
-                            value={formDateField}
-                            onChange={setFormDateField}
-                            className="w-full"
-                            size="large"
-                            bordered
-                            >
-                            <Option value="date_convicted">Date Convicted</Option>
-                            <Option value="date_hospitalized">Date Hospitalized</Option>
-                            <Option value="date_of_admission">Date of Admission</Option>
-                            <Option value="date_released">Date Released</Option>
-                            </Select>
-                        </div>
-
-                        {/* Date Inputs */}
-                        {formFrequency === 'quarterly' ? (
-                            <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">Start Year</label>
-                                <Input
-                                type="number"
-                                min={2000}
-                                max={2100}
-                                value={formStartYear}
-                                onChange={e => setFormStartYear(e.target.value)}
-                                size="large"
-                                placeholder="e.g. 2023"
-                                bordered
-                                />
+                            {/* Frequency */}
+                            <div className="mb-6">
+                                <label className="block mb-2 font-semibold text-gray-700">Periodical</label>
+                                <Select
+                                    value={formFrequency}
+                                    onChange={setFormFrequency}
+                                    className="w-full"
+                                    size="large"
+                                    bordered
+                                >
+                                    <Option value="daily">Daily</Option>
+                                    <Option value="weekly">Weekly</Option>
+                                    <Option value="monthly">Monthly</Option>
+                                    <Option value="quarterly">Quarterly</Option>
+                                </Select>
                             </div>
 
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">End Year</label>
-                                <Input
-                                type="number"
-                                min={2000}
-                                max={2100}
-                                value={formEndYear}
-                                onChange={e => setFormEndYear(e.target.value)}
-                                size="large"
-                                placeholder="e.g. 2024"
-                                bordered
-                                />
-                            </div>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">Start Date</label>
-                                <Input
-                                type="text"
-                                placeholder={formFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
-                                value={formStartDate}
-                                onChange={e => setFormStartDate(e.target.value)}
-                                size="large"
-                                bordered
-                                />
+                            {/* Date Field */}
+                            <div className="mb-6">
+                                <label className="block mb-2 font-semibold text-gray-700">Date Field</label>
+                                <Select
+                                    value={formDateField}
+                                    onChange={setFormDateField}
+                                    className="w-full"
+                                    size="large"
+                                    bordered
+                                >
+                                    <Option value="date_convicted">Date Convicted</Option>
+                                    <Option value="date_hospitalized">Date Hospitalized</Option>
+                                    <Option value="date_of_admission">Date of Admission</Option>
+                                    <Option value="date_released">Date Released</Option>
+                                </Select>
                             </div>
 
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">End Date</label>
-                                <Input
-                                type="text"
-                                placeholder={formFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
-                                value={formEndDate}
-                                onChange={e => setFormEndDate(e.target.value)}
-                                size="large"
-                                bordered
-                                />
-                            </div>
-                            </div>
-                        )}
+                            {/* Date Inputs */}
+                            {formFrequency === 'quarterly' ? (
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div>
+                                        <label className="block mb-2 font-semibold text-gray-700">Start Year</label>
+                                        <Input
+                                            type="number"
+                                            min={2000}
+                                            max={2100}
+                                            value={formStartYear}
+                                            onChange={e => setFormStartYear(e.target.value)}
+                                            size="large"
+                                            placeholder="e.g. 2023"
+                                            bordered
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block mb-2 font-semibold text-gray-700">End Year</label>
+                                        <Input
+                                            type="number"
+                                            min={2000}
+                                            max={2100}
+                                            value={formEndYear}
+                                            onChange={e => setFormEndYear(e.target.value)}
+                                            size="large"
+                                            placeholder="e.g. 2024"
+                                            bordered
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div>
+                                        <label className="block mb-2 font-semibold text-gray-700">Start Date</label>
+                                        <Input
+                                            type="text"
+                                            placeholder={formFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
+                                            value={formStartDate}
+                                            onChange={e => setFormStartDate(e.target.value)}
+                                            size="large"
+                                            bordered
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block mb-2 font-semibold text-gray-700">End Date</label>
+                                        <Input
+                                            type="text"
+                                            placeholder={formFrequency === 'monthly' ? 'MM-YYYY' : 'MM-DD-YYYY'}
+                                            value={formEndDate}
+                                            onChange={e => setFormEndDate(e.target.value)}
+                                            size="large"
+                                            bordered
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </>
                     )}
 
                     {/* Action Buttons */}
                     <div className="flex justify-end gap-4">
                         <Button size="large" onClick={handleCancel}>
-                        Cancel
+                            Cancel
                         </Button>
                         <Button
-                        className="bg-[#1E365D]"
-                        type="primary"
-                        size="large"
-                        onClick={handleApplyFilters}
+                            className="bg-[#1E365D]"
+                            type="primary"
+                            size="large"
+                            onClick={handleApplyFilters}
                         >
-                        Apply Filters
+                            Apply Filters
                         </Button>
                     </div>
-                    </Modal>
-                </div>
+                </Modal>
             </div>
+        </div>
     )
 }
 
