@@ -1027,6 +1027,7 @@ const UpdatePDL = () => {
         });
 
         setPdlForm({
+            file_no: pdlData?.cases?.[0]?.file_number ?? "",
             risk_classification: pdlData?.risk_classification ?? "",
             date_of_admission: pdlData?.date_of_admission ?? "2001-01-01",
             case_data:
@@ -1168,6 +1169,8 @@ const UpdatePDL = () => {
     ]);
 
     const chosenGender = genders?.find(gender => gender?.id === personForm?.gender_id)?.gender_option || "";
+    const paddedId = String(pdlData?.id ?? '').padStart(6, '0').slice(-6);
+    const pdlNumberDisplay = `${pdlData?.date_of_admission?.replace(/-/g, "")}-${paddedId}`
 
     useEffect(() => {
         const short = `${personForm?.first_name?.[0] ?? ""}${personForm?.last_name?.[0] ?? ""
@@ -1302,7 +1305,7 @@ const UpdatePDL = () => {
                                 </div>
                                 <Input
                                     readOnly
-                                    placeholder="YYYY-MM-DD-XXXXXXX"
+                                    placeholder={pdlNumberDisplay || "YYYY-MM-DD-XXXXXXX"}
                                     className="mt-2 h-10 rounded-md outline-gray-300"
                                 />
                             </div>
@@ -1312,7 +1315,7 @@ const UpdatePDL = () => {
                                 </div>
                                 <Input
                                     readOnly
-                                    placeholder="YYYY-MM-DD-XXXXXXX"
+                                    placeholder={pdlForm?.file_no || "YYYY-MM-DD-XXXXXXX"}
                                     className="mt-2 h-10 rounded-md outline-gray-300"
                                 />
                             </div>

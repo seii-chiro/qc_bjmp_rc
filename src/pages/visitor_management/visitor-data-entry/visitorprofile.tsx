@@ -288,7 +288,7 @@ const VisitorProfile = ({
                 if (!isCancelled) {
                     message.open({
                         type: "success",
-                        content: "Issue successfully submitted!",
+                        content: "Issue successfully submitted! Go to Issues module to view complete details.",
                         duration: 10
                     })
                 }

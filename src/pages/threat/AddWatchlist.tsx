@@ -1,12 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button, Image, Input, message, Select } from "antd"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import image_placeholder from "../../assets/img_placeholder.jpg"
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { enrollBiometrics, getWhiteListedRiskLevels, getWhiteListedThreatLevels, getWhiteListedTypes, postPerson, postWatchlistPerson, verifyFaceInWatchlist } from "@/lib/threatQueries";
 import { getCivilStatus, getGenders, getNationalities } from "@/lib/queries";
 import { BiometricRecordFace } from "@/lib/scanner-definitions";
-// import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { BASE_URL } from "@/lib/urls";
+import Spinner from "@/components/loaders/Spinner";
+import { patchPerson, patchWatchlistPerson } from "@/lib/watchlistQueries";
 
 export type WatchlistForm = {
     person_id: number | null;
@@ -30,8 +34,92 @@ export type PersonForm = {
 
 const AddWatchlist = () => {
     const token = useTokenStore()?.token
-    // const location = useLocation()
-    // const existingRecord = location?.state || null
+    const location = useLocation()
+    const existingRecord = location?.state || null
+
+    const { data: whitelistedPersonData, isLoading: whitelistedPersonDataLoading } = useQuery({
+        queryKey: ['watchlist', 'edit', existingRecord],
+        queryFn: async () => {
+            const res = await fetch(
+                `${BASE_URL}/api/whitelists/whitelisted-persons/${existingRecord}`,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (res.status === 403) {
+                throw new Error(
+                    "Access denied: You are not authorized to view Whitelisted Person data."
+                );
+            }
+
+            if (!res.ok) {
+                throw new Error("Failed to fetch Whitelisted Person data.");
+            }
+
+            return res.json();
+        },
+        enabled: !!token && !!existingRecord
+    })
+
+    const { data: personData, isLoading: personDataLoading } = useQuery({
+        queryKey: ['person', 'edit', whitelistedPersonData?.person_id_display],
+        queryFn: async () => {
+            const res = await fetch(
+                `${BASE_URL}/api/standards/persons/${whitelistedPersonData?.person_id_display}`,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (res.status === 403) {
+                throw new Error(
+                    "Access denied: You are not authorized to view Person data."
+                );
+            }
+
+            if (!res.ok) {
+                throw new Error("Failed to fetch Person data.");
+            }
+
+            return res.json();
+        },
+        enabled: !!token && !!existingRecord && !!whitelistedPersonData?.person_id_display
+    })
+
+    const { data: whitelistedPersonBiometric } = useQuery({
+        queryKey: ['watchlist', 'biometric', existingRecord],
+        queryFn: async () => {
+            const res = await fetch(
+                `${BASE_URL}/api/whitelists/whitelist-biometrics/${existingRecord}`,
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (res.status === 403) {
+                throw new Error(
+                    "Access denied: You are not authorized to view Whitelisted Person Biometric data."
+                );
+            }
+
+            if (!res.ok) {
+                throw new Error("Failed to fetch Whitelisted Person Biometric data.");
+            }
+
+            return res.json();
+        },
+        enabled: !!token && !!existingRecord
+    })
 
     const [personForm, setPersonForm] = useState<PersonForm>({
         first_name: "",
@@ -172,6 +260,49 @@ const AddWatchlist = () => {
         }
     })
 
+    const patchPersonMutation = useMutation({
+        mutationKey: ['patchPerson', 'threats'],
+        mutationFn: (data: { id: number, form: PersonForm }) => patchPerson(token ?? "", data.id, data.form),
+        onMutate: () => {
+            message.open({
+                key: 'edit-watchlist-person-mutation',
+                type: "loading",
+                content: "Updating person information...",
+                duration: 0
+            })
+        },
+        onSuccess: () => {
+            message.success("Person updated successfully");
+        },
+        onError: (error) => {
+            message.error(error.message);
+        }
+    });
+
+    const patchWatchlistPersonMutation = useMutation({
+        mutationKey: ['patchWatchlistPerson', 'threats'],
+        mutationFn: (data: { id: number, form: WatchlistForm }) => patchWatchlistPerson(token ?? "", data.id, data.form),
+        onMutate: () => {
+            message.open({
+                key: 'edit-watchlist-person-mutation',
+                type: "loading",
+                content: "Updating watchlist record...",
+                duration: 0
+            })
+        },
+        onSuccess: () => {
+            message.open({
+                key: 'edit-watchlist-person-mutation',
+                type: "success",
+                content: "Successfully updated watchlist record.",
+                duration: 3
+            })
+        },
+        onError: (error) => {
+            message.error(error.message)
+        }
+    });
+
     const handleSubmit = async () => {
         if (
             !personForm.first_name ||
@@ -187,15 +318,32 @@ const AddWatchlist = () => {
             return;
         }
 
+        if (existingRecord) {
+            // PATCH logic
+            try {
+                await patchPersonMutation.mutateAsync({
+                    id: personData?.id,
+                    form: personForm
+                });
+                await patchWatchlistPersonMutation.mutateAsync({
+                    id: whitelistedPersonData?.id,
+                    form: watchlistForm
+                });
+                message.success("Watchlist record updated successfully.");
+            } catch (error: any) {
+                message.error(error?.message || "Failed to update record.");
+            }
+            return;
+        }
+
+        // ...existing POST logic...
         let verifyResult;
         try {
             verifyResult = await verifyFaceInWatchlistMutation.mutateAsync({
                 type: "face",
                 template: enrollFormFace?.upload_data
             });
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
-            // this is all garbage just for catching the promise
             if (
                 error?.message === "No Matches Found" ||
                 error?.response?.data?.message === "No Matches Found"
@@ -235,6 +383,36 @@ const AddWatchlist = () => {
             reader.readAsDataURL(selectedFile);
         }
     };
+
+    useEffect(() => {
+        setPersonForm(prev => ({
+            ...prev,
+            first_name: personData?.first_name,
+            middle_name: personData?.middle_name,
+            last_name: personData?.last_name,
+            gender_id: personData?.gender?.id,
+            civil_status_id: civilStatuses?.results?.find(stat => stat?.status === personData?.civil_status)?.id ?? null,
+            nationality_id: nationalities?.results?.find(nat => nat?.nationality === personData?.nationality)?.id ?? null
+        }))
+    }, [civilStatuses, nationalities, personData])
+
+    useEffect(() => {
+        setWatchlistForm(prev => ({
+            ...prev,
+            person_id: personData?.id,
+            risk_level_id: riskLevels?.results?.find(lvl => lvl?.risk_severity === whitelistedPersonData?.risk_level)?.id ?? null,
+            threat_level_id: threatLevels?.results?.find(lvl => lvl?.threat_level === whitelistedPersonData?.threat_level)?.id ?? null,
+            white_listed_type_id: types?.results?.find(type => type?.name === whitelistedPersonData?.white_listed_type)?.id ?? null,
+        }))
+    }, [riskLevels, whitelistedPersonData, threatLevels, types, personData])
+
+    if (personDataLoading || whitelistedPersonDataLoading) return (
+        <div className="flex justify-center items-center h-[90vh]">
+            <Spinner />
+        </div>
+    );
+
+    console.log(whitelistedPersonBiometric)
 
     return (
         <div className='w-full h-full mb-4'>
@@ -393,15 +571,29 @@ const AddWatchlist = () => {
                             />
                         </div>
 
-                        <div className="w-full flex justify-center items-center">
-                            <Image
-                                src={
-                                    enrollFormFace?.upload_data
-                                        ? `data:image/png;base64,${enrollFormFace.upload_data}`
-                                        : image_placeholder
-                                }
-                            />
-                        </div>
+                        {
+                            existingRecord ? (
+                                <div className="w-full flex justify-center items-center">
+                                    <Image
+                                        src={
+                                            whitelistedPersonBiometric?.data
+                                                ? `data:image/png;base64,${whitelistedPersonBiometric?.data}`
+                                                : image_placeholder
+                                        }
+                                    />
+                                </div>
+                            ) : (
+                                <div className="w-full flex justify-center items-center">
+                                    <Image
+                                        src={
+                                            enrollFormFace?.upload_data
+                                                ? `data:image/png;base64,${enrollFormFace.upload_data ?? whitelistedPersonBiometric?.data}`
+                                                : image_placeholder
+                                        }
+                                    />
+                                </div>
+                            )
+                        }
                     </div>
 
                     <div className="w-full flex justify-end">

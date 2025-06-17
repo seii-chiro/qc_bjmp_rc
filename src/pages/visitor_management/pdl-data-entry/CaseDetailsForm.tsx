@@ -168,6 +168,7 @@ const CaseDetailsForm = ({
                     <label className="flex flex-col flex-1">
                         <span className="font-semibold">Case Number</span>
                         <Input
+                            placeholder={casesForm?.case_number || "xxxx-xxxx"}
                             onChange={e => setCasesForm(prev => ({ ...prev, case_number: e.target.value }))}
                             className="h-12"
                         />

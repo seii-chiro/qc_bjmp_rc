@@ -68,6 +68,7 @@ const PDLtovisit = ({
 
     const [pdlPage, setPdlPage] = useState(1);
     const [pdlFirstName, setPdlFirstName] = useState("");
+    const [pdlIdSearch, setPdlIdSearch] = useState<string>("");
     const [debouncedPdlFirstName, setDebouncedPdlFirstName] = useState("");
 
     useEffect(() => {
@@ -84,8 +85,15 @@ const PDLtovisit = ({
         data: pdlsPaginated,
         isLoading: pdlsLoading,
     } = useQuery({
-        queryKey: ['pdls', pdlPage, debouncedPdlFirstName],
-        queryFn: () => getPDLs(token ?? "", 10, pdlPage, debouncedPdlFirstName),
+        queryKey: ['pdls', pdlPage, debouncedPdlFirstName, pdlIdSearch],
+        queryFn: () => {
+            // If searching by ID, use that as the search param
+            if (pdlIdSearch) {
+                return getPDLs(token ?? "", 10, pdlPage, pdlIdSearch);
+                // getPDLs(token, limit, page, firstName, id)
+            }
+            return getPDLs(token ?? "", 10, pdlPage, debouncedPdlFirstName);
+        },
         placeholderData: prev => prev,
         staleTime: 10 * 60 * 1000,
     });
@@ -242,11 +250,11 @@ const PDLtovisit = ({
                 dataIndex: 'visitationStatus',
                 key: 'visitationStatus',
             },
-            {
-                title: 'Multiple Birth Classification',
-                dataIndex: 'birthClassClassification',
-                key: 'multipleBirthClass',
-            },
+            // {
+            //     title: 'Multiple Birth Classification',
+            //     dataIndex: 'birthClassClassification',
+            //     key: 'multipleBirthClass',
+            // },
             {
                 title: "Actions",
                 key: "actions",
@@ -457,6 +465,8 @@ const PDLtovisit = ({
                 width="50%"
             >
                 <PDLToVisitForm
+                    pdlIdSearch={pdlIdSearch}
+                    setPdlIdSearch={setPdlIdSearch}
                     visitorForm={visitorForm}
                     editPdlToVisitIndex={editPdlToVisitIndex}
                     handlePdlToVisitModalCancel={handlePdlToVisitModalCancel}
