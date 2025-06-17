@@ -165,14 +165,16 @@ const PDLtovisit = ({
 
 
     const pdlToVisitDataSource = pdlToVisitTableInfo?.map((pdl, index) => {
+        const match = pdl?.annex?.match(/\(([^)]+)\)/);
+        const wordInside = match ? match[1] : null;
         return ({
             key: index,
             lastname: pdl?.lastName,
             firstName: pdl?.firstName,
             middleName: pdl?.middleName,
             relationship: visitorToPdlRelationship?.find((relation: { id: number | null; }) => relation?.id === pdl?.relationship)?.relationship_name ?? "N/A",
-            level: pdl?.level,
-            annex: pdl?.annex,
+            level: wordInside || pdl?.level,
+            annex: pdl?.annex?.replace(/\s*\([^)]*\)/, '').trim() || "N/A",
             dorm: pdl?.dorm,
             visitationStatus: pdl?.visitationStatus,
             birthClassClassification: pdl?.multipleBirthClass?.multiple_birth_class,

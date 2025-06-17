@@ -45,9 +45,9 @@ const Navbar = ({ isSidebarCollapsed }: NavbarProps) => {
     return (
         <>
             <ul className="flex flex-col">
-                <p className="text-black ml-5 text-base font-bold">MODULES</p>
-                {modules.map(({ path, icon: Icon, label }) => (
-                    <li key={path}>
+                {!isSidebarCollapsed && <p className="text-black ml-5 text-base font-bold">MODULES</p>}
+                {modules.map(({ path, icon: Icon, label }, i) => (
+                    <li key={`${path}-${i}`}>
                         {path ? (
                             <NavLink to={path}>
                                 <LinkContainer icon={Icon} isSidebarCollapsed={isSidebarCollapsed} linkName={label} />

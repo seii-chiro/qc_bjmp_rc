@@ -152,7 +152,7 @@ const UpdatePDLtoVisit = ({
                         relationship: specificrelationship,
                         level: building ?? pdl?.level ?? '',
                         dorm: specificpdl?.cell?.cell_name || pdl?.dorm,
-                        annex: specificpdl?.cell?.cell_floor || pdl?.annex,
+                        annex: specificpdl?.cell?.cell_floor?.replace(/\s*\([^)]*\)/, '').trim() || pdl?.annex?.replace(/\s*\([^)]*\)/, '').trim(),
                         visitationStatus: specificpdl?.visitation_status || pdl?.visitationStatus,
                         birthClassClassification: specificpdl?.person?.multiple_birth_siblings?.[0]?.multiple_birth_class || pdl?.birthClassClassification,
                         action: (
