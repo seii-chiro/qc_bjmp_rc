@@ -22,7 +22,6 @@ type AddBranchProps = {
 const AddBranch = ({ courtId, courtName, onAddBranch, onCancel }: AddBranchProps) => {
   const token = useTokenStore().token;
   const [messageApi, contextHolder] = message.useMessage();
-
   const [form, setForm] = useState<{
     region_id: number | null;
     province_id: number | null;
@@ -74,7 +73,7 @@ const AddBranch = ({ courtId, courtName, onAddBranch, onCancel }: AddBranchProps
     (province) => province.region === form.region_id
 );
 
-  const handleSubmit = () => {
+const handleSubmit = () => {
     const { region_id, province_id, branch, judge } = form;
 
     if (!region_id || !province_id || !branch || !judge) {
@@ -93,6 +92,7 @@ const AddBranch = ({ courtId, courtName, onAddBranch, onCancel }: AddBranchProps
     onAddBranch(newBranch);
     messageApi.success("Branch added successfully.");
 
+    // Reset form
     setForm({
       region_id: null,
       province_id: null,

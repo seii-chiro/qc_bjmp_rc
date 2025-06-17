@@ -1,6 +1,6 @@
 import { useTokenStore } from "@/store/useTokenStore";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button, Dropdown, Form, Input, Menu, message, Modal, Select } from "antd";
+import { Button, Dropdown, Form, Input, Menu, message, Modal } from "antd";
 import Table, { ColumnsType } from "antd/es/table";
 import { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
@@ -199,7 +199,7 @@ const NPVisitorType = () => {
     ]
 
     const fetchAllNonPDLVisitorType = async () => {
-        const res = await fetch(`${BASE_URL}/api/non-pdl-visitor/non-pdl-visitor-types/?limit=100`, {
+        const res = await fetch(`${BASE_URL}/api/non-pdl-visitor/non-pdl-visitor-types/?limit=1000`, {
             headers: {
                 Authorization: `Token ${token}`,
                 "Content-Type": "application/json",
@@ -434,7 +434,7 @@ const NPVisitorType = () => {
         {contextHolder}
         <h1 className="text-2xl font-bold text-[#1E365D]">Non-PDL Visitor Type</h1>
         <div className="flex items-center justify-between my-4">
-            <div className="flex gap-2">
+                <div className="flex gap-2">
                     <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
                         <a className="ant-dropdown-link gap-2 flex items-center" onClick={e => e.preventDefault()}>
                             {isLoading ? <span className="loader"></span> : <GoDownload />}

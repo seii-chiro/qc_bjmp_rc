@@ -112,25 +112,26 @@ const AddPosition = ({ onClose }: { onClose: () => void }) => {
         <div>
             {contextHolder}
             <form onSubmit={handlePositionSubmit}>
+                <h1 className="font-bold text-xl">Add Position</h1>
                 <div className="flex mt-5 flex-col gap-5">
                     <div>
-                        <p>Position Code:</p>
+                        <p className="text-base font-semibold">Position Code</p>
                         <input type="text" name="position_code" id="position_code" onChange={handleInputChange} placeholder="Position Code" className="w-full h-12 border border-gray-300 rounded-lg px-2" />
                     </div>
                     <div>
-                        <p>Position Title:</p>
+                        <p className="text-base font-semibold">Position Title</p>
                         <input type="text" name="position_title" id="position_title" onChange={handleInputChange} placeholder="Position Title" className="w-full h-12 border border-gray-300 rounded-lg px-2" />
                     </div>
                     <div>
-                        <p>Position Level:</p>
+                        <p className="text-base font-semibold">Position Level</p>
                         <input type="text" name="position_level" id="position_level" onChange={handleInputChange} placeholder="Position Level" className="w-full h-12 border border-gray-300 rounded-lg px-2" />
                     </div>
                     <div>
-                        <p>Position Type:</p>
+                        <p className="text-base font-semibold">Position Type</p>
                         <input type="text" name="position_type" id="position_type" onChange={handleInputChange} placeholder="Position Type" className="w-full h-12 border border-gray-300 rounded-lg px-2" />
                     </div>
                     <div>
-                        <p>Rank Required:</p>
+                        <p className="text-base font-semibold">Rank Required</p>
                         <Select
                         className="h-[3rem] w-full"
                         showSearch
@@ -147,7 +148,7 @@ const AddPosition = ({ onClose }: { onClose: () => void }) => {
                     />
                     </div>
                     <div>
-                        <p>Organization:</p>
+                        <p  className="text-base font-semibold">Organization</p>
                         <Select
                         className="h-[3rem] w-full"
                         showSearch
@@ -166,7 +167,7 @@ const AddPosition = ({ onClose }: { onClose: () => void }) => {
                     
                 </div>
                 <div className="w-full flex justify-end mt-10">
-                    <button type="submit" className="bg-blue-500 text-white w-36 px-3 py-2 rounded font-semibold text-base">
+                    <button type="submit" className="bg-[#1E365D] text-white w-36 px-3 py-2 rounded font-semibold text-base">
                         Submit
                     </button>
                 </div>

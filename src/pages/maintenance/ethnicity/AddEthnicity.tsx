@@ -21,6 +21,7 @@ type EthnicGroupProvincePayload = {
   description: string;
   region?: string;
   province?: string;
+  ethnicity?:string;
 };
 
 const AddEthnicity = ({ onClose }: { onClose: () => void }) => {
@@ -117,6 +118,7 @@ const AddEthnicity = ({ onClose }: { onClose: () => void }) => {
   };
 
   const columns = [
+    { title: "Ethnicity", dataIndex: "ethnicity", key: "ethnicity" },
     { title: "Region", dataIndex: "region", key: "region" },
     { title: "Province", dataIndex: "province", key: "province" },
     { title: "Description", dataIndex: "description", key: "description" },
@@ -134,10 +136,11 @@ const AddEthnicity = ({ onClose }: { onClose: () => void }) => {
   return (
     <div>
       {contextHolder}
+      <h1 className="text-[#1E365D] font-bold text-lg mb-4">Add a Filipino Ethnic Group</h1>
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 gap-4">
-          <div>
-            <p className="text-gray-500 font-bold">Ethnicity Name</p>
+        <div className="flex gap-4">
+          <div className="w-full">
+            <p className="text-[#1E365D] font-bold text-base">Ethnicity Name:</p>
             <input
               name="name"
               value={selectEthnicity.name}
@@ -145,8 +148,8 @@ const AddEthnicity = ({ onClose }: { onClose: () => void }) => {
               className="w-full h-12 px-3 border rounded"
             />
           </div>
-          <div>
-            <p className="text-gray-500 font-bold">Description</p>
+          <div className="w-full">
+            <p className="text-[#1E365D] font-bold text-base">Description:</p>
             <input
               name="description"
               value={selectEthnicity.description}
@@ -158,7 +161,7 @@ const AddEthnicity = ({ onClose }: { onClose: () => void }) => {
 
         <div className="pt-5">
           <div className="flex justify-between items-center pb-2">
-            <h1 className="font-bold text-lg">Ethnicity Province</h1>
+            <h1 className="text-[#1E365D] font-bold md:text-lg">Ethnicity Province</h1>
             <Button className="bg-[#1E365D] text-white px-3 py-4 text-lg rounded-md" onClick={() => setIsModalOpen(true)} icon={<GoPlus />} type="primary">
               Add Province
             </Button>
@@ -188,6 +191,8 @@ const AddEthnicity = ({ onClose }: { onClose: () => void }) => {
         width="40%"
       >
         <AddEthnicityProvince
+          ethnicityId={0}
+          ethnicityName={selectEthnicity.name}
           onAdd={(newProvince) => {
             const region = RegionData?.find(r => r.id === newProvince.region_id)?.desc || '';
             const province = ProvinceData?.find(p => p.id === newProvince.province_id)?.desc || '';
@@ -197,7 +202,8 @@ const AddEthnicity = ({ onClose }: { onClose: () => void }) => {
                 ...newProvince,
                 region,
                 province,
-                record_status_id: 1, 
+                ethnicity: selectEthnicity.name, // <-- add this line
+                record_status_id: 1,
               },
             ]);
             setIsModalOpen(false);

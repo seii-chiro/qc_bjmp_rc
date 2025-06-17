@@ -5,6 +5,8 @@ import { Input, message, Select } from "antd";
 import { useState } from "react";
 
 type Props = {
+  ethnicityId: number;
+  ethnicityName: string; // <-- add this prop
   onAdd: (province: {
     region_id: number;
     province_id: number;
@@ -13,7 +15,7 @@ type Props = {
   onCancel: () => void;
 };
 
-const AddEthnicityProvince = ({ onAdd, onCancel }: Props) => {
+const AddEthnicityProvince = ({ethnicityId, ethnicityName, onAdd, onCancel }: Props) => {
   const token = useTokenStore().token;
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -65,26 +67,27 @@ const AddEthnicityProvince = ({ onAdd, onCancel }: Props) => {
     }));
   };
 
-  const handleSubmit = () => {
-    const { region_id, province_id, description } = form;
-    if (!region_id || !province_id || !description) {
-      messageApi.error("Please fill in all required fields.");
-      return;
-    }
+const handleSubmit = () => {
+  const { region_id, province_id, description } = form;
+  if (!region_id || !province_id || !description) {
+    messageApi.error("Please fill in all required fields.");
+    return;
+  }
 
-    onAdd({
-      region_id,
-      province_id,
-      description,
-    });
+  onAdd({
+    ethnicity_id: ethnicityId, // <-- include ethnicity_id
+    region_id,
+    province_id,
+    description,
+  });
 
-    messageApi.success("Province added successfully.");
-    setForm({
-      region_id: null,
-      province_id: null,
-      description: "",
-    });
-  };
+  messageApi.success("Province added successfully.");
+  setForm({
+    region_id: null,
+    province_id: null,
+    description: "",
+  });
+};
 
   const filteredProvinces = ProvinceData.filter(
     (province) => province.region === form.region_id
@@ -95,6 +98,10 @@ const AddEthnicityProvince = ({ onAdd, onCancel }: Props) => {
       {contextHolder}
       <form>
         <div className="flex w-full gap-2 mt-5">
+          <div className="w-full mb-4">
+            <p className="text-[#1E365D] font-bold text-lg">Ethnicity</p>
+            <Input className="h-12 w-full" value={ethnicityName} disabled />
+          </div>
           <div className="w-full">
             <p className="text-[#1E365D] font-bold text-lg">Region</p>
             <Select
@@ -110,7 +117,6 @@ const AddEthnicityProvince = ({ onAdd, onCancel }: Props) => {
               }))}
             />
           </div>
-
           <div className="w-full">
             <p className="text-[#1E365D] font-bold text-lg">Province</p>
             <Select
