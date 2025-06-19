@@ -8,7 +8,7 @@ const Settings = () => {
             <div className="mt-2 ml-8">
                 <GodotLink link="general-settings" title="General Settings" />
                 <GodotLink link="system-settings" title="System Settings" />
-                <GodotLink link="encryption_parameters" title="System Settings" />
+                <GodotLink link="encryption_parameters" title="Encryption Parameters" />
             </div>
         </div>
     )
