@@ -1,4 +1,4 @@
-import { deleteBranch, getBranch, getCourt, getJail_Province, getJailRegion, getUser } from "@/lib/queries";
+import { deleteBranch, getBranch, getCourt, getJail_Province, getJailRegion, getOrganization, getUser } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Form, Input, Menu, message, Modal, Select } from "antd";
@@ -59,6 +59,10 @@ const CourtBranch = () => {
         queryFn: () => getUser(token ?? "")
     })
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
     const showModal = () => {
         setIsModalOpen(true);
     };
@@ -119,8 +123,6 @@ const CourtBranch = () => {
             judge: court_branch?.judge ?? 'N/A',
             updated_by: court_branch?.updated_by ?? 'N/A',
             updated_at: moment(court_branch?.updated_at).format('YYYY-MM-DD h:mm A') ?? 'N/A',
-            organization: court_branch?.organization ?? 'Bureau of Jail Management and Penology',
-            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -140,105 +142,42 @@ const CourtBranch = () => {
             dataIndex: 'court',
             key: 'court',
             sorter: (a, b) => a.court.localeCompare(b.court),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.court))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.court === value,
         },
         {
             title: 'Branch',
             dataIndex: 'branch',
             key: 'branch',
             sorter: (a, b) => a.branch.localeCompare(b.branch),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.branch))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.branch === value,
         },
         {
             title: 'Judge',
             dataIndex: 'judge',
             key: 'judge',
             sorter: (a, b) => a.judge.localeCompare(b.judge),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.judge))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.judge === value,
         },
         {
             title: 'Region',
             dataIndex: 'region',
             key: 'region',
             sorter: (a, b) => a.region.localeCompare(b.region),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.region))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.region === value,
         },
         {
             title: 'Province',
             dataIndex: 'province',
             key: 'province',
             sorter: (a, b) => a.province.localeCompare(b.province),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.province))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.province === value,
         },
         {
             title: "Updated At",
             dataIndex: "updated_at",
             key: "updated_at",
             sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.updated_at.split(' ')[0]))
-                ).map(date => ({
-                    text: date,
-                    value: date,
-                }))
-            ],
-            onFilter: (value, record) => record.updated_at.startsWith(value),
         },
         {
             title: 'Updated By',
             dataIndex: 'updated_by',
             key: 'updated_by',
             sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.updated_by))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.updated_by === value,
         },
         {
             title: "Actions",
@@ -314,8 +253,8 @@ const CourtBranch = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
@@ -473,7 +412,7 @@ const isSearching = searchText.trim().length > 0;
                 <AddCourtBranch onClose={handleCancel} />
             </Modal>
             <Modal
-                title="Branch Report"
+                title="Court Branch Report"
                 open={isPdfModalOpen}
                 onCancel={handleClosePdfModal}
                 footer={null}

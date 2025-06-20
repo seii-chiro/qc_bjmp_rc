@@ -193,6 +193,7 @@ const Court = () => {
             messageApi.error("Selected Court is invalid");
         }
     };
+
     const dataSource = data?.results?.map((court) => (
         {
             id: court?.id,
@@ -473,7 +474,7 @@ const Court = () => {
                 doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
                 doc.setTextColor(0, 102, 204);
                 doc.setFontSize(16);
-                doc.text("Court Report", 10, 15); 
+                doc.text("Judicial Court Report", 10, 15); 
                 doc.setTextColor(0, 0, 0);
                 doc.setFontSize(10);
                 doc.text(`Organization Name: ${organizationName}`, 10, 25);

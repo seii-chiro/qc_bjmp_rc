@@ -37,9 +37,6 @@ const NonPDL = () => {
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const queryClient = useQueryClient();
     const [messageApi, contextHolder] = message.useMessage();
-    const [nonPDLVisitor, setnonPDLVisitor] = useState<NonPDLVisitorPayload | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
     const [NonPDLVisitorTypeFilter, setNonPDLVisitorTypeFilter] = useState<string[]>([]);
@@ -308,7 +305,7 @@ const NonPDL = () => {
             id: non_pdl_visitor?.id,
             reg_no: non_pdl_visitor?.reg_no,
             person: non_pdl_visitor?.person,
-            personnel: `${non_pdl_visitor?.personnel.person?.first_name ?? ''} ${non_pdl_visitor?.personnel.person?.middle_name ? non_pdl_visitor?.personnel.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+            personnel: `${non_pdl_visitor?.personnel?.person?.first_name ?? ''} ${non_pdl_visitor?.personnel?.person?.middle_name ? non_pdl_visitor?.personnel?.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
             non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
             non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
             visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,
@@ -452,7 +449,7 @@ const NonPDL = () => {
             id: non_pdl_visitor?.id,
             reg_no: non_pdl_visitor?.reg_no,
             person: non_pdl_visitor?.person,
-            personnel: `${non_pdl_visitor?.personnel.person?.first_name ?? ''} ${non_pdl_visitor?.personnel.person?.middle_name ? non_pdl_visitor?.personnel.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
+            personnel: `${non_pdl_visitor?.personnel?.person?.first_name ?? ''} ${non_pdl_visitor?.personnel?.person?.middle_name ? non_pdl_visitor?.personnel?.person?.middle_name[0] + '.' : ''} ${non_pdl_visitor?.personnel?.person?.last_name ?? ''}`.replace(/\s+/g, ' ').trim(),
             non_pdl_visitor_type: non_pdl_visitor?.non_pdl_visitor_type,
             non_pdl_visitor_reason: non_pdl_visitor?.non_pdl_visitor_reason,
             visitor_rel_personnel: non_pdl_visitor?.visitor_rel_personnel,

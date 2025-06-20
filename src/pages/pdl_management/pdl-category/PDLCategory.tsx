@@ -104,7 +104,7 @@ const PDLCategory = () => {
 
 const dataSource = pdlCategoryData?.results
     ?.slice() // make a shallow copy
-    ?.sort((a, b) => b.id - a.id) // sort by descending ID (newest first)
+    ?.sort((a, b) => b.id - a.id) 
     ?.map((category, index) => ({
         key: index + 1,
         id: category?.id,

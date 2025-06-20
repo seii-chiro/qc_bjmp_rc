@@ -1,4 +1,4 @@
-import { getJail_Area, deleteJail_Area, getUser, updateJailArea, getDetention_Building, getJail, getDetention_Floor } from "@/lib/queries"
+import { getJail_Area, deleteJail_Area, getUser, updateJailArea, getDetention_Building, getJail, getDetention_Floor, getOrganization } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore"
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button, Dropdown, Form, Input, Menu, message, Modal, Select, Table } from "antd"
@@ -11,7 +11,6 @@ import AddArea from "./addarea"
 import { GoDownload, GoPlus } from "react-icons/go"
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai"
 import { ColumnsType } from "antd/es/table"
-import EditJailArea from "./EditJailArea"
 import { LuSearch } from "react-icons/lu";
 import bjmp from '../../../assets/Logo/QCJMD.png'
 
@@ -45,6 +44,11 @@ const JailArea = () => {
     const { data: UserData } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
+    })
+
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
     })
 
     const deleteMutation = useMutation({
@@ -106,8 +110,6 @@ const JailArea = () => {
             floor: jailarea?.floor ?? 'N/A',
             area_name: jailarea?.area_name ?? 'N/A',
             floor_status: jailarea?.floor_status ?? 'N/A',
-            organization: jailarea?.organization ?? 'Bureau of Jail Management and Penology',
-            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -184,8 +186,8 @@ const JailArea = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

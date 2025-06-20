@@ -1,4 +1,4 @@
-import { getJail_Municipality, getJail_Province, getJailRegion, getPrecincts, getRecord_Status, getUser } from "@/lib/queries";
+import { getJail_Municipality, getJail_Province, getJailRegion, getOrganization, getPrecincts, getRecord_Status, getUser } from "@/lib/queries";
 import { deletePrecincts, patchPrecinct } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { CSVLink } from "react-csv";
@@ -68,6 +68,10 @@ const Precinct = () => {
         queryFn: () => getUser(token ?? "")
     })
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
     const showModal = () => {
         setIsModalOpen(true);
     };
@@ -129,12 +133,10 @@ const Precinct = () => {
         coverage_area: precincts?.coverage_area ?? 'N/A',
         updated_at: moment(precincts?.updated_at).format('YYYY-MM-DD h:mm A') ?? 'N/A',
         updated_by: precincts?.updated_by ?? 'N/A',
-        organization: precincts?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
-    const filteredData = dataSource?.filter((gang_affiliation) =>
-        Object.values(gang_affiliation).some((value) =>
+    const filteredData = dataSource?.filter((precincts) =>
+        Object.values(precincts).some((value) =>
             String(value).toLowerCase().includes(searchText.toLowerCase())
         )
     );
@@ -155,57 +157,24 @@ const Precinct = () => {
             dataIndex: 'precinct_name',
             key: 'precinct_name',
             sorter: (a, b) => a.precinct_name.localeCompare(b.precinct_name),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.precinct_name))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
         },
         {
             title: 'Region',
             dataIndex: 'region',
             key: 'region',
             sorter: (a, b) => a.region.localeCompare(b.region),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.region))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
         },
         {
             title: 'Province',
             dataIndex: 'province',
             key: 'province',
             sorter: (a, b) => a.province.localeCompare(b.province),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.province))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
         },
         {
             title: 'City /Municipality',
             dataIndex: 'city_municipality',
             key: 'city_municipality',
             sorter: (a, b) => a.city_municipality.localeCompare(b.city_municipality),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.city_municipality))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.city_municipality === value,
         },
         {
             title: 'Coverage Area',
@@ -218,30 +187,12 @@ const Precinct = () => {
             dataIndex: "updated_at",
             key: "updated_at",
             sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.updated_at.split(' ')[0]))
-                ).map(date => ({
-                    text: date,
-                    value: date,
-                }))
-            ],
-            onFilter: (value, record) => record.updated_at.startsWith(value),
         },
         {
             title: 'Updated By',
             dataIndex: 'updated_by',
             key: 'updated_by',
             sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.updated_by))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.updated_by === value,
         },
         {
             title: "Action",
@@ -274,9 +225,8 @@ const Precinct = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || "";
-        const PreparedBy = dataSource[0]?.updated || '';
-
+            const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+            const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `TAL-${formattedDate}-XXX`;
@@ -414,7 +364,6 @@ const Precinct = () => {
                 region_id: selectPrecinct.region_id ?? null,
                 province_id: selectPrecinct.province_id ?? null,
                 city_municipality_id: selectPrecinct.city_municipality_id ?? null,
-                record_status_id: selectPrecinct.record_status_id ?? null,
             });
         }
     }, [selectPrecinct, form]);

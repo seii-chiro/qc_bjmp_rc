@@ -1,4 +1,4 @@
-import { getAffiliationTypes, deleteAffiliationType, getUser } from "@/lib/queries"
+import { getAffiliationTypes, deleteAffiliationType, getUser, getOrganization } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
@@ -45,7 +45,10 @@ const AffiliationType = () => {
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
     })
-
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteAffiliationType(token ?? "", id),
@@ -72,8 +75,6 @@ const AffiliationType = () => {
             id: affiliation?.id,
             affiliation_type: affiliation?.affiliation_type ?? 'N/A',
             description: affiliation?.description ?? 'N/A',
-            organization: affiliation?.organization ?? 'Bureau of Jail Management and Penology',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -138,8 +139,8 @@ const AffiliationType = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

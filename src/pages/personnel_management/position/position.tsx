@@ -160,9 +160,8 @@ const [searchText, setSearchText] = useState("");
         }
     };
 
-    const dataSource = data?.results?.map((position, index) => (
+    const dataSource = data?.results?.map((position) => (
         {
-            key: index + 1,
             id: position?.id,
             organization: position?.organization ,
             position_code: position?.position_code ?? '',
@@ -196,30 +195,12 @@ const [searchText, setSearchText] = useState("");
             dataIndex: 'position_level',
             key: 'position_level',
             sorter: (a, b) => a.position_level.localeCompare(b.position_level),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.position_level))
-            //     ).map(position_level => ({
-            //         text: position_level,
-            //         value: position_level,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.position_level === value,
         },
         {
             title: 'Position Type',
             dataIndex: 'position_type',
             key: 'position_type',
             sorter: (a, b) => a.position_type.localeCompare(b.position_type),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.position_type))
-            //     ).map(position_type => ({
-            //         text: position_type,
-            //         value: position_type,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.position_type === value,
         },
         {
         },

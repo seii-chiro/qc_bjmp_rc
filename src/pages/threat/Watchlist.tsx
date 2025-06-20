@@ -1,5 +1,5 @@
 import { WatchlistPerson } from "@/lib/issues-difinitions";
-import { getUser } from "@/lib/queries";
+import { getOrganization, getUser } from "@/lib/queries";
 import { deletePerson, deleteWatchlistPerson, syncWatchlistBiometricDB } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -93,6 +93,11 @@ const Watchlist = () => {
         queryFn: () => getUser(token ?? "")
     });
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
+
     // Function to fetch all watchlist data for export
     const fetchAllWatchlistData = async () => {
         try {
@@ -124,7 +129,6 @@ const Watchlist = () => {
 
             // Transform the data for export
             const formattedData = data.results.map((watchlist) => ({
-                key: watchlist.id,
                 id: watchlist?.id,
                 person: watchlist?.person ?? '',
                 white_listed_type: watchlist?.white_listed_type ?? '',
@@ -132,8 +136,6 @@ const Watchlist = () => {
                 threat_level: watchlist?.threat_level ?? '',
                 updated_by: watchlist?.updated_by ?? '',
                 updated_at: watchlist?.updated_at ? moment(watchlist.updated_at).format('YYYY-MM-DD HH:mm:ss A') : '',
-                organization: watchlist?.organization ?? 'Bureau of Jail Management and Penology',
-                updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
             }));
 
             setExportLoading(false);
@@ -163,8 +165,7 @@ const Watchlist = () => {
         },
     });
 
-    const dataSource = WatchlistData?.results?.map((watchlist, index) => ({
-        key: (page - 1) * limit + index + 1,
+    const dataSource = WatchlistData?.results?.map((watchlist) => ({
         id: watchlist?.id,
         person_id_display: watchlist?.person_id_display ?? '',
         person: watchlist?.person ?? '',
@@ -173,15 +174,7 @@ const Watchlist = () => {
         threat_level: watchlist?.threat_level ?? '',
         updated_by: watchlist?.updated_by ?? '',
         updated_at: watchlist?.updated_at ? moment(watchlist.updated_at).format('YYYY-MM-DD HH:mm:ss A') : '',
-        organization: watchlist?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
-
-    const filteredData = dataSource?.filter((watchlist) =>
-        Object.values(watchlist).some((value) =>
-            String(value).toLowerCase().includes(searchText.toLowerCase())
-        )
-    );
 
     const columns: ColumnsType<WatchlistPerson> = [
         {
@@ -308,9 +301,8 @@ const Watchlist = () => {
             item.threat_level,
         ]);
 
-        // Header info
-        const organizationName = allData[0]?.organization || "";
-        const PreparedBy = allData[0]?.updated_by || '';
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
         const reportReferenceNo = `WATCHLIST-${formattedDate}-XXX`;

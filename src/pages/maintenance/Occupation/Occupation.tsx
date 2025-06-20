@@ -1,4 +1,4 @@
-import { deleteOccupation, getOccupations, getUser } from "@/lib/queries";
+import { deleteOccupation, getOccupations, getOrganization, getUser } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Menu, message, Modal } from "antd";
@@ -46,6 +46,11 @@ const Occupation = () => {
         queryFn: () => getUser(token ?? "")
     })
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
+
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteOccupation(token ?? "", id),
         onSuccess: () => {
@@ -74,8 +79,6 @@ const Occupation = () => {
             remarks: occupation?.remarks ?? 'N/A',
             updated_at: occupation?.updated_at ?? '',
         updated: occupation?.updated_by,
-        updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-            organization: occupation?.organization ?? 'Bureau of Jail Management and Penology',
         }
         
     )) || [];
@@ -159,8 +162,8 @@ const Occupation = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

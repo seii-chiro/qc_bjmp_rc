@@ -1,4 +1,4 @@
-import { getCrimeCategories, getLaws, getRecord_Status, getUser } from "@/lib/queries";
+import { getCrimeCategories, getLaws, getOrganization, getUser } from "@/lib/queries";
 import { deleteLaw, patchLaw } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -59,6 +59,11 @@ const Law = () => {
         setIsModalOpen(true);
     };
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
+
     const handleCancel = () => {
         setIsModalOpen(false);
     };
@@ -112,8 +117,6 @@ const Law = () => {
         name: law?.name ?? '',
         title: law?.title ?? '',
         description: law?.description ?? '',
-        organization: law?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
     const filteredData = dataSource?.filter((law) =>
@@ -132,45 +135,18 @@ const Law = () => {
                 dataIndex: 'name',
                 key: 'name',
                 sorter: (a, b) => a.name.localeCompare(b.name),
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.name))
-                    ).map(name => ({
-                        text: name,
-                        value: name,
-                    }))
-                ],
-                onFilter: (value, record) => record.name === value,
             },
             {
                 title: 'Crime Category',
                 dataIndex: 'crime_category',
                 key: 'crime_category',
                 sorter: (a, b) => a.crime_category.localeCompare(b.crime_category),
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.crime_category))
-                    ).map(name => ({
-                        text: name,
-                        value: name,
-                    }))
-                ],
-                onFilter: (value, record) => record.crime_category === value,
             },
             {
                 title: 'Title',
                 dataIndex: 'title',
                 key: 'title',
                 sorter: (a, b) => a.title.localeCompare(b.title),
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.title))
-                    ).map(name => ({
-                        text: name,
-                        value: name,
-                    }))
-                ],
-                onFilter: (value, record) => record.title === value,
             },
             {
                 title: 'Description',
@@ -234,8 +210,8 @@ const handleExportPDF = () => {
 
     const today = new Date();
     const formattedDate = today.toISOString().split('T')[0];
-    const organizationName = dataSource[0]?.organization || '';
-    const PreparedBy = dataSource[0]?.updated || '';
+    const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+    const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
     const addHeader = (doc) => {

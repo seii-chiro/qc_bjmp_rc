@@ -1,4 +1,4 @@
-import { getCrimeCategories, getLaws, getOffenses, getRecord_Status, getUser } from "@/lib/queries";
+import { getCrimeCategories, getLaws, getOffenses, getOrganization, getUser } from "@/lib/queries";
 import { deleteOffense, patchOffenses } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -66,6 +66,10 @@ const Offenses = () => {
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
     })
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
 
     const showModal = () => {
         setIsModalOpen(true);
@@ -128,8 +132,6 @@ const Offenses = () => {
         punishment: offense?.punishment ?? 'N/A',
         updated_at: moment(offense?.updated_at).format('YYYY-MM-DD h:mm A') ?? 'N/A', 
         updated_by: offense?.updated_by ?? 'N/A',
-        organization: offense?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
     const filteredData = dataSource?.filter((offense) =>
@@ -148,75 +150,30 @@ const Offenses = () => {
             dataIndex: 'offense',
             key: 'offense',
             sorter: (a, b) => a.offense.localeCompare(b.offense),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.offense))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.offense === value,
         },
         {
             title: 'Crime Category',
             dataIndex: 'crime_category',
             key: 'crime_category',
             sorter: (a, b) => a.crime_category.localeCompare(b.crime_category),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.crime_category))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.crime_category === value,
         },
         {
             title: 'Crime Severity',
             dataIndex: 'crime_severity',
             key: 'crime_severity',
             sorter: (a, b) => a.crime_severity.localeCompare(b.crime_severity),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.crime_severity))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.crime_severity === value, 
         },
         {
             title: 'Law',
             dataIndex: 'law',
             key: 'law',
             sorter: (a, b) => a.law.localeCompare(b.law),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.law))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.law === value,
         },
         {
             title: 'Punishment',
             dataIndex: 'punishment',
             key: 'punishment',
             sorter: (a, b) => a.punishment.localeCompare(b.punishment),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.punishment))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.punishment === value,
         },
         {
             title: 'Description',
@@ -229,30 +186,12 @@ const Offenses = () => {
             dataIndex: "updated_at",
             key: "updated_at",
             sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.updated_at.split(' ')[0]))
-                ).map(date => ({
-                    text: date,
-                    value: date,
-                }))
-            ],
-            onFilter: (value, record) => record.updated_at.startsWith(value),
         },
         {
             title: 'Updated By',
             dataIndex: 'updated_by',
             key: 'updated_by',
             sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
-            filters: [
-                ...Array.from(
-                    new Set(filteredData.map(item => item.updated_by))
-                ).map(name => ({
-                    text: name,
-                    value: name,
-                }))
-            ],
-            onFilter: (value, record) => record.updated_by === value,
         },
         {
             title: "Action",
@@ -316,8 +255,8 @@ const Offenses = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

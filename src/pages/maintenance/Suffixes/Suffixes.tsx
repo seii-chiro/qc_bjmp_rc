@@ -1,4 +1,4 @@
-import { deleteSuffixes, getSuffixes, getUser } from "@/lib/queries";
+import { deleteSuffixes, getOrganization, getSuffixes, getUser } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Menu, message, Modal, Table } from "antd";
@@ -47,7 +47,11 @@ const Suffixes = () => {
             queryKey: ['user'],
             queryFn: () => getUser(token ?? "")
         })
-    
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
+
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteSuffixes(token ?? "", id),
         onSuccess: () => {
@@ -77,8 +81,6 @@ const Suffixes = () => {
                 full_title: suffixes?.full_title ?? '',
                 updated_at: suffixes?.updated_at,
                 updated: suffixes?.updated_by ?? '',
-                organization: suffixes?.organization ?? 'Bureau of Jail Management and Penology',
-                updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
             }
         )) || [];
 
@@ -159,8 +161,8 @@ const Suffixes = () => {
             const doc = new jsPDF();
             const headerHeight = 48;
             const footerHeight = 32;
-            const organizationName = dataSource[0]?.organization || ""; 
-            const PreparedBy = dataSource[0]?.updated_by || ''; 
+            const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+            const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
         
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];
@@ -308,7 +310,7 @@ const Suffixes = () => {
                         }}
                     />
         <Modal
-                title="Suffix Report"
+                title="Suffixes Report"
                 open={isPdfModalOpen}
                 onCancel={handleClosePdfModal}
                 footer={null}

@@ -1,4 +1,4 @@
-import { getDevice, deleteDevice, getUser, updateDevice, getDevice_Types, getJail } from "@/lib/queries"
+import { getDevice, deleteDevice, getUser, updateDevice, getDevice_Types, getJail, getOrganization } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CSVLink } from "react-csv";
@@ -49,6 +49,11 @@ const Device = () => {
     const { data: UserData } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
+    })
+
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
     })
 
     const deleteMutation = useMutation({
@@ -102,7 +107,7 @@ const Device = () => {
     };
 
     const dataSource = data?.results?.map((devices, index) => ({
-        key: devices?.id,
+        key: index + 1,
         id: devices?.id,
         device_type: devices?.device_type ?? "N/A",
         jail: devices?.jail ?? "N/A",
@@ -113,8 +118,6 @@ const Device = () => {
         manufacturer: devices?.manufacturer ?? "N/A",
         supplier: devices?.supplier ?? "N/A",
         date_acquired: devices?.date_acquired ?? "N/A",
-        organization: devices?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
     const filteredData = dataSource?.filter((devices) =>
@@ -210,8 +213,8 @@ const Device = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || "";
-        const PreparedBy = dataSource[0]?.updated || '';
+        const organizationName = OrganizationData?.results?.[0]?.org_name || "Bureau of Jail Management and Penology";
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`;
 
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
@@ -414,7 +417,7 @@ const Device = () => {
                 <AddDevices onClose={handleCancel} />
             </Modal>
             <Modal
-                title="Devices"
+                title="Edit Device"
                 open={isEditModalOpen}
                 onCancel={() => setIsEditModalOpen(false)}
                 onOk={() => form.submit()}

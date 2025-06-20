@@ -1,5 +1,5 @@
 import { GroupAffiliationResponse } from '@/lib/issues-difinitions';
-import { getUser } from '@/lib/queries';
+import { getOrganization, getUser } from '@/lib/queries';
 import { deleteGroupAffiliation, getGroupAffiliation, patchGroupAffiliation } from '@/lib/query';
 import { useTokenStore } from '@/store/useTokenStore';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -38,6 +38,11 @@ const GroupAffiliation = () => {
     const { data: UserData } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
+    })
+
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
     })
 
     const deleteMutation = useMutation({
@@ -155,8 +160,8 @@ const GroupAffiliation = () => {
             const doc = new jsPDF();
             const headerHeight = 48;
             const footerHeight = 32;
-            const organizationName = dataSource[0]?.organization || ""; 
-            const PreparedBy = dataSource[0]?.updated_by || ''; 
+            const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+            const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
         
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];

@@ -1,4 +1,4 @@
-import { deleteGENDER_CODE, getGenders, getUser } from "@/lib/queries"
+import { deleteGENDER_CODE, getGenders, getOrganization, getUser } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { CSVLink } from "react-csv";
@@ -46,6 +46,10 @@ const Gender = () => {
         queryFn: () => getUser(token ?? ""),
     })
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
         const deleteMutation = useMutation({
             mutationFn: (id: number) => deleteGENDER_CODE(token ?? "", id),
             onSuccess: () => {
@@ -71,8 +75,6 @@ const Gender = () => {
             id: gender?.id ?? 'N/A',
             gender_option: gender?.gender_option ?? 'N/A',
             description: gender?.description ?? 'N/A',
-            organization: gender?.organization ?? 'Bureau of Jail Management and Penology',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -138,8 +140,8 @@ const Gender = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

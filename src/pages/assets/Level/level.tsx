@@ -1,4 +1,4 @@
-import { deleteDetention_Building, getDetention_Building, getJail, getJail_Security_Level, getUser, updateDetention_Building } from "@/lib/queries";
+import { deleteDetention_Building, getDetention_Building, getJail, getJail_Security_Level, getOrganization, getUser, updateDetention_Building } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Form, Input, Menu, message, Modal, Select } from "antd";
@@ -13,7 +13,6 @@ import bjmp from '../../../assets/Logo/QCJMD.png'
 import { GoDownload, GoPlus } from "react-icons/go";
 import { LuSearch } from "react-icons/lu";
 import AddLevel from "./AddLevel";
-import EditLevel from "./EditLevel";
 
 type LevelReport = {
     key: number;
@@ -44,6 +43,11 @@ const Level = () => {
     const { data: UserData } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
+    })
+
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
     })
 
     const deleteMutation = useMutation({
@@ -102,8 +106,6 @@ const Level = () => {
             bldg_status: level?.bldg_status ?? "N/A",
             bldg_description: level?.bldg_description ?? "N/A",
             security_level: level?.security_level ?? "N/A",
-            organization: level?.organization ?? 'Bureau of Jail Management and Penology',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         })) || [];
     
         const filteredData = dataSource?.filter((level) =>
@@ -165,8 +167,8 @@ const handleExportPDF = () => {
             const doc = new jsPDF();
             const headerHeight = 48;
             const footerHeight = 32;
-            const organizationName = dataSource[0]?.organization || ""; 
-            const PreparedBy = dataSource[0]?.updated_by || ''; 
+            const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+            const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
         
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];

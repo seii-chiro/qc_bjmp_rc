@@ -11,7 +11,7 @@ import moment from "moment";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload, GoPlus } from "react-icons/go";
 import { LuSearch } from "react-icons/lu";
-import { deleteEducationalAttainments, getEducationalAttainments, getUser } from "@/lib/queries";
+import { deleteEducationalAttainments, getEducationalAttainments, getOrganization, getUser } from "@/lib/queries";
 import AddEducationalAttainment from "./AddEducationalAttainment";
 import EditEducationalAttainment from "./EditEducationalAttainment";
 import bjmp from '../../../assets/Logo/QCJMD.png'
@@ -48,6 +48,11 @@ const EducationalAttainment = () => {
         queryFn: () => getUser(token ?? "")
     })
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
+
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteEducationalAttainments(token ?? "", id),
         onSuccess: () => {
@@ -67,16 +72,14 @@ const EducationalAttainment = () => {
         setIsModalOpen(false);
     };
 
-    const dataSource = data?.results?.map((educational_attainments) => (
+    const dataSource = data?.results?.map((educational_attainments, index) => (
         {
-            key: educational_attainments?.id,
+            key: index + 1,
             id: educational_attainments?.id,
             name: educational_attainments?.name ?? 'N/A',
             description: educational_attainments?.description ?? 'N/A',
             updated_at: educational_attainments?.updated_at,
             updated: educational_attainments?.updated_by ?? 'N/A',
-            organization: educational_attainments?.organization ?? 'Bureau of Jail Management and Penology',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -153,8 +156,8 @@ const EducationalAttainment = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
@@ -199,7 +202,7 @@ const EducationalAttainment = () => {
             const pageData = tableData.slice(i, i + maxRowsPerPage);
     
             autoTable(doc, { 
-                head: [['No.', 'Employment Type', 'Description']],
+                head: [['No.', 'Educational Attainments', 'Description']],
                 body: pageData,
                 startY: startY,
                 margin: { top: 0, left: 10, right: 10 },
@@ -328,7 +331,8 @@ const EducationalAttainment = () => {
                 <AddEducationalAttainment onClose={handleCancel} />
             </Modal>
             <Modal
-                title="EditOrganization"
+                title="
+                Edit Educational Attainment"
                 open={isEditModalOpen}
                 onCancel={() => setIsEditModalOpen(false)}
                 footer={null}

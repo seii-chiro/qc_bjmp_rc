@@ -14,7 +14,7 @@ import { LuSearch } from "react-icons/lu";
 import AddDeviceSetting from "./AddDeviceSetting";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import EditDeviceSetting from "./EditDeviceSetting";
-import { getUser } from "@/lib/queries";
+import { getOrganization, getUser } from "@/lib/queries";
 import bjmp from '../../../assets/Logo/QCJMD.png'
 
 const DeviceSetting = () => {
@@ -37,6 +37,11 @@ const DeviceSetting = () => {
     const { data: UserData } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
+    })
+
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
     })
 
     const showModal = () => {
@@ -65,8 +70,6 @@ const DeviceSetting = () => {
         settingKey: device_setting?.key ?? '',
         value: device_setting?.value ?? '',
         description: device_setting?.description ?? '',
-        organization: devices?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
     const filteredData = dataSource.filter((device_setting) =>
@@ -138,8 +141,8 @@ const DeviceSetting = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || "Bureau of Jail Management and Penology"; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

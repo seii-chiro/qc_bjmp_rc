@@ -164,14 +164,12 @@ const ServiceProvided = () => {
         }
     };
 
-    const dataSource = data?.results?.map((service, index) => ({
-            key: index + 1,
+    const dataSource = data?.results?.map((service) => ({
             id: service?.id,
             service_provided: service?.service_provided,
             description: service?.description,
             priority_level: service?.priority_level,
             service_frequency: service?.service_frequency,
-            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     }));
 
     const columns: ColumnsType<ServiceProvidedPayload> = [
@@ -247,7 +245,7 @@ const handleExportPDF = async () => {
         const headerHeight = 48;
         const footerHeight = 32;
         const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
-        const PreparedBy = dataSource[0]?.updated || "";
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`;
 
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

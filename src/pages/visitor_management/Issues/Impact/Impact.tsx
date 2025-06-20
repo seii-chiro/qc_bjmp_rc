@@ -10,7 +10,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { GoDownload, GoPlus } from "react-icons/go";
-import { deleteImpact, getImpactLevels, getImpacts, getRisks, getUser, patchImpact } from "@/lib/queries";
+import { deleteImpact, getImpactLevels, getImpacts, getOrganization, getRisks, getUser, patchImpact } from "@/lib/queries";
 import AddImpact from "./addImpact";
 import bjmp from '../../../../assets/Logo/QCJMD.png'
 
@@ -47,7 +47,10 @@ const Impact = () => {
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
     })
-
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
     const showModal = () => {
         setIsModalOpen(true);
     };
@@ -107,8 +110,6 @@ const Impact = () => {
         description: impact?.description ?? '',
         updated_at: impact?.updated_at ?? '',
         updated_by: impact?.updated_by ?? '',
-        organization: impact?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
     const filteredData = searchText
@@ -173,8 +174,8 @@ const Impact = () => {
         const doc = new jsPDF('landscape');
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name || ''} ${UserData?.last_name || ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

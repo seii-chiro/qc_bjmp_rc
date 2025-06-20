@@ -1,5 +1,5 @@
 import { Skill } from "@/lib/definitions"
-import { deleteSKILLS, getSkills, getUser } from "@/lib/queries";
+import { deleteSKILLS, getOrganization, getSkills, getUser } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Menu, message, Modal } from "antd";
@@ -40,6 +40,11 @@ const Skills = () => {
         queryFn: () => getUser(token ?? "")
     })
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
+
     const showModal = () => {
         setIsModalOpen(true);
     };
@@ -65,8 +70,6 @@ const Skills = () => {
             id: skills?.id ?? 'N/A',
             name: skills?.name ?? 'N/A',
             description: skills?.description ?? 'N/A',
-            organization: skills?.organization ?? 'Bureau of Jail Management and Penology',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -124,8 +127,8 @@ const Skills = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

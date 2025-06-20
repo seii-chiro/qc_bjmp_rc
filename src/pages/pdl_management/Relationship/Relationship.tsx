@@ -1,9 +1,8 @@
-import { deleteRelationship, getRelationship, patchRelationship } from "@/lib/query";
+import { deleteRelationship, patchRelationship } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Form, Input, Menu, message, Modal, Table } from "antd";
 import moment from "moment";
-import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -40,7 +39,6 @@ const Relationship = () => {
     const [selectRelationship, setSelctedRelationship] = useState<RelationshipForm | null>(null);
     const [pdfDataUrl, setPdfDataUrl] = useState(null);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
-    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
     const fetchRelationship = async (search: string) => {
         const res = await fetch(`${BASE_URL}/api/pdls/relationship/?search=${search}`, {
@@ -165,8 +163,6 @@ const Relationship = () => {
         description: relationship?.description ?? 'N/A',
         updated_at: relationship?.updated_at ?? '', 
         updated_by: relationship?.updated_by ?? 'N/A',
-        organization: relationship?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
     const columns = [
@@ -238,7 +234,7 @@ const Relationship = () => {
             const headerHeight = 48;
             const footerHeight = 32;
             const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
-            const PreparedBy = dataSource[0]?.updated || "";
+            const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
 
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];

@@ -1,4 +1,4 @@
-import { getJail_Category, deleteJail_Category, getUser, PaginatedResponse } from "@/lib/queries"
+import { getJail_Category, deleteJail_Category, getUser, PaginatedResponse, getOrganization } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Table, Button, message, Modal, Dropdown, Menu, Spin } from "antd";
@@ -84,6 +84,11 @@ const JailCategory = () => {
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
     })
+    
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteJail_Category(token ?? "", id),
@@ -109,8 +114,6 @@ const JailCategory = () => {
         id: category.id,
         description: category?.description ?? "N/A",
         category_name: category?.category_name ?? "N/A",
-        organization: category?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
     const filteredData = dataSource?.filter((jail_category) =>
@@ -122,7 +125,8 @@ const JailCategory = () => {
     const columns: ColumnsType<JailCategoryReport> = [
         {
             title: 'No.',
-            render: (_, __, index) => index + 1,
+            key: 'no',
+            render: (_: any, __: any, index: number) => (page - 1) * limit + index + 1,
         },
         {
             title: "Jail Category",
@@ -173,8 +177,8 @@ const JailCategory = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

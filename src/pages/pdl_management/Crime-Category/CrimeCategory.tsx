@@ -1,4 +1,4 @@
-import { getCrimeCategories, getUser } from "@/lib/queries";
+import { getCrimeCategories, getOrganization, getUser } from "@/lib/queries";
 import { deleteCrimeCategory, patchCrimeCategory } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -41,6 +41,11 @@ const CrimeCategory = () => {
     const { data: UserData } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
+    })
+
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
     })
 
     const showModal = () => {
@@ -97,8 +102,6 @@ const CrimeCategory = () => {
         id: item?.id ?? '',
         crime_category_name: item?.crime_category_name ?? '',
         description: item?.description ?? '',
-        organization: item?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
     const filteredData = dataSource?.filter((crime_category) =>
@@ -117,15 +120,6 @@ const CrimeCategory = () => {
         dataIndex: 'crime_category_name',
         key: 'crime_category_name',
         sorter: (a, b) => a.crime_category_name.localeCompare(b.crime_category_name),
-        filters: [
-        ...Array.from(
-            new Set(filteredData.map(item => item.crime_category_name))
-            ).map(name => ({
-                text: name,
-                value: name,
-            }))
-        ],
-        onFilter: (value, record) => record.crime_category_name === value,
         },
         {
         title: 'Description',
@@ -165,8 +159,8 @@ const handleExportPDF = () => {
     const doc = new jsPDF();
     const headerHeight = 48;
     const footerHeight = 32;
-    const organizationName = dataSource[0]?.organization || ""; 
-    const PreparedBy = dataSource[0]?.updated || ''; 
+    const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+    const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
 
     const today = new Date();
     const formattedDate = today.toISOString().split('T')[0];

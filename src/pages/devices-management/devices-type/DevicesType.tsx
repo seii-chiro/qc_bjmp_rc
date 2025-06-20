@@ -1,4 +1,4 @@
-import { getDevice_Types, deleteDevice_Types, getUser} from "@/lib/queries"
+import { getDevice_Types, deleteDevice_Types, getUser, getOrganization} from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CSVLink } from "react-csv";
@@ -46,6 +46,11 @@ const DeviceType = () => {
         queryFn: () => getUser(token ?? "")
     })
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
+
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteDevice_Types(token ?? "", id),
         onSuccess: () => {
@@ -66,14 +71,12 @@ const DeviceType = () => {
         };
 
     const dataSource = data?.results?.map((devicestypes, index) => ({
-        key: devicestypes?.id,
+        key: index + 1,
         id: devicestypes.id,
         device_type: devicestypes?.device_type ?? "N/A",
         purpose: devicestypes?.purpose ?? "N/A",
         remarks: devicestypes?.remarks ?? "N/A",
         device_usage: devicestypes?.device_usage ?? "N/A",
-        organization: devicestypes?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
     const filteredData = dataSource?.filter((devicetypes) =>
@@ -159,8 +162,8 @@ const DeviceType = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || "Bureau of Jail Management and Penology"; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

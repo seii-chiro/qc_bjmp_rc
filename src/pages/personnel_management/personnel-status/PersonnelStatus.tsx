@@ -164,7 +164,6 @@ const dataSource = data?.results.map((status, index) => ({
         id: status?.id,
         name: status?.name,
         description: status?.description,
-        updated: `${UserData?.results?.[0]?.first_name || ''} ${UserData?.results?.[0]?.last_name || ''}`
     }));
 
     const columns: ColumnsType<StatusPayload> = [

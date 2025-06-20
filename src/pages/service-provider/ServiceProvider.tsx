@@ -309,13 +309,12 @@ const ServiceProvider = () => {
         value: group.name,
     })) ?? [];
 
-    const dataSource = data?.results?.map((provider, index) => {
+    const dataSource = data?.results?.map((provider) => {
         const matchedPerson = personsArray.find(person => person.id === provider.person);
         const matchedSPtype = sptypeArray.find(type => type.id === provider.serv_prov_type);
         const matchedService = serviceArray.find(service => service.id === provider.provided_service);
 
         return {
-            key: index + 1,
             id: provider?.id,
             sp_reg_no: provider?.sp_reg_no,
             serv_prov_type: matchedSPtype?.serv_prov_type,

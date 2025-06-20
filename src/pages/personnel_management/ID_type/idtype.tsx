@@ -1,4 +1,4 @@
-import { getID_Type, deleteID_Type, getUser } from "@/lib/queries"
+import { getID_Type, deleteID_Type, getUser, getOrganization } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore"
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
@@ -44,6 +44,11 @@ const ID_Types = () => {
         queryFn: () => getUser(token ?? "")
     })
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
+
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteID_Type(token ?? "", id),
         onSuccess: () => {
@@ -69,8 +74,6 @@ const ID_Types = () => {
             id: id_types?.id,
             id_type: id_types?.id_type ?? 'N/A',
             description: id_types?.description ?? 'N/A',
-            organization: id_types?.organization ?? 'Bureau of Jail Management and Penology',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -137,8 +140,8 @@ const ID_Types = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
@@ -307,7 +310,7 @@ const isSearching = searchText.trim().length > 0;
             </Modal>
             <Modal
                 className="overflow-y-auto rounded-lg scrollbar-hide"
-                title="Add Visitor Type"
+                title="Add ID Type"
                 open={isModalOpen}
                 onCancel={handleCancel}
                 footer={null}
@@ -316,7 +319,7 @@ const isSearching = searchText.trim().length > 0;
             <AddIDType onClose={handleCancel} />
             </Modal>
             <Modal
-                title="Edit Visitor Type"
+                title="Edit ID Type"
                 open={isEditModalOpen}
                 onCancel={() => setIsEditModalOpen(false)}
                 footer={null}

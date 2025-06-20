@@ -1,4 +1,4 @@
-import { getCivilStatus, deleteCivil_Status, getUser } from "@/lib/queries"
+import { getCivilStatus, deleteCivil_Status, getUser, getOrganization } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore"
 import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
@@ -43,7 +43,10 @@ const CivilStatus = () => {
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
     })
-
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteCivil_Status(token ?? "", id),
         onSuccess: () => {
@@ -69,8 +72,6 @@ const CivilStatus = () => {
             id: civil_status?.id,
             status: civil_status?.status ?? 'N/A',
             description: civil_status?.description ?? 'N/A',
-            organization: civil_status?.organization ?? 'Bureau of Jail Management and Penology',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -136,8 +137,8 @@ const CivilStatus = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

@@ -398,16 +398,6 @@ const { data, isFetching } = useQuery({
                     >
                         <AiOutlineEdit />
                     </Button>
-                    {/* <Button
-                        type="link"
-                        danger
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            deleteMutation.mutate(record.id);
-                        }}
-                    >
-                        <AiOutlineDelete />
-                    </Button> */}
                     <Button
                         type="link"
                         danger

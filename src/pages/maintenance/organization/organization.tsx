@@ -72,7 +72,6 @@ const Organization = () => {
             org_name: organization?.org_name ?? 'N/A',
             org_type: organization?.org_type ?? 'N/A',
             org_level: organization?.org_level ?? 'N/A',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -92,60 +91,24 @@ const Organization = () => {
             dataIndex: 'org_code',
             key: 'org_code',
             sorter: (a, b) => a.org_code.localeCompare(b.org_code),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.org_code))
-            //     ).map(name => ({
-            //         text: name,
-            //         value: name,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.org_code === value,
         },
         {
             title: 'Organization Name',
             dataIndex: 'org_name',
             key: 'org_name',
             sorter: (a, b) => a.org_name.localeCompare(b.org_name),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.org_name))
-            //     ).map(name => ({
-            //         text: name,
-            //         value: name,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.org_name === value,
         },
         {
             title: 'Organization Type',
             dataIndex: 'org_type',
             key: 'org_type',
             sorter: (a, b) => a.org_type.localeCompare(b.org_type),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.org_type))
-            //     ).map(name => ({
-            //         text: name,
-            //         value: name,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.org_type === value,
         },
         {
             title: 'Organization Level',
             dataIndex: 'org_level',
             key: 'org_level',
             sorter: (a, b) => a.org_level.localeCompare(b.org_level),
-            // filters: [
-            //     ...Array.from(
-            //         new Set(filteredData.map(item => item.org_level))
-            //     ).map(name => ({
-            //         text: name,
-            //         value: name,
-            //     }))
-            // ],
-            // onFilter: (value, record) => record.org_level === value,
         },
         {
             title: "Actions",
@@ -185,8 +148,8 @@ const Organization = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.org_name || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+        const organizationName = data?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

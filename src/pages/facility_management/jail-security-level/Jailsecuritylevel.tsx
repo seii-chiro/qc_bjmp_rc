@@ -1,4 +1,4 @@
-import { getJail_Security_Level, deleteJailSecurityLevel, getUser } from "@/lib/queries"
+import { getJail_Security_Level, deleteJailSecurityLevel, getUser, getOrganization } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { CSVLink } from "react-csv";
@@ -44,6 +44,11 @@ const JailSecurityLevel = () => {
         queryFn: () => getUser(token ?? "")
     })
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
+
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteJailSecurityLevel(token ?? "", id),
         onSuccess: () => {
@@ -65,12 +70,10 @@ const JailSecurityLevel = () => {
 
     const dataSource = data?.results?.map((jailsecurity, index) => (
         {
-            key:jailsecurity?.id,
+            key: index + 1 ,
             id: jailsecurity?.id,
             category_name: jailsecurity?.category_name ?? 'N/A',
             description: jailsecurity?.description ?? 'N/A',
-            organization: jailsecurity?.organization ?? 'Bureau of Jail Management and Penology',
-            updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
@@ -134,8 +137,8 @@ const JailSecurityLevel = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

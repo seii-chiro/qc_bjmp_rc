@@ -1,4 +1,4 @@
-import { deleteDetention_Floor, getDetention_Building, getDetention_Floor, getJail_Security_Level, getUser, updateDetention_Floor } from "@/lib/queries";
+import { deleteDetention_Floor, getDetention_Building, getDetention_Floor, getJail_Security_Level, getOrganization, getUser, updateDetention_Floor } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Form, Input, Menu, message, Modal, Select } from "antd";
@@ -13,7 +13,6 @@ import bjmp from '../../../assets/Logo/QCJMD.png'
 import { GoDownload, GoPlus } from "react-icons/go";
 import { LuSearch } from "react-icons/lu";
 import AddAnnex from "./AddAnnex";
-import EditAnnex from "./EditAnnex";
 
 type AnnexResponse = {
     id: number;
@@ -46,6 +45,11 @@ const Annex = () => {
     const { data: UserData } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
+    })
+
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
     })
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteDetention_Floor(token ?? "", id),
@@ -104,8 +108,6 @@ const Annex = () => {
         floor_number: annex?.floor_number,
         floor_name: annex?.floor_name,
         security_level: annex?.security_level,
-        organization: annex?.organization ?? 'Bureau of Jail Management and Penology',
-        updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
     const filteredData = dataSource?.filter((annex) =>
@@ -172,8 +174,8 @@ const handleExportExcel = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

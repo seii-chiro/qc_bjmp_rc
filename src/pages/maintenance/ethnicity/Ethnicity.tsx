@@ -168,26 +168,7 @@ const Ethnicity = () => {
     acc[item.ethnicity].push(item);
     return acc;
   }, {} as Record<string, any[]>);
-
-
-    // const refreshEthnicityProvince = (ethnicityName?: string) => {
-    //     const name = ethnicityName || selectEditEthnicity.name;
-    //     if (name) {
-    //         fetch(`${BASE_URL}/api/codes/ethnicity-provinces/?limit=1000`, {
-    //             headers: {
-    //                 Authorization: `Token ${token}`,
-    //             },
-    //         })
-    //             .then(res => res.json())
-    //             .then(json => {
-    //                 const filtered = (json.results || []).filter(
-    //                     b => b.court?.toLowerCase() === name.toLowerCase()
-    //                 );
-    //                 setEthnicityProvince(filtered);
-    //             });
-    //     }
-    // };
-
+  
   const { mutate: editEthnicity, isLoading: isUpdating } = useMutation({
     mutationFn: (updated: EthnicityProps) =>
       patchEthnicity(token ?? "", updated.id, updated),

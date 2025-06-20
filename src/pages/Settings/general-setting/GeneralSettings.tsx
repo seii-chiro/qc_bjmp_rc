@@ -66,7 +66,7 @@ const GeneralSettings = () => {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleDateChange = (date, dateString, field) => {
+    const handleDateChange = ( dateString, field) => {
         setFormData((prev) => ({ ...prev, [field]: dateString }));
     };
 

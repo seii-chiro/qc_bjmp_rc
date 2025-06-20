@@ -1,4 +1,4 @@
-import { deletePrefixes, getPrefixes, getUser } from "@/lib/queries";
+import { deletePrefixes, getOrganization, getPrefixes, getUser } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Menu, message, Modal, Table } from "antd";
@@ -47,6 +47,10 @@ const Prefixes = () => {
         queryFn: () => getUser(token ?? "")
     })
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deletePrefixes(token ?? "", id),
         onSuccess: () => {
@@ -158,8 +162,8 @@ const Prefixes = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = UserData ? `${UserData?.first_name || ''} ${UserData?.last_name || ''}` : ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];

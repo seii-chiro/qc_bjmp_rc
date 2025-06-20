@@ -5,14 +5,13 @@ import Table, { ColumnsType } from "antd/es/table";
 import { useEffect, useState } from "react";
 import { AiOutlineDelete, AiOutlineEdit } from "react-icons/ai";
 import { GoDownload, GoPlus } from "react-icons/go";
-import { CSVLink } from "react-csv";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { getOrganization, getUser, PaginatedResponse } from "@/lib/queries";
 import bjmp from '../../../assets/Logo/QCJMD.png'
 import { PersonnelDesignationPayload } from "@/lib/issues-difinitions";
-import { deletePersonnelType, getPersonnelType, patchPersonnelType } from "@/lib/personnel-queries";
+import { deletePersonnelType, patchPersonnelType } from "@/lib/personnel-queries";
 import AddPersonnelType from "./AddPersonnelType";
 import { BASE_URL } from "@/lib/urls";
 

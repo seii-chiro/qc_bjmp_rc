@@ -1,4 +1,4 @@
-import { getGangAffiliation, getUser } from "@/lib/queries";
+import { getGangAffiliation, getOrganization, getUser } from "@/lib/queries";
 import { deleteGangAffiliation, patchGangAffiliation } from "@/lib/query";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -47,6 +47,10 @@ const GangAffiliation = () => {
         queryFn: () => getUser(token ?? "")
     })
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
     const showModal = () => {
         setIsModalOpen(true);
     };
@@ -105,8 +109,6 @@ const GangAffiliation = () => {
         remarks: gang_affiliation?.remarks ?? 'N/A',
         updated_at: moment(gang_affiliation?.updated_at).format('YYYY-MM-DD h:mm A') ?? 'N/A', 
         updated_by: gang_affiliation?.updated_by ?? 'N/A',
-        organization: gang_affiliation?.organization ?? 'Bureau of Jail Management and Penology',
-        updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
     const filteredData = dataSource?.filter((gang_affiliation) =>
@@ -143,30 +145,12 @@ const GangAffiliation = () => {
                 dataIndex: "updated_at",
                 key: "updated_at",
                 sorter: (a, b) => moment(a.updated_at).diff(moment(b.updated_at)),
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.updated_at.split(' ')[0]))
-                    ).map(date => ({
-                        text: date,
-                        value: date,
-                    }))
-                ],
-                onFilter: (value, record) => record.updated_at.startsWith(value),
             },
             {
                 title: 'Updated By',
                 dataIndex: 'updated_by',
                 key: 'updated_by',
                 sorter: (a, b) => a.updated_by.localeCompare(b.updated_by),
-                filters: [
-                    ...Array.from(
-                        new Set(filteredData.map(item => item.updated_by))
-                    ).map(name => ({
-                        text: name,
-                        value: name,
-                    }))
-                ],
-                onFilter: (value, record) => record.updated_by === value,
             },
             {
                 title: "Action",
@@ -200,8 +184,8 @@ const GangAffiliation = () => {
             const doc = new jsPDF();
             const headerHeight = 48;
             const footerHeight = 32;
-            const organizationName = dataSource[0]?.organization || ""; 
-            const PreparedBy = dataSource[0]?.updated || ''; 
+            const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+            const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
         
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];

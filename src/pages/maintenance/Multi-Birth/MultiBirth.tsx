@@ -1,4 +1,4 @@
-import { deleteMultiBirthType, getMultipleBirthClassTypes, getUser } from "@/lib/queries";
+import { deleteMultiBirthType, getMultipleBirthClassTypes, getOrganization, getUser } from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Menu, message, Modal, Table } from "antd";
@@ -45,6 +45,11 @@ const MultiBirth = () => {
         queryFn: () => getUser(token ?? "")
     })
 
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
+
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteMultiBirthType(token ?? "", id),
         onSuccess: () => {
@@ -77,8 +82,6 @@ const MultiBirth = () => {
         group_size: multibirth?.group_size ?? "N/A",
         term_for_sibling_group: multibirth?.term_for_sibling_group ?? "N/A",
         description: multibirth?.description ?? "N/A",
-        organization: multibirth?.organization ?? 'Bureau of Jail Management and Penology',
-        updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
     })) || [];
 
     const filteredData = dataSource.filter((item) =>
@@ -97,60 +100,24 @@ const MultiBirth = () => {
                 dataIndex: "classification",
                 key: "classification",
                 sorter: (a, b) => a.classification.localeCompare(b.classification),
-                // filters: [
-                //     ...Array.from(
-                //         new Set(filteredData.map(item => item.classification))
-                //     ).map(name => ({
-                //         text: name,
-                //         value: name,
-                //     }))
-                // ],
-                // onFilter: (value, record) => record.classification === value,
                 },
                 {
                 title: "Group Size",
                 dataIndex: "group_size",
                 key: "group_size",
                 sorter: (a, b) => a.group_size - b.group_size,
-                // filters: [
-                //     ...Array.from(
-                //         new Set(filteredData.map(item => item.group_size))
-                //     ).map(name => ({
-                //         text: name,
-                //         value: name,
-                //     }))
-                // ],
-                // onFilter: (value, record) => record.group_size === value,
                 },
                 {
                     title: "Term for Sibling Group",
                     dataIndex: "term_for_sibling_group",
                     key: "term_for_sibling_group",
                     sorter: (a, b) => a.term_for_sibling_group.localeCompare(b.term_for_sibling_group),
-                    // filters: [
-                    //     ...Array.from(
-                    //         new Set(filteredData.map(item => item.term_for_sibling_group))
-                    //     ).map(name => ({
-                    //         text: name,
-                    //         value: name,
-                    //     }))
-                    // ],
-                    // onFilter: (value, record) => record.term_for_sibling_group === value,
                 },
                 {
                     title: "Description",
                     dataIndex: "description",
                     key: "description",
                     sorter: (a, b) => a.description.localeCompare(b.description),
-                    // filters: [
-                    //     ...Array.from(
-                    //         new Set(filteredData.map(item => item.description))
-                    //     ).map(name => ({
-                    //         text: name,
-                    //         value: name,
-                    //     }))
-                    // ],
-                    // onFilter: (value, record) => record.description === value,
                 },
                 {
                 title: "Actions",
@@ -188,8 +155,8 @@ const MultiBirth = () => {
             const doc = new jsPDF();
             const headerHeight = 48;
             const footerHeight = 32;
-            const organizationName = dataSource[0]?.organization || ""; 
-            const PreparedBy = dataSource[0]?.updated_by || ''; 
+            const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+            const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
         
             const today = new Date();
             const formattedDate = today.toISOString().split('T')[0];

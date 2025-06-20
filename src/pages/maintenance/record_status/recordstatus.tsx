@@ -1,4 +1,4 @@
-import { deleteRecord_Status, getRecord_Status, getUser } from "@/lib/queries"
+import { deleteRecord_Status, getOrganization, getRecord_Status, getUser } from "@/lib/queries"
 import { useTokenStore } from "@/store/useTokenStore"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { CSVLink } from "react-csv";
@@ -42,7 +42,10 @@ const RecordStatus = () => {
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
     })
-
+    const { data: OrganizationData } = useQuery({
+        queryKey: ['organization'],
+        queryFn: () => getOrganization(token ?? "")
+    })
     const deleteMutation = useMutation({
         mutationFn: (id: number) => deleteRecord_Status(token ?? "", id),
         onSuccess: () => {
@@ -69,13 +72,11 @@ const RecordStatus = () => {
             id: recordstatus?.id,
             status: recordstatus?.status ?? 'N/A',
             description: recordstatus?.description ?? 'N/A',
-            organization: recordstatus?.organization ?? 'Bureau of Jail Management and Penology',
-            updated_by: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
         }
     )) || [];
 
-    const filteredData = dataSource?.filter((visitor_req_docs) =>
-        Object.values(visitor_req_docs).some((value) =>
+    const filteredData = dataSource?.filter((recordstatus) =>
+        Object.values(recordstatus).some((value) =>
             String(value).toLowerCase().includes(searchText.toLowerCase())
         )
     );
@@ -134,8 +135,8 @@ const RecordStatus = () => {
         const doc = new jsPDF();
         const headerHeight = 48;
         const footerHeight = 32;
-        const organizationName = dataSource[0]?.organization || ""; 
-        const PreparedBy = dataSource[0]?.updated_by || ''; 
+        const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
+        const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
     
         const today = new Date();
         const formattedDate = today.toISOString().split('T')[0];
