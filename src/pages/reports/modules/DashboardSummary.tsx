@@ -854,7 +854,7 @@ const DashboardSummary = () => {
                         </td>
                         <td className="px-6 py-2 text-lg whitespace-nowrap">
                           {summarydata?.success.pdls_based_on_gender?.Active?.[
-                            "LGBTQ + TRANSGENDER"
+                            "TRANSGENDER"
                           ] || 0}
                         </td>
                       </tr>
