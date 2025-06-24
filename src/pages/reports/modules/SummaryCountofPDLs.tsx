@@ -604,8 +604,8 @@ const SummaryCountofPDLs = () => {
         const filteredPDLs = allPDLs?.results?.filter(applyFilters) || [];
         // Gender-based counts
         const male = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'Male').length;
-        const gay = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'LGBTQ + GAY / BISEXUAL').length;
-        const transgender = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'LGBTQ + TRANSGENDER').length;
+        const gay = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'LGBTQIA+').length;
+        const transgender = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'TRANSGENDER').length;
 
         // Status-based counts
         const releasedCount = filteredPDLs.filter(pdl => pdl?.status === 'Released').length;
@@ -625,7 +625,7 @@ const SummaryCountofPDLs = () => {
         const genderSummary = [
             ["PDL Count Based on Gender", "Total"],
             ["Male", male],
-            ["Gay", gay],
+            ["LGBTQIA+'", gay],
             ["Transgender", transgender],
             ["Total", male + gay + transgender]
         ];
@@ -687,8 +687,8 @@ const SummaryCountofPDLs = () => {
 
         // Gender-based counts
         const male = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'Male').length;
-        const gay = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'LGBTQ + GAY / BISEXUAL').length;
-        const transgender = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'LGBTQ + TRANSGENDER').length;
+        const gay = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'LGBTQIA+').length;
+        const transgender = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'TRANSGENDER').length;
         const totalGender = male + gay + transgender;
 
         // Status-based counts
@@ -787,7 +787,7 @@ const SummaryCountofPDLs = () => {
                                 { text: "Total", bold: true }
                             ],
                             ["Male", male],
-                            ["Gay", gay],
+                            ["LGBTQIA+'", gay],
                             ["Transgender", transgender],
                             [
                                 { text: "Total", bold: true },
@@ -1579,7 +1579,7 @@ const SummaryCountofPDLs = () => {
                                 <td className="px-6 py-2 text-lg whitespace-nowrap border-r">LGBTQIA+</td>
                                 <td className="px-6 py-2 text-lg whitespace-nowrap">
                                 {allPDLs?.results?.filter(pdl =>
-                                    pdl?.person?.gender?.gender_option === 'LGBTQ + GAY / BISEXUAL' &&
+                                    pdl?.person?.gender?.gender_option === 'LGBTQIA+' &&
                                     (!civilStatusFilter || pdl?.person?.civil_status === civilStatusFilter) &&
                                     (!religionFilter || pdl?.person?.religion?.name === religionFilter) &&                                    
                                     (!lawFilter || pdl?.cases[0]?.offense?.law === lawFilter) &&
@@ -1602,7 +1602,7 @@ const SummaryCountofPDLs = () => {
                                 <td className="px-6 py-2 text-lg whitespace-nowrap border-r">Transgender</td>
                                 <td className="px-6 py-2 text-lg whitespace-nowrap">
                                 {allPDLs?.results?.filter(pdl =>
-                                    pdl?.person?.gender?.gender_option === 'LGBTQ + TRANSGENDER' &&
+                                    pdl?.person?.gender?.gender_option === 'TRANSGENDER' &&
                                     (!civilStatusFilter || pdl?.person?.civil_status === civilStatusFilter) &&
                                     (!religionFilter || pdl?.person?.religion?.name === religionFilter) &&
                                     (!lawFilter || pdl?.cases[0]?.offense?.law === lawFilter) &&
@@ -1644,7 +1644,7 @@ const SummaryCountofPDLs = () => {
                                         (!occupationFilter || pdl?.occupation === occupationFilter)
                                     ).length || 0) +
                                     (allPDLs?.results?.filter(pdl =>
-                                    pdl?.person?.gender?.gender_option === 'LGBTQ + GAY / BISEXUAL' &&
+                                    pdl?.person?.gender?.gender_option === 'LGBTQIA+' &&
                                     (!civilStatusFilter || pdl?.person?.civil_status === civilStatusFilter) &&
                                     (!religionFilter || pdl?.person?.religion?.name === religionFilter) &&
                                     (!lawFilter || pdl?.cases[0]?.offense?.law === lawFilter) &&
@@ -1662,7 +1662,7 @@ const SummaryCountofPDLs = () => {
                                         (!occupationFilter || pdl?.occupation === occupationFilter)
                                     ).length || 0) +
                                     (allPDLs?.results?.filter(pdl =>
-                                    pdl?.person?.gender?.gender_option === 'LGBTQ + TRANSGENDER' &&
+                                    pdl?.person?.gender?.gender_option === 'TRANSGENDER' &&
                                     (!civilStatusFilter || pdl?.person?.civil_status === civilStatusFilter) &&
                                     (!religionFilter || pdl?.person?.religion?.name === religionFilter) &&
                                     (!lawFilter || pdl?.cases[0]?.offense?.law === lawFilter) &&
