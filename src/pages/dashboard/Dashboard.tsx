@@ -897,7 +897,7 @@ const Dashboard = () => {
                                                     />
                                                     <Card3
                                                         image={gay}
-                                                        title="Gay"
+                                                        title="LGBTQIA+"
                                                         count={summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0}
                                                         onClick={() => pdlHandleClick("LGBTQ + GAY / BISEXUAL")}
                                                     />

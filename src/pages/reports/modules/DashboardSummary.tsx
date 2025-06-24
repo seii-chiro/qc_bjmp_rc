@@ -522,7 +522,7 @@ const createStyledTable = (title, body) => {
                                             <td className="px-6 py-2 text-lg whitespace-nowrap">{summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0}</td>
                                         </tr>
                                         <tr>
-                                            <td className="px-6 py-2 text-lg whitespace-nowrap border-r">Gay</td>
+                                            <td className="px-6 py-2 text-lg whitespace-nowrap border-r">LGBTQIA+</td>
                                             <td className="px-6 py-2 text-lg whitespace-nowrap">{summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0}</td>
                                         </tr>
                                         <tr>
