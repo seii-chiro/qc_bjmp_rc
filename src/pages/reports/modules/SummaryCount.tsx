@@ -105,7 +105,7 @@ const SummaryCount = () => {
       .length || 0;
   const transgenderVisitorCount =
     visitorData?.results?.filter(
-      (visitor) => visitor.visitor_type === "LGBTQ + TRANSGENDER"
+      (visitor) => visitor.visitor_type === "TRANSGENDER"
     ).length || 0;
   const lesbianVisitorCount =
     visitorData?.results?.filter(
@@ -134,7 +134,7 @@ const SummaryCount = () => {
   const transgenderCount =
     visitorData?.results?.filter(
       (visitor) =>
-        visitor.person?.gender?.gender_option === "LGBTQ + TRANSGENDER"
+        visitor.person?.gender?.gender_option === "TRANSGENDER"
     ).length || 0;
   const lesbianCount =
     visitorData?.results?.filter(
@@ -515,7 +515,7 @@ const SummaryCount = () => {
       { "Visitor Type": "Pregnant Woman", Total: pregnantWomanVisitorCount },
       { "Visitor Type": "Minor", Total: minorVisitorCount },
       { "Visitor Type": "LGBTQ+", Total: lbtqVisitorCount },
-      { "Visitor Type": "LGBTQ + TRANSGENDER", Total: transgenderVisitorCount },
+      { "Visitor Type": "TRANSGENDER", Total: transgenderVisitorCount },
       {
         "Visitor Type": "LGBTQ + LESBIAN / BISEXUAL",
         Total: lesbianVisitorCount,
@@ -1282,7 +1282,7 @@ const SummaryCount = () => {
                       </tr>
                       <tr>
                         <td className="px-6 py-2 whitespace-nowrap">
-                          LGBTQ + TRANSGENDER
+                          TRANSGENDER
                         </td>
                         <td className="px-6 py-2 whitespace-nowrap">
                           {transgenderVisitorCount}
