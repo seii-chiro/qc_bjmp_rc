@@ -377,8 +377,8 @@ const Dashboard = () => {
 
     const genderData = [
         { name: 'Male', value: summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0 },
-        { name: 'Gay', value: summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0 },
-        { name: 'Transgender', value: summarydata?.success.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0 },
+        { name: 'LGBTQIA+', value: summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQIA+"] || 0 },
+        { name: 'Transgender', value: summarydata?.success.pdls_based_on_gender?.Active?.["TRANSGENDER"] || 0 },
     ];
     const PDL_COLORS = ['#3471EC', '#7ED26C', '#FE319D'];
     const COLORS = ['#3471EC', '#FE319D', '#AF4BCE'];
@@ -898,14 +898,14 @@ const Dashboard = () => {
                                                     <Card3
                                                         image={gay}
                                                         title="LGBTQIA+"
-                                                        count={summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + GAY / BISEXUAL"] || 0}
-                                                        onClick={() => pdlHandleClick("LGBTQ + GAY / BISEXUAL")}
+                                                        count={summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQIA+"] || 0}
+                                                        onClick={() => pdlHandleClick("LGBTQIA+")}
                                                     />
                                                     <Card3
                                                         image={trans}
                                                         title="Transgender"
-                                                        count={summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQ + TRANSGENDER"] || 0}
-                                                        onClick={() => pdlHandleClick("LGBTQ + TRANSGENDER")}
+                                                        count={summarydata?.success?.pdls_based_on_gender?.Active?.["TRANSGENDER"] || 0}
+                                                        onClick={() => pdlHandleClick("TRANSGENDER")}
                                                     />
                                                 </>
                                             )}

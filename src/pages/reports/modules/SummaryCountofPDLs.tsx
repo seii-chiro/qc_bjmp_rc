@@ -1576,7 +1576,7 @@ const SummaryCountofPDLs = () => {
                                 </td>
                             </tr>
                             <tr>
-                                <td className="px-6 py-2 text-lg whitespace-nowrap border-r">Gay</td>
+                                <td className="px-6 py-2 text-lg whitespace-nowrap border-r">LGBTQIA+</td>
                                 <td className="px-6 py-2 text-lg whitespace-nowrap">
                                 {allPDLs?.results?.filter(pdl =>
                                     pdl?.person?.gender?.gender_option === 'LGBTQ + GAY / BISEXUAL' &&
