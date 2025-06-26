@@ -604,7 +604,7 @@ const SummaryCountofPDLs = () => {
         const filteredPDLs = allPDLs?.results?.filter(applyFilters) || [];
         // Gender-based counts
         const male = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'Male').length;
-        const gay = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'LGBTQIA+').length;
+        const gay = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'LGBQIA+').length;
         const transgender = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'TRANSGENDER').length;
 
         // Status-based counts
@@ -625,7 +625,7 @@ const SummaryCountofPDLs = () => {
         const genderSummary = [
             ["PDL Count Based on Gender", "Total"],
             ["Male", male],
-            ["LGBTQIA+'", gay],
+            ["LGBQIA+'", gay],
             ["Transgender", transgender],
             ["Total", male + gay + transgender]
         ];
@@ -687,7 +687,7 @@ const SummaryCountofPDLs = () => {
 
         // Gender-based counts
         const male = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'Male').length;
-        const gay = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'LGBTQIA+').length;
+        const gay = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'LGBQIA+').length;
         const transgender = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'TRANSGENDER').length;
         const totalGender = male + gay + transgender;
 
@@ -787,7 +787,7 @@ const SummaryCountofPDLs = () => {
                                 { text: "Total", bold: true }
                             ],
                             ["Male", male],
-                            ["LGBTQIA+'", gay],
+                            ["LGBQIA+'", gay],
                             ["Transgender", transgender],
                             [
                                 { text: "Total", bold: true },
@@ -1576,10 +1576,10 @@ const SummaryCountofPDLs = () => {
                                 </td>
                             </tr>
                             <tr>
-                                <td className="px-6 py-2 text-lg whitespace-nowrap border-r">LGBTQIA+</td>
+                                <td className="px-6 py-2 text-lg whitespace-nowrap border-r">LGBQIA+</td>
                                 <td className="px-6 py-2 text-lg whitespace-nowrap">
                                 {allPDLs?.results?.filter(pdl =>
-                                    pdl?.person?.gender?.gender_option === 'LGBTQIA+' &&
+                                    pdl?.person?.gender?.gender_option === 'LGBQIA+' &&
                                     (!civilStatusFilter || pdl?.person?.civil_status === civilStatusFilter) &&
                                     (!religionFilter || pdl?.person?.religion?.name === religionFilter) &&                                    
                                     (!lawFilter || pdl?.cases[0]?.offense?.law === lawFilter) &&
@@ -1644,7 +1644,7 @@ const SummaryCountofPDLs = () => {
                                         (!occupationFilter || pdl?.occupation === occupationFilter)
                                     ).length || 0) +
                                     (allPDLs?.results?.filter(pdl =>
-                                    pdl?.person?.gender?.gender_option === 'LGBTQIA+' &&
+                                    pdl?.person?.gender?.gender_option === 'LGBQIA+' &&
                                     (!civilStatusFilter || pdl?.person?.civil_status === civilStatusFilter) &&
                                     (!religionFilter || pdl?.person?.religion?.name === religionFilter) &&
                                     (!lawFilter || pdl?.cases[0]?.offense?.law === lawFilter) &&
