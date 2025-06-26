@@ -203,7 +203,7 @@ const DashboardSummary = () => {
         "PDL Count Based on Gender": "Transgender",
         Total:
           summarydata?.success?.pdls_based_on_gender?.Active?.[
-            "LGBTQ + TRANSGENDER"
+            "TRANSGENDER"
           ] || 0,
       },
       {
@@ -214,7 +214,7 @@ const DashboardSummary = () => {
             "LGBTQIA+"
           ] || 0) +
           (summarydata?.success?.pdls_based_on_gender?.Active?.[
-            "LGBTQ + TRANSGENDER"
+            "TRANSGENDER"
           ] || 0),
       },
     ];
@@ -466,7 +466,7 @@ const DashboardSummary = () => {
       [
         "Transgender",
         summarydata?.success?.pdls_based_on_gender?.Active?.[
-          "LGBTQ + TRANSGENDER"
+          "TRANSGENDER"
         ] || 0,
       ],
       [
@@ -476,7 +476,7 @@ const DashboardSummary = () => {
             "LGBTQIA+"
           ] || 0) +
           (summarydata?.success?.pdls_based_on_gender?.Active?.[
-            "LGBTQ + TRANSGENDER"
+            "TRANSGENDER"
           ] || 0),
       ],
     ];
@@ -840,7 +840,7 @@ const DashboardSummary = () => {
                         </td>
                         <td className="px-6 py-2 text-lg whitespace-nowrap">
                           {summarydata?.success?.pdls_based_on_gender?.Active?.[
-                            "LGBTQ + GAY / BISEXUAL"
+                            "LGBTQIA+"
                           ] ||
                             0 +
                               summarydata?.success?.pdls_based_on_gender

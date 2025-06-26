@@ -317,8 +317,8 @@ const PDLtable = () => {
             sorter: (a, b) => a.gender.localeCompare(b.gender),
             filters: [
                 { text: 'Male', value: 'Male' },
-                { text: 'LGBTQ + GAY / BISEXUAL', value: 'LGBTQ + GAY / BISEXUAL' },
-                { text: 'LGBTQ + TRANSGENDER', value: 'LGBTQ + TRANSGENDER' },
+                { text: 'LGBTQIA+', value: 'LGBTQIA+' },
+                { text: 'TRANSGENDER', value: 'TRANSGENDER' },
             ],
             filteredValue: genderColumnFilter,
             onFilter: (value, record) => record.gender === value,
