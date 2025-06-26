@@ -116,7 +116,7 @@ const PDLVisitors = () => {
                 { text: 'Pregnant Woman', value: 'Pregnant Woman' },
                 { text: 'Minor', value: 'Minor' },
                 { text: 'TRANSGENDER', value: 'TRANSGENDER' },
-                { text: 'LGBTQIA+', value: 'LGBTQIA+' },
+                { text: 'LGBQIA+', value: 'LGBQIA+' },
                 // { text: 'LGBTQ + LESBIAN / BISEXUAL', value: 'LGBTQ + LESBIAN / BISEXUAL' },
             ],
             onFilter: (value, record) => record.visitor_type.includes(value),

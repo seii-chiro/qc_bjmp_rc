@@ -117,7 +117,7 @@ const SummaryCount = () => {
     ).length || 0;
   const lgbtqiaVisitorCount =
     visitorData?.results?.filter(
-      (visitor) => visitor.visitor_type === "LGBTQIA+"
+      (visitor) => visitor.visitor_type === "LGBQIA+"
     ).length || 0;
   const totalLgbtqiaVisitorCount =
     lgbtqiaVisitorCount || 0 + gayVisitorCount || 0 + lesbianVisitorCount || 0;
@@ -148,7 +148,7 @@ const SummaryCount = () => {
     ).length || 0;
   const lgbtqiaCount =
     visitorData?.results?.filter(
-      (visitor) => visitor.person?.gender?.gender_option === "LGBTQIA+"
+      (visitor) => visitor.person?.gender?.gender_option === "LGBQIA+"
     ).length || 0;
   const totalLgbtqiaCount =
     gayCount || 0 + lgbtqiaCount || 0 + lesbianCount || 0;
@@ -520,7 +520,7 @@ const SummaryCount = () => {
       //   "Visitor Type": "LGBTQ + LESBIAN / BISEXUAL",
       //   Total: lesbianVisitorCount,
       // },
-      { "Visitor Type": "LGBTQIA+", Total: gayVisitorCount + lesbianVisitorCount + lbtqVisitorCount },
+      { "Visitor Type": "LGBQIA+", Total: gayVisitorCount + lesbianVisitorCount + lbtqVisitorCount },
       {
         "Visitor Type": "Total",
         Total:
@@ -541,7 +541,7 @@ const SummaryCount = () => {
       { Gender: "Female", Total: femaleCount },
       { Gender: "LGBTQ + TRANSGENDER", Total: transgenderCount },
       // { Gender: "LGBTQ + LESBIAN / BISEXUAL", Total: lesbianCount },
-      { Gender: "LGBTQIA+", Total: gayCount + lesbianCount },
+      { Gender: "LGBQIA+", Total: gayCount + lesbianCount },
       {
         Gender: "Total",
         Total:
@@ -800,7 +800,7 @@ const SummaryCount = () => {
       //   "Visitor Type": "LGBTQ + LESBIAN / BISEXUAL",
       //   Total: lesbianVisitorCount,
       // },
-      { "Visitor Type": "LGBTQIA+", Total: lgbtqiaVisitorCount },
+      { "Visitor Type": "LGBQIA+", Total: lgbtqiaVisitorCount },
       {
         "Visitor Type": "Total",
         Total:
@@ -821,7 +821,7 @@ const SummaryCount = () => {
       { Gender: "Female", Total: femaleCount },
       { Gender: "TRANSGENDER", Total: transgenderCount },
       // { Gender: "LGBTQ + LESBIAN / BISEXUAL", Total: lesbianCount },
-      { Gender: "LGBTQIA+", Total: lgbtqiaVisitorCount },
+      { Gender: "LGBQIA+", Total: lgbtqiaVisitorCount },
       {
         Gender: "Total",
         Total:
@@ -1277,7 +1277,7 @@ const SummaryCount = () => {
                       </tr>
                       <tr>
                         <td className="px-6 py-2 whitespace-nowrap">
-                          LGBTQIA+
+                          LGBQIA+
                         </td>
                         <td className="px-6 py-2 whitespace-nowrap">
                           {totalLgbtqiaVisitorCount}
@@ -1358,7 +1358,7 @@ const SummaryCount = () => {
                                         </tr> */}
                       <tr>
                         <td className="px-6 py-2 whitespace-nowrap">
-                          LGBTQIA+
+                          LGBQIA+
                         </td>
                         <td className="px-6 py-2 whitespace-nowrap">
                           {totalLgbtqiaCount}

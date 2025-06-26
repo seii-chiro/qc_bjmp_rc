@@ -377,7 +377,7 @@ const Dashboard = () => {
 
     const genderData = [
         { name: 'Male', value: summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0 },
-        { name: 'LGBTQIA+', value: summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQIA+"] || 0 },
+        { name: 'LGBQIA+', value: summarydata?.success?.pdls_based_on_gender?.Active?.["LGBQIA+"] || 0 },
         { name: 'Transgender', value: summarydata?.success.pdls_based_on_gender?.Active?.["TRANSGENDER"] || 0 },
     ];
     const PDL_COLORS = ['#3471EC', '#7ED26C', '#FE319D'];
@@ -897,9 +897,9 @@ const Dashboard = () => {
                                                     />
                                                     <Card3
                                                         image={gay}
-                                                        title="LGBTQIA+"
-                                                        count={summarydata?.success?.pdls_based_on_gender?.Active?.["LGBTQIA+"] || 0}
-                                                        onClick={() => pdlHandleClick("LGBTQIA+")}
+                                                        title="LGBQIA+"
+                                                        count={summarydata?.success?.pdls_based_on_gender?.Active?.["LGBQIA+"] || 0}
+                                                        onClick={() => pdlHandleClick("LGBQIA+")}
                                                     />
                                                     <Card3
                                                         image={trans}

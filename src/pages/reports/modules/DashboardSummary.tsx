@@ -193,10 +193,10 @@ const DashboardSummary = () => {
         Total: summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0,
       },
       {
-        "PDL Count Based on Gender": "LGBTQIA+",
+        "PDL Count Based on Gender": "LGBQIA+",
         Total:
           summarydata?.success?.pdls_based_on_gender?.Active?.[
-            "LGBTQIA+"
+            "LGBQIA+"
           ] || 0,
       },
       {
@@ -211,7 +211,7 @@ const DashboardSummary = () => {
         Total:
           (summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0) +
           (summarydata?.success?.pdls_based_on_gender?.Active?.[
-            "LGBTQIA+"
+            "LGBQIA+"
           ] || 0) +
           (summarydata?.success?.pdls_based_on_gender?.Active?.[
             "TRANSGENDER"
@@ -458,9 +458,9 @@ const DashboardSummary = () => {
       ["PDL Count Based on Gender", "Total"],
       ["Male", summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0],
       [
-        "LGBTQIA+",
+        "LGBQIA+",
         summarydata?.success?.pdls_based_on_gender?.Active?.[
-          "LGBTQIA+"
+          "LGBQIA+"
         ] || 0,
       ],
       [
@@ -473,7 +473,7 @@ const DashboardSummary = () => {
         "Total",
         (summarydata?.success?.pdls_based_on_gender?.Active?.Male || 0) +
           (summarydata?.success?.pdls_based_on_gender?.Active?.[
-            "LGBTQIA+"
+            "LGBQIA+"
           ] || 0) +
           (summarydata?.success?.pdls_based_on_gender?.Active?.[
             "TRANSGENDER"
@@ -836,15 +836,15 @@ const DashboardSummary = () => {
                       </tr>
                       <tr>
                         <td className="px-6 py-2 text-lg whitespace-nowrap border-r">
-                          LGBTQIA+
+                          LGBQIA+
                         </td>
                         <td className="px-6 py-2 text-lg whitespace-nowrap">
                           {summarydata?.success?.pdls_based_on_gender?.Active?.[
-                            "LGBTQIA+"
+                            "LGBQIA+"
                           ] ||
                             0 +
                               summarydata?.success?.pdls_based_on_gender
-                                ?.Active?.["LGBTQIA+"] ||
+                                ?.Active?.["LGBQIA+"] ||
                             0}
                         </td>
                       </tr>
@@ -868,7 +868,7 @@ const DashboardSummary = () => {
                             (summarydata?.success?.pdls_based_on_gender
                               ?.Active?.["LGBTQ + GAY / BISEXUAL"] ?? 0) +
                             (summarydata?.success?.pdls_based_on_gender
-                              ?.Active?.["LGBTQIA+"] ?? 0) +
+                              ?.Active?.["LGBQIA+"] ?? 0) +
                             (summarydata?.success?.pdls_based_on_gender
                               ?.Active?.["TRANSGENDER"] ?? 0)}
                         </td>
