@@ -18,7 +18,7 @@ const Maintenance = () => {
                             {/* <GodotLink link="contact-types" title="Contact Types" />
                             <GodotLink link="address-types" title="Address Types" /> */}
                             <GodotLink link="nationalities" title="Nationalities" />
-                            <GodotLink link="multi-birth-classification" title="Multi Birth Classication" />
+                            <GodotLink link="multi-birth-classification" title="Multi Birth Classification" />
                         </div>
                         <div>
                             <GodotLink link="affiliation-type" title="Affiliation Types" />
