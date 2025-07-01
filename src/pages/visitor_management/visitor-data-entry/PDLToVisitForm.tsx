@@ -238,7 +238,7 @@ const PDLToVisitForm = ({
                                 <Input
                                     className="h-12 rounded-md outline-gray-300"
                                     value={pdlIdInput}
-                                    placeholder="Enter PDL ID"
+                                    placeholder={selectedPdl?.id ? String(selectedPdl.id) : "Enter PDL ID"}
                                     onChange={e => {
                                         const val = e.target.value;
                                         if (/^\d*$/.test(val)) {
@@ -283,7 +283,7 @@ const PDLToVisitForm = ({
                                     onChange={value => {
                                         setPdlToVisitID(value);
                                         setPdlIdSearch("");
-                                        setPdlIdInput(value ? String(value) : "");
+                                        // setPdlIdInput(value ? String(value) : "");
                                     }}
                                     onBlur={() => setIsSearching(false)}
                                     onDropdownVisibleChange={open => {
@@ -323,7 +323,7 @@ const PDLToVisitForm = ({
                                     }}
                                     onChange={value => {
                                         setPdlToVisitID(value)
-                                        setPdlIdInput(value ? String(value) : "");
+                                        // setPdlIdInput(value ? String(value) : "");
                                     }}
                                     onBlur={() => setIsSearching(false)}
                                     onDropdownVisibleChange={open => {
