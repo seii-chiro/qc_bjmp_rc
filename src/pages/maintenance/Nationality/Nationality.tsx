@@ -1,4 +1,9 @@
-import { deleteNationality, getNationalities, getOrganization, getUser } from "@/lib/queries";
+import {
+  deleteNationality,
+  getNationalities,
+  getOrganization,
+  getUser,
+} from "@/lib/queries";
 import { useTokenStore } from "@/store/useTokenStore";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button, Dropdown, Menu, message, Modal } from "antd";
@@ -13,7 +18,8 @@ import { GoDownload, GoPlus } from "react-icons/go";
 import { LuSearch } from "react-icons/lu";
 import AddNationality from "./AddNationality";
 import EditNationality from "./EditNationality";
-import bjmp from '../../../assets/Logo/QCJMD.png'
+import bjmp from "../../../assets/Logo/QCJMD.png";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
 
 type NationalityProps = {
   id: number;
@@ -39,13 +45,13 @@ const Nationality = () => {
   });
 
   const { data: UserData } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => getUser(token ?? "")
-})
-    const { data: OrganizationData } = useQuery({
-        queryKey: ['organization'],
-        queryFn: () => getOrganization(token ?? "")
-    })
+    queryKey: ["user"],
+    queryFn: () => getUser(token ?? ""),
+  });
+  const { data: OrganizationData } = useQuery({
+    queryKey: ["organization"],
+    queryFn: () => getOrganization(token ?? ""),
+  });
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteNationality(token ?? "", id),
     onSuccess: () => {
@@ -56,6 +62,21 @@ const Nationality = () => {
       messageApi.error(error.message || "Failed to delete Nationality");
     },
   });
+
+  const showDeleteConfirm = (id: number) => {
+    Modal.confirm({
+      centered: true,
+      title: "Are you sure you want to delete this nationality?",
+      icon: <ExclamationCircleOutlined />,
+      content: "This action cannot be undone.",
+      okText: "Yes, Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk() {
+        deleteMutation.mutate(id);
+      },
+    });
+  };
 
   const showModal = () => {
     setIsModalOpen(true);
@@ -87,7 +108,8 @@ const Nationality = () => {
   const columns: ColumnsType<NationalityProps> = [
     {
       title: "No.",
-      render: (_, __, index) => (pagination.current - 1) * pagination.pageSize + index + 1,
+      render: (_, __, index) =>
+        (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
       title: "Code",
@@ -104,6 +126,7 @@ const Nationality = () => {
     {
       title: "Actions",
       key: "actions",
+      align: "center",
       render: (_: any, record: NationalityProps) => (
         <div className="flex gap-1.5 font-semibold transition-all ease-in-out duration-200 justify-center">
           <Button
@@ -118,7 +141,7 @@ const Nationality = () => {
           <Button
             type="link"
             danger
-            onClick={() => deleteMutation.mutate(record.id)}
+            onClick={() => showDeleteConfirm(record.id)}
           >
             <AiOutlineDelete />
           </Button>
@@ -131,36 +154,38 @@ const Nationality = () => {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Nationality");
     XLSX.writeFile(wb, "Nationality.xlsx");
-};
+  };
 
-const handleExportPDF = () => {
-  const doc = new jsPDF();
-  const headerHeight = 48;
-  const footerHeight = 32;
-  const organizationName = OrganizationData?.results?.[0]?.org_name || ""; 
-  const PreparedBy = `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`; 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const headerHeight = 48;
+    const footerHeight = 32;
+    const organizationName = OrganizationData?.results?.[0]?.org_name || "";
+    const PreparedBy = `${UserData?.first_name ?? ""} ${
+      UserData?.last_name ?? ""
+    }`;
 
-  const today = new Date();
-  const formattedDate = today.toISOString().split('T')[0];
-  const reportReferenceNo = `TAL-${formattedDate}-XXX`;
+    const today = new Date();
+    const formattedDate = today.toISOString().split("T")[0];
+    const reportReferenceNo = `TAL-${formattedDate}-XXX`;
 
-  const maxRowsPerPage = 29; 
+    const maxRowsPerPage = 29;
 
-  let startY = headerHeight;
+    let startY = headerHeight;
 
-  const addHeader = () => {
-      const pageWidth = doc.internal.pageSize.getWidth(); 
+    const addHeader = () => {
+      const pageWidth = doc.internal.pageSize.getWidth();
       const imageWidth = 30;
-      const imageHeight = 30; 
-      const margin = 10; 
+      const imageHeight = 30;
+      const margin = 10;
       const imageX = pageWidth - imageWidth - margin;
       const imageY = 12;
-  
-      doc.addImage(bjmp, 'PNG', imageX, imageY, imageWidth, imageHeight);
-  
+
+      doc.addImage(bjmp, "PNG", imageX, imageY, imageWidth, imageHeight);
+
       doc.setTextColor(0, 102, 204);
       doc.setFontSize(16);
-      doc.text("Nationality Report", 10, 15); 
+      doc.text("Nationality Report", 10, 15);
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(10);
       doc.text(`Organization Name: ${organizationName}`, 10, 25);
@@ -168,93 +193,104 @@ const handleExportPDF = () => {
       doc.text("Prepared By: " + PreparedBy, 10, 35);
       doc.text("Department/ Unit: IT", 10, 40);
       doc.text("Report Reference No.: " + reportReferenceNo, 10, 45);
-  };
-  
+    };
 
-  addHeader(); 
+    addHeader();
 
-  const tableData = dataSource.map(item => [
+    const tableData = dataSource.map((item) => [
       item.key,
       item.code,
       item.nationality,
-  ]);
+    ]);
 
-  for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
+    for (let i = 0; i < tableData.length; i += maxRowsPerPage) {
       const pageData = tableData.slice(i, i + maxRowsPerPage);
 
-      autoTable(doc, { 
-          head: [['No.', 'Code', 'Nationality' ]],
-          body: pageData,
-          startY: startY,
-          margin: { top: 0, left: 10, right: 10 },
-          didDrawPage: function (data) {
-              if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
-                  addHeader(); 
-              }
-          },
+      autoTable(doc, {
+        head: [["No.", "Code", "Nationality"]],
+        body: pageData,
+        startY: startY,
+        margin: { top: 0, left: 10, right: 10 },
+        didDrawPage: function (data) {
+          if (doc.internal.getCurrentPageInfo().pageNumber > 1) {
+            addHeader();
+          }
+        },
       });
 
       if (i + maxRowsPerPage < tableData.length) {
-          doc.addPage();
-          startY = headerHeight;
+        doc.addPage();
+        startY = headerHeight;
       }
-  }
+    }
 
-  const pageCount = doc.internal.getNumberOfPages();
-  for (let page = 1; page <= pageCount; page++) {
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let page = 1; page <= pageCount; page++) {
       doc.setPage(page);
       const footerText = [
-          "Document Version: Version 1.0",
-          "Confidentiality Level: Internal use only",
-          "Contact Info: " + PreparedBy,
-          `Timestamp of Last Update: ${formattedDate}`
-      ].join('\n');
+        "Document Version: Version 1.0",
+        "Confidentiality Level: Internal use only",
+        "Contact Info: " + PreparedBy,
+        `Timestamp of Last Update: ${formattedDate}`,
+      ].join("\n");
       const footerX = 10;
       const footerY = doc.internal.pageSize.height - footerHeight + 15;
-      const pageX = doc.internal.pageSize.width - doc.getTextWidth(`${page} / ${pageCount}`) - 10;
+      const pageX =
+        doc.internal.pageSize.width -
+        doc.getTextWidth(`${page} / ${pageCount}`) -
+        10;
       doc.setFontSize(8);
       doc.text(footerText, footerX, footerY);
       doc.text(`${page} / ${pageCount}`, pageX, footerY);
-  }
+    }
 
-  const pdfOutput = doc.output('datauristring');
-  setPdfDataUrl(pdfOutput);
-  setIsPdfModalOpen(true);
-};
+    const pdfOutput = doc.output("datauristring");
+    setPdfDataUrl(pdfOutput);
+    setIsPdfModalOpen(true);
+  };
 
-const handleClosePdfModal = () => {
-  setIsPdfModalOpen(false);
-  setPdfDataUrl(null); 
-};
+  const handleClosePdfModal = () => {
+    setIsPdfModalOpen(false);
+    setPdfDataUrl(null);
+  };
 
-const menu = (
+  const menu = (
     <Menu>
-        <Menu.Item>
-            <a onClick={handleExportExcel}>Export Excel</a>
-        </Menu.Item>
-        <Menu.Item>
-            <CSVLink data={dataSource} filename="Nationality.csv">
-                Export CSV
-            </CSVLink>
-        </Menu.Item>
+      <Menu.Item>
+        <a onClick={handleExportExcel}>Export Excel</a>
+      </Menu.Item>
+      <Menu.Item>
+        <CSVLink data={dataSource} filename="Nationality.csv">
+          Export CSV
+        </CSVLink>
+      </Menu.Item>
     </Menu>
-);
+  );
   return (
     <div className="h-screen">
       {contextHolder}
       <h1 className="text-[#1E365D] text-3xl font-bold">Nationality</h1>
       <div className="w-full bg-white">
         <div className="my-4 flex justify-between items-center gap-2">
-        <div className="flex gap-2">
-                        <Dropdown className="bg-[#1E365D] py-2 px-5 rounded-md text-white" overlay={menu}>
-                            <a className="ant-dropdown-link gap-2 flex items-center " onClick={e => e.preventDefault()}>
-                                <GoDownload /> Export
-                            </a>
-                        </Dropdown>
-                        <button className="bg-[#1E365D] py-2 px-5 rounded-md text-white" onClick={handleExportPDF}>
-                            Print Report
-                        </button>
-                    </div>
+          <div className="flex gap-2">
+            <Dropdown
+              className="bg-[#1E365D] py-2 px-5 rounded-md text-white"
+              overlay={menu}
+            >
+              <a
+                className="ant-dropdown-link gap-2 flex items-center "
+                onClick={(e) => e.preventDefault()}
+              >
+                <GoDownload /> Export
+              </a>
+            </Dropdown>
+            <button
+              className="bg-[#1E365D] py-2 px-5 rounded-md text-white"
+              onClick={handleExportPDF}
+            >
+              Print Report
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <div className="flex-1 relative flex items-center">
               <input
@@ -274,33 +310,34 @@ const menu = (
             </button>
           </div>
         </div>
-          <Table
-              className="overflow-x-auto"
-              columns={columns}
-              dataSource={filteredData}
-              scroll={{ x: 'max-content' }} 
-              pagination={{
-                  current: pagination.current,
-                  pageSize: pagination.pageSize,
-                  onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
-              }}
-          />
+        <Table
+          className="overflow-x-auto"
+          columns={columns}
+          dataSource={filteredData}
+          scroll={{ x: "max-content" }}
+          pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            onChange: (page, pageSize) =>
+              setPagination({ current: page, pageSize }),
+          }}
+        />
       </div>
       <Modal
-                title="Nationality Report"
-                open={isPdfModalOpen}
-                onCancel={handleClosePdfModal}
-                footer={null}
-                width="80%"
-            >
-                {pdfDataUrl && (
-                    <iframe
-                        src={pdfDataUrl}
-                        title="PDF Preview"
-                        style={{ width: '100%', height: '80vh', border: 'none' }}
-                    />
-                )}
-            </Modal>
+        title="Nationality Report"
+        open={isPdfModalOpen}
+        onCancel={handleClosePdfModal}
+        footer={null}
+        width="80%"
+      >
+        {pdfDataUrl && (
+          <iframe
+            src={pdfDataUrl}
+            title="PDF Preview"
+            style={{ width: "100%", height: "80vh", border: "none" }}
+          />
+        )}
+      </Modal>
       <Modal
         className="overflow-y-auto rounded-lg scrollbar-hide"
         title="Add Nationality"
@@ -321,7 +358,10 @@ const menu = (
           footer={null}
           width="20%"
         >
-          <EditNationality nationality={nationality} onClose={handleEditClose} />
+          <EditNationality
+            nationality={nationality}
+            onClose={handleEditClose}
+          />
         </Modal>
       )}
     </div>
