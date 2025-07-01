@@ -58,7 +58,7 @@ const UserProfileNotifs = ({ user, onLogout }: Props) => {
         queryKey: ["user", "oasis-alert-notifs"],
         queryFn: ({ pageParam = 0 }) =>
             getOASISAlertNotification(token ?? "", {
-                limit: 10,
+                limit: 100,
                 offset: pageParam,
             }),
         initialPageParam: 0, // Add this required property
