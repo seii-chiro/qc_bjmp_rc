@@ -680,7 +680,7 @@ export async function getNonPDL_Visitor(
 export async function getDeviceSetting(
   token: string
 ): Promise<DeviceSettingPayload[]> {
-  const res = await fetch(`${BASE_URL}/api/codes/device-settings/`, {
+  const res = await fetch(`${BASE_URL}/api/codes/device-settings/?limit=1000`, {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Token ${token}`,
