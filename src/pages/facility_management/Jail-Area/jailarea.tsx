@@ -171,14 +171,14 @@ const JailArea = () => {
       sorter: (a, b) => a.jail.localeCompare(b.jail),
     },
     {
-      title: "Level",
+      title: "Annex",
       dataIndex: "building",
       key: "building",
       sorter: (a, b) => a.building.localeCompare(b.building),
     },
 
     {
-      title: "Annex",
+      title: "Level",
       dataIndex: "floor",
       key: "floor",
       sorter: (a, b) => a.floor.localeCompare(b.floor),
@@ -190,7 +190,7 @@ const JailArea = () => {
       sorter: (a, b) => a.area_name.localeCompare(b.area_name),
     },
     {
-      title: "Annex Status",
+      title: "Level Status Status",
       dataIndex: "floor_status",
       key: "floor_status",
       sorter: (a, b) => a.floor_status.localeCompare(b.floor_status),
@@ -279,7 +279,7 @@ const JailArea = () => {
       const pageData = tableData.slice(i, i + maxRowsPerPage);
 
       autoTable(doc, {
-        head: [["No.", "Jail Area", "Level", "Jail", "Annex"]],
+        head: [["No.", "Jail Area", "Annex", "Jail", "Level"]],
         body: pageData,
         startY: startY,
         margin: { top: 0, left: 10, right: 10 },

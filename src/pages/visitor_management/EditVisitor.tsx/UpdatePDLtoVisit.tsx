@@ -159,12 +159,12 @@ const pdlToVisitDataSource = visitorForm?.pdl_data.map((pdl, index) => {
                 key: 'relationship',
             },
             {
-                title: 'Level',
+                title: 'Annex',
                 dataIndex: 'level',
                 key: 'level',
             },
             {
-                title: 'Annex',
+                title: 'Level',
                 dataIndex: 'annex',
                 key: 'annex',
             },

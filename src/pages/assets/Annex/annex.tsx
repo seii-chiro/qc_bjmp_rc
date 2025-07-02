@@ -47,6 +47,7 @@ type AnnexResponse = {
   floor_status: string | null;
 };
 
+//this is the Level
 const Annex = () => {
   const [searchText, setSearchText] = useState("");
   const token = useTokenStore().token;
@@ -80,17 +81,17 @@ const Annex = () => {
     mutationFn: (id: number) => deleteDetention_Floor(token ?? "", id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["annex"] });
-      messageApi.success("Annex deleted successfully");
+      messageApi.success("Level deleted successfully");
     },
     onError: (error: any) => {
-      messageApi.error(error.message || "Failed to delete Annex");
+      messageApi.error(error.message || "Failed to delete Level");
     },
   });
 
   const showDeleteConfirm = (id: number) => {
     Modal.confirm({
       centered: true,
-      title: "Are you sure you want to delete this annex?",
+      title: "Are you sure you want to delete this Level?",
       icon: <ExclamationCircleOutlined />,
       content: "This action cannot be undone.",
       okText: "Yes, Delete",
@@ -115,11 +116,11 @@ const Annex = () => {
       updateDetention_Floor(token ?? "", updated.id, updated),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["annex"] });
-      messageApi.success("Annex updated successfully");
+      messageApi.success("Level updated successfully");
       setIsEditModalOpen(false);
     },
     onError: () => {
-      messageApi.error("Failed to update Annex");
+      messageApi.error("Failed to update Level");
     },
   });
 
@@ -137,7 +138,7 @@ const Annex = () => {
       };
       editAnnex(updatedAnnex);
     } else {
-      messageApi.error("Selected Annex is invalid");
+      messageApi.error("Selected Level is invalid");
     }
   };
 
@@ -164,19 +165,19 @@ const Annex = () => {
         (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
-      title: "Level",
+      title: "Annex",
       dataIndex: "building",
       key: "building",
       sorter: (a, b) => a.building.localeCompare(b.building),
     },
     {
-      title: "Annex Number",
+      title: "Level Number",
       dataIndex: "floor_number",
       key: "floor_number",
       sorter: (a, b) => a.floor_number.localeCompare(b.floor_number),
     },
     {
-      title: "Annex Name",
+      title: "Level Name",
       dataIndex: "floor_name",
       key: "floor_name",
     },
@@ -209,8 +210,8 @@ const Annex = () => {
   const handleExportExcel = () => {
     const ws = XLSX.utils.json_to_sheet(dataSource);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Annex");
-    XLSX.writeFile(wb, "Annex.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Level");
+    XLSX.writeFile(wb, "Level.xlsx");
   };
 
   const handleExportPDF = () => {
@@ -242,7 +243,7 @@ const Annex = () => {
 
       doc.setTextColor(0, 102, 204);
       doc.setFontSize(16);
-      doc.text("Annex Report", 10, 15);
+      doc.text("Level Report", 10, 15);
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(10);
       doc.text(`Organization Name: ${organizationName}`, 10, 25);
@@ -268,7 +269,7 @@ const Annex = () => {
       const pageData = tableData.slice(i, i + maxRowsPerPage);
 
       autoTable(doc, {
-        head: [["No.", "Annex No.", "Annex", "Level"]],
+        head: [["No.", "Level No.", "Level", "Level"]],
         body: pageData,
         startY: startY,
         margin: { top: 0, left: 10, right: 10 },
@@ -321,7 +322,7 @@ const Annex = () => {
         <a onClick={handleExportExcel}>Export Excel</a>
       </Menu.Item>
       <Menu.Item>
-        <CSVLink data={dataSource} filename="Annex.csv">
+        <CSVLink data={dataSource} filename="Level.csv">
           Export CSV
         </CSVLink>
       </Menu.Item>
@@ -361,7 +362,7 @@ const Annex = () => {
   return (
     <div>
       {contextHolder}
-      <h1 className="text-3xl font-bold text-[#1E365D]">Annex</h1>
+      <h1 className="text-3xl font-bold text-[#1E365D]">Level</h1>
       <div className="flex justify-between my-5">
         <div className="flex gap-2">
           <Dropdown
@@ -397,7 +398,7 @@ const Annex = () => {
             onClick={showModal}
           >
             <GoPlus />
-            Add Annex
+            Add Level
           </button>
         </div>
       </div>
@@ -415,7 +416,7 @@ const Annex = () => {
         />
       </div>
       <Modal
-        title="Annex Report"
+        title="Level Report"
         open={isPdfModalOpen}
         onCancel={handleClosePdfModal}
         footer={null}
@@ -438,7 +439,7 @@ const Annex = () => {
         />
       </Modal>
       <Modal
-        title="Edit Annex"
+        title="Edit Level"
         open={isEditModalOpen}
         onCancel={() => setIsEditModalOpen(false)}
         onOk={() => form.submit()}
@@ -446,7 +447,7 @@ const Annex = () => {
         width="60%"
       >
         <Form form={form} layout="vertical" onFinish={handleUpdate}>
-          <Form.Item label="Level" name="building">
+          <Form.Item label="Annex" name="building">
             <Select
               className="h-[3rem] w-full"
               showSearch
@@ -458,10 +459,10 @@ const Annex = () => {
               }))}
             />
           </Form.Item>
-          <Form.Item label="Annex Name" name="floor_name" required>
+          <Form.Item label="Level Name" name="floor_name" required>
             <Input />
           </Form.Item>
-          <Form.Item label="Annex Number" name="floor_number" required>
+          <Form.Item label="Level Number" name="floor_number" required>
             <Input />
           </Form.Item>
           <Form.Item label="Security Level" name="security_level">
@@ -478,12 +479,12 @@ const Annex = () => {
             />
           </Form.Item>
           <Form.Item
-            label="Annex Description"
+            label="Level Description"
             name="floor_description"
             rules={[
               {
                 required: true,
-                message: "Please input the Annex Description!",
+                message: "Please input the Level Description!",
               },
             ]}
           >

@@ -330,7 +330,7 @@ const PDLtable = () => {
             sorter: (a, b) => a.cell_name.localeCompare(b.cell_name),
         },
         {
-            title: "Annex",
+            title: "Level",
             key: "floor",
             render: (_, pdl) => pdl.floor,
             sorter: (a, b) => a.floor.localeCompare(b.floor),

@@ -299,7 +299,7 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHisto
                                 </div>
                                 <div className="w-full">
                                     <div className="bg-[#2F3237] text-white py-1 px-2 font-semibold text-center">
-                                        Level
+                                        Annex
                                     </div>
                                     {visitor?.pdls?.map((pdl: any) => {
                                         const match = pdl?.pdl?.cell?.floor?.match(/\(([^)]+)\)/);
@@ -313,7 +313,7 @@ const IdentificationLandscape = ({ visitor_log }: { visitor_log: any, visitHisto
                                 </div>
                                 <div className="w-full">
                                     <div className="bg-[#2F3237] text-white py-1 px-2 font-semibold text-center">
-                                        Annex
+                                        Level
                                     </div>
                                     {visitor?.pdls?.map((pdl: any) => (
                                         <div key={pdl?.pdl?.id} className="border-b border-t border-[#DCDCDC] flex flex-col gap-2 text-center font-light p-1 mt-2">

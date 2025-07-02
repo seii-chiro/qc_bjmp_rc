@@ -10,6 +10,7 @@ const Assets = () => {
                         <div className="mt-2">
                             <div className="ml-8">
                                 <GodotLink link="jail-facility" title="Jail Facility" />
+                                {/* {swap level and annex titles} */}
                                 <GodotLink link="annex" title="Annex" />
                                 <GodotLink link="level" title="Levels" />
                                 <GodotLink link="dorms" title="Dorms" />

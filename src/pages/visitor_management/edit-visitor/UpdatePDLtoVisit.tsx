@@ -236,12 +236,12 @@ const UpdatePDLtoVisit = ({
       key: "relationship",
     },
     {
-      title: "Level",
+      title: "Annex",
       dataIndex: "level",
       key: "level",
     },
     {
-      title: "Annex",
+      title: "Level",
       dataIndex: "annex",
       key: "annex",
     },

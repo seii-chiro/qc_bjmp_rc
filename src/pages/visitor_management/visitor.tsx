@@ -1038,8 +1038,8 @@ const menu = (
                                                         <th className="py-1 px-2">Surname</th>
                                                         <th className="py-1 px-2">First Name</th>
                                                         <th className="py-1 px-2">Middle Name</th>
-                                                        <th className="py-1 px-2">Level</th>
                                                         <th className="py-1 px-2">Annex</th>
+                                                        <th className="py-1 px-2">Level</th>
                                                         <th className="py-1 px-2">Dorm</th>
                                                     </tr>
                                                 </thead>

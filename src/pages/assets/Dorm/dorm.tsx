@@ -159,7 +159,7 @@ const Dorm = () => {
         (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
-      title: "Annex",
+      title: "Level",
       dataIndex: "floor",
       key: "floor",
       sorter: (a, b) => a.floor - b.floor,
@@ -425,19 +425,19 @@ const Dorm = () => {
       >
         <Form form={form} layout="vertical" onFinish={handleUpdate}>
           <Form.Item
-            label="Annex"
+            label="Level"
             name="floor"
-            rules={[{ required: true, message: "Please select a Annex" }]}
+            rules={[{ required: true, message: "Please select a level" }]}
           >
             <Select
               className="h-[3rem] w-full"
               showSearch
-              placeholder="Annex"
+              placeholder="Level"
               optionFilterProp="label"
               onChange={onFloorChange}
               options={detentionFloorData?.results?.map((floor) => ({
                 value: floor.id,
-                label: floor?.floor_name,
+                label: `${floor?.floor_name} (${floor.building?.replace(/\s*\(.*?\)/g, "")})`,
               }))}
             />
           </Form.Item>

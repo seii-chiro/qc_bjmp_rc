@@ -45,6 +45,7 @@ type LevelReport = {
   bldg_status: string;
 };
 
+//This is actually the annex. Im only changing displayed labels
 const Level = () => {
   const [searchText, setSearchText] = useState("");
   const token = useTokenStore().token;
@@ -77,17 +78,17 @@ const Level = () => {
     mutationFn: (id: number) => deleteDetention_Building(token ?? "", id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["level"] });
-      messageApi.success("Level deleted successfully");
+      messageApi.success("Annex deleted successfully");
     },
     onError: (error: any) => {
-      messageApi.error(error.message || "Failed to delete Level");
+      messageApi.error(error.message || "Failed to delete Annex");
     },
   });
 
   const showDeleteConfirm = (id: number) => {
     Modal.confirm({
       centered: true,
-      title: "Are you sure you want to delete this level?",
+      title: "Are you sure you want to delete this Annex?",
       icon: <ExclamationCircleOutlined />,
       content: "This action cannot be undone.",
       okText: "Yes, Delete",
@@ -112,11 +113,11 @@ const Level = () => {
       updateDetention_Building(token ?? "", updated.id, updated),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["level"] });
-      messageApi.success("Level updated successfully");
+      messageApi.success("Annex updated successfully");
       setIsEditModalOpen(false);
     },
     onError: () => {
-      messageApi.error("Failed to update Level");
+      messageApi.error("Failed to update Annex");
     },
   });
 
@@ -134,7 +135,7 @@ const Level = () => {
       };
       editLevel(updatedALevel);
     } else {
-      messageApi.error("Selected Level is invalid");
+      messageApi.error("Selected Annex is invalid");
     }
   };
   const dataSource =
@@ -167,13 +168,13 @@ const Level = () => {
       sorter: (a, b) => a.jail.localeCompare(b.jail),
     },
     {
-      title: "Level Name",
+      title: "Annex Name",
       dataIndex: "bldg_name",
       key: "bldg_name",
       sorter: (a, b) => a.bldg_name.localeCompare(b.bldg_name),
     },
     {
-      title: "Level Status",
+      title: "Annex Status",
       dataIndex: "bldg_status",
       key: "bldg_status",
       sorter: (a, b) => a.bldg_status.localeCompare(b.bldg_status),
@@ -202,8 +203,8 @@ const Level = () => {
   const handleExportExcel = () => {
     const ws = XLSX.utils.json_to_sheet(dataSource);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Level");
-    XLSX.writeFile(wb, "Level.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Annex");
+    XLSX.writeFile(wb, "Annex.xlsx");
   };
   const handleExportPDF = () => {
     const doc = new jsPDF();
@@ -234,7 +235,7 @@ const Level = () => {
 
       doc.setTextColor(0, 102, 204);
       doc.setFontSize(16);
-      doc.text("Level Report", 10, 15);
+      doc.text("Annex Report", 10, 15);
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(10);
       doc.text(`Organization Name: ${organizationName}`, 10, 25);
@@ -308,7 +309,7 @@ const Level = () => {
         <a onClick={handleExportExcel}>Export Excel</a>
       </Menu.Item>
       <Menu.Item>
-        <CSVLink data={dataSource} filename="Level.csv">
+        <CSVLink data={dataSource} filename="Annex.csv">
           Export CSV
         </CSVLink>
       </Menu.Item>
@@ -347,7 +348,7 @@ const Level = () => {
   return (
     <div>
       {contextHolder}
-      <h1 className="text-3xl font-bold text-[#1E365D]">Level</h1>
+      <h1 className="text-3xl font-bold text-[#1E365D]">Annex</h1>
       <div className="my-5 flex justify-between">
         <div className="flex gap-2">
           <Dropdown
@@ -383,7 +384,7 @@ const Level = () => {
             onClick={showModal}
           >
             <GoPlus />
-            Add Level
+            Add Annex
           </button>
         </div>
       </div>
@@ -402,7 +403,7 @@ const Level = () => {
           />
         </div>
         <Modal
-          title="Level Report"
+          title="Annex Report"
           open={isPdfModalOpen}
           onCancel={handleClosePdfModal}
           footer={null}
@@ -418,7 +419,7 @@ const Level = () => {
         </Modal>
         <Modal
           className="overflow-y-auto rounded-lg scrollbar-hide"
-          title="Add Level"
+          title="Add Annex"
           open={isModalOpen}
           onCancel={handleCancel}
           footer={null}
@@ -428,7 +429,7 @@ const Level = () => {
           <AddLevel onClose={handleCancel} />
         </Modal>
         <Modal
-          title="Edit Level"
+          title="Edit Annex"
           open={isEditModalOpen}
           onCancel={() => setIsEditModalOpen(false)}
           onOk={() => form.submit()}
@@ -436,13 +437,13 @@ const Level = () => {
           width="60%"
         >
           <Form form={form} layout="vertical" onFinish={handleUpdate}>
-            <Form.Item label="Level Name" name="bldg_name">
+            <Form.Item label="Annex Name" name="bldg_name">
               <Input />
             </Form.Item>
-            <Form.Item label="Level Status" name="bldg_status">
+            <Form.Item label="Annex Status" name="bldg_status">
               <Input />
             </Form.Item>
-            <Form.Item label="Level Description" name="bldg_description">
+            <Form.Item label="Annex Description" name="bldg_description">
               <Input />
             </Form.Item>
             <Form.Item label="Jail" name="jail">

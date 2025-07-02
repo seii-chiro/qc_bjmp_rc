@@ -51,7 +51,7 @@ const AddAnnex = ({ onClose }: { onClose: () => void }) => {
             body: JSON.stringify(annex),
         });
         if (!res.ok) {
-            let errorMessage = "Error Adding Annex";
+            let errorMessage = "Error Adding Level";
             try {
                 const errorData = await res.json();
                 errorMessage =
@@ -114,14 +114,14 @@ const AddAnnex = ({ onClose }: { onClose: () => void }) => {
     <div>
     {contextHolder}
         <form onSubmit={handleAnnexSubmit}>
-          <h1 className="font-semibold">Add Annex</h1>
+          <h1 className="font-semibold">Add Level</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 w-full gap-3">
                 <div>
-                    <p className="text-gray-500 font-bold">Level:</p>
+                    <p className="text-gray-500 font-bold">Annex:</p>
                     <Select
                     className="h-[3rem] w-full"
                     showSearch
-                    placeholder="Level"
+                    placeholder="Annex"
                     optionFilterProp="label"
                     onChange={onBuildingChange}
                     options={buildingData?.results?.map(building => (
@@ -133,16 +133,16 @@ const AddAnnex = ({ onClose }: { onClose: () => void }) => {
                     />
                 </div>
                 <div>
-                    <p className="text-gray-500 font-bold">Annex Number:</p>
-                    <input type="number" name="floor_number" id="floor_number" onChange={handleInputChange} placeholder="Annex Number" className="h-12 border border-gray-300 rounded-lg px-2 w-full" />
+                    <p className="text-gray-500 font-bold">Level Number:</p>
+                    <input type="number" name="floor_number" id="floor_number" onChange={handleInputChange} placeholder="Level Number" className="h-12 border border-gray-300 rounded-lg px-2 w-full" />
                 </div>
                 <div>
-                    <p className="text-gray-500 font-bold">Annex Name:</p>
-                    <input type="text" name="floor_name" id="floor_name" onChange={handleInputChange} placeholder="Annex Name" className="h-12 border border-gray-300 rounded-lg px-2 w-full" />
+                    <p className="text-gray-500 font-bold">Level Name:</p>
+                    <input type="text" name="floor_name" id="floor_name" onChange={handleInputChange} placeholder="Level Name" className="h-12 border border-gray-300 rounded-lg px-2 w-full" />
                 </div>
                 <div>
-                    <p className="text-gray-500 font-bold">Annex Description:</p>
-                    <textarea name="floor_description" id="floor_description" onChange={handleInputChange} placeholder="Annex Description" className="h-12 border outline-none border-gray-300 rounded-lg px-2 w-full" />
+                    <p className="text-gray-500 font-bold">Level Description:</p>
+                    <textarea name="floor_description" id="floor_description" onChange={handleInputChange} placeholder="Level Description" className="h-12 border outline-none border-gray-300 rounded-lg px-2 w-full" />
                 </div>
                 <div>
                     <p className="text-gray-500 font-bold">Security Level:</p>

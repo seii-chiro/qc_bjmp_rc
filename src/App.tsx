@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 import React, { Suspense, useEffect } from "react";
 import Spinner from "./components/loaders/Spinner.tsx";
 import GeneralErrorElement from "./pages/error_pages/GeneralErrorElement.tsx";
@@ -100,7 +104,7 @@ import EditVisitor from "./pages/visitor_management/edit-visitor/EditVisitor.tsx
 import Person from "./pages/visitor_management/person/actual-person/ActualPersonTable.tsx";
 import Error from "./pages/Error.tsx";
 import VisitorID from "./pages/visitor_management/VisitorID.tsx";
-import ReportAnIncident from "@/pages/Incidents/Report.tsx"
+import ReportAnIncident from "@/pages/Incidents/Report.tsx";
 import IncidentTable from "./pages/Incidents/IncidentTable.tsx";
 import DeviceSetting from "./pages/devices-management/device-setting/DeviceSetting.tsx";
 import AddWatchlist from "./pages/threat/AddWatchlist.tsx";
@@ -162,709 +166,708 @@ import NPVisitorType from "./pages/Non-PDL/visitor-type/NPVisitorType.tsx";
 import NonPdlVisitorUpdate from "./pages/visitor_management/non-pdl-visitor-data-entry/NonPDLVisitorUpdate.tsx";
 import EncrytionParameters from "./pages/Settings/encryption-params/EncrytionParameters.tsx";
 
-
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
 const RootLayout = React.lazy(() => import("./layout/RootLayout.tsx"));
 
 function App() {
-    const token = useTokenStore((state: { token: any; }) => state.token);
-    const isAuthenticated = useAuthStore().isAuthenticated
-    const { fetchSystemSettings } = useSystemSettingsStore();
+  const token = useTokenStore((state: { token: any }) => state.token);
+  const isAuthenticated = useAuthStore().isAuthenticated;
+  const { fetchSystemSettings } = useSystemSettingsStore();
 
-    useEffect(() => {
-        fetchSystemSettings(token)
-    }, [fetchSystemSettings, token]);
+  useEffect(() => {
+    fetchSystemSettings(token);
+  }, [fetchSystemSettings, token]);
 
-    const router = createBrowserRouter([
-        {
-            path: "*",
-            element: <GeneralErrorElement />
-        },
-        {
-            path: "/login",
-            element: <LoginOTP />,
-        },
-        {
-            path: "/",
-            element: <Landing />
-        },
-        {
-            path: "map",
-            element: <MapContent />
-        },
-        {
-            path: "/jvms",
-            element: isAuthenticated ? <RootLayout /> : <Navigate to="/login" />,
-            errorElement: <Error />,
-            children: [
-                {/*
+  const router = createBrowserRouter(
+    [
+      {
+        path: "*",
+        element: <GeneralErrorElement />,
+      },
+      {
+        path: "/login",
+        element: <LoginOTP />,
+      },
+      {
+        path: "/",
+        element: <Landing />,
+      },
+      {
+        path: "map",
+        element: <MapContent />,
+      },
+      {
+        path: "/jvms",
+        element: isAuthenticated ? <RootLayout /> : <Navigate to="/login" />,
+        errorElement: <Error />,
+        children: [
+          {
+            /*
                     index: true,
                     element: <Home />,
-                */},
-                {
-                    index: true,
-                    element: <Dashboard />
-                },
-                {
-                    path: "home",
-                    element: <Home1 />
-                },
-                {
-                    path: "home",
-                    element: <Home2 />
-                },
-                {
-                    path: "dashboard",
-                    element: <Dashboard />
-                },
-                {
-                    path: "dashboard2",
-                    element: <Home />
-                },
-                {
-                    path: "map",
-                    element: <MapContent />
-                },
-                {
-                    path: "alphalist",
-                    element: <Alphalist />
-                },
-                {
-                    path: "assets",
-                    element: <Assets />
-                },
-                {
-                    path: "assets/jail-facility",
-                    element: <JailFacility />
-                },
-                {
-                    path: "assets/level",
-                    element: <Level />
-                },
-                {
-                    path: "assets/annex",
-                    element: <Annex />
-                },
-                {
-                    path: "assets/dorms",
-                    element: <Dorm />
-                },
-                {
-                    path: "assets/areas",
-                    element: <JailArea />
-                },
-                {
-                    path: "assets/jail-type",
-                    element: <JailType />
-                },
-                {
-                    path: "assets/jail-categories",
-                    element: <JailCategory />
-                },
-                {
-                    path: "assets/jail-security",
-                    element: <JailSecurityLevel />
-                },
-                {
-                    path: "assets/devices",
-                    element: <Device />
-                },
-                {
-                    path: "assets/devices-type",
-                    element: <DeviceType />
-                },
-                {
-                    path: "assets/devices-usage",
-                    element: <DeviceUsage />
-                },
-                {
-                    path: "assets/device-setting",
-                    element: <DeviceSetting />
-                },
-                {
-                    path: "maintenance",
-                    element: <Maintenance />
-                },
-                {
-                    path: "maintenance/record-status",
-                    element: <RecordStatus />
-                },
-                {
-                    path: "maintenance/social-media-platforms",
-                    element: <SocialMedia />
-                },
-                {
-                    path: "maintenance/gender",
-                    element: <Gender />
-                },
-                {
-                    path: "maintenance/civil-status",
-                    element: <CivilStatus />
-                },
-                {
-                    path: "maintenance/id-types",
-                    element: <ID_Types />
-                },
-                {
-                    path: "maintenance/religion",
-                    element: <Religion />
-                },
-                {
-                    path: "maintenance/ethnicities",
-                    element: <Ethnicity />
-                },
-                {
-                    path: "maintenance/occupation",
-                    element: <Occupation />
-                },
-                {
-                    path: "maintenance/educational-attainments",
-                    element: <EducationalAttainment />
-                },
-                {
-                    path: "maintenance/prefixes",
-                    element: <Prefixes />
-                },
-                {
-                    path: "maintenance/suffixes",
-                    element: <Suffixes />
-                },
-                {
-                    path: "maintenance/contact-types",
-                    element: <ContactType />
-                },
-                {
-                    path: "maintenance/address-types",
-                    element: <AddressType />
-                },
-                {
-                    path: "maintenance/nationalities",
-                    element: <Nationality />
-                },
-                {
-                    path: "maintenance/multi-birth-classification",
-                    element: <MultiBirth />
-                },
-                {
-                    path: "maintenance/group-affiliation",
-                    element: <GroupAffiliation />
-                },
-                {
-                    path: "settings",
-                    element: <Settings />
-                },
-                {
-                    path: "settings/general-settings",
-                    element: <GeneralSettings />
-                },
-                {
-                    path: "settings/system-settings",
-                    element: <SystemSettings />
-                },
-                {
-                    path: "settings/encryption_parameters",
-                    element: <EncrytionParameters />
-                },
-                {
-                    path: "users",
-                    element: <User />
-                },
-                {
-                    path: "users/user",
-                    element: <Users />
-                },
-                {
-                    path: "users/roles",
-                    element: <Roles />
-                },
-                {
-                    path: "users/user-otp-account",
-                    element: <OTP />
-                },
-                {
-                    path: "tools",
-                    element: <Tools />
-                },
-                {
-                    path: "integrations",
-                    element: <Integration />
-                },
-                {
-                    path: "supports",
-                    element: <Support />
-                },
-                {
-                    path: "reports",
-                    element: <MainReport />
-                },
-                {
-                    path: "reports/dashboard-summary",
-                    element: <DashboardSummary />
-                },
-                {
-                    path: "reports/summary-count-of-PDL-visitors",
-                    element: <SummaryCount />
-                },
-                {
-                    path: "reports/summary-count-of-PDLs",
-                    element: <SummaryCountofPDLs />
-                },
-                {
-                    path: "reports/summary-count-of-personnel",
-                    element: <SummaryCountofPersonnel />
-                },
-                {
-                    path: "reports/list-of-pdl-visitor",
-                    element: <ListPDLVisitors />
-                },
-                {
-                    path: "reports/list-of-personnel",
-                    element: <ListPersonnel />
-                },
-                {
-                    path: "reports/list-of-pdls",
-                    element: <ListPDLs />
-                },
-                {
-                    path: "incidents",
-                    element: <Incidents />
-                },
-                {
-                    path: "incidents/incident-category",
-                    element: <IncidentCategory />
-                },
-                {
-                    path: "incidents/incident-type",
-                    element: <IncidentType />
-                },
-                {
-                    path: "incidents/incident-type",
-                    element: <Incidents />
-                },
-                {
-                    path: "incidents/incidents_list",
-                    element: <IncidentTable />
-                },
-                {
-                    path: "incidents/report",
-                    element: <ReportAnIncident />
-                },
-                {
-                    path: "threats",
-                    element: <Threat />
-                },
-                {
-                    path: "threats/watch-list",
-                    element: <Watchlist />
-                },
-                {
-                    path: "threats/watchlist_registration",
-                    element: <AddWatchlist />
-                },
-                {
-                    path: "threats/watchlist_types",
-                    element: <WatchlistType />
-                },
-                {
-                    path: "threats/watchlist_risk_level",
-                    element: <WatchlistRiskLevel />
-                },
-                {
-                    path: "threats/watchlist_threat_level",
-                    element: <WatchlistThreatLevel />
-                },
-                {
-                    path: "screening",
-                    element: <Screening />
-                },
-                {
-                    path: "screening/verify",
-                    element: <Verify />
-                },
-                {
-                    path: "pdls",
-                    element: <PDL />
-                },
-                {
-                    path: "pdls/pdl",
-                    element: <PDLtable />
-                },
-                {
-                    path: "pdls/pdl/update",
-                    element: <UpdatePDL />
-                },
-                {
-                    path: "pdls/skills",
-                    element: <Skills />
-                },
-                {
-                    path: "pdls/talents",
-                    element: <Talents />
-                },
-                {
-                    path: "pdls/court-branches",
-                    element: <CourtBranch />
-                },
-                {
-                    path: "pdls/gang-affiliation",
-                    element: <GangAffiliation />
-                },
-                {
-                    path: "pdls/police-precinct",
-                    element: <Precinct />
-                },
-                {
-                    path: "pdls/offenses",
-                    element: <Offenses />
-                },
-                {
-                    path: "pdls/law",
-                    element: <Law />
-                },
-                {
-                    path: "pdls/relationship",
-                    element: <Relationship />
-                },
-                {
-                    path: "pdls/crime-category",
-                    element: <CrimeCategory />
-                },
-                {
-                    path: "pdls/pdl-visitation-status",
-                    element: <PDLVisitationStatus />
-                },
-                {
-                    path: "pdls/pdl-category",
-                    element: <PDLCategory />
-                },
-                {
-                    path: "visitors",
-                    element: <Visitors />
-                },
-                {
-                    path: "visitors/visitor",
-                    element: <Visitor />
-                },
-                {
-                    path: "visitors/visitor/update-visitor",
-                    element: <EditVisitor />
-                },
-                {
-                    path: "visitors/visitor-type",
-                    element: <VisitorType />
-                },
-                {
-                    path: "visitors/visitor-req-docs",
-                    element: <VisitorReqDocs />
-                },
-                {
-                    path: "visitors/visitor-relationship-to-pdl",
-                    element: <VisitorRelationship />
-                },
-                {
-                    path: "visitors/visitor-registration",
-                    element: <VisitorRegistration />
-                },
-                {
-                    path: "visitors/visitor-identification",
-                    element: <VisitorCodeIdentification />
-                },
-                {
-                    path: "visitors/visitor-id",
-                    element: <VisitorID />
-                },
-                {
-                    path: "issues",
-                    element: <Issues />
-                },
-                {
-                    path: "issues/issue-type",
-                    element: <IssueType />
-                },
-                {
-                    path: "issues/issue-category",
-                    element: <IssueCategory />
-                },
-                {
-                    path: "issues/risk",
-                    element: <Risk />
-                },
-                {
-                    path: "issues/risk-level",
-                    element: <RiskLevel />
-                },
-                {
-                    path: "issues/impacts",
-                    element: <Impact />
-                },
-                {
-                    path: "issues/impact-level",
-                    element: <ImpactLevel />
-                },
-                {
-                    path: "issues/recommended-action",
-                    element: <RecommendedAction />
-                },
-                {
-                    path: "visitors/non-pdl-visitor",
-                    element: <NonPdlVisitorRegistration />
-                },
-                {
-                    path: "service-provider/service-provider-registration",
-                    element: <ServiceProviderRegistration />
-                },
-                {
-                    path: "service-provider/update",
-                    element: <ServiceProviderUpdate />
-                },
-                {
-                    path: "service-provider/service-provided",
-                    element: <ServiceProvided />
-                },
-                {
-                    path: "non-pdl-visitors/visitor-relationship-personnel",
-                    element: <VisitorRelPersonnel />
-                },
-                {
-                    path: "non-pdl-visitors/reason-for-visit",
-                    element: <NonPDLReasonforVisit />
-                },
-                {
-                    path: "personnels",
-                    element: <Personnels />
-                },
-                {
-                    path: "personnels/personnel",
-                    element: <Personnel />
-                },
-                {
-                    path: "personnels/personnel/update",
-                    element: <PersonnelUpdate />
-                },
-                {
-                    path: "personnels/ranks",
-                    element: <Rank />
-                },
-                {
-                    path: "personnels/positions",
-                    element: <Position />
-                },
-                {
-                    path: "personnels/employment-type",
-                    element: <EmploymentType />
-                },
-                {
-                    path: "personnels/personnel-designation",
-                    element: <PersonnelDesignation />
-                },
-                {
-                    path: "personnels/personnel-status",
-                    element: <PersonnelStatus />
-                },
-                {
-                    path: "personnels/personnel-type",
-                    element: <PersonnelType />
-                },
-                {
-                    path: "personnels/personnel-application-status",
-                    element: <PersonnelAppStatus />
-                },
-                {
-                    path: "maintenance/affiliation-type",
-                    element: <AffiliationType />
-                },
-                {
-                    path: "maintenance/gender",
-                    element: <Gender />
-                },
-                {
-                    path: "maintenance/civil-status",
-                    element: <CivilStatus />
-                },
-                {
-                    path: "maintenance/id-types",
-                    element: <ID_Types />
-                },
-                {
-                    path: "maintenance/record-status",
-                    element: <RecordStatus />
-                },
-                {
-                    path: "maintenance/social-media-platforms",
-                    element: <SocialMedia />
-                },
-                {
-                    path: "database",
-                    element: <Database />
-                },
-                {
-                    path: "registration",
-                    element: <Registration />
-                },
-                {
-                    path: "registration/bjmp-personnel",
-                    element: <BJMPPersonnel />
-                },
-                {
-                    path: "registration/pdl-registration",
-                    element: <PdlRegistration />
-                },
-                {
-                    path: "registration/personnel-registration",
-                    element: <PersonnelRegistration />
-                },
-                {
-                    path: "database/judicial-courts",
-                    element: <Court />
-                },
-                {
-                    path: "database/interest",
-                    element: <Interest />
-                },
-                {
-                    path: "database/looks",
-                    element: <Looks />
-                },
-                {
-                    path: "log-monitoring",
-                    element: <LogMonitoring />
-                },
-                {
-                    path: "log-monitoring/visit-logs",
-                    element: <VisitLog />
-                },
-                {
-                    path: "log-monitoring/pdl-visitors",
-                    element: <PDLVisitors />
-                },
-                {
-                    path: "log-monitoring/visitor_check-in-out_profiles",
-                    element: <VisitorProfileSlider />
-                },
-                {
-                    path: "non-pdl-visitors",
-                    element: <NonPDL />
-                },
-                {
-                    path: "non-pdl-visitors/non-pdl-visitor-type",
-                    element: <NPVisitorType />
-                },
-                {
-                    path: "non-pdl-visitors/update",
-                    element: <NonPdlVisitorUpdate />
-                },
-                {
-                    path: "service-provider",
-                    element: <ServiceProvider />
-                },
-                {
-                    path: "incidents/oasis/alerts",
-                    element: <Alerts />
-                },
-                {
-                    path: "incidents/oasis/alerts/add_alert",
-                    element: <OasisAlertForm />
-                },
-                {
-                    path: "incidents/oasis/status",
-                    element: <Statuses />
-                },
-                {
-                    path: "incidents/oasis/message_type",
-                    element: <MessageTypes />
-                },
-                {
-                    path: "incidents/oasis/scope",
-                    element: <Scopes />
-                },
-                {
-                    path: "incidents/oasis/restriction",
-                    element: <Restrictions />
-                },
-                {
-                    path: "incidents/oasis/code",
-                    element: <Codes />
-                },
-                {
-                    path: "incidents/oasis/note",
-                    element: <Notes />
-                },
-                {
-                    path: "incidents/oasis/language",
-                    element: <Language />
-                },
-                {
-                    path: "incidents/oasis/category",
-                    element: <Categories />
-                },
-                {
-                    path: "incidents/oasis/event",
-                    element: <Events />
-                },
-                {
-                    path: "incidents/oasis/response_type",
-                    element: <ResponseTypes />
-                },
-                {
-                    path: "incidents/oasis/urgency",
-                    element: <Urgency />
-                },
-                {
-                    path: "incidents/oasis/severity",
-                    element: <Severity />
-                },
-                {
-                    path: "incidents/oasis/certainty",
-                    element: <Certainty />
-                },
-                {
-                    path: "incidents/oasis/audience",
-                    element: <Audience />
-                },
-                {
-                    path: "incidents/oasis/event_code",
-                    element: <EventCodes />
-                },
-                {
-                    path: "incidents/oasis/instructions",
-                    element: <Instructions />
-                },
-                {
-                    path: "incidents/oasis/parameter",
-                    element: <Parameter />
-                },
-                {
-                    path: "incidents/oasis/geocode",
-                    element: <Geocodes />
-                },
-                {
-                    path: "person",
-                    element: <Person />
-                },
-            ],
-        },
+                */
+          },
+          {
+            index: true,
+            element: <Dashboard />,
+          },
+          {
+            path: "home",
+            element: <Home1 />,
+          },
+          {
+            path: "home",
+            element: <Home2 />,
+          },
+          {
+            path: "dashboard",
+            element: <Dashboard />,
+          },
+          {
+            path: "dashboard2",
+            element: <Home />,
+          },
+          {
+            path: "map",
+            element: <MapContent />,
+          },
+          {
+            path: "alphalist",
+            element: <Alphalist />,
+          },
+          {
+            path: "assets",
+            element: <Assets />,
+          },
+          {
+            path: "assets/jail-facility",
+            element: <JailFacility />,
+          },
+          {
+            path: "assets/level",
+            element: <Annex />,
+          },
+          {
+            path: "assets/annex",
+            element: <Level />,
+          },
+          {
+            path: "assets/dorms",
+            element: <Dorm />,
+          },
+          {
+            path: "assets/areas",
+            element: <JailArea />,
+          },
+          {
+            path: "assets/jail-type",
+            element: <JailType />,
+          },
+          {
+            path: "assets/jail-categories",
+            element: <JailCategory />,
+          },
+          {
+            path: "assets/jail-security",
+            element: <JailSecurityLevel />,
+          },
+          {
+            path: "assets/devices",
+            element: <Device />,
+          },
+          {
+            path: "assets/devices-type",
+            element: <DeviceType />,
+          },
+          {
+            path: "assets/devices-usage",
+            element: <DeviceUsage />,
+          },
+          {
+            path: "assets/device-setting",
+            element: <DeviceSetting />,
+          },
+          {
+            path: "maintenance",
+            element: <Maintenance />,
+          },
+          {
+            path: "maintenance/record-status",
+            element: <RecordStatus />,
+          },
+          {
+            path: "maintenance/social-media-platforms",
+            element: <SocialMedia />,
+          },
+          {
+            path: "maintenance/gender",
+            element: <Gender />,
+          },
+          {
+            path: "maintenance/civil-status",
+            element: <CivilStatus />,
+          },
+          {
+            path: "maintenance/id-types",
+            element: <ID_Types />,
+          },
+          {
+            path: "maintenance/religion",
+            element: <Religion />,
+          },
+          {
+            path: "maintenance/ethnicities",
+            element: <Ethnicity />,
+          },
+          {
+            path: "maintenance/occupation",
+            element: <Occupation />,
+          },
+          {
+            path: "maintenance/educational-attainments",
+            element: <EducationalAttainment />,
+          },
+          {
+            path: "maintenance/prefixes",
+            element: <Prefixes />,
+          },
+          {
+            path: "maintenance/suffixes",
+            element: <Suffixes />,
+          },
+          {
+            path: "maintenance/contact-types",
+            element: <ContactType />,
+          },
+          {
+            path: "maintenance/address-types",
+            element: <AddressType />,
+          },
+          {
+            path: "maintenance/nationalities",
+            element: <Nationality />,
+          },
+          {
+            path: "maintenance/multi-birth-classification",
+            element: <MultiBirth />,
+          },
+          {
+            path: "maintenance/group-affiliation",
+            element: <GroupAffiliation />,
+          },
+          {
+            path: "settings",
+            element: <Settings />,
+          },
+          {
+            path: "settings/general-settings",
+            element: <GeneralSettings />,
+          },
+          {
+            path: "settings/system-settings",
+            element: <SystemSettings />,
+          },
+          {
+            path: "settings/encryption_parameters",
+            element: <EncrytionParameters />,
+          },
+          {
+            path: "users",
+            element: <User />,
+          },
+          {
+            path: "users/user",
+            element: <Users />,
+          },
+          {
+            path: "users/roles",
+            element: <Roles />,
+          },
+          {
+            path: "users/user-otp-account",
+            element: <OTP />,
+          },
+          {
+            path: "tools",
+            element: <Tools />,
+          },
+          {
+            path: "integrations",
+            element: <Integration />,
+          },
+          {
+            path: "supports",
+            element: <Support />,
+          },
+          {
+            path: "reports",
+            element: <MainReport />,
+          },
+          {
+            path: "reports/dashboard-summary",
+            element: <DashboardSummary />,
+          },
+          {
+            path: "reports/summary-count-of-PDL-visitors",
+            element: <SummaryCount />,
+          },
+          {
+            path: "reports/summary-count-of-PDLs",
+            element: <SummaryCountofPDLs />,
+          },
+          {
+            path: "reports/summary-count-of-personnel",
+            element: <SummaryCountofPersonnel />,
+          },
+          {
+            path: "reports/list-of-pdl-visitor",
+            element: <ListPDLVisitors />,
+          },
+          {
+            path: "reports/list-of-personnel",
+            element: <ListPersonnel />,
+          },
+          {
+            path: "reports/list-of-pdls",
+            element: <ListPDLs />,
+          },
+          {
+            path: "incidents",
+            element: <Incidents />,
+          },
+          {
+            path: "incidents/incident-category",
+            element: <IncidentCategory />,
+          },
+          {
+            path: "incidents/incident-type",
+            element: <IncidentType />,
+          },
+          {
+            path: "incidents/incident-type",
+            element: <Incidents />,
+          },
+          {
+            path: "incidents/incidents_list",
+            element: <IncidentTable />,
+          },
+          {
+            path: "incidents/report",
+            element: <ReportAnIncident />,
+          },
+          {
+            path: "threats",
+            element: <Threat />,
+          },
+          {
+            path: "threats/watch-list",
+            element: <Watchlist />,
+          },
+          {
+            path: "threats/watchlist_registration",
+            element: <AddWatchlist />,
+          },
+          {
+            path: "threats/watchlist_types",
+            element: <WatchlistType />,
+          },
+          {
+            path: "threats/watchlist_risk_level",
+            element: <WatchlistRiskLevel />,
+          },
+          {
+            path: "threats/watchlist_threat_level",
+            element: <WatchlistThreatLevel />,
+          },
+          {
+            path: "screening",
+            element: <Screening />,
+          },
+          {
+            path: "screening/verify",
+            element: <Verify />,
+          },
+          {
+            path: "pdls",
+            element: <PDL />,
+          },
+          {
+            path: "pdls/pdl",
+            element: <PDLtable />,
+          },
+          {
+            path: "pdls/pdl/update",
+            element: <UpdatePDL />,
+          },
+          {
+            path: "pdls/skills",
+            element: <Skills />,
+          },
+          {
+            path: "pdls/talents",
+            element: <Talents />,
+          },
+          {
+            path: "pdls/court-branches",
+            element: <CourtBranch />,
+          },
+          {
+            path: "pdls/gang-affiliation",
+            element: <GangAffiliation />,
+          },
+          {
+            path: "pdls/police-precinct",
+            element: <Precinct />,
+          },
+          {
+            path: "pdls/offenses",
+            element: <Offenses />,
+          },
+          {
+            path: "pdls/law",
+            element: <Law />,
+          },
+          {
+            path: "pdls/relationship",
+            element: <Relationship />,
+          },
+          {
+            path: "pdls/crime-category",
+            element: <CrimeCategory />,
+          },
+          {
+            path: "pdls/pdl-visitation-status",
+            element: <PDLVisitationStatus />,
+          },
+          {
+            path: "pdls/pdl-category",
+            element: <PDLCategory />,
+          },
+          {
+            path: "visitors",
+            element: <Visitors />,
+          },
+          {
+            path: "visitors/visitor",
+            element: <Visitor />,
+          },
+          {
+            path: "visitors/visitor/update-visitor",
+            element: <EditVisitor />,
+          },
+          {
+            path: "visitors/visitor-type",
+            element: <VisitorType />,
+          },
+          {
+            path: "visitors/visitor-req-docs",
+            element: <VisitorReqDocs />,
+          },
+          {
+            path: "visitors/visitor-relationship-to-pdl",
+            element: <VisitorRelationship />,
+          },
+          {
+            path: "visitors/visitor-registration",
+            element: <VisitorRegistration />,
+          },
+          {
+            path: "visitors/visitor-identification",
+            element: <VisitorCodeIdentification />,
+          },
+          {
+            path: "visitors/visitor-id",
+            element: <VisitorID />,
+          },
+          {
+            path: "issues",
+            element: <Issues />,
+          },
+          {
+            path: "issues/issue-type",
+            element: <IssueType />,
+          },
+          {
+            path: "issues/issue-category",
+            element: <IssueCategory />,
+          },
+          {
+            path: "issues/risk",
+            element: <Risk />,
+          },
+          {
+            path: "issues/risk-level",
+            element: <RiskLevel />,
+          },
+          {
+            path: "issues/impacts",
+            element: <Impact />,
+          },
+          {
+            path: "issues/impact-level",
+            element: <ImpactLevel />,
+          },
+          {
+            path: "issues/recommended-action",
+            element: <RecommendedAction />,
+          },
+          {
+            path: "visitors/non-pdl-visitor",
+            element: <NonPdlVisitorRegistration />,
+          },
+          {
+            path: "service-provider/service-provider-registration",
+            element: <ServiceProviderRegistration />,
+          },
+          {
+            path: "service-provider/update",
+            element: <ServiceProviderUpdate />,
+          },
+          {
+            path: "service-provider/service-provided",
+            element: <ServiceProvided />,
+          },
+          {
+            path: "non-pdl-visitors/visitor-relationship-personnel",
+            element: <VisitorRelPersonnel />,
+          },
+          {
+            path: "non-pdl-visitors/reason-for-visit",
+            element: <NonPDLReasonforVisit />,
+          },
+          {
+            path: "personnels",
+            element: <Personnels />,
+          },
+          {
+            path: "personnels/personnel",
+            element: <Personnel />,
+          },
+          {
+            path: "personnels/personnel/update",
+            element: <PersonnelUpdate />,
+          },
+          {
+            path: "personnels/ranks",
+            element: <Rank />,
+          },
+          {
+            path: "personnels/positions",
+            element: <Position />,
+          },
+          {
+            path: "personnels/employment-type",
+            element: <EmploymentType />,
+          },
+          {
+            path: "personnels/personnel-designation",
+            element: <PersonnelDesignation />,
+          },
+          {
+            path: "personnels/personnel-status",
+            element: <PersonnelStatus />,
+          },
+          {
+            path: "personnels/personnel-type",
+            element: <PersonnelType />,
+          },
+          {
+            path: "personnels/personnel-application-status",
+            element: <PersonnelAppStatus />,
+          },
+          {
+            path: "maintenance/affiliation-type",
+            element: <AffiliationType />,
+          },
+          {
+            path: "maintenance/gender",
+            element: <Gender />,
+          },
+          {
+            path: "maintenance/civil-status",
+            element: <CivilStatus />,
+          },
+          {
+            path: "maintenance/id-types",
+            element: <ID_Types />,
+          },
+          {
+            path: "maintenance/record-status",
+            element: <RecordStatus />,
+          },
+          {
+            path: "maintenance/social-media-platforms",
+            element: <SocialMedia />,
+          },
+          {
+            path: "database",
+            element: <Database />,
+          },
+          {
+            path: "registration",
+            element: <Registration />,
+          },
+          {
+            path: "registration/bjmp-personnel",
+            element: <BJMPPersonnel />,
+          },
+          {
+            path: "registration/pdl-registration",
+            element: <PdlRegistration />,
+          },
+          {
+            path: "registration/personnel-registration",
+            element: <PersonnelRegistration />,
+          },
+          {
+            path: "database/judicial-courts",
+            element: <Court />,
+          },
+          {
+            path: "database/interest",
+            element: <Interest />,
+          },
+          {
+            path: "database/looks",
+            element: <Looks />,
+          },
+          {
+            path: "log-monitoring",
+            element: <LogMonitoring />,
+          },
+          {
+            path: "log-monitoring/visit-logs",
+            element: <VisitLog />,
+          },
+          {
+            path: "log-monitoring/pdl-visitors",
+            element: <PDLVisitors />,
+          },
+          {
+            path: "log-monitoring/visitor_check-in-out_profiles",
+            element: <VisitorProfileSlider />,
+          },
+          {
+            path: "non-pdl-visitors",
+            element: <NonPDL />,
+          },
+          {
+            path: "non-pdl-visitors/non-pdl-visitor-type",
+            element: <NPVisitorType />,
+          },
+          {
+            path: "non-pdl-visitors/update",
+            element: <NonPdlVisitorUpdate />,
+          },
+          {
+            path: "service-provider",
+            element: <ServiceProvider />,
+          },
+          {
+            path: "incidents/oasis/alerts",
+            element: <Alerts />,
+          },
+          {
+            path: "incidents/oasis/alerts/add_alert",
+            element: <OasisAlertForm />,
+          },
+          {
+            path: "incidents/oasis/status",
+            element: <Statuses />,
+          },
+          {
+            path: "incidents/oasis/message_type",
+            element: <MessageTypes />,
+          },
+          {
+            path: "incidents/oasis/scope",
+            element: <Scopes />,
+          },
+          {
+            path: "incidents/oasis/restriction",
+            element: <Restrictions />,
+          },
+          {
+            path: "incidents/oasis/code",
+            element: <Codes />,
+          },
+          {
+            path: "incidents/oasis/note",
+            element: <Notes />,
+          },
+          {
+            path: "incidents/oasis/language",
+            element: <Language />,
+          },
+          {
+            path: "incidents/oasis/category",
+            element: <Categories />,
+          },
+          {
+            path: "incidents/oasis/event",
+            element: <Events />,
+          },
+          {
+            path: "incidents/oasis/response_type",
+            element: <ResponseTypes />,
+          },
+          {
+            path: "incidents/oasis/urgency",
+            element: <Urgency />,
+          },
+          {
+            path: "incidents/oasis/severity",
+            element: <Severity />,
+          },
+          {
+            path: "incidents/oasis/certainty",
+            element: <Certainty />,
+          },
+          {
+            path: "incidents/oasis/audience",
+            element: <Audience />,
+          },
+          {
+            path: "incidents/oasis/event_code",
+            element: <EventCodes />,
+          },
+          {
+            path: "incidents/oasis/instructions",
+            element: <Instructions />,
+          },
+          {
+            path: "incidents/oasis/parameter",
+            element: <Parameter />,
+          },
+          {
+            path: "incidents/oasis/geocode",
+            element: <Geocodes />,
+          },
+          {
+            path: "person",
+            element: <Person />,
+          },
+        ],
+      },
     ],
-        {
-            future: {
-                v7_startTransition: true
-            },
-        }
-    );
-
-    if (!isAuthenticated) {
-        return <RouterProvider router={router} />;
+    {
+      future: {
+        v7_startTransition: true,
+      },
     }
+  );
 
-    return (
+  if (!isAuthenticated) {
+    return <RouterProvider router={router} />;
+  }
 
-        <Suspense fallback={<Spinner />} >
-            <RouterProvider router={router} />
-        </Suspense>
+  return (
+    <Suspense fallback={<Spinner />}>
+      <RouterProvider router={router} />
+    </Suspense>
 
-
-        // <RouterProvider router={router} />
-
-    );
+    // <RouterProvider router={router} />
+  );
 }
 
 export default App;

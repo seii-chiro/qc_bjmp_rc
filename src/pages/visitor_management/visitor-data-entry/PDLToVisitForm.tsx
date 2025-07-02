@@ -108,10 +108,10 @@ const PDLToVisitForm = ({
                 lastName: pdls?.find(pdl => pdl?.id === pdlToVisitID)?.person?.last_name ?? null,
                 firstName: pdls?.find(pdl => pdl?.id === pdlToVisitID)?.person?.first_name ?? null,
                 middleName: pdls?.find(pdl => pdl?.id === pdlToVisitID)?.person?.middle_name ?? null,
-                annex: pdls?.find(pdl => pdl?.id === pdlToVisitID)?.cell?.floor ?? null,
+                annex: pdls?.find(pdl => pdl?.id === pdlToVisitID)?.cell?.floor?.split("(")[1]?.replace(")", "") ?? null,
                 multipleBirthClass: selectedPdl?.person?.multiple_birth_siblings?.[0] ?? null,
                 dorm: pdls?.find(pdl => pdl?.id === pdlToVisitID)?.cell?.cell_name ?? null,
-                level: pdls?.find(pdl => pdl?.id === pdlToVisitID)?.jail?.jail_name ?? null,
+                level: pdls?.find(pdl => pdl?.id === pdlToVisitID)?.cell?.floor?.split("(")[0]?.replace(")", "")  ?? null,
                 visitationStatus: pdls?.find(pdl => pdl?.id === pdlToVisitID)?.visitation_status ?? null,
             }));
         } else {

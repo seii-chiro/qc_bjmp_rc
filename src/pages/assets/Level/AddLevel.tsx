@@ -59,7 +59,7 @@ async function addLevel(level: AddLevelResponse) {
         });
 
         if (!res.ok) {
-            let errorMessage = "Error Adding Level";
+            let errorMessage = "Error Adding Annex";
             try {
                 const errorData = await res.json();
                 errorMessage = errorData?.message || JSON.stringify(errorData);
@@ -77,7 +77,7 @@ async function addLevel(level: AddLevelResponse) {
         mutationFn: addLevel,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['level'] });
-            messageApi.success("Level added successfully");
+            messageApi.success("Annex added successfully");
             onClose();
         },
         onError: (error: any) => {
@@ -130,13 +130,13 @@ async function addLevel(level: AddLevelResponse) {
                             />
                     </div>
                     <div>
-                        <p>Level Name:</p>
+                        <p>Annex Name:</p>
                         <input
                         type="text"
                         name="bldg_name"
                         value={formData.bldg_name}
                         onChange={handleInputChange}
-                        placeholder="Level Name"
+                        placeholder="Annex Name"
                         className="h-12 border border-gray-300 rounded-lg px-2 w-full"
                         required
                     />
@@ -155,22 +155,22 @@ async function addLevel(level: AddLevelResponse) {
                         />
                     </div>
                     <div>
-                    <p>Level Description:</p>
+                    <p>Annex Description:</p>
                         <textarea
                             name="bldg_description"
                             value={formData.bldg_description}
                             onChange={handleInputChange}
-                            placeholder="Level Description"
+                            placeholder="Annex Description"
                             className="border border-gray-300 rounded-lg px-2 py-2 w-full"
                             rows={3}
                         />
                     </div>
                     <div>
-                    <p>Level Status:</p>
+                    <p>Annex Status:</p>
                         <Select
                             showSearch
                             className="h-[3rem] w-full"
-                            placeholder="Level Status"
+                            placeholder="Annex Status"
                             onChange={onStatusChange}
                             value={formData?.results?.bldg_status || undefined}
                             options={[

@@ -194,8 +194,8 @@ const VisitorProfilePortrait = ({
                                             <th className="py-1 px-2">Surname</th>
                                             <th className="py-1 px-2">First Name</th>
                                             <th className="py-1 px-2">Middle Name</th>
-                                            <th className="py-1 px-2">Level</th>
                                             <th className="py-1 px-2">Annex</th>
+                                            <th className="py-1 px-2">Level</th>
                                             <th className="py-1 px-2">Dorm</th>
                                         </tr>
                                     </thead>
@@ -216,13 +216,13 @@ const VisitorProfilePortrait = ({
                                                         {pdlItem?.pdl?.person?.middle_name || ""}
                                                     </td>
                                                     <td className="text-center text-[9px] font-light">
-                                                        {pdlItem?.pdl?.cell?.cell_name || ""}
-                                                    </td>
-                                                    <td className="text-center text-[9px] font-light">
                                                         {pdlItem?.pdl?.cell?.floor?.split("(")[1]?.replace(")", "") || ""}
                                                     </td>
                                                     <td className="text-center text-[9px] font-light">
-                                                        {pdlItem?.pdl?.cell?.floor || ""}
+                                                        {pdlItem?.pdl?.cell?.floor?.split("(")[0]?.replace(")", "") || ""}
+                                                    </td>
+                                                    <td className="text-center text-[9px] font-light">
+                                                        {pdlItem?.pdl?.cell?.cell_name || ""}
                                                     </td>
                                                 </tr>
                                             ))
