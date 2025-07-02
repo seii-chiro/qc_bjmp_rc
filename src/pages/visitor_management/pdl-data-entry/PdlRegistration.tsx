@@ -166,6 +166,9 @@ const PdlRegistration = () => {
     risk_classification: "",
   });
 
+  const [selectedAnnexId, setSelectedAnnexId] = useState<number | null>(null);
+  const [selectedLevelId, setSelectedLevelId] = useState<number | null>(null);
+
   const [personSearch, setPersonSearch] = useState("");
   const [personPage, setPersonPage] = useState(1);
   const [debouncedSearch, setDebouncedSearch] = useState(personSearch);
@@ -768,6 +771,26 @@ const PdlRegistration = () => {
   const persons = personsPaginated?.results || [];
   const personsCount = personsPaginated?.count || 0;
 
+  const filteredLevels = annex?.filter(
+    (level) =>
+      level?.building?.replace(/\s*\(.*?\)/, "") ===
+      levels?.find((b) => b.id === selectedAnnexId)?.bldg_name
+  );
+
+  const filteredDorms = dorms?.filter((dorm) => {
+    const chosenAnnex = levels?.find(
+      (annex) => annex?.id === selectedAnnexId
+    )?.bldg_name;
+    const wordInsideParen = dorm?.floor?.match(/\((.*?)\)/);
+    const myAnnex =
+      wordInsideParen && wordInsideParen[1] ? wordInsideParen[1] : "";
+    return (
+      dorm?.floor?.replace(/\s*\(.*?\)/, "") ===
+        filteredLevels?.find((f) => f?.id === selectedLevelId)?.floor_name &&
+      chosenAnnex === myAnnex
+    );
+  });
+
   const addressDataSource = personForm?.address_data?.map((address, index) => {
     return {
       key: index,
@@ -977,7 +1000,7 @@ const PdlRegistration = () => {
             <div className="flex justify-end">
               <div className="flex gap-2 w-[70%] items-end">
                 <div className="flex flex-col mt-2 w-full">
-                  <div className="flex gap-1 font-semibold">Level</div>
+                  <div className="flex gap-1 font-semibold">Annex</div>
                   <Select
                     showSearch
                     optionFilterProp="label"
@@ -988,31 +1011,40 @@ const PdlRegistration = () => {
                       label: level?.bldg_name,
                     }))}
                     onChange={(value) => {
+                      setSelectedAnnexId(value);
+                      setSelectedLevelId(null); // Reset level when annex changes
                       setPdlForm((prev) => ({
                         ...prev,
                         building_id: value,
+                        floor_id: null,
+                        cell_id: null,
                       }));
                     }}
+                    value={selectedAnnexId ?? undefined}
                   />
                 </div>
                 {/*Select Input Field */}
                 <div className="flex flex-col mt-2 w-full">
-                  <div className="flex gap-1 font-semibold">Annex</div>
+                  <div className="flex gap-1 font-semibold">Level</div>
                   <Select
                     showSearch
                     loading={annexLoading}
                     optionFilterProp="label"
                     className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
-                    options={annex?.map((annex) => ({
+                    options={filteredLevels?.map((annex) => ({
                       value: annex?.id,
                       label: annex?.floor_name,
                     }))}
                     onChange={(value) => {
+                      setSelectedLevelId(value);
                       setPdlForm((prev) => ({
                         ...prev,
                         floor_id: value,
+                        cell_id: null,
                       }));
                     }}
+                    value={selectedLevelId ?? undefined}
+                    disabled={!selectedAnnexId}
                   />
                 </div>
                 <div className="flex flex-col mt-2 w-full">
@@ -1021,7 +1053,7 @@ const PdlRegistration = () => {
                     showSearch
                     optionFilterProp="label"
                     className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
-                    options={dorms?.map((dorm) => ({
+                    options={filteredDorms?.map((dorm) => ({
                       value: dorm?.id,
                       label: dorm?.cell_name,
                     }))}
@@ -1031,6 +1063,8 @@ const PdlRegistration = () => {
                         cell_id: value,
                       }));
                     }}
+                    value={pdlForm.cell_id ?? undefined}
+                    disabled={!selectedLevelId}
                   />
                 </div>
                 {/* <div className="flex flex-col mt-2 w-full">

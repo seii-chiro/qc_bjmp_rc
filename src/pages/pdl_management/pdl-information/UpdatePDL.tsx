@@ -204,6 +204,9 @@ const UpdatePDL = () => {
     risk_classification: "",
   });
 
+  const [selectedAnnexId, setSelectedAnnexId] = useState<number | null>(null);
+  const [selectedLevelId, setSelectedLevelId] = useState<number | null>(null);
+
   const [personSearch, setPersonSearch] = useState("");
   const [personPage, setPersonPage] = useState(1);
   const [debouncedSearch, setDebouncedSearch] = useState(personSearch);
@@ -590,6 +593,26 @@ const UpdatePDL = () => {
     [personsPaginated]
   );
   const personsCount = personsPaginated?.count || 0;
+
+  const filteredLevels = annex?.filter(
+    (level) =>
+      level?.building?.replace(/\s*\(.*?\)/, "") ===
+      levels?.find((b) => b.id === selectedAnnexId)?.bldg_name
+  );
+
+  const filteredDorms = dorms?.filter((dorm) => {
+    const chosenAnnex = levels?.find(
+      (annex) => annex?.id === selectedAnnexId
+    )?.bldg_name;
+    const wordInsideParen = dorm?.floor?.match(/\((.*?)\)/);
+    const myAnnex =
+      wordInsideParen && wordInsideParen[1] ? wordInsideParen[1] : "";
+    return (
+      dorm?.floor?.replace(/\s*\(.*?\)/, "") ===
+        filteredLevels?.find((f) => f?.id === selectedLevelId)?.floor_name &&
+      chosenAnnex === myAnnex
+    );
+  });
 
   const { data: ethnicitiesProvinces, isLoading: ethnicitiesProvincesLoading } =
     useQuery({
@@ -1353,6 +1376,22 @@ const UpdatePDL = () => {
     birthClassTypes,
   ]);
 
+  // useEffect(() => {
+  //   setSelectedAnnexId(
+  //     levels?.find(
+  //       (lvl) =>
+  //         lvl?.bldg_name === pdlData?.cell?.floor?.match(/\(([^)]+)\)/)[1]
+  //     )?.id ?? null
+  //   );
+  //   setSelectedLevelId(
+  //     annex?.find(
+  //       (annex) =>
+  //         annex?.floor_name ===
+  //         pdlData?.cell?.floor?.replace(/\s*\([^)]*\)/g, "")
+  //     )?.id ?? null
+  //   );
+  // }, [annex, levels, pdlData?.cell?.floor]);
+
   const chosenGender =
     genders?.find((gender) => gender?.id === personForm?.gender_id)
       ?.gender_option || "";
@@ -1363,6 +1402,47 @@ const UpdatePDL = () => {
     /-/g,
     ""
   )}-${paddedId}`;
+
+  function ensureOption(
+    options: any[],
+    selectedId: number | null,
+    labelKey: string,
+    valueKey: string,
+    fullList: any[] | undefined
+  ) {
+    if (!selectedId) return options;
+    const exists = options?.some((opt) => opt[valueKey] === selectedId);
+    if (exists) return options;
+    const found = fullList?.find((item) => item.id === selectedId);
+    if (found) {
+      return [...options, { value: found.id, label: found[labelKey] }];
+    }
+    return options;
+  }
+
+  // For Level
+  const levelOptions = ensureOption(
+    filteredLevels?.map((annex) => ({
+      value: annex?.id,
+      label: annex?.floor_name,
+    })) ?? [],
+    pdlForm?.floor_id,
+    "floor_name",
+    "value",
+    annex
+  );
+
+  // For Dorm
+  const dormOptions = ensureOption(
+    filteredDorms?.map((dorm) => ({
+      value: dorm?.id,
+      label: dorm?.cell_name,
+    })) ?? [],
+    pdlForm?.cell_id,
+    "cell_name",
+    "value",
+    dorms
+  );
 
   useEffect(() => {
     const short = `${personForm?.first_name?.[0] ?? ""}${
@@ -1397,7 +1477,7 @@ const UpdatePDL = () => {
             <div className="flex justify-end">
               <div className="flex gap-2 w-[70%] items-end">
                 <div className="flex flex-col mt-2 w-full">
-                  <div className="flex gap-1 font-semibold">Level</div>
+                  <div className="flex gap-1 font-semibold">Annex</div>
                   <Select
                     value={pdlForm?.building_id}
                     showSearch
@@ -1409,32 +1489,36 @@ const UpdatePDL = () => {
                       label: level?.bldg_name,
                     }))}
                     onChange={(value) => {
+                      setSelectedAnnexId(value);
+                      setSelectedLevelId(null);
                       setPdlForm((prev) => ({
                         ...prev,
                         building_id: value,
+                        floor_id: null,
+                        cell_id: null,
                       }));
                     }}
                   />
                 </div>
                 {/*Select Input Field */}
                 <div className="flex flex-col mt-2 w-full">
-                  <div className="flex gap-1 font-semibold">Annex</div>
+                  <div className="flex gap-1 font-semibold">Level</div>
                   <Select
                     value={pdlForm?.floor_id}
                     showSearch
                     loading={annexLoading}
                     optionFilterProp="label"
                     className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
-                    options={annex?.map((annex) => ({
-                      value: annex?.id,
-                      label: annex?.floor_name,
-                    }))}
+                    options={levelOptions}
                     onChange={(value) => {
+                      setSelectedLevelId(value);
                       setPdlForm((prev) => ({
                         ...prev,
                         floor_id: value,
+                        cell_id: null,
                       }));
                     }}
+                    disabled={!selectedAnnexId}
                   />
                 </div>
                 <div className="flex flex-col mt-2 w-full">
@@ -1444,16 +1528,14 @@ const UpdatePDL = () => {
                     showSearch
                     optionFilterProp="label"
                     className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
-                    options={dorms?.map((dorm) => ({
-                      value: dorm?.id,
-                      label: dorm?.cell_name,
-                    }))}
+                    options={dormOptions}
                     onChange={(value) => {
                       setPdlForm((prev) => ({
                         ...prev,
                         cell_id: value,
                       }));
                     }}
+                    disabled={!selectedLevelId}
                   />
                 </div>
                 <div className="flex flex-col mt-2 w-full">
