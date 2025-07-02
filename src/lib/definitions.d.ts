@@ -181,7 +181,7 @@ export type DetentionFloor = {
 
 export type DetentionCell = {
   id: number;
-  floor: number;
+  floor: string;
   cell_no: number;
   cell_name: string;
   cell_capacity: number;
