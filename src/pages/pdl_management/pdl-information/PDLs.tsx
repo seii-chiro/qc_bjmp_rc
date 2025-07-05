@@ -702,10 +702,13 @@ const PDLtable = () => {
                     ? pdlVisitationStatusData?.count || 0
                     : data?.count || 0;
 
-    const mapPDL = (pdl, index) => ({
+    const mapPDL = (pdl, index) => {
+    const paddedId = String(pdl?.id ?? '').padStart(6, '0').slice(-6);
+    return {
         key: index + 1,
         id: pdl?.id ?? 'N/A',
         pdl_reg_no: pdl?.pdl_reg_no ?? 'N/A',
+        pdlNo: `${pdl?.date_of_admission?.replace(/-/g, "")}-${paddedId}`,
         first_name: pdl?.person?.first_name ?? 'N/A',
         middle_name: pdl?.person?.middle_name ?? '',
         last_name: pdl?.person?.last_name ?? '',
@@ -721,7 +724,8 @@ const PDLtable = () => {
         date_of_admission: pdl?.date_of_admission ?? 'N/A',
         organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
         updated: `${UserData?.first_name ?? ''} ${UserData?.last_name ?? ''}`,
-    });
+        };
+    };
 
     return (
         <div>
