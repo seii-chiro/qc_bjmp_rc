@@ -284,7 +284,7 @@ const PDLtable = () => {
             id: pdl?.id,
             name: `${pdl?.person?.first_name ?? ""} ${pdl?.person?.middle_name ?? ""} ${pdl?.person?.last_name ?? ""}`.trim(),
             gender: pdl?.person?.gender?.gender_option?.trim() ?? "",
-            status: pdl?.status ?? "",
+            status: pdl?.new_status ?? "",
             cell_name: pdl?.cell?.cell_name,
             floor: pdl?.cell?.floor,
             visitation_status: pdl?.visitation_status,
