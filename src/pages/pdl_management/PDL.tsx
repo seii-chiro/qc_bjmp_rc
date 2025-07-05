@@ -34,6 +34,8 @@ const PDL = () => {
                     <GodotLink link="/jvms/database/looks" title="Looks" />
                     <GodotLink link="relationship" title="Relationships" />
                     <GodotLink link="gang-affiliation" title="Gang Affiliations" />
+                    <GodotLink link="status" title="Status" />
+                    <GodotLink link="risk_classification" title="Risk Classification" />
                 </div>
             </div>
         </div>
