@@ -285,3 +285,26 @@ export interface Personnel {
   date_joined: string; // or Date if parsed
   personnel_type: number;
 }
+
+export type RiskClassification = {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  created_at: string; // ISO 8601 timestamp
+  updated_at: string; // ISO 8601 timestamp
+  risk_classification: string;
+  description: string;
+}
+
+
+export type PDLStatus = {
+  id: number;
+  created_by: string;
+  updated_by: string;
+  record_status: string;
+  created_at: string; // ISO 8601 timestamp
+  updated_at: string; // ISO 8601 timestamp
+  status: string;
+  description: string;
+}
