@@ -66,6 +66,7 @@ import UpdatePdlVisitor from "./UpdatePdlVisitor";
 import { EthnicityProvince } from "@/lib/definitions";
 import { Person } from "@/lib/pdl-definitions";
 import { EnrolledBiometrics } from "@/pages/visitor_management/edit-visitor/EditVisitor";
+import { addIfExists } from "@/functions/objectBuilderHelper";
 
 const patchPerson = async (payload: PersonForm, token: string, id: string) => {
   const res = await fetch(`${PERSON.postPERSON}${id}/`, {
@@ -1236,7 +1237,8 @@ const UpdatePDL = () => {
       new_risk_classification_id:
         riskClassifications?.results?.find(
           (classification) =>
-            classification?.risk_classification === pdlData?.new_risk_classification
+            classification?.risk_classification ===
+            pdlData?.new_risk_classification
         )?.id ?? null,
       date_of_admission: pdlData?.date_of_admission ?? "2001-01-01",
       case_data:
@@ -1248,26 +1250,38 @@ const UpdatePDL = () => {
             name: string;
             bail_recommended: number;
             law: string;
-          }) => ({
-            judge: pdlCases?.court_branch?.judge ?? "",
-            court_branch_id:
+          }) => {
+            const result: any = {};
+
+            addIfExists(result, "judge", pdlCases?.court_branch?.judge);
+            addIfExists(
+              result,
+              "court_branch_id",
               courtBranches?.results?.find(
                 (court) => court?.branch === pdlCases?.court_branch?.branch
-              )?.id ?? null,
-            case_number: pdlCases?.case_number ?? "",
-            offense_id: pdlCases?.offense?.id ?? null,
-            crime_category_id:
+              )?.id
+            );
+            addIfExists(result, "case_number", pdlCases?.case_number);
+            addIfExists(result, "offense_id", pdlCases?.offense?.id);
+            addIfExists(
+              result,
+              "crime_category_id",
               crimeCategories?.results?.find(
                 (categories) =>
                   categories?.crime_category_name ===
                   pdlCases?.offense?.crime_category
-              )?.id ?? null,
-            court_name: pdlCases?.court_branch?.court ?? "",
-            bail_recommended: pdlCases?.bail_recommended ?? "",
-            law_id:
-              laws?.results?.find((law) => law?.name === pdlCases?.law)?.id ??
-              null,
-          })
+              )?.id
+            );
+            addIfExists(result, "court_name", pdlCases?.court_branch?.court);
+            addIfExists(result, "bail_recommended", pdlCases?.bail_recommended);
+            addIfExists(
+              result,
+              "law_id",
+              laws?.results?.find((law) => law?.name === pdlCases?.law)?.id
+            );
+
+            return result;
+          }
         ) ?? [],
       gang_affiliation_id:
         gangAffiliation?.results?.find(
@@ -1397,7 +1411,7 @@ const UpdatePDL = () => {
     relationships,
     birthClassTypes,
     pdlStatuses,
-    riskClassifications
+    riskClassifications,
   ]);
 
   // useEffect(() => {
