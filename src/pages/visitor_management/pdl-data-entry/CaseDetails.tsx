@@ -155,11 +155,11 @@ const CaseDetails = ({ pdlForm, setPdlForm }: Props) => {
                 dataIndex: 'daysInDetention',
                 key: 'daysInDetention',
             },
-            {
-                title: 'Date Arrested',
-                dataIndex: 'dateArrested',
-                key: 'dateArrested',
-            },
+            // {
+            //     title: 'Date Arrested',
+            //     dataIndex: 'dateArrested',
+            //     key: 'dateArrested',
+            // },
             {
                 title: 'Assignment Date',
                 dataIndex: 'assignmentDate',

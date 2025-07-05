@@ -125,7 +125,7 @@ const CaseDetailsForm = ({
             assignment_date: "",
             bail_recommended: "",
             court_branch_id: null,
-            date_arrested: "",
+            date_arrested: null,
             date_crime_committed: "",
             judge: "",
             offense_id: null,
@@ -147,7 +147,7 @@ const CaseDetailsForm = ({
             assignment_date: "",
             bail_recommended: "",
             court_branch_id: null,
-            date_arrested: "",
+            date_arrested: null,
             date_crime_committed: "",
             judge: "",
             offense_id: null,
@@ -274,7 +274,7 @@ const CaseDetailsForm = ({
                     </label>
                 </div>
                 <div className="flex justify-between gap-2 w-full items-center">
-                    <label className="flex flex-col flex-1">
+                    {/* <label className="flex flex-col flex-1">
                         <span className="font-semibold">Date Arrested</span>
                         <DatePicker
                             className="h-12"
@@ -286,7 +286,7 @@ const CaseDetailsForm = ({
                                 }))
                             }}
                         />
-                    </label>
+                    </label> */}
                     <label className="flex flex-col flex-1">
                         <span className="font-semibold">Date Assignment</span>
                         <DatePicker
