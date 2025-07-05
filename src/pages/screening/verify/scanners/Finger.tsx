@@ -96,16 +96,22 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
     });
 
     const fingerScannerInitMutation = useMutation({
-        mutationKey: ['finger-scanner-init'],
+        mutationKey: ["finger-scanner-init"],
         mutationFn: getScannerInfo,
-        onSuccess: () => {
+        onSuccess: (data) => {
+        if (data.ErrorDescription === "Success") {
             setFingerScannerReady(true);
-            message.info("Fingerprint Scanner Ready")
+            message.info("Fingerprint Scanner Ready");
+        }
+
+        if (data.ErrorDescription === "Device not connected") {
+            message.error(`Fingerprint scanner not connected.`)
+        }
         },
         onError: (error) => {
-            console.error(error.message);
-            message.info("Error Initializing Fingerprint Scanner")
-        }
+        console.error(error.message);
+        message.info("Error Initializing Fingerprint Scanner");
+        },
     });
 
     const fingerScannerCaptureMutation = useMutation({
@@ -537,11 +543,18 @@ const Finger = ({ deviceLoading, devices, selectedArea }: Props) => {
                                                     className="bg-[#1976D2] text-white px-10 py-2 rounded-md">
                                                     Start Capture
                                                 </button>
-                                            ) : (
+                                            ) : fingerScannerInitMutation.isPending ? (
                                                 <button
                                                     type="button"
                                                     className="bg-[#1976D2] text-white px-10 py-2 rounded-md cursor-not-allowed">
                                                     Loading Scanner...
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    disabled
+                                                    type="button"
+                                                    className="bg-gray-400 text-white px-10 py-2 rounded-md cursor-not-allowed">
+                                                    Device not initialized.
                                                 </button>
                                             )
                                         }
