@@ -680,7 +680,8 @@ const Dashboard = () => {
     };
 
     const pdlstatusHandleClick = (status: string) => {
-        navigate(`/jvms/pdls/pdl?status=${encodeURIComponent(status)}`);
+        navigate(`/jvms/pdls/pdl?new_status=${encodeURIComponent(status)}`);
+        // navigate(`/jvms/pdls/pdl?status=${encodeURIComponent(status)}`);
     };
 
     const personnelstatusHandleClick = (status: string) => {

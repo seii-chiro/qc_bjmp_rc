@@ -160,7 +160,7 @@ const PDLtable = () => {
         enabled: !!token,
     });
 
-    const status = searchParams.get("status") || "all";
+    const status = searchParams.get("new_status") || "all";
     const statusList = status !== "all" ? status.split(",").map(decodeURIComponent) : [];
 
     useEffect(() => {
@@ -180,7 +180,7 @@ const PDLtable = () => {
         queryFn: async (): Promise<PaginatedResponse<PDLs>> => {
             const offset = (page - 1) * limit;
             const res = await fetch(
-                `${BASE_URL}/api/pdls/pdl/?status=${encodeURIComponent(statusList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
+                `${BASE_URL}/api/pdls/pdl/?new_status=${encodeURIComponent(statusList.join(","))}&page=${page}&limit=${limit}&offset=${offset}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',

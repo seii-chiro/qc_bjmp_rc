@@ -410,10 +410,10 @@ const SummaryCountofPDLs = () => {
     });
 
     const calculateDefaultCounts = () => {
-        const released = allPDLs?.results?.filter(pdl => pdl?.status === 'Released').length || 0;
-        const hospitalized = allPDLs?.results?.filter(pdl => pdl?.status === 'Hospitalized').length || 0;
-        const convicted = allPDLs?.results?.filter(pdl => pdl?.status === 'Convicted').length || 0;
-        const committed = allPDLs?.results?.filter(pdl => pdl?.status === 'Committed').length || 0;
+        const released = allPDLs?.results?.filter(pdl => pdl?.new_status === 'Released').length || 0;
+        const hospitalized = allPDLs?.results?.filter(pdl => pdl?.new_status === 'Hospitalized').length || 0;
+        const convicted = allPDLs?.results?.filter(pdl => pdl?.new_status === 'Convicted').length || 0;
+        const committed = allPDLs?.results?.filter(pdl => pdl?.new_status === 'Committed').length || 0;
 
         return { released, hospitalized, convicted, committed };
     };
@@ -461,10 +461,10 @@ const SummaryCountofPDLs = () => {
         });
 
         return {
-            released: filteredPDLs.filter(pdl => pdl?.status === 'Released').length,
-            hospitalized: filteredPDLs.filter(pdl => pdl?.status === 'Hospitalized').length,
-            convicted: filteredPDLs.filter(pdl => pdl?.status === 'Convicted').length,
-            committed: filteredPDLs.filter(pdl => pdl?.status === 'Committed').length,
+            released: filteredPDLs.filter(pdl => pdl?.new_status === 'Released').length,
+            hospitalized: filteredPDLs.filter(pdl => pdl?.new_status === 'Hospitalized').length,
+            convicted: filteredPDLs.filter(pdl => pdl?.new_status === 'Convicted').length,
+            committed: filteredPDLs.filter(pdl => pdl?.new_status === 'Committed').length,
         };
     };
 
@@ -608,10 +608,10 @@ const SummaryCountofPDLs = () => {
         const transgender = filteredPDLs.filter(pdl => pdl?.person?.gender?.gender_option === 'TRANSGENDER').length;
 
         // Status-based counts
-        const releasedCount = filteredPDLs.filter(pdl => pdl?.status === 'Released').length;
-        const hospitalizedCount = filteredPDLs.filter(pdl => pdl?.status === 'Hospitalized').length;
-        const convictedCount = filteredPDLs.filter(pdl => pdl?.status === 'Convicted').length;
-        const committedCount = filteredPDLs.filter(pdl => pdl?.status === 'Committed').length;
+        const releasedCount = filteredPDLs.filter(pdl => pdl?.new_status === 'Released').length;
+        const hospitalizedCount = filteredPDLs.filter(pdl => pdl?.new_status === 'Hospitalized').length;
+        const convictedCount = filteredPDLs.filter(pdl => pdl?.new_status === 'Convicted').length;
+        const committedCount = filteredPDLs.filter(pdl => pdl?.new_status === 'Committed').length;
 
         const pdlSummary = [
             ["Summary Count of PDLs", "Total"],
@@ -692,10 +692,10 @@ const SummaryCountofPDLs = () => {
         const totalGender = male + gay + transgender;
 
         // Status-based counts
-        const releasedCount = filteredPDLs.filter(pdl => pdl?.status === 'Released').length;
-        const hospitalizedCount = filteredPDLs.filter(pdl => pdl?.status === 'Hospitalized').length;
-        const convictedCount = filteredPDLs.filter(pdl => pdl?.status === 'Convicted').length;
-        const committedCount = filteredPDLs.filter(pdl => pdl?.status === 'Committed').length;
+        const releasedCount = filteredPDLs.filter(pdl => pdl?.new_status === 'Released').length;
+        const hospitalizedCount = filteredPDLs.filter(pdl => pdl?.new_status === 'Hospitalized').length;
+        const convictedCount = filteredPDLs.filter(pdl => pdl?.new_status === 'Convicted').length;
+        const committedCount = filteredPDLs.filter(pdl => pdl?.new_status === 'Committed').length;
         const totalStatus = releasedCount + hospitalizedCount + convictedCount + committedCount;
 
         const docDefinition = {
@@ -1415,7 +1415,7 @@ const SummaryCountofPDLs = () => {
                                     <td className="px-6 py-2 text-lg whitespace-nowrap">
                                     {
                                         allPDLs?.results?.filter(pdl =>
-                                        pdl.status === "Released" && // or your status field for Released
+                                        pdl?.new_status === "Released" && // or your status field for Released
                                         (!civilStatusFilter || pdl?.person?.civil_status === civilStatusFilter) &&
                                         (!religionFilter || pdl?.person?.religion?.name === religionFilter) &&
                                         (!lawFilter || pdl.cases[0]?.offense?.law === lawFilter) &&
@@ -1440,7 +1440,7 @@ const SummaryCountofPDLs = () => {
                                     <td className="px-6 py-2 text-lg whitespace-nowrap">
                                     {
                                         allPDLs?.results?.filter(pdl =>
-                                        pdl?.status === "Hospitalized" &&
+                                        pdl?.new_status === "Hospitalized" &&
                                         (!civilStatusFilter || pdl?.person?.civil_status === civilStatusFilter) &&
                                         (!religionFilter || pdl?.person?.religion?.name === religionFilter) &&
                                         (!lawFilter || pdl?.cases[0]?.offense?.law === lawFilter) &&
@@ -1465,7 +1465,7 @@ const SummaryCountofPDLs = () => {
                                     <td className="px-6 py-2 text-lg whitespace-nowrap">
                                     {
                                         allPDLs?.results?.filter(pdl =>
-                                        pdl.status === "Convicted" &&
+                                        pdl?.new_status === "Convicted" &&
                                         (!civilStatusFilter || pdl.person.civil_status === civilStatusFilter) &&
                                         (!religionFilter || pdl.person.religion?.name === religionFilter) &&
                                         (!lawFilter || pdl.cases[0]?.offense?.law === lawFilter) &&
@@ -1490,7 +1490,7 @@ const SummaryCountofPDLs = () => {
                                     <td className="px-6 py-2 text-lg whitespace-nowrap">
                                     {
                                         allPDLs?.results?.filter(pdl =>
-                                        pdl.status === "Committed" &&
+                                        pdl?.new_status === "Committed" &&
                                         (!civilStatusFilter || pdl?.person.civil_status === civilStatusFilter) &&
                                         (!religionFilter || pdl?.person.religion?.name === religionFilter)   &&                                     
                                         (!lawFilter || pdl?.cases[0]?.offense?.law === lawFilter) &&
@@ -1530,7 +1530,7 @@ const SummaryCountofPDLs = () => {
                                         (!lookFilter || pdl?.look === lookFilter) &&
                                         (!educationFilter || pdl?.person?.education_backgrounds?.[0]?.educational_attainment === educationFilter) &&
                                         (!occupationFilter || pdl?.occupation === occupationFilter) &&
-                                        ["Released", "Hospitalized", "Convicted", "Committed"].includes(pdl.status)
+                                        ["Released", "Hospitalized", "Convicted", "Committed"].includes(pdl?.new_status)
                                         ).length || 0
                                     }
                                     </td>
