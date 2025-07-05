@@ -72,7 +72,7 @@ const PDLtable = () => {
                 params.append("gender", genderColumnFilter.join(","));
             }
             if (statusColumnFilter.length > 0) {
-                params.append("status", statusColumnFilter.join(","));
+                params.append("new_status", statusColumnFilter.join(","));
             }
             if (visitationColumnFilter.length > 0) {
                 params.append("visitation_status", visitationColumnFilter.join(","));
@@ -335,20 +335,20 @@ const PDLtable = () => {
             render: (_, pdl) => pdl.floor,
             sorter: (a, b) => a.floor.localeCompare(b.floor),
         },
-        {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
-            sorter: (a, b) => a.status.localeCompare(b.status),
-            filters: [
-                { text: 'Committed', value: 'Committed' },
-                { text: 'Convicted', value: 'Convicted' },
-                { text: 'Released', value: 'Released' },
-                { text: 'Hospitalized', value: 'Hospitalized' },
-            ],
-            filteredValue: statusColumnFilter,
-            onFilter: (value, record) => record.status === value,
-        },
+        // {
+        //     title: 'Status',
+        //     dataIndex: 'status',
+        //     key: 'status',
+        //     sorter: (a, b) => a.status.localeCompare(b.status),
+        //     filters: [
+        //         { text: 'Committed', value: 'Committed' },
+        //         { text: 'Convicted', value: 'Convicted' },
+        //         { text: 'Released', value: 'Released' },
+        //         { text: 'Hospitalized', value: 'Hospitalized' },
+        //     ],
+        //     filteredValue: statusColumnFilter,
+        //     onFilter: (value, record) => record.status === value,
+        // },
         {
             title: 'Visitation Status',
             dataIndex: 'visitation_status',
