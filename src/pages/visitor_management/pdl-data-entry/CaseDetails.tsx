@@ -78,7 +78,7 @@ const CaseDetails = ({ pdlForm, setPdlForm }: Props) => {
             key: index,
             caseNumber: pdlCase?.case_number || "xxxx-xxxx",
             offense: offenses?.results?.find(offense => offense?.id === pdlCase?.offense_id)?.offense || "N/A",
-            courtBranch: `${pdlCase?.court_name} ${courtBranches?.results?.find(branch => branch?.id === pdlCase?.court_branch_id)?.branch}`,
+            courtBranch: `${pdlCase?.court_name ?? ""} ${courtBranches?.results?.find(branch => branch?.id === pdlCase?.court_branch_id)?.branch ?? ""}`.trim() || "N/A",
             judge: pdlCase?.judge,
             bailRecommended: pdlCase?.bail_recommended,
             dateCrimeCommitted: pdlCase?.date_crime_committed,
