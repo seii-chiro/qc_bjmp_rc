@@ -11,6 +11,7 @@ import {
   ServiceProviderRemarks,
   ServiceProviderType,
 } from "./definitions";
+import { PDLStatus, RiskClassification } from "./pdl-definitions";
 import { PaginatedResponse } from "./queries";
 import { BASE_URL } from "./urls";
 
@@ -117,6 +118,46 @@ export async function getRelationshipOfVisitorToPersonnel(
     throw new Error(
       "Failed to fetch realtionship of visitor to personnel data."
     );
+  }
+
+  return res.json();
+}
+
+export async function getRiskClassifications(
+  token: string
+): Promise<PaginatedResponse<RiskClassification>> {
+  const res = await fetch(
+    `${BASE_URL}/api/pdls/risk-classification/?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch Risk Classification data.");
+  }
+
+  return res.json();
+}
+
+export async function getPDLStatuses(
+  token: string
+): Promise<PaginatedResponse<PDLStatus>> {
+  const res = await fetch(
+    `${BASE_URL}/api/pdls/pdl-status/?limit=1000`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Token ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch PDL Status data.");
   }
 
   return res.json();
