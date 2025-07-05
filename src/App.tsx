@@ -110,9 +110,9 @@ import DeviceSetting from "./pages/devices-management/device-setting/DeviceSetti
 import AddWatchlist from "./pages/threat/AddWatchlist.tsx";
 import Watchlist from "./pages/threat/Watchlist.tsx";
 import Alphalist from "./pages/alphalist/Alphalist.tsx";
-import Level from "./pages/assets/level/Level.tsx";
-import Annex from "./pages/assets/annex/Annex.tsx";
-import Dorm from "./pages/assets/dorm/Dorm.tsx";
+import Level from "./pages/assets/Level/level.tsx";
+import Annex from "./pages/assets/Annex/annex.tsx";
+import Dorm from "./pages/assets/Dorm/dorm.tsx";
 import GroupAffiliation from "./pages/maintenance/group-affiliation/GroupAffiliation.tsx";
 import IncidentCategory from "./pages/Incidents/incident-category/IncidentCategory.tsx";
 import IncidentType from "./pages/Incidents/incident-type/IncidentType.tsx";
@@ -165,6 +165,8 @@ import ServiceProviderUpdate from "./pages/visitor_management/service-provider-d
 import NPVisitorType from "./pages/Non-PDL/visitor-type/NPVisitorType.tsx";
 import NonPdlVisitorUpdate from "./pages/visitor_management/non-pdl-visitor-data-entry/NonPDLVisitorUpdate.tsx";
 import EncrytionParameters from "./pages/Settings/encryption-params/EncrytionParameters.tsx";
+import PDLStatus from "./pages/pdl_management/pdl-status/PDLStatus.tsx";
+import RiskClassification from "./pages/pdl_management/risk-classification/RiskClassification.tsx";
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
 const RootLayout = React.lazy(() => import("./layout/RootLayout.tsx"));
@@ -542,6 +544,14 @@ function App() {
           {
             path: "pdls/pdl-category",
             element: <PDLCategory />,
+          },
+          {
+            path: "pdls/status",
+            element: <PDLStatus />,
+          },
+          {
+            path: "pdls/risk_classification",
+            element: <RiskClassification />,
           },
           {
             path: "visitors",
