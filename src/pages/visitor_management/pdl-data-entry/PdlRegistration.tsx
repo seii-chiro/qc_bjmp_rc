@@ -46,7 +46,11 @@ import EducAttainment from "./EducAttainment";
 import FMC from "./FMC";
 import CaseDetails from "./CaseDetails";
 import PdlVisitor from "./PdlVisitor";
-import { getPDLVisitStatuses } from "@/lib/additionalQueries";
+import {
+  getPDLStatuses,
+  getPDLVisitStatuses,
+  getRiskClassifications,
+} from "@/lib/additionalQueries";
 import { EthnicityProvince } from "@/lib/definitions";
 
 const addPerson = async (payload: PersonForm, token: string) => {
@@ -150,7 +154,7 @@ const PdlRegistration = () => {
     org_id: 1,
     occupation_id: null,
     person_id: null,
-    status: "Committed",
+    new_status_id: null,
     visitor_ids: [],
     pdl_alias: "",
     time_arrested: "",
@@ -163,7 +167,7 @@ const PdlRegistration = () => {
     cell_id: null,
     floor_id: null,
     visitation_status_id: null,
-    risk_classification: "",
+    new_risk_classification_id: null,
   });
 
   const [selectedAnnexId, setSelectedAnnexId] = useState<number | null>(null);
@@ -536,6 +540,17 @@ const PdlRegistration = () => {
     useQuery({
       queryKey: ["visitation-statuses"],
       queryFn: () => getPDLVisitStatuses(token ?? ""),
+    });
+
+  const { data: pdlStatuses, isLoading: pdlStatusesLoading } = useQuery({
+    queryKey: ["pdl-statuses"],
+    queryFn: () => getPDLStatuses(token ?? ""),
+  });
+
+  const { data: riskClassifications, isLoading: riskClassificationsLoading } =
+    useQuery({
+      queryKey: ["risk-classifications"],
+      queryFn: () => getRiskClassifications(token ?? ""),
     });
 
   const enrollFaceMutation = useMutation({
@@ -1092,21 +1107,26 @@ const PdlRegistration = () => {
                 <div className="flex flex-col mt-2 w-full">
                   <div className="flex gap-1 font-semibold">Status</div>
                   <Select
-                    value={pdlForm?.status}
+                    loading={pdlStatusesLoading}
+                    value={pdlForm?.new_status_id}
                     showSearch
                     optionFilterProp="label"
                     className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
-                    options={[
-                      { value: "Under Trial", label: "Under Trial" },
-                      { value: "Convicted", label: "Convicted" },
-                      { value: "Released", label: "Released" },
-                      { value: "Hospitalized", label: "Hospitalized" },
-                      { value: "Committed", label: "Committed" },
-                    ]}
+                    // options={[
+                    //   { value: "Under Trial", label: "Under Trial" },
+                    //   { value: "Convicted", label: "Convicted" },
+                    //   { value: "Released", label: "Released" },
+                    //   { value: "Hospitalized", label: "Hospitalized" },
+                    //   { value: "Committed", label: "Committed" },
+                    // ]}
+                    options={pdlStatuses?.results?.map((status) => ({
+                      label: status?.status,
+                      value: status?.id,
+                    }))}
                     onChange={(value) => {
                       setPdlForm((prev) => ({
                         ...prev,
-                        status: value,
+                        new_status_id: value,
                       }));
                     }}
                   />
@@ -1116,19 +1136,26 @@ const PdlRegistration = () => {
                     Risk Classification
                   </div>
                   <Select
-                    value={pdlForm?.risk_classification}
+                    loading={riskClassificationsLoading}
+                    value={pdlForm?.new_risk_classification_id}
                     showSearch
                     optionFilterProp="label"
                     className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
-                    options={[
-                      { value: "Low Risk", label: "Low Risk" },
-                      { value: "Moderate Risk", label: "Moderate Risk" },
-                      { value: "High Risk", label: "High Risk" },
-                    ]}
+                    // options={[
+                    //   { value: "Low Risk", label: "Low Risk" },
+                    //   { value: "Moderate Risk", label: "Moderate Risk" },
+                    //   { value: "High Risk", label: "High Risk" },
+                    // ]}
+                    options={riskClassifications?.results?.map(
+                      (classification) => ({
+                        label: classification.risk_classification,
+                        value: classification?.id,
+                      })
+                    )}
                     onChange={(value) => {
                       setPdlForm((prev) => ({
                         ...prev,
-                        risk_classification: value,
+                        new_risk_classification_id: value,
                       }));
                     }}
                   />

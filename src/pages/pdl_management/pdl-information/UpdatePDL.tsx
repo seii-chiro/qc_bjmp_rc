@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { calculateAge } from "@/functions/calculateAge";
-import { getPDLVisitStatuses } from "@/lib/additionalQueries";
+import {
+  getPDLStatuses,
+  getPDLVisitStatuses,
+  getRiskClassifications,
+} from "@/lib/additionalQueries";
 import {
   getCivilStatus,
   getCountries,
@@ -188,7 +192,7 @@ const UpdatePDL = () => {
     org_id: 1,
     occupation_id: null,
     person_id: null,
-    status: "Committed",
+    new_status_id: null,
     visitor_ids: [],
     pdl_alias: "",
     time_arrested: "",
@@ -201,7 +205,7 @@ const UpdatePDL = () => {
     cell_id: null,
     floor_id: null,
     visitation_status_id: null,
-    risk_classification: "",
+    new_risk_classification_id: null,
   });
 
   const [selectedAnnexId, setSelectedAnnexId] = useState<number | null>(null);
@@ -553,6 +557,17 @@ const UpdatePDL = () => {
       },
     ],
   });
+
+  const { data: pdlStatuses, isLoading: pdlStatusesLoading } = useQuery({
+    queryKey: ["pdl-statuses"],
+    queryFn: () => getPDLStatuses(token ?? ""),
+  });
+
+  const { data: riskClassifications, isLoading: riskClassificationsLoading } =
+    useQuery({
+      queryKey: ["risk-classifications"],
+      queryFn: () => getRiskClassifications(token ?? ""),
+    });
 
   const toExclude = ["Female", "LGBTQ + LESBIAN / BISEXUAL"];
 
@@ -1218,7 +1233,11 @@ const UpdatePDL = () => {
 
     setPdlForm({
       file_no: pdlData?.cases?.[0]?.file_number ?? "",
-      risk_classification: pdlData?.risk_classification ?? "",
+      new_risk_classification_id:
+        riskClassifications?.results?.find(
+          (classification) =>
+            classification?.risk_classification === pdlData?.new_risk_classification
+        )?.id ?? null,
       date_of_admission: pdlData?.date_of_admission ?? "2001-01-01",
       case_data:
         pdlData?.cases?.map(
@@ -1260,7 +1279,10 @@ const UpdatePDL = () => {
         occupations?.results?.find(
           (occupation) => occupation?.name === pdlData?.occupation
         )?.id ?? null,
-      status: pdlData?.status ?? "",
+      new_status_id:
+        pdlStatuses?.results?.find(
+          (status) => status.status === pdlData?.new_status
+        )?.id ?? null,
       pdl_alias: pdlData?.shortname ?? "",
       time_arrested: "",
       remarks_data:
@@ -1374,6 +1396,8 @@ const UpdatePDL = () => {
     persons,
     relationships,
     birthClassTypes,
+    pdlStatuses,
+    riskClassifications
   ]);
 
   // useEffect(() => {
@@ -1541,21 +1565,26 @@ const UpdatePDL = () => {
                 <div className="flex flex-col mt-2 w-full">
                   <div className="flex gap-1 font-semibold">Status</div>
                   <Select
-                    value={pdlForm?.status}
+                    loading={pdlStatusesLoading}
+                    value={pdlForm?.new_status_id}
                     showSearch
                     optionFilterProp="label"
                     className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
-                    options={[
-                      { value: "Under Trial", label: "Under Trial" },
-                      { value: "Convicted", label: "Convicted" },
-                      { value: "Released", label: "Released" },
-                      { value: "Hospitalized", label: "Hospitalized" },
-                      { value: "Committed", label: "Committed" },
-                    ]}
+                    // options={[
+                    //   { value: "Under Trial", label: "Under Trial" },
+                    //   { value: "Convicted", label: "Convicted" },
+                    //   { value: "Released", label: "Released" },
+                    //   { value: "Hospitalized", label: "Hospitalized" },
+                    //   { value: "Committed", label: "Committed" },
+                    // ]}
+                    options={pdlStatuses?.results?.map((status) => ({
+                      label: status?.status,
+                      value: status?.id,
+                    }))}
                     onChange={(value) => {
                       setPdlForm((prev) => ({
                         ...prev,
-                        status: value,
+                        new_status_id: value,
                       }));
                     }}
                   />
@@ -1565,19 +1594,26 @@ const UpdatePDL = () => {
                     Risk Classification
                   </div>
                   <Select
-                    value={pdlForm?.risk_classification}
+                    loading={riskClassificationsLoading}
+                    value={pdlForm?.new_risk_classification_id}
                     showSearch
                     optionFilterProp="label"
                     className="mt-2 h-10 rounded-md outline-gray-300 !bg-gray-100"
-                    options={[
-                      { value: "Low Risk", label: "Low Risk" },
-                      { value: "Moderate Risk", label: "Moderate Risk" },
-                      { value: "High Risk", label: "High Risk" },
-                    ]}
+                    // options={[
+                    //   { value: "Low Risk", label: "Low Risk" },
+                    //   { value: "Moderate Risk", label: "Moderate Risk" },
+                    //   { value: "High Risk", label: "High Risk" },
+                    // ]}
+                    options={riskClassifications?.results?.map(
+                      (classification) => ({
+                        label: classification.risk_classification,
+                        value: classification?.id,
+                      })
+                    )}
                     onChange={(value) => {
                       setPdlForm((prev) => ({
                         ...prev,
-                        risk_classification: value,
+                        new_risk_classification_id: value,
                       }));
                     }}
                   />
