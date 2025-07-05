@@ -823,7 +823,7 @@ const VisitorProfile = ({
     },
     onError: (error) => {
       console.error(error.message);
-      message.info("Error Initializing Fingerprint Scanner");
+      message.info("Error Initializing Iris Scanner");
     },
   });
 
