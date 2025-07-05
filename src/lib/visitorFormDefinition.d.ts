@@ -227,12 +227,7 @@ export type PDLForm = {
   crime_committed?: string;
   visitor_ids: number[];
   visitor: PdlVisitor[];
-  status:
-    | "Under Trial"
-    | "Convicted"
-    | "Released"
-    | "Hospitalized"
-    | "Committed";
+  new_status_id: number | null;
   expected_release_date?: string;
   look_id: number | null;
   date_of_admission?: string;
@@ -248,7 +243,7 @@ export type PDLForm = {
   building_id: number | null;
   date_of_admission: string | null;
   visitation_status_id: number | null;
-  risk_classification: string;
+  new_risk_classification_id: number | null;
 };
 
 export type CasesDetailsForm = {
