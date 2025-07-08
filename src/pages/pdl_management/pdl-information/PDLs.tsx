@@ -91,7 +91,6 @@ const PDLtable = () => {
         enabled: !!token,
         keepPreviousData: true,
     });
-
     const { data: UserData } = useQuery({
         queryKey: ['user'],
         queryFn: () => getUser(token ?? "")
@@ -197,7 +196,6 @@ const PDLtable = () => {
         },
         enabled: !!token,
     });
-
     const visitation_status = searchParams.get("visitation_status") || "all";
     const visitationList = visitation_status !== "all" ? visitation_status.split(",").map(decodeURIComponent) : [];
 
@@ -335,20 +333,20 @@ const PDLtable = () => {
             render: (_, pdl) => pdl.floor,
             sorter: (a, b) => a.floor.localeCompare(b.floor),
         },
-        // {
-        //     title: 'Status',
-        //     dataIndex: 'status',
-        //     key: 'status',
-        //     sorter: (a, b) => a.status.localeCompare(b.status),
-        //     filters: [
-        //         { text: 'Committed', value: 'Committed' },
-        //         { text: 'Convicted', value: 'Convicted' },
-        //         { text: 'Released', value: 'Released' },
-        //         { text: 'Hospitalized', value: 'Hospitalized' },
-        //     ],
-        //     filteredValue: statusColumnFilter,
-        //     onFilter: (value, record) => record.status === value,
-        // },
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'status',
+            sorter: (a, b) => a.status.localeCompare(b.status),
+            filters: [
+                { text: 'Committed', value: 'Committed' },
+                { text: 'Convicted', value: 'Convicted' },
+                { text: 'Released', value: 'Released' },
+                { text: 'Hospitalized', value: 'Hospitalized' },
+            ],
+            filteredValue: statusColumnFilter,
+            onFilter: (value, record) => record.status === value,
+        },
         {
             title: 'Visitation Status',
             dataIndex: 'visitation_status',
@@ -366,13 +364,6 @@ const PDLtable = () => {
                     <NavLink to="update" state={{ pdl: record }} className={"flex items-center justify-center"}>
                         <AiOutlineEdit />
                     </NavLink>
-                    {/* <Button
-                type="link"
-                danger
-                onClick={() => deleteMutation.mutate(record.id)}
-            >
-                <AiOutlineDelete />
-            </Button> */}
                     <Button
                         type="link"
                         danger
@@ -421,7 +412,7 @@ const PDLtable = () => {
 
         const filteredResults = allResults.filter(pdl => {
             const genderValue = pdl?.person?.gender?.gender_option ?? '';
-            const statusValue = pdl?.status ?? '';
+            const statusValue = pdl?.new_status ?? '';
             const visitationStatusValue = pdl?.visitation_status ?? '';
 
             const matchesGlobalGender = gender === "all" || genderValue === gender;
@@ -451,7 +442,7 @@ const PDLtable = () => {
             cell_name: pdl?.cell?.cell_name ?? 'N/A',
             floor: pdl?.cell?.floor ?? 'N/A',
             visitation_status: pdl?.visitation_status ?? 'N/A',
-            status: pdl?.status ?? 'N/A',
+            status: pdl?.new_status ?? 'N/A',
             date_of_admission: pdl?.date_of_admission ?? 'N/A',
             organization: pdl?.organization ?? 'Bureau of Jail Management and Penology',
             updated: `${UserData?.first_name ?? ""} ${UserData?.last_name ?? ""}`,
@@ -567,7 +558,7 @@ const PDLtable = () => {
 
             const filteredResults = allResults.filter(pdl => {
                 const genderValue = pdl?.person?.gender?.gender_option ?? '';
-                const statusValue = pdl?.status ?? '';
+                const statusValue = pdl?.new_status ?? '';
                 const visitationStatusValue = pdl?.visitation_status ?? '';
 
                 const matchesGlobalGender = gender === "all" || genderValue === gender;
@@ -596,7 +587,7 @@ const PDLtable = () => {
                     "Dorm": pdl?.cell?.cell_name,
                     "Annex": pdl?.cell?.floor,
                     "Visitation Status": pdl?.visitation_status,
-                    "Status": pdl?.status,
+                    "Status": pdl?.new_status,
                 };
             }) || [];
 
@@ -625,7 +616,7 @@ const PDLtable = () => {
 
             const filteredResults = allResults.filter(pdl => {
                 const genderValue = pdl?.person?.gender?.gender_option ?? '';
-                const statusValue = pdl?.status ?? '';
+                const statusValue = pdl?.new_status ?? '';
                 const visitationStatusValue = pdl?.visitation_status ?? '';
 
                 const matchesGlobalGender = gender === "all" || genderValue === gender;
@@ -654,7 +645,7 @@ const PDLtable = () => {
                     "Dorm": pdl?.cell?.cell_name,
                     "Annex": pdl?.cell?.floor,
                     "Visitation Status": pdl?.visitation_status,
-                    "Status": pdl?.status,
+                    "Status": pdl?.new_status,
                 };
             }) || [];
 
@@ -717,7 +708,7 @@ const PDLtable = () => {
         cell_name: pdl?.cell?.cell_name ?? 'N/A',
         gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
         look: pdl?.look ?? 'N/A',
-        status: pdl?.status ?? 'N/A',
+        status: pdl?.new_status ?? 'N/A',
         gender: pdl?.person?.gender?.gender_option,
         visitation_status: pdl?.visitation_status ?? 'N/A',
         floor: pdl?.cell?.floor ?? 'N/A',
