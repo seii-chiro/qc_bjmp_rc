@@ -43,7 +43,10 @@ const RootLayout = () => {
       fingerScannerInitMutation.isError ||
       fingerScannerUninitThenInitMutation.isError
     ) {
-      message.error("Fingerprint scanner failed to initialize.");
+      message.error({
+        content: "Fingerprint scanner failed to initialize. Device not connected.",
+        duration: 5,
+      });
     }
   }, [
     fingerprintErrorInit,
@@ -62,7 +65,7 @@ const RootLayout = () => {
       irisScannerInitMutation.isError ||
       irisScannerUninitThenInitMutation.isError
     ) {
-      message.error("Iris scanner failed to initialize.");
+      message.error("Iris scanner failed to initialize. Device not connected.");
     }
   }, [
     irisErrorInit,
