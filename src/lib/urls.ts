@@ -1,8 +1,8 @@
 export const BASE_URL_BIOMETRIC: string = "";
 export const BASE_URL: string = "";
 
-// export const BASE_URL_BIOMETRIC: string = "http://localhost:8004";
-// export const BASE_URL: string = "http://localhost:8001";
+// export const BASE_URL_BIOMETRIC: string = "http://localhost:8005";
+// export const BASE_URL: string = "http://localhost:8004";
 
 // export const BASE_URL_BIOMETRIC: string = "http://192.168.50.204:8004";
 // export const BASE_URL: string = "http://192.168.50.204:8001";
