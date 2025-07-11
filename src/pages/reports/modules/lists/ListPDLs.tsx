@@ -232,7 +232,7 @@ const visitation_status = searchParams.get("visitation_status") || "all";
             name: `${pdl?.person?.first_name} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name}`.trim(),
             date_of_birth: pdl?.person?.date_of_birth,
             crime_category: pdl?.cases?.[0]?.crime_category,
-            status: pdl?.status,
+            status: pdl?.new_status,
             date_of_admission: pdl?.date_of_admission,
             visitation_status: pdl?.visitation_status,
             remarks: pdl?.remarks,
@@ -337,7 +337,7 @@ const visitation_status = searchParams.get("visitation_status") || "all";
             }
         const allResults = allData?.results || [];
         const pdlResults = allResults?.filter(pdl => {
-            const statusValue = pdl?.status ?? '';
+            const statusValue = pdl?.new_status ?? '';
             const visitationStatusValue = pdl?.visitation_status ?? '';
 
             const matchesGlobalStatus = status === "all" || statusValue === status;
@@ -518,7 +518,7 @@ const downloadExcel = async () => {
             }
         const allResults = allData?.results || [];
         const pdlResults = allResults?.filter(pdl => {
-            const statusValue = pdl?.status ?? '';
+            const statusValue = pdl?.new_status ?? '';
             const visitationStatusValue = pdl?.visitation_status ?? '';
 
             const matchesGlobalStatus = status === "all" || statusValue === status;
@@ -542,7 +542,7 @@ const downloadExcel = async () => {
                 'Full Name': `${pdl?.person?.first_name ?? ''} ${pdl?.person?.middle_name ?? ''} ${pdl?.person?.last_name ?? ''}`.trim(),
                 'Date of Birth': pdl?.person?.date_of_birth ?? '',
                 'Case Type': pdl?.cases?.[0]?.crime_category ?? '',
-                'Status': pdl?.status ?? '',
+                'Status': pdl?.new_status ?? '',
                 'Date of Commitment': pdl?.date_of_admission ?? '',
                 'Visiting Eligibility': pdl?.visitation_status ?? '',
                 'Notes': pdl?.notes ?? '',
@@ -570,7 +570,7 @@ const downloadCSV = async () => {
             }
         const allResults = allData?.results || [];
         const pdlResults = allResults?.filter(pdl => {
-            const statusValue = pdl?.status ?? '';
+            const statusValue = pdl?.new_status ?? '';
             const visitationStatusValue = pdl?.visitation_status ?? '';
 
             const matchesGlobalStatus = status === "all" || statusValue === status;
@@ -693,7 +693,7 @@ const menu = (
     cell_name: pdl?.cell?.cell_name ?? 'N/A',
     gang_affiliation: pdl?.gang_affiliation ?? 'N/A',
     look: pdl?.look ?? 'N/A',
-    status: pdl?.status ?? 'N/A',
+    status: pdl?.new_status ?? 'N/A',
     gender: pdl?.person?.gender?.gender_option,
     visitation_status: pdl?.visitation_status ?? 'N/A',
     floor: pdl?.cell?.floor ?? 'N/A',

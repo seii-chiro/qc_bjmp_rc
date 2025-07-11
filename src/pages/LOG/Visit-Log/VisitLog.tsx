@@ -328,7 +328,7 @@ const VisitLog = () => {
         pdl_type: view === "PDL"
           ? "N/A"
           : (Array.isArray(entry?.visitor?.pdls) && entry.visitor.pdls.length > 0
-            ? entry.visitor.pdls.map(pdl => pdl?.pdl?.status || "Unknown").join(", ")
+            ? entry.visitor.pdls.map(pdl => pdl?.pdl?.new_status || "Unknown").join(", ")
             : "N/A"),
       })
     )
