@@ -67,6 +67,7 @@ import { EthnicityProvince } from "@/lib/definitions";
 import { Person } from "@/lib/pdl-definitions";
 import { EnrolledBiometrics } from "@/pages/visitor_management/edit-visitor/EditVisitor";
 import { addIfExists } from "@/functions/objectBuilderHelper";
+import { calculateDaysInDetention } from "@/functions/calculateDaysInDetention";
 
 const patchPerson = async (payload: PersonForm, token: string, id: string) => {
   const res = await fetch(`${PERSON.postPERSON}${id}/`, {
@@ -1278,6 +1279,11 @@ const UpdatePDL = () => {
               result,
               "law_id",
               laws?.results?.find((law) => law?.name === pdlCases?.law)?.id
+            );
+            addIfExists(
+              result,
+              "days_in_detention",
+              calculateDaysInDetention(pdlData?.date_of_admission)
             );
 
             return result;
