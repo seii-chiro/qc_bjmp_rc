@@ -4,6 +4,7 @@ import { CasesDetailsForm, PDLForm } from "@/lib/visitorFormDefinition";
 import { DatePicker, Input, message, Select } from "antd";
 import { SetStateAction, useEffect, useState } from "react";
 import dayjs from "dayjs";
+import { calculateDaysInDetention } from "@/functions/calculateDaysInDetention";
 
 const removeNullFields = (obj: Record<string, any>) => {
   return Object.fromEntries(
@@ -95,19 +96,16 @@ const CaseDetailsForm = ({
   }, [casesForm?.offense_id, offenses, crimeCategories, laws]);
 
   useEffect(() => {
-    if (casesForm?.date_arrested) {
-      const today = new Date();
-      const arrestedDate = new Date(casesForm.date_arrested);
+    if (!pdlForm?.date_of_admission) return;
 
-      const diffTime = today.getTime() - arrestedDate.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-      setCasesForm((prev) => ({
-        ...prev,
-        days_in_detention: diffDays.toString(),
-      }));
-    }
-  }, [casesForm.date_arrested]);
+    const daysInDetention = calculateDaysInDetention(
+      pdlForm?.date_of_admission
+    );
+    setCasesForm((prev) => ({
+      ...prev,
+      days_in_detention: daysInDetention,
+    }));
+  }, [pdlForm?.date_of_admission]);
 
   useEffect(() => {
     if (editIndex !== null && pdlForm?.case_data?.[editIndex]) {
