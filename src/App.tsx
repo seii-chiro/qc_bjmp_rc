@@ -167,6 +167,7 @@ import NonPdlVisitorUpdate from "./pages/visitor_management/non-pdl-visitor-data
 import EncrytionParameters from "./pages/Settings/encryption-params/EncrytionParameters.tsx";
 import PDLStatus from "./pages/pdl_management/pdl-status/PDLStatus.tsx";
 import RiskClassification from "./pages/pdl_management/risk-classification/RiskClassification.tsx";
+import IncidentSeverity from "./pages/Incidents/incident-severity/IncidentSeverity.tsx";
 
 const Home = React.lazy(() => import("./pages/dashboard/Home.tsx"));
 const RootLayout = React.lazy(() => import("./layout/RootLayout.tsx"));
@@ -446,9 +447,13 @@ function App() {
             element: <IncidentType />,
           },
           {
-            path: "incidents/incident-type",
-            element: <Incidents />,
+            path: "incidents/incidents_severity_level",
+            element: <IncidentSeverity />,
           },
+          // {
+          //   path: "incidents/incident-type",
+          //   element: <Incidents />,
+          // },
           {
             path: "incidents/incidents_list",
             element: <IncidentTable />,
