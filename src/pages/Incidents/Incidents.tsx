@@ -11,7 +11,7 @@ const Incidents = () => {
                     <GodotLink link="incidents_list" title="Incident" />
                     <GodotLink link="incident-category" title="Incident Category" />
                     <GodotLink link="incident-type" title="Incident Type" />
-                    {/* <GodotLink link="" title="Incident Commanders" /> */}
+                    <GodotLink link="incidents_severity_level" title="Incident Severity Level" />
                     {/* <GodotLink link="" title="Reporters" />
                     <GodotLink link="" title="Resolvers" />
                     <GodotLink link="" title="Responders" /> */}
