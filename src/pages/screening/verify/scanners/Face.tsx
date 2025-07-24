@@ -1,28 +1,32 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { captureFace, verifyFace } from '@/lib/scanner-queries'
-import { useMutation } from '@tanstack/react-query'
-import { message, Modal, Select } from 'antd'
-import { useEffect, useState } from 'react'
-import check from "@/assets/Icons/check-mark.png"
-import ex from "@/assets/Icons/close.png"
-import { useTokenStore } from '@/store/useTokenStore'
-import { BASE_URL } from '@/lib/urls'
-import { Device } from '@/lib/definitions'
-import { verifyFaceInWatchlist } from '@/lib/threatQueries'
-import VisitorProfilePortrait from '../../VisitorProfilePortrait'
-import PdlProfilePortrait from '../../PdlProfilePortrait'
-import { useSystemSettingsStore } from '@/store/useSystemSettingStore'
-import WatchlistMatchAlert from '@/pages/visitor_management/visitor-data-entry/WatchlistMatchAlert'
+import { captureFace, verifyFace } from "@/lib/scanner-queries";
+import { useMutation } from "@tanstack/react-query";
+import { message, Modal, Select } from "antd";
+import { useEffect, useState } from "react";
+import check from "@/assets/Icons/check-mark.png";
+import ex from "@/assets/Icons/close.png";
+import { useTokenStore } from "@/store/useTokenStore";
+import { BASE_URL } from "@/lib/urls";
+import { Device } from "@/lib/definitions";
+import { verifyFaceInWatchlist } from "@/lib/threatQueries";
+import VisitorProfilePortrait from "../../VisitorProfilePortrait";
+import PdlProfilePortrait from "../../PdlProfilePortrait";
+import { useSystemSettingsStore } from "@/store/useSystemSettingStore";
+import WatchlistMatchAlert from "@/pages/visitor_management/visitor-data-entry/WatchlistMatchAlert";
+import imgPlaceholder from "@/assets/profile_placeholder.jpg";
 
 type Props = {
   devices: Device[];
   deviceLoading: boolean;
   selectedArea: string;
-}
+};
 
 const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
-  const [icao, setIcao] = useState("")
-  const [verificationPayload, setVerificationPayload] = useState({ template: '', type: 'face' })
+  const [icao, setIcao] = useState("");
+  const [verificationPayload, setVerificationPayload] = useState({
+    template: "",
+    type: "face",
+  });
   // const [verificationResult, setVerificationResult] = useState<any | null>(null)
 
   const [lastScanned, setLastScanned] = useState<any | null>(null);
@@ -32,15 +36,16 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
-  const [inWatchList, setInWatchlist] = useState<string | null>(null)
-  const [watchlistData, setWatchlistData] = useState<any | null>(null)
-  const [isWatchlistMatchModalOpen, setIsWatchlistMatchModalOpen] = useState(false);
+  const [inWatchList, setInWatchlist] = useState<string | null>(null);
+  const [watchlistData, setWatchlistData] = useState<any | null>(null);
+  const [isWatchlistMatchModalOpen, setIsWatchlistMatchModalOpen] =
+    useState(false);
 
-  const allowForce = useSystemSettingsStore(state => state.allowForce)
+  const allowForce = useSystemSettingsStore((state) => state.allowForce);
 
   useEffect(() => {
     if (!deviceLoading && devices && devices.length > 0) {
-      const webcamDevice = devices.find(device =>
+      const webcamDevice = devices.find((device) =>
         device?.device_name?.toLowerCase().includes("webcam")
       );
       if (webcamDevice) {
@@ -50,7 +55,7 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
   }, [devices, deviceLoading]);
 
   const faceRegistrationMutation = useMutation({
-    mutationKey: ['capture-face'],
+    mutationKey: ["capture-face"],
     mutationFn: captureFace,
     onSuccess: (data) => {
       setIcao(data?.images?.icao);
@@ -63,23 +68,23 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
     },
     onError: (error) => {
       console.error(error);
-    }
+    },
   });
 
   const handleCaptureFace = () => {
-    faceRegistrationMutation.mutate(allowForce)
+    faceRegistrationMutation.mutate(allowForce);
   };
 
   // Function to process visitor log and make API calls
   const processVisitorLog = async (verificationData: any) => {
-
     if (!selectedDeviceId) {
       message.warning("Please select a device.");
       return;
     }
 
-    const idNumber = verificationData?.data?.[0]?.biometric?.person_data?.visitor?.id_number;
-    const pdlId = verificationData?.data?.[0]?.biometric?.person_data?.pdl?.id
+    const idNumber =
+      verificationData?.data?.[0]?.biometric?.person_data?.visitor?.id_number;
+    const pdlId = verificationData?.data?.[0]?.biometric?.person_data?.pdl?.id;
 
     if (selectedArea !== "PDL Station") {
       if (!idNumber) {
@@ -121,23 +126,26 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
       fetchingMessage = message.loading("Fetching person information...", 0);
       // Skip fetch if selectedArea is "pdl station"
       if (selectedArea?.toLowerCase() !== "pdl station") {
-        const res = await fetch(`${BASE_URL}/api/visit-logs/visitor-specific/?id_number=${idNumber}`, {
-          method: 'get',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Token ${token}`
-          },
-        });
+        const res = await fetch(
+          `${BASE_URL}/api/visit-logs/visitor-specific/?id_number=${idNumber}`,
+          {
+            method: "get",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Token ${token}`,
+            },
+          }
+        );
 
         if (!res.ok) throw new Error(`Failed to fetch visitor.`);
         visitorData = await res.json();
         setLastScanned(visitorData);
       } else {
         const res = await fetch(`${BASE_URL}/api/pdls/pdl/${pdlId}`, {
-          method: 'get',
+          method: "get",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Token ${token}`
+            "Content-Type": "application/json",
+            Authorization: `Token ${token}`,
           },
         });
 
@@ -151,17 +159,19 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
 
       // Post to visit log endpoint
       const postRes = await fetch(visitsUrl, {
-        method: 'post',
+        method: "post",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`,
         },
         body: JSON.stringify({
           device_id: selectedDeviceId,
           id_number: idNumber,
           binary_data: visitorData?.encrypted_id_number_qr,
-          person_id: visitorData?.person?.id || verificationData?.data?.[0]?.biometric?.person_data?.id
-        })
+          person_id:
+            visitorData?.person?.id ||
+            verificationData?.data?.[0]?.biometric?.person_data?.id,
+        }),
       });
 
       if (!postRes.ok) throw new Error(`Failed to log visit.`);
@@ -170,12 +180,12 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
       // Post to tracking endpoint
       if (visitLogResponse?.id) {
         const trackingRes = await fetch(trackingUrl, {
-          method: 'post',
+          method: "post",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Token ${token}`
+            "Content-Type": "application/json",
+            Authorization: `Token ${token}`,
           },
-          body: JSON.stringify({ visit_id: visitLogResponse.id })
+          body: JSON.stringify({ visit_id: visitLogResponse.id }),
         });
 
         if (!trackingRes.ok) throw new Error(`Failed to log visit tracking.`);
@@ -184,9 +194,10 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
         message.success("Visit and tracking logged successfully!");
       } else {
         processingMessage?.();
-        message.warning("Visit logged, but tracking failed due to missing visit ID.");
+        message.warning(
+          "Visit logged, but tracking failed due to missing visit ID."
+        );
       }
-
     } catch (err: any) {
       fetchingMessage?.();
       processingMessage?.();
@@ -197,21 +208,21 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
   };
 
   const verifyFaceMutation = useMutation({
-    mutationKey: ['face-verification'],
+    mutationKey: ["face-verification"],
     mutationFn: verifyFace,
     onMutate: () => {
       message.open({
-        key: 'face-verification',
-        type: 'loading',
-        content: 'Verifying person’s face...',
+        key: "face-verification",
+        type: "loading",
+        content: "Verifying person’s face...",
         duration: 0,
       });
     },
     onSuccess: (data) => {
       message.open({
-        key: 'face-verification',
-        type: 'info',
-        content: 'Match Found',
+        key: "face-verification",
+        type: "info",
+        content: "Match Found",
         duration: 3,
       });
       processVisitorLog(data);
@@ -219,26 +230,28 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
     onError: (error) => {
       console.error("Biometric enrollment failed:", error);
       message.open({
-        key: 'face-verification',
-        type: 'info',
-        content: 'No Matches Found',
+        key: "face-verification",
+        type: "info",
+        content: "No Matches Found",
         duration: 3,
       });
     },
   });
 
   const verifyFaceInWatchlistMutation = useMutation({
-    mutationKey: ['face-verification'],
+    mutationKey: ["face-verification"],
     mutationFn: verifyFaceInWatchlist,
     onSuccess: (data) => {
       message.warning({
         // content: `Watchlist: ${data['message']}`,
         content: `This person is found in the Watchlist Database!`,
-        duration: 20
+        duration: 20,
       });
-      setWatchlistData(data?.data)
-      setIsWatchlistMatchModalOpen(true)
-      setInWatchlist("Warning: This individual has a match in the watchlist database.")
+      setWatchlistData(data?.data);
+      setIsWatchlistMatchModalOpen(true);
+      setInWatchlist(
+        "Warning: This individual has a match in the watchlist database."
+      );
     },
     onError: (error) => {
       message.info(`Watchlist: ${error.message}`);
@@ -256,10 +269,10 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
     const submitIssue = async () => {
       try {
         const response = await fetch(`${BASE_URL}/api/issues_v2/issues/`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Token ${token}`
+            "Content-Type": "application/json",
+            Authorization: `Token ${token}`,
           },
           body: JSON.stringify({
             impact_id: 8,
@@ -268,27 +281,36 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
             issue_category_id: 1,
             issue_status_id: 1,
             issue_type_id: 15,
-            recommendedAction: "Cross-Check With Watchlists and Prior Incidents: Look for related entries or historical patterns.",
+            recommendedAction:
+              "Cross-Check With Watchlists and Prior Incidents: Look for related entries or historical patterns.",
             risk_level_id: 2,
             risks: 7,
-            status_id: 1
+            status_id: 1,
           }),
         });
 
         if (!response.ok) {
           const errorData = await response.json();
           if (!isCancelled) {
-            message.error(`Error submitting issue: ${JSON.stringify(errorData) || 'Unknown error'}`);
+            message.error(
+              `Error submitting issue: ${
+                JSON.stringify(errorData) || "Unknown error"
+              }`
+            );
           }
           return;
         }
 
         if (!isCancelled) {
-          message.success('Issue successfully submitted!');
+          message.success("Issue successfully submitted!");
         }
       } catch (error) {
         if (!isCancelled) {
-          message.error(`Request failed: ${error instanceof Error ? error.message : String(error)}`);
+          message.error(
+            `Request failed: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
         }
       }
     };
@@ -310,17 +332,13 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
         footer={[]}
         width={"70%"}
       >
-        <WatchlistMatchAlert
-          icao={icao}
-          watchlistData={watchlistData}
-        />
-      </Modal >
+        <WatchlistMatchAlert icao={icao} watchlistData={watchlistData} />
+      </Modal>
       <div className="flex">
         <div className="flex-1 flex flex-col items-center justify-center p-4">
           <div className="w-full flex items-center justify-center">
             <img
-              src={icao ? `data:image/bmp;base64,${icao}` :
-                "https://i2.wp.com/vdostavka.ru/wp-content/uploads/2019/05/no-avatar.png?fit=512%2C512&ssl=1"}
+              src={icao ? `data:image/bmp;base64,${icao}` : imgPlaceholder}
               className="w-[50%]"
             />
           </div>
@@ -338,52 +356,50 @@ const Face = ({ devices, deviceLoading, selectedArea }: Props) => {
               optionFilterProp="label"
               className="h-10 w-72"
               options={devices
-                ?.filter(device => device?.device_name?.toLowerCase().includes("webcam"))
-                .map(device => ({
+                ?.filter((device) =>
+                  device?.device_name?.toLowerCase().includes("webcam")
+                )
+                .map((device) => ({
                   label: device?.device_name,
-                  value: device?.id
-                }))
-              }
+                  value: device?.id,
+                }))}
               value={selectedDeviceId || undefined}
-              onChange={value => {
-                setSelectedDeviceId(value)
+              onChange={(value) => {
+                setSelectedDeviceId(value);
               }}
               placeholder="Select a device"
             />
           </div>
         </div>
 
-        <div className='flex-1'>
-          {
-            selectedArea?.toLowerCase() === "pdl station" ? (
-              <div className="flex-1">
-                <PdlProfilePortrait visitorData={lastScannedPdl} />
+        <div className="flex-1">
+          {selectedArea?.toLowerCase() === "pdl station" ? (
+            <div className="flex-1">
+              <PdlProfilePortrait visitorData={lastScannedPdl} />
+            </div>
+          ) : (
+            <div className="flex-1">
+              <div className="w-full flex items-center justify-center">
+                {lastScanned?.visitor_app_status && (
+                  <div className="flex items-center justify-center gap-5">
+                    <h1 className="font-bold text-2xl text-green-700">
+                      {lastScanned?.visitor_app_status}
+                    </h1>
+                    {lastScanned?.visitor_app_status === "Verified" ? (
+                      <img src={check} className="w-10" alt="Check" />
+                    ) : (
+                      <img src={ex} className="w-10" alt="Close" />
+                    )}
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className='flex-1'>
-                <div className='w-full flex items-center justify-center'>
-                  {
-                    lastScanned?.visitor_app_status && (
-                      <div className="flex items-center justify-center gap-5">
-                        <h1 className="font-bold text-2xl text-green-700">{lastScanned?.visitor_app_status}</h1>
-                        {lastScanned?.visitor_app_status === "Verified" ? (
-                          <img src={check} className="w-10" alt="Check" />
-                        ) : (
-                          <img src={ex} className="w-10" alt="Close" />
-                        )}
-                      </div>
-                    )
-                  }
-                </div>
-                <VisitorProfilePortrait visitorData={lastScanned} />
-              </div>
-            )
-          }
+              <VisitorProfilePortrait visitorData={lastScanned} />
+            </div>
+          )}
         </div>
-
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Face
+export default Face;
