@@ -89,7 +89,7 @@ const IncidentTable = () => {
             title: "Date/Time",
             dataIndex: "created_at",
             key: "created_at",
-            render: (value: string) => new Date(value).toLocaleString(),
+            render: (value: string) => new Date(value)?.toLocaleString(),
         },
         {
             title: "Incident Description",
@@ -117,13 +117,13 @@ const IncidentTable = () => {
                 let color = "#1890ff"; // default blue for "Open"
                 let background = "#e6f4ff"; // light blue for open
                 const fontWeight = "bold";
-                if (status.toLowerCase() === "pending") {
+                if (status?.toLowerCase() === "pending") {
                     color = "orange";
                     background = "#fff7e6"; // light orange
-                } else if (status.toLowerCase() === "closed") {
+                } else if (status?.toLowerCase() === "closed") {
                     color = "green";
                     background = "#f6ffed"; // light green
-                } else if (status.toLowerCase() === "open") {
+                } else if (status?.toLowerCase() === "open") {
                     color = "#1890ff";
                     background = "#e6f4ff";
                 }
@@ -131,9 +131,9 @@ const IncidentTable = () => {
                 return (
                     <Select
                         className={
-                            status.toLowerCase() === "pending"
+                            status?.toLowerCase() === "pending"
                                 ? "!bg-orange-50"
-                                : status.toLowerCase() === "closed"
+                                : status?.toLowerCase() === "closed"
                                     ? "!bg-green-50"
                                     : "!bg-blue-50"
                         }
@@ -151,9 +151,9 @@ const IncidentTable = () => {
                                 <span
                                     style={{
                                         color:
-                                            status.name.toLowerCase() === "pending"
+                                            status?.name?.toLowerCase() === "pending"
                                                 ? "orange"
-                                                : status.name.toLowerCase() === "closed"
+                                                : status?.name?.toLowerCase() === "closed"
                                                     ? "green"
                                                     : "#1890ff",
                                         fontWeight: "bold",
