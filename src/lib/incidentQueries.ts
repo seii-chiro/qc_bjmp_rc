@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { IncidentSeverityLevelFormType } from "@/pages/Incidents/incident-severity/IncidentSeverityForm";
 import {
   Incident,
   IncidentFormType,
@@ -74,6 +75,51 @@ export async function getSeverityLevels(
     throw new Error("Failed to fetch Incident Severity Levels.");
   }
 
+  return res.json();
+}
+
+export async function addSeverityLevels(
+  token: string,
+  payload: IncidentSeverityLevelFormType
+): Promise<any> {
+  const res = await fetch(`${BASE_URL}/api/incidents/incident-severities/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to add incident severity.");
+  }
+
+  return res.json();
+}
+
+export async function patchIncidentSeverityLevel(token: string, id: number, payload: any) {
+  const res = await fetch(`${BASE_URL}/api/incidents/incident-severities/${id}/`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Failed to update incident severity level.");
+  return res.json();
+}
+
+export async function deleteIncidentSeverityLevel(token: string, id: number) {
+  const res = await fetch(`${BASE_URL}/api/incidents/incident-severities/${id}/`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Token ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error("Failed to delete incident severity level.");
   return res.json();
 }
 
